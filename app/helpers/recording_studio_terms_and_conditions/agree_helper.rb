@@ -30,18 +30,22 @@ module RecordingStudioTermsAndConditions
     end
 
     def recording_studio_terms_agree_labeled_box(terms, checkbox_id, link_terms)
-      checkbox = render(
+      checkbox = recording_studio_terms_agree_checkbox_tag(checkbox_id, link_terms)
+      return checkbox unless link_terms
+
+      content_tag(:div, class: "flex items-center") do
+        safe_join([checkbox, recording_studio_terms_agree_linked_label(terms, checkbox_id)])
+      end
+    end
+
+    def recording_studio_terms_agree_checkbox_tag(checkbox_id, link_terms)
+      render(
         FlatPack::Checkbox::Component.new(
           **recording_studio_terms_agree_checkbox,
           id: checkbox_id,
           label: link_terms ? nil : "I agree to these terms"
         )
       )
-      return checkbox unless link_terms
-
-      content_tag(:div, class: "flex items-center") do
-        safe_join([checkbox, recording_studio_terms_agree_linked_label(terms, checkbox_id)])
-      end
     end
 
     def recording_studio_terms_agree_checkbox
@@ -54,19 +58,19 @@ module RecordingStudioTermsAndConditions
     end
 
     def recording_studio_terms_agree_linked_label(terms, checkbox_id)
-      url = terms.try(:published_url)
-      terms_word = if url.present?
-                     render(FlatPack::Link::Component.new(href: url).with_content("terms"))
-                   else
-                     "terms"
-                   end
-
       label_tag(
         checkbox_id,
-        safe_join(["I agree to these ".html_safe, terms_word]),
+        safe_join(["I agree to these ".html_safe, recording_studio_terms_word_link(terms)]),
         class: "ml-[var(--checkbox-label-gap)] text-sm font-medium " \
                "text-[var(--surface-content-color)] cursor-pointer"
       )
+    end
+
+    def recording_studio_terms_word_link(terms)
+      url = terms.try(:published_url)
+      return "terms" if url.blank?
+
+      render(FlatPack::Link::Component.new(href: url).with_content("terms"))
     end
 
     def recording_studio_terms_agree_full_terms_link(terms)
