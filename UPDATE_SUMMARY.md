@@ -1,6 +1,6 @@
-# Recording Studio kit pin update
+# Recording Studio Terms and Conditions kit pin update
 
-Copied addons now start on the Support host-kit floor.
+`recording_studio_terms_and_conditions` starts on the Support host-kit floor.
 
 - Gemspec: `add_dependency "recording_studio", "~> 4.2"`
 - Dummy GitHub tags: Recording Studio `v4.2.0`, Accessible `v0.9.1`, Root Switchable `v0.5.0`, FlatPack `v0.1.177`

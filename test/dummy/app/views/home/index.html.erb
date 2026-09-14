@@ -1,9 +1,9 @@
-<% dummy_page_nav(title: "Template Demo", back_url: root_path) %>
+<% dummy_page_nav(title: "Terms demo", back_url: root_path) %>
 
 <div class="flex w-full flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
-    title: "Template Demo",
-    subtitle: "This dummy app is the browser-facing demo surface for the template.",
+    title: "Terms demo",
+    subtitle: "This dummy app is the browser-facing demo surface for the addon.",
     variant: :h1
   ) %>
 
@@ -12,7 +12,7 @@
       <% card.header do %>
         <%= render FlatPack::PageTitle::Component.new(
           title: "What's working",
-          subtitle: "Core template capabilities already wired into the dummy app.",
+          subtitle: "Core host wiring already in the dummy app.",
           variant: :h3,
           class: "mb-0 pb-0"
         ) %>
@@ -32,7 +32,7 @@
       <% card.header do %>
         <%= render FlatPack::PageTitle::Component.new(
           title: "Next steps",
-          subtitle: "The usual first moves when turning the template into a real addon.",
+          subtitle: "The usual first moves when installing this addon in a host app.",
           variant: :h3,
           class: "mb-0 pb-0"
         ) %>
@@ -40,7 +40,7 @@
 
       <% card.body do %>
         <ol class="space-y-3 text-sm leading-6 list-decimal pl-5">
-          <li>Run <code>bin/rename_gem your_addon_name</code> when you are ready to rename the engine.</li>
+          <li>Install the gem in a host app and mount the engine.</li>
           <li>Replace the sample migration with your addon tables and install them into the host app.</li>
           <li>Configure Recording Studio recordable types and capabilities in the host app initializer.</li>
           <li>Use the dummy app to validate layout, asset scanning, and authentication flows.</li>
@@ -91,8 +91,8 @@
       <% card.body do %>
         <ul class="space-y-3 text-sm leading-6">
           <li>Add the gem to your host app and run <code>bundle install</code>.</li>
-          <li>Run <code>rails generate gem_template:install</code> to mount the engine and add configuration.</li>
-          <li>Run <code>rails generate gem_template:migrations</code> to copy engine migrations into the host app.</li>
+          <li>Run <code>rails generate recording_studio_terms_and_conditions:install</code> to mount the engine and add configuration.</li>
+          <li>Run <code>rails generate recording_studio_terms_and_conditions:migrations</code> to copy engine migrations into the host app.</li>
           <li>Rebuild Tailwind if needed with <code>bin/rails tailwindcss:build</code>.</li>
         </ul>
       <% end %>

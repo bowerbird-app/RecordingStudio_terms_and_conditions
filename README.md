@@ -1,8 +1,14 @@
-# GemTemplate
+# Recording Studio Terms and Conditions
 
-Internal template for building Rails engine addons on top of Recording Studio 4.x.
+A Recording Studio addon for terms and conditions.
 
-## What's Included
+- Rubygems: `recording_studio_terms_and_conditions`
+- Module: `RecordingStudioTermsAndConditions`
+- Source: [bowerbird-app/RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions)
+
+This slice is identity only. The engine, dummy host, and install generators use the product name. Versioned terms, clickwrap, acceptances, and admin screens are later work.
+
+## What's included
 
 - **Recording Studio** 4.x gem pinned and configured
 - **Devise** authentication with a pre-seeded admin user
@@ -12,9 +18,9 @@ Internal template for building Rails engine addons on top of Recording Studio 4.
 
 Authenticated dummy pages use Recording Studio's shared default layout (`RecordingStudio::UsesDefaultLayout`) plus FlatPack CSS and JS. Devise keeps its own sign-in layout. Dummy `/docs/*` pages stay in the dummy app as a host-app sandbox; they are not the product README.
 
-## Quick Start
+## Quick start
 
-### Cursor Cloud Agent (Recommended)
+### Cursor Cloud Agent (recommended)
 
 A Cloud Agent boots this repo into a ready-to-use dev environment with no manual steps. The setup lives in `.cursor/`:
 
@@ -36,9 +42,9 @@ Open port 3000 and sign in at `/users/sign_in`. No environment variables are req
    ```
 4. Open port 3000 — you'll land on the dummy app home page and can sign in at `/users/sign_in`
 
-The dummy app is intended as a host-app validation surface for authentication, FlatPack rendering, Tailwind source scanning, and Recording Studio route wiring.
+The dummy app is a host-app validation surface for authentication, FlatPack rendering, Tailwind source scanning, and Recording Studio route wiring.
 
-### Login Credentials
+### Login credentials
 
 | Field    | Value             |
 |----------|-------------------|
@@ -47,7 +53,7 @@ The dummy app is intended as a host-app validation surface for authentication, F
 
 The login form is prefilled with these credentials for fast access.
 
-### Useful Routes
+### Useful routes
 
 - `/` — dummy app home page
 - `/users/sign_in` — Devise sign-in page
@@ -56,11 +62,26 @@ The login form is prefilled with these credentials for fast access.
 
 The home page in `test/dummy/app/views/home/index.html.erb` is a starting point for a minimal demo of the gem's primary behavior. Keep deeper explanations on the dummy docs pages, not in this README.
 
+## Host install
+
+```bash
+# Gemfile
+gem "recording_studio_terms_and_conditions", github: "bowerbird-app/RecordingStudio_terms_and_conditions"
+```
+
+```bash
+bundle install
+bin/rails generate recording_studio_terms_and_conditions:install
+bin/rails generate recording_studio_terms_and_conditions:migrations
+bin/rails db:migrate
+bin/rails tailwindcss:build
+```
+
 ## Architecture
 
-### Root Recording Pattern
+### Root recording pattern
 
-This template follows Recording Studio's root recording pattern:
+The dummy host follows Recording Studio's root recording pattern:
 
 - **Workspace** is the top-level recordable
 - **Folder** and **Page** demonstrate nested recordables under the workspace root
@@ -96,7 +117,7 @@ To add new recordable types:
    end
    ```
 
-### Recordable Declarations
+### Recordable declarations
 
 Every configured ActiveRecord recordable type must declare its hierarchy rules. Declarations are required; they are not version-specific.
 
@@ -122,7 +143,7 @@ The dummy Workspace enables Accessible because that addon is bundled:
 RecordingStudio.enable_capability(:accessible, on: Workspace)
 ```
 
-The template also ships one example mixin that uses core 4.2.0's `include_for` factory:
+The dummy also ships one example mixin that uses core 4.2.0's `include_for` factory:
 
 ```ruby
 include RecordingStudio::Capabilities::Example.to(label: "dummy workspace")
@@ -130,9 +151,9 @@ include RecordingStudio::Capabilities::Example.to(label: "dummy workspace")
 
 `.to` wraps `RecordingStudio::Capabilities.include_for`. It does not add a fourth verb and it does not call `enable_capability` / `set_capability_options` itself. Folder and Page stay without the example mixin.
 
-Use core `RecordingStudio::Hooks` and `RecordingStudio::Services::BaseService`. Do not copy those classes into a new addon.
+Use core `RecordingStudio::Hooks` and `RecordingStudio::Services::BaseService`. Do not copy those classes into this addon.
 
-### FlatPack UI Components
+### FlatPack UI components
 
 All views use FlatPack ViewComponents. Available components include:
 
@@ -149,7 +170,7 @@ Use the live FlatPack demo app at [flatpack.bowerbird.io](https://flatpack.bower
 
 See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full documentation.
 
-## Tech Stack
+## Tech stack
 
 | Component       | Version |
 |-----------------|---------|
@@ -163,8 +184,8 @@ See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full do
 | FlatPack        | dummy GitHub tag `v0.1.177` |
 | Devise          | latest  |
 
-The dummy Gemfile keeps `github:` sources so Bundler can fetch those gems. The gemspec still pins `recording_studio` to `~> 4.2` so copied addons declare the core dependency even when GitHub is the fetch source.
+The dummy Gemfile keeps `github:` sources so Bundler can fetch those gems. The gemspec still pins `recording_studio` to `~> 4.2`.
 
 ## Documentation
 
-The original gem template documentation is preserved in `docs/gem_template/` as architectural reference material. Use it as background on the engine conventions; this README and the dummy app are the source of truth for the Recording Studio addon workflow.
+Engine internals from the original gem template stay in `docs/gem_template/` as architectural reference. This README and the dummy app are the source of truth for the addon.
