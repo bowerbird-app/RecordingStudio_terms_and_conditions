@@ -172,7 +172,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes engine_source("app/helpers/recording_studio_terms_and_conditions/agree_helper.rb"),
                     "def recording_studio_terms_agree"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
-                    "helper RecordingStudioTermsAndConditions::AgreeHelper"
+                    "helper RecordingStudioTermsAndConditions::ApplicationHelper"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/gate.rb"), "agree_helpers"
     refute_includes agree, "help_text"
     refute_includes agree, "Read them, tick the box"

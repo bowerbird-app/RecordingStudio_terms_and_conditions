@@ -13,7 +13,7 @@ class AgreeHelpersController < ApplicationController
       return
     end
     if terms.blank?
-      redirect_to agree_helper_path, alert: "There are no live terms to agree to."
+      redirect_to "/agree_helper", alert: "There are no live terms to agree to."
       return
     end
 
@@ -21,6 +21,6 @@ class AgreeHelpersController < ApplicationController
       RecordingStudioTermsAndConditions.accept!(current_user, terms, { "source" => "clickwrap" })
     end
 
-    redirect_to agree_helper_path, notice: "You're in. Thanks for reading."
+    redirect_to "/agree_helper", notice: "You're in. Thanks for reading."
   end
 end

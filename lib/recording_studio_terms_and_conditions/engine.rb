@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 module RecordingStudioTermsAndConditions
-  class Engine < ::Rails::Engine
+  class Engine < ::Rails::Engine # rubocop:disable Metrics/ClassLength
     isolate_namespace RecordingStudioTermsAndConditions
 
     initializer "recording_studio_terms_and_conditions.helpers" do
       ActiveSupport.on_load(:action_controller_base) do
-        helper RecordingStudioTermsAndConditions::AgreeHelper
+        helper RecordingStudioTermsAndConditions::ApplicationHelper
       end
     end
 

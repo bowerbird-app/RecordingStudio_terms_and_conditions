@@ -12,35 +12,35 @@ module RecordingStudioTermsAndConditions
       actor ||= recording_studio_terms_agree_actor
       return if actor.present? && RecordingStudioTermsAndConditions.accepted?(actor, root)
 
-      if inside_form
-        recording_studio_terms_agree_fields(terms)
-      else
-        form_with url: recording_studio_terms_agree_url, method: :post do
-          safe_join([
-            recording_studio_terms_agree_fields(terms),
-            render(FlatPack::Button::Component.new(
-              text: "Agree",
-              style: :primary,
-              type: "submit"
-            ))
-          ])
-        end
-      end
+      inside_form ? recording_studio_terms_agree_fields(terms) : recording_studio_terms_agree_form(terms)
     end
 
     private
 
+    def recording_studio_terms_agree_form(terms)
+      form_with url: recording_studio_terms_agree_url, method: :post do
+        safe_join(
+          [
+            recording_studio_terms_agree_fields(terms),
+            render(FlatPack::Button::Component.new(text: "Agree", style: :primary, type: "submit"))
+          ]
+        )
+      end
+    end
+
     def recording_studio_terms_agree_fields(terms)
-      safe_join([
-        render(FlatPack::Checkbox::Component.new(
-          name: "agreed",
-          value: "1",
-          checked: false,
-          required: true,
-          label: "I agree to these terms"
-        )),
-        recording_studio_terms_agree_full_terms_link(terms)
-      ].compact)
+      checkbox = render(FlatPack::Checkbox::Component.new(**recording_studio_terms_agree_checkbox))
+      safe_join([checkbox, recording_studio_terms_agree_full_terms_link(terms)].compact)
+    end
+
+    def recording_studio_terms_agree_checkbox
+      {
+        name: "agreed",
+        value: "1",
+        checked: false,
+        required: true,
+        label: "I agree to these terms"
+      }
     end
 
     def recording_studio_terms_agree_full_terms_link(terms)

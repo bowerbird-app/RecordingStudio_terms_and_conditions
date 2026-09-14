@@ -17,7 +17,7 @@
     title: "Inside a form",
     subtitle: "The box is required. Submit still calls accept!."
   ) %>
-  <%= form_with url: agree_helper_path, method: :post do %>
+  <%= form_with url: main_app.agree_helper_path, method: :post do %>
     <%= render FlatPack::TextInput::Component.new(
       name: "display_name",
       value: params[:display_name],

@@ -25,7 +25,7 @@ class AgreeHelperTest < ActionDispatch::IntegrationTest
     get "/"
     assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
 
-    get agree_helper_path
+    get "/agree_helper"
     assert_response :success
     assert_includes response.body, "Agree helper"
     assert_includes response.body, "On a page"
@@ -34,15 +34,15 @@ class AgreeHelperTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Join"
     assert_select "input[type=checkbox][name=agreed][required]", count: 2
     assert_select "form[action=?]", recording_studio_terms_and_conditions.acceptance_path
-    assert_select "form[action=?]", agree_helper_path
+    assert_select "form[action=?]", "/agree_helper"
   end
 
   test "the in-form demo posts through accept!" do
     assert_difference -> { RecordingStudioTermsAndConditions::Acceptance.count }, 1 do
-      post agree_helper_path, params: { agreed: "1", display_name: "Kit" }
+      post "/agree_helper", params: { agreed: "1", display_name: "Kit" }
     end
 
-    assert_redirected_to agree_helper_path
+    assert_redirected_to "/agree_helper"
     follow_redirect!
     assert_includes CGI.unescapeHTML(response.body), "You're in. Thanks for reading."
     assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
@@ -51,7 +51,7 @@ class AgreeHelperTest < ActionDispatch::IntegrationTest
 
   test "the in-form demo stays gated on the server when the box is not ticked" do
     assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
-      post agree_helper_path, params: { agreed: "0", display_name: "Kit" }
+      post "/agree_helper", params: { agreed: "0", display_name: "Kit" }
     end
 
     assert_response :unprocessable_entity

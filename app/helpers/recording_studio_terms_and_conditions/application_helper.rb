@@ -3,6 +3,15 @@
 module RecordingStudioTermsAndConditions
   module ApplicationHelper
     include AgreeHelper
+
+    TERMS_BODY_PLACEHOLDER = "Write the terms people will agree to."
+    TERMS_BODY_EDITOR_OPTIONS = {
+      preset: :content,
+      format: :html,
+      toolbar: :standard,
+      placeholder: TERMS_BODY_PLACEHOLDER
+    }.freeze
+
     def terms_page_nav(title:, back_url: nil, back_label: "Back")
       recording_studio_page_nav(
         title: title,
@@ -24,10 +33,10 @@ module RecordingStudioTermsAndConditions
     def terms_body(text)
       html = text.to_s
       sanitized = if defined?(FlatPack::RichTextSanitizer)
-        FlatPack::RichTextSanitizer.sanitize(html)
-      else
-        sanitize(html)
-      end
+                    FlatPack::RichTextSanitizer.sanitize(html)
+                  else
+                    sanitize(html)
+                  end
 
       return simple_format(html) unless html.include?("<")
 
@@ -40,14 +49,9 @@ module RecordingStudioTermsAndConditions
         value: value,
         label: "Body",
         required: true,
-        placeholder: "Write the terms people will agree to.",
+        placeholder: TERMS_BODY_PLACEHOLDER,
         rich_text: true,
-        rich_text_options: {
-          preset: :content,
-          format: :html,
-          toolbar: :standard,
-          placeholder: "Write the terms people will agree to."
-        }
+        rich_text_options: TERMS_BODY_EDITOR_OPTIONS
       )
     end
   end
