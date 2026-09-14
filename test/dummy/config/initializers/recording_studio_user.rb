@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-# Users is a hard kit dependency. Dummy still uses Devise for sign-in this slice;
-# do not mount recording_studio_user_auth_for until a later signup-wiring slice.
+# Dummy still signs in with Devise. The gem prepends Users Auth so signup and
+# post-auth on a host that mounts recording_studio_user_auth_for land on Agree.
 RecordingStudioUser.configure do |config|
   config.user_class_name = "User"
   config.otp_enabled = false

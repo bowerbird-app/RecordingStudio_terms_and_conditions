@@ -32,7 +32,14 @@ module RecordingStudioTermsAndConditions
 
     def accept_current_terms!
       RecordingStudioTermsAndConditions.accept!(current_actor, @terms, { "source" => "clickwrap" })
-      redirect_to acceptance_path, notice: "You're in. Thanks for reading."
+      redirect_to next_path_after_acceptance, notice: "You're in. Thanks for reading."
+    end
+
+    def next_path_after_acceptance
+      stored = stored_location_for(:user) if respond_to?(:stored_location_for)
+      return stored if stored.present? && stored != acceptance_path
+
+      main_app.root_path
     end
 
     def acceptance_root

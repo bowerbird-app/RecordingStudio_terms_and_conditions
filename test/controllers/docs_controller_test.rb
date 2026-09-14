@@ -19,6 +19,7 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     end
 
     sign_in @user
+    use_workspace_without_live_terms
   end
 
   test "install page renders successfully" do
@@ -153,6 +154,16 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
   def recordable_type_summary(recording_count, recordable_count)
     "#{ActionController::Base.helpers.pluralize(recording_count, 'recording')} point to this type " \
       "• #{ActionController::Base.helpers.pluralize(recordable_count, 'recordable')} in the database"
+  end
+
+  def use_workspace_without_live_terms
+    workspace = Workspace.find_by(name: "Private Workspace") ||
+                Workspace.create!(name: "Docs free #{SecureRandom.hex(4)}")
+    recording = RecordingStudio.root_recording_for(workspace)
+    patch "/recording_studio_root_switchable/v1/root_switch", params: {
+      scope: "all_workspaces",
+      root_switch: { root_recording_id: recording.id, return_to: "/" }
+    }
   end
 
   def record_child(recordable, root_recording, parent_recording)

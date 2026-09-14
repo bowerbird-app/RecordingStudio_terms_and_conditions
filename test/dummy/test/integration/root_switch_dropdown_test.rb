@@ -28,6 +28,7 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
 
     workspace = Workspace.create!(name: "Dropdown Workspace")
     RecordingStudio.root_recording_for(workspace)
+    switch_to_workspace(workspace)
 
     get root_path
 

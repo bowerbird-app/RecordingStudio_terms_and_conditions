@@ -50,6 +50,27 @@ module RecordingStudioTermsAndConditions
       def identity_hash
         {}.compare_by_identity
       end
+
+      def install_acceptance_gate!
+        include_host_gate
+        prepend_users_auth_redirect
+      end
+
+      def include_host_gate
+        return unless defined?(::ApplicationController)
+        return if ::ApplicationController.include?(ForcesAcceptance)
+
+        ::ApplicationController.include ForcesAcceptance
+      end
+
+      def prepend_users_auth_redirect
+        return unless defined?(RecordingStudioUser::Auth::BaseController)
+
+        auth = RecordingStudioUser::Auth::BaseController
+        return if auth.ancestors.include?(UsersAuthRedirect)
+
+        auth.prepend UsersAuthRedirect
+      end
     end
 
     # Run before_initialize hooks
@@ -133,6 +154,12 @@ module RecordingStudioTermsAndConditions
         ActionController::Base.descendants.each do |controller|
           RecordingStudioTermsAndConditions::Engine.apply_controller_extensions(controller)
         end
+      end
+    end
+
+    initializer "recording_studio_terms_and_conditions.force_acceptance" do
+      config.to_prepare do
+        RecordingStudioTermsAndConditions::Engine.install_acceptance_gate!
       end
     end
   end

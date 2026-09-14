@@ -10,6 +10,7 @@ This Rails app exists to validate the Recording Studio Terms and Conditions addo
 - Recording Studio default layout, FlatPack assets, and Tailwind source scanning
 - Mounted `RecordingStudio::Engine` route behavior inside a host app
 - Dummy-only `/docs/*` pages for gem-specific onboarding
+- Acceptance gate: a workspace with live published Terms sends signed-in people to Agree until they accept
 
 ## Quick Start
 

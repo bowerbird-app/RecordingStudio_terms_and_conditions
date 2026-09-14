@@ -6,7 +6,7 @@ A Recording Studio addon for terms and conditions.
 - Module: `RecordingStudioTermsAndConditions`
 - Source: [bowerbird-app/RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions)
 
-This addon ships the **data shape, domain helpers, clickwrap Agree screen, admin Terms screens, and a public published URL**. It does not force-gate the rest of the app after login, and it does not hook Users signup.
+This addon ships the **data shape, domain helpers, clickwrap Agree screen, admin Terms screens, a public published URL, and a host gate**. Signed-in people who still need to accept the current published Terms are sent to the same Agree screen. Recording Studio Users signup and post-auth use that path too.
 
 ## What's included
 
@@ -17,6 +17,8 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, admin
 - **Acceptance** append-only table for later clickwrap receipts (not a recordable)
 - **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for`, `accepted?`, `accept!`, `requires_acceptance?`
 - **Agree screen** for the current published Terms (unchecked checkbox, gated Agree, `accept!`)
+- **Gate** on the host `ApplicationController`: `requires_acceptance?` redirects to Agree until the live version is accepted, and again after a new publish
+- **Users hook** on `RecordingStudioUser::Auth::BaseController` so after sign in / sign up land on Agree when acceptance is still required
 - **Admin** create/edit Terms, Publishable publish, and simple acceptance coverage
 - **Public Terms URL** at `/terms/:uuid/:slug` via Publishable
 - **FlatPack** UI component library for all views
@@ -105,6 +107,7 @@ The dummy host follows Recording Studio's root recording pattern:
   RecordingStudioTermsAndConditions.accepted?(user, workspace)
   ```
   Live means Publishable `currently_published?` (scheduled-in-the-future is not current). `indexable` is SEO and is not used for clickwrap.
+- The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends `UsersAuthRedirect` on Users Auth. Both reuse `requires_acceptance?` and the mounted Agree screen. Auth, Agree, Admin, public Terms, and root switch stay reachable so people can sign in, accept, publish, or switch workspace.
 - Each configured recordable declares `recording_studio_recordable(...)`; strict declaration validation stays enabled
 - A root `RecordingStudio::Recording` wraps the Workspace
 - `Current.actor` is set from `current_user` (Devise) in `ApplicationController`

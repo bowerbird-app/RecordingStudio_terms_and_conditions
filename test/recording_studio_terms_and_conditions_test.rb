@@ -293,6 +293,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes dummy_routes, "mount RecordingStudioTermsAndConditions::Engine"
     assert_includes dummy_routes, "mount RecordingStudioPublishable::Engine"
     assert_includes dummy_routes, "recording_studio_admin_for :admin"
+    assert File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/gate.rb"))
+    assert File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/forces_acceptance.rb"))
+    assert File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/users_auth_redirect.rb"))
   end
 
   def test_engine_does_not_ship_a_home_view

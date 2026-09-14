@@ -224,6 +224,14 @@ class EngineTest < Minitest::Test
     assert_equal :applied, instance.template_extension_method
   end
 
+  def test_force_acceptance_initializer_installs_the_gate
+    initializer = find_initializer("recording_studio_terms_and_conditions.force_acceptance")
+
+    assert initializer
+    assert_includes File.read(File.expand_path("../lib/recording_studio_terms_and_conditions/engine.rb", __dir__)),
+                    "install_acceptance_gate!"
+  end
+
   def test_apply_controller_extensions_matches_demodulized_name
     controller_class = Class.new do
       def self.name
