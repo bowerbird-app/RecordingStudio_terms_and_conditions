@@ -225,11 +225,35 @@ class EngineTest < Minitest::Test
   end
 
   def test_force_acceptance_initializer_installs_the_gate
-    initializer = find_initializer("recording_studio_terms_and_conditions.force_acceptance")
+    initializer = find_initializer("recording_studio_terms_and_conditions.apply_controller_extensions")
 
     assert initializer
-    assert_includes File.read(File.expand_path("../lib/recording_studio_terms_and_conditions/engine.rb", __dir__)),
-                    "install_acceptance_gate!"
+    created_host = false
+    host = Class.new do
+      def self.before_action(*); end
+    end
+    unless defined?(::ApplicationController)
+      Object.const_set(:ApplicationController, host)
+      created_host = true
+    end
+    created_users = false
+    auth = Class.new
+    unless defined?(RecordingStudioUser)
+      users = Module.new
+      users_auth = Module.new
+      Object.const_set(:RecordingStudioUser, users)
+      users.const_set(:Auth, users_auth)
+      users_auth.const_set(:BaseController, auth)
+      created_users = true
+    end
+
+    2.times { RecordingStudioTermsAndConditions::AcceptanceGateInstaller.call }
+
+    assert_includes host.ancestors, RecordingStudioTermsAndConditions::ForcesAcceptance if created_host
+    assert_includes auth.ancestors, RecordingStudioTermsAndConditions::UsersAuthRedirect if created_users
+  ensure
+    Object.send(:remove_const, :ApplicationController) if created_host
+    Object.send(:remove_const, :RecordingStudioUser) if created_users
   end
 
   def test_apply_controller_extensions_matches_demodulized_name
