@@ -1,18 +1,24 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "cgi"
 require "devise/test/integration_helpers"
 
 class AcceptTermsTest < ActionDispatch::IntegrationTest
   include Devise::Test::IntegrationHelpers
 
   setup do
-    @user = User.find_or_create_by!(email: "admin@admin.com") do |record|
-      record.password = "Password"
-      record.password_confirmation = "Password"
-    end
-    @workspace = Workspace.find_or_create_by!(name: "Studio Workspace")
+    @user = User.create!(
+      email: "agree-#{SecureRandom.hex(4)}@example.com",
+      password: "Password",
+      password_confirmation: "Password"
+    )
+    @workspace = Workspace.create!(name: "Agree #{SecureRandom.hex(4)}")
+    @root = RecordingStudio.root_recording_for(@workspace)
+    @recording = record_terms(@root, title: "Studio Terms", body: "Be kind. Don't be a jerk.")
+    publish_terms!(@recording, slug: "studio-terms-#{SecureRandom.hex(4)}")
     sign_in @user
+    switch_to_workspace(@workspace)
   end
 
   test "clickwrap shows live terms with an unchecked required checkbox" do
@@ -42,7 +48,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
     follow_redirect!
-    assert_includes response.body, "You're in. Thanks for reading."
+    assert_includes CGI.unescapeHTML(response.body), "You're in. Thanks for reading."
     assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
   end
 
@@ -54,18 +60,5 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Nothing to agree to yet"
-  end
-
-  private
-
-  def switch_to_workspace(workspace)
-    recording = RecordingStudio.root_recording_for(workspace)
-    patch "/recording_studio_root_switchable/v1/root_switch", params: {
-      scope: "all_workspaces",
-      root_switch: {
-        root_recording_id: recording.id,
-        return_to: recording_studio_terms_and_conditions.acceptance_path
-      }
-    }
   end
 end

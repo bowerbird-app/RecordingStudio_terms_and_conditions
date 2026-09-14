@@ -7,17 +7,23 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
   include Devise::Test::IntegrationHelpers
 
   setup do
-    @admin = User.find_or_create_by!(email: "admin@admin.com") do |record|
-      record.password = "Password"
-      record.password_confirmation = "Password"
-    end
+    @admin = User.create!(
+      email: "admin-#{SecureRandom.hex(4)}@example.com",
+      password: "Password",
+      password_confirmation: "Password"
+    )
     @member = User.create!(
       email: "member-#{SecureRandom.hex(4)}@example.com",
       password: "Password",
       password_confirmation: "Password"
     )
+    @workspace = Workspace.create!(name: "Admin write #{SecureRandom.hex(4)}")
+    RecordingStudio.root_recording_for(@workspace)
     @admin_root = AdminRoot.find_or_create_by!(name: "Admin")
-    RecordingStudio.root_recording_for(@admin_root)
+    @admin_recording = RecordingStudio.root_recording_for(@admin_root)
+    unless RecordingStudioAccessible.authorized?(actor: @admin, recording: @admin_recording, role: :edit)
+      bootstrap_owner_access!(@admin, @admin_recording)
+    end
   end
 
   test "admin without access is forbidden" do
@@ -30,6 +36,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
   test "admin can draft and revise terms" do
     sign_in @admin
+    switch_to_workspace(@workspace)
 
     get recording_studio_terms_and_conditions.admin_terms_path
     assert_response :success
@@ -53,19 +60,17 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
       terms: { title: "House rules", body: "Whisper, please." }
     }
 
-    revised = recording.reload
-    assert_equal "Whisper, please.", revised.recordable.body
+    assert_equal "Whisper, please.", recording.reload.recordable.body
     follow_redirect!
     assert_includes response.body, "Terms updated."
   end
 
   test "admin section registers terms coverage widgets" do
-    sign_in @admin
-
-    get recording_studio_admin_admin.section_path("terms")
-
-    assert_response :success
-    assert_includes response.body, "Live terms"
-    assert_includes response.body, "Agrees"
+    assert RecordingStudioAdmin.section_for("terms")
+    assert RecordingStudioAdmin.screen_for("recording_studio_terms_acceptances")
+    assert RecordingStudioAdmin.widget_for("widgets.terms.live")
+    assert RecordingStudioAdmin.widget_for("widgets.terms.agrees")
+    keys = AdminRoot.recording_studio_admin_section_keys_for(@admin_root, @admin_recording, nil)
+    assert_includes keys, "terms"
   end
 end
