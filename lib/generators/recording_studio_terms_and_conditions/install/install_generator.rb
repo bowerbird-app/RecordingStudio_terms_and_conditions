@@ -15,16 +15,26 @@ module RecordingStudioTermsAndConditions
         default: "/recording_studio_terms_and_conditions",
         desc: "Route prefix used when mounting the engine"
       )
+      class_option :skip_migrations, type: :boolean, default: false,
+                                     desc: "Do not copy engine migrations"
+
+      def install_migrations
+        return if options[:skip_migrations]
+
+        generate "recording_studio_terms_and_conditions:migrations"
+      end
 
       def mount_engine
+        return say("RecordingStudioTermsAndConditions is already mounted.", :green) if engine_already_mounted?
+
         route %(mount RecordingStudioTermsAndConditions::Engine, at: "#{options[:mount_path]}")
       end
 
       def copy_initializer
-        template(
-          "recording_studio_terms_and_conditions_initializer.rb",
-          "config/initializers/recording_studio_terms_and_conditions.rb"
-        )
+        path = "config/initializers/recording_studio_terms_and_conditions.rb"
+        return say("Initializer already present.", :green) if File.exist?(File.join(destination_root, path))
+
+        template("recording_studio_terms_and_conditions_initializer.rb", path)
       end
 
       def add_yaml_config
@@ -63,6 +73,11 @@ module RecordingStudioTermsAndConditions
       end
 
       private
+
+      def engine_already_mounted?
+        routes = File.join(destination_root, "config/routes.rb")
+        File.exist?(routes) && File.read(routes).include?("RecordingStudioTermsAndConditions::Engine")
+      end
 
       def show_missing_tailwind_notice
         say "Tailwind CSS not detected. Skipping Tailwind configuration.", :yellow

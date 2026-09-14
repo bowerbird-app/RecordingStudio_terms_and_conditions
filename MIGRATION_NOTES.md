@@ -1,5 +1,14 @@
 # Migration Notes
 
+## Host install
+
+```bash
+bin/rails generate recording_studio_terms_and_conditions:install
+bin/rails db:migrate
+```
+
+That copies Terms and Acceptance migrations, mounts the engine, and writes `config/initializers/recording_studio_terms_and_conditions.rb`. Register `RecordingStudioTermsAndConditions::Terms` in `recordable_types`. Mount Publishable at `/`. Enable Admin `section :terms` on an Admin root and grant Accessible access. The host gate and Users post-auth hook attach automatically.
+
 ## Current Requirements
 
 - Ruby 3.3 or newer

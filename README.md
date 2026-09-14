@@ -84,10 +84,13 @@ gem "recording_studio_terms_and_conditions", github: "bowerbird-app/RecordingStu
 ```bash
 bundle install
 bin/rails generate recording_studio_terms_and_conditions:install
-bin/rails generate recording_studio_terms_and_conditions:migrations
 bin/rails db:migrate
 bin/rails tailwindcss:build
 ```
+
+`recording_studio_terms_and_conditions:install` mounts the engine, copies this gem's migrations, and writes the initializer. Then register `RecordingStudioTermsAndConditions::Terms` in `recordable_types`, mount Publishable at `/`, and enable Admin `section :terms` on an Admin root with Accessible access.
+
+This is the kit gem for published Terms and clickwrap. Add it to the approved list in `recording-studio-gems`. Do not hand-roll acceptances.
 
 ## Architecture
 

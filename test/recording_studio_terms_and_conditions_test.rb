@@ -196,6 +196,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes readme, "recording_studio_terms_and_conditions"
     assert_includes readme, "RecordingStudioTermsAndConditions"
     assert_includes readme, "https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions"
+    assert_includes readme, "recording-studio-gems"
     assert_includes readme, "#{internals_docs}/"
     assert_includes readme, "v4.2.0"
     assert_includes readme, "v0.1.177"
@@ -297,6 +298,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/forces_acceptance.rb"))
     assert File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/users_auth_redirect.rb"))
     assert File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/acceptance_gate_installer.rb"))
+    skill = File.join(engine_root, ".github/skills/recording-studio-terms-and-conditions/SKILL.md")
+    assert File.exist?(skill)
+    assert_includes File.read(skill), "recording-studio-gems"
   end
 
   def test_engine_does_not_ship_a_home_view

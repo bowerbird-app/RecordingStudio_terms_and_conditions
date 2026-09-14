@@ -2,10 +2,16 @@ RecordingStudioTermsAndConditions install complete.
 
 Next steps:
 
-1. Review config/initializers/recording_studio_terms_and_conditions.rb and set any required options.
-2. If you use environment-specific settings, create config/recording_studio_terms_and_conditions.yml.
-3. Install the engine migrations with `bin/rails generate recording_studio_terms_and_conditions:migrations`.
-4. Apply the migrations with `bin/rails db:migrate`.
-5. Run `bin/rails tailwindcss:build` if you use Tailwind CSS.
-6. Mount routes are added at the configured mount path. Adjust auth, layout, and current actor integration to match your host app.
-7. Keep strict recordable declarations enabled and add `recording_studio_recordable(...)` to every configured recordable before running `RecordingStudio.validate_recordable_declarations!`.
+1. Review `config/initializers/recording_studio_terms_and_conditions.rb`.
+2. The install generator copied this gem's migrations into `db/migrate`. Apply them with `bin/rails db:migrate`.
+3. Register `RecordingStudioTermsAndConditions::Terms` (and Publishable's child type) in `RecordingStudio.configure { |c| c.recordable_types }`. Keep `recording_studio_recordable(...)` on every configured type.
+4. Mount Publishable at `/` so the public page `/terms/:uuid/:slug` works. Publish through Publishable's edit UI, not a custom publish action.
+5. Mount Admin, add an `AdminRoot`, enable `section :terms` (or `root_section: :terms`), and grant Accessible access to that root (`bootstrap_owner_access!` for the first staff member).
+6. The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends Users Auth `after_sign_in` / `after_sign_up` to the same Agree screen. Do not add a second clickwrap.
+7. Run `bin/rails tailwindcss:build` if you use Tailwind CSS.
+
+Useful routes after mount:
+
+- Agree: `/recording_studio_terms_and_conditions` (or your `--mount-path`)
+- Admin write: `/recording_studio_terms_and_conditions/admin/terms`
+- Public Terms: `/terms/:uuid/:slug`

@@ -1,9 +1,5 @@
 development:
-  api_key: "dev-key"
-  enable_feature_x: true
-  timeout: 5
+  mount_path: "/recording_studio_terms_and_conditions"
 
 production:
-  api_key: <%= ENV["RECORDING_STUDIO_TERMS_AND_CONDITIONS_API_KEY"] %>
-  enable_feature_x: false
-  timeout: 5
+  mount_path: "/recording_studio_terms_and_conditions"

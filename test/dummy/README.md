@@ -11,6 +11,7 @@ This Rails app exists to validate the Recording Studio Terms and Conditions addo
 - Mounted `RecordingStudio::Engine` route behavior inside a host app
 - Dummy-only `/docs/*` pages for gem-specific onboarding
 - Acceptance gate: a workspace with live published Terms sends signed-in people to Agree until they accept
+- Hosts install with `recording_studio_terms_and_conditions:install` (mount, migrations, initializer)
 
 ## Quick Start
 

@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 RecordingStudioTermsAndConditions.configure do |config|
-  # config.api_key = "..."
+  # config.mount_path = "/recording_studio_terms_and_conditions"
 end
