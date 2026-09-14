@@ -47,7 +47,7 @@ module RecordingStudioTermsAndConditions
 
     def terms_version_date(terms, recording: nil)
       recording ||= RecordingStudio::Recording.find_by(recordable_type: Terms.name, recordable_id: terms&.id)
-      time = terms_published_at(recording) || terms&.updated_at || terms&.created_at
+      time = terms_published_at(recording) || recording&.updated_at || recording&.created_at || terms&.created_at
       return if time.blank?
 
       render(FlatPack::Timestamp::Component.new(timestamp: time, class: "mt-2 text-sm text-[var(--surface-muted-content-color)]"))

@@ -200,6 +200,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes helper, "def recording_studio_terms_agree"
     assert_includes helper, "link_terms: false"
     assert_includes helper, "class: \"py-5\""
+    assert_includes helper, "with_content(\"terms\")"
     refute_includes helper, "FlatPack::Button::Component"
     refute_includes helper, "form_with"
     application_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/application_helper.rb")
@@ -330,7 +331,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes view_source, 'title: "Terms demo"'
     assert_includes view_source, 'subtitle: "This dummy app is the browser-facing demo surface for the addon."'
     assert_includes view_source, 'text: "Write terms"'
-    assert_includes view_source, 'href: "/admin"'
+    assert_includes view_source, "dummy_admin_hub_switch_href"
     assert_includes view_source, "FlatPack::Card::Component"
     assert_includes view_source, "dummy_page_nav"
     refute_includes view_source, 'title: "Demo"'

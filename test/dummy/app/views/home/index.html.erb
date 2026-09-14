@@ -15,7 +15,8 @@
   <%= render FlatPack::Button::Component.new(
     text: "Write terms",
     style: :secondary,
-    href: "/admin"
+    href: dummy_admin_hub_switch_href,
+    method: :patch
   ) %>
   <%= render FlatPack::Button::Component.new(
     text: "Agree helper",

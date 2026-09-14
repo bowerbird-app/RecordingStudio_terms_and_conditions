@@ -104,6 +104,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
   test "recording studio admin terms hub is reachable and write parks there" do
     sign_in @admin
+    switch_to_workspace(@admin_root)
 
     get "/admin"
     assert_response :success

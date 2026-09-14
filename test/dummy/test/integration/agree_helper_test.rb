@@ -31,7 +31,7 @@ class AgreeHelperTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "inside_form: true"
     assert_includes response.body, "link_terms: true"
     assert_includes response.body, "I agree to these"
-    assert_select "a", text: "terms"
+    assert_select "a.flat-pack-link[href*='/terms/']", text: "terms"
     refute_includes response.body, "Join"
     refute_includes response.body, "On a page"
     refute_includes response.body, "Inside a form"

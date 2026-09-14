@@ -52,7 +52,7 @@ module RecordingStudioTermsAndConditions
     def recording_studio_terms_agree_linked_label(terms, checkbox_id)
       url = terms.try(:published_url)
       terms_word = if url.present?
-                     render(FlatPack::Link::Component.new(href: url) { "terms" })
+                     render(FlatPack::Link::Component.new(href: url).with_content("terms"))
                    else
                      "terms"
                    end
@@ -68,7 +68,7 @@ module RecordingStudioTermsAndConditions
       url = terms.try(:published_url)
       return if url.blank?
 
-      render(FlatPack::Link::Component.new(href: url) { "Read the full terms" })
+      render(FlatPack::Link::Component.new(href: url).with_content("Read the full terms"))
     end
 
     def recording_studio_terms_agree_root
