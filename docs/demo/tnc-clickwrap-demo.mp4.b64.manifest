@@ -1,0 +1,5 @@
+original_bytes: 888600
+sha256: 939d7599f612fc801980b20d17e0347860381ed14e2803a473a0a81a66d83a52
+parts:
+  - docs/demo/tnc-clickwrap-demo.mp4.b64.part1
+  - docs/demo/tnc-clickwrap-demo.mp4.b64.part2
