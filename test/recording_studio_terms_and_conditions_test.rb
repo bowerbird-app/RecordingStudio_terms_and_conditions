@@ -207,6 +207,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes application_helper, "def terms_content"
     assert_includes application_helper, "def terms_admin_hub_path"
     assert_includes application_helper, "flat-pack-content-editor-content"
+    assert_includes application_helper, "tight: true"
+    assert_includes application_helper, "-mt-5 mb-6"
+    assert_includes application_helper, "border-0 bg-transparent p-0 shadow-none rounded-none"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "helper RecordingStudioTermsAndConditions::ApplicationHelper"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/gate.rb"), "agree_helpers"

@@ -44,14 +44,15 @@ module RecordingStudioTermsAndConditions
       recording.try(:current_publishable)&.try(:publish_at) || live_terms_updated_at(recording)
     end
 
-    def terms_version_date(terms, recording: nil)
+    def terms_version_date(terms, recording: nil, tight: true)
       time = terms_version_time(terms, recording)
       return if time.blank?
 
+      spacing = tight ? "-mt-5 mb-6" : "mb-6"
       render(
         FlatPack::Timestamp::Component.new(
           timestamp: time,
-          class: "mt-2 text-sm text-[var(--surface-muted-content-color)]"
+          class: "#{spacing} text-sm text-[var(--surface-muted-content-color)]"
         )
       )
     end
@@ -88,7 +89,8 @@ module RecordingStudioTermsAndConditions
         required: true,
         placeholder: TERMS_BODY_PLACEHOLDER,
         rich_text: true,
-        rich_text_options: TERMS_BODY_EDITOR_OPTIONS
+        rich_text_options: TERMS_BODY_EDITOR_OPTIONS,
+        class: "border-0 bg-transparent p-0 shadow-none rounded-none"
       )
     end
 
