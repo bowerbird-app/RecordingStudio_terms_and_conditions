@@ -9,7 +9,7 @@ module RecordingStudioTermsAndConditions
 
     def show
       @terms = @parent_recordable || @recordable
-      return head :not_found unless @terms.is_a?(Terms)
+      head :not_found unless @terms.is_a?(Terms)
     end
   end
 end

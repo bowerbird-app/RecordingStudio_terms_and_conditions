@@ -9,9 +9,24 @@ module TermsDemoTestHelper
   def bootstrap_owner_access!(actor, recording)
     result = RecordingStudioAccessible.bootstrap_owner_access!(recording: recording, actor: actor)
     return result.value if result.respond_to?(:success?) && result.success?
+
+    if already_bootstrapped?(result)
+      manager = User.find_by(email: "admin@admin.com")
+      result = RecordingStudioAccessible.grant_access(
+        recording: recording,
+        actor: actor,
+        role: :admin,
+        manager_actor: manager
+      )
+    end
+
     raise result.error if result.respond_to?(:failure?) && result.failure?
 
-    result
+    result.respond_to?(:value) ? result.value : result
+  end
+
+  def already_bootstrapped?(result)
+    result.error.to_s.include?("Access already exists")
   end
 
   def record_terms(root_recording, title:, body:)

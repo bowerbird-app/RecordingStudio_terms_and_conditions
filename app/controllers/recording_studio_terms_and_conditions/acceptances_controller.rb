@@ -5,35 +5,35 @@ module RecordingStudioTermsAndConditions
     before_action :authenticate_user!, raise: false
 
     def show
+      load_acceptance_context
+    end
+
+    def create
+      load_acceptance_context
+      return reject_agreement("Tick the box if you agree.") unless agreed?
+      return reject_agreement("There are no live terms to agree to.") if @terms.blank?
+
+      accept_current_terms!
+    end
+
+    private
+
+    def load_acceptance_context
       @root = acceptance_root
       @terms = RecordingStudioTermsAndConditions.current_published_for(@root)
       @already_accepted = RecordingStudioTermsAndConditions.accepted?(current_actor, @root)
     end
 
-    def create
-      @root = acceptance_root
-      @terms = RecordingStudioTermsAndConditions.current_published_for(@root)
-
-      unless agreed?
-        flash.now[:alert] = "Tick the box if you agree."
-        @already_accepted = false
-        return render :show, status: :unprocessable_entity
-      end
-
-      if @terms.blank?
-        flash.now[:alert] = "There are no live terms to agree to."
-        return render :show, status: :unprocessable_entity
-      end
-
-      RecordingStudioTermsAndConditions.accept!(
-        current_actor,
-        @terms,
-        { "source" => "clickwrap" }
-      )
-      redirect_to acceptance_path, notice: "You're in. Thanks for reading."
+    def reject_agreement(message)
+      flash.now[:alert] = message
+      @already_accepted = false
+      render :show, status: :unprocessable_entity
     end
 
-    private
+    def accept_current_terms!
+      RecordingStudioTermsAndConditions.accept!(current_actor, @terms, { "source" => "clickwrap" })
+      redirect_to acceptance_path, notice: "You're in. Thanks for reading."
+    end
 
     def acceptance_root
       return current_root_recordable if respond_to?(:current_root_recordable, true) && current_root_recordable

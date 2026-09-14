@@ -280,9 +280,10 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_engine_ships_clickwrap_and_admin_views
     engine_root = File.expand_path("..", __dir__)
 
-    assert File.exist?(File.join(engine_root, "app/views/recording_studio_terms_and_conditions/acceptances/show.html.erb"))
-    assert File.exist?(File.join(engine_root, "app/views/recording_studio_terms_and_conditions/admin/terms/index.html.erb"))
-    assert File.exist?(File.join(engine_root, "app/views/recording_studio_terms_and_conditions/published_terms/show.html.erb"))
+    views = "app/views/recording_studio_terms_and_conditions"
+    assert File.exist?(File.join(engine_root, views, "acceptances/show.html.erb"))
+    assert File.exist?(File.join(engine_root, views, "admin/terms/index.html.erb"))
+    assert File.exist?(File.join(engine_root, views, "published_terms/show.html.erb"))
     routes = File.read(File.join(engine_root, "config/routes.rb"))
     assert_includes routes, "resource :acceptance"
     assert_includes routes, "resources :terms"

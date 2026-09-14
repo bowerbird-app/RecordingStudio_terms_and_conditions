@@ -15,18 +15,9 @@ module RecordingStudioTermsAndConditions
       end
 
       def create
-        parent = terms_parent_root
-        if parent.blank?
-          flash.now[:alert] = "Pick a workspace first."
-          @title = terms_params[:title]
-          @body = terms_params[:body]
-          return render :new, status: :unprocessable_entity
-        end
+        return render_missing_workspace if terms_parent_root.blank?
 
-        recording = parent.record(Terms, actor: current_admin_actor, parent_recording: parent) do |terms|
-          terms.title = terms_params[:title]
-          terms.body = terms_params[:body]
-        end
+        recording = draft_terms!(terms_parent_root)
         redirect_to admin_term_path(recording), notice: "Terms drafted. Publish when they are ready."
       end
 
@@ -55,6 +46,20 @@ module RecordingStudioTermsAndConditions
         RecordingStudio::Recording.where(recordable_type: Terms.name, trashed_at: nil)
                                   .includes(:recordable)
                                   .order(updated_at: :desc)
+      end
+
+      def draft_terms!(parent)
+        parent.record(Terms, actor: current_admin_actor, parent_recording: parent) do |terms|
+          terms.title = terms_params[:title]
+          terms.body = terms_params[:body]
+        end
+      end
+
+      def render_missing_workspace
+        flash.now[:alert] = "Pick a workspace first."
+        @title = terms_params[:title]
+        @body = terms_params[:body]
+        render :new, status: :unprocessable_entity
       end
 
       def terms_params
