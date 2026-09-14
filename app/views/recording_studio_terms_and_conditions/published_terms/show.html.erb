@@ -7,5 +7,6 @@
   subtitle: "The public copy. No checkbox here.",
   variant: :h1
 ) %>
+<%= terms_version_date(@terms) %>
 
-<%= terms_body(@terms&.body) %>
+<%= terms_content(@terms&.body) %>

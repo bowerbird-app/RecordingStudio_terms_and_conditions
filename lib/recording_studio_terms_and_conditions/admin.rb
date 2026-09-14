@@ -13,7 +13,7 @@ module RecordingStudioTermsAndConditions
 
       link :write,
            text: "Write terms",
-           url: ->(_context) { RecordingStudioTermsAndConditions.admin_terms_path },
+           url: ->(_context) { RecordingStudioTermsAndConditions.admin_write_path },
            style: :primary
       link :agrees,
            text: "Who agreed",
@@ -45,6 +45,12 @@ module RecordingStudioTermsAndConditions
                sortable: false,
                value: lambda { |recording, _context|
                  recording.respond_to?(:currently_published?) && recording.currently_published? ? "Live" : "Draft"
+               }
+        column :published,
+               title: "Published",
+               sortable: false,
+               value: lambda { |recording, _context|
+                 recording.try(:current_publishable)&.try(:publish_at)
                }
         column :agrees,
                title: "Agrees",
@@ -88,7 +94,7 @@ module RecordingStudioTermsAndConditions
           recording.respond_to?(:currently_published?) && recording.currently_published?
         end
       end
-      link_to { |_context| RecordingStudioTermsAndConditions.admin_terms_path }
+      link_to { |_context| RecordingStudioTermsAndConditions.admin_hub_path }
       hide_change
       hide_period
     end
@@ -118,5 +124,19 @@ module RecordingStudioTermsAndConditions
     Engine.routes.url_helpers.admin_terms_path(
       script_name: configuration.mount_path
     )
+  end
+
+  def self.admin_write_path
+    Engine.routes.url_helpers.new_admin_term_path(
+      script_name: configuration.mount_path
+    )
+  end
+
+  def self.admin_hub_path
+    if defined?(RecordingStudioAdmin)
+      RecordingStudioAdmin.configuration.default_mount_path.presence || "/admin"
+    else
+      admin_terms_path
+    end
   end
 end

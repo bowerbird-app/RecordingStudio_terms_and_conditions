@@ -55,6 +55,7 @@ Drop the host helper onto a form:
 ```erb
 <%= recording_studio_terms_agree %>
 <%= recording_studio_terms_agree(inside_form: true) %>
+<%= recording_studio_terms_agree(link_terms: true) %>
 ```
 
 The helper is the checkbox only — HTML `required`, named `agreed`. Put it in a form. On submit call `accept!` with `params[:agreed]`. Do not add a second receipt table.

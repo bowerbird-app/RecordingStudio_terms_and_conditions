@@ -44,6 +44,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Title"
     assert_includes response.body, "Status"
     assert_includes response.body, "Agrees"
+    assert_includes response.body, "Published"
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
     assert_select "header.fp-top-nav", count: 1
     assert_select "nav[aria-label='Page navigation']", count: 1
@@ -68,6 +69,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_includes response.body, "Terms drafted. Publish when they are ready."
     assert_includes response.body, "House rules"
+    assert_includes response.body, "flat-pack-content-editor-content"
     assert_includes response.body, "Publish"
 
     patch recording_studio_terms_and_conditions.admin_term_path(recording), params: {
@@ -83,6 +85,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "House rules"
     assert_select "table thead th", text: "Title"
     assert_select "table thead th", text: "Status"
+    assert_select "table thead th", text: "Published"
     assert_select "table thead th", text: "Agrees"
     assert_select "table thead th", text: "Open"
     assert_select "table tbody td a", text: "House rules"
@@ -97,5 +100,15 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert RecordingStudioAdmin.widget_for("widgets.terms.agrees")
     keys = AdminRoot.recording_studio_admin_section_keys_for(@admin_root, @admin_recording, nil)
     assert_includes keys, "terms"
+  end
+
+  test "recording studio admin terms hub is reachable and write parks there" do
+    sign_in @admin
+
+    get "/admin"
+    assert_response :success
+    assert_includes response.body, "Write terms"
+    assert_includes response.body, "Terms"
+    assert_includes response.body, RecordingStudioTermsAndConditions.admin_write_path
   end
 end

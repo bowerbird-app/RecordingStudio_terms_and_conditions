@@ -28,6 +28,9 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Studio Terms"
     assert_includes response.body, "Be kind"
     assert_includes response.body, "I agree to these terms"
+    assert_includes response.body, "flat-pack-content-editor-content"
+    assert_select "time.flat-pack-timestamp"
+    assert_select "div.py-5"
     assert_select "input[type=checkbox][name=agreed][required]"
     assert_select "input[type=checkbox][name=agreed][checked]", count: 0
     assert_includes response.body, "Agree"

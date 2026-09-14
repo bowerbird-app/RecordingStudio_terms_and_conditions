@@ -11,9 +11,10 @@
     language: :erb,
     code: [
       "<" + "%= recording_studio_terms_agree %" + ">",
-      "<" + "%= recording_studio_terms_agree(inside_form: true) %" + ">"
+      "<" + "%= recording_studio_terms_agree(inside_form: true) %" + ">",
+      "<" + "%= recording_studio_terms_agree(link_terms: true) %" + ">"
     ].join("\n")
   ) %>
 
-  <%= recording_studio_terms_agree(inside_form: true) %>
+  <%= recording_studio_terms_agree(inside_form: true, link_terms: true) %>
 </div>

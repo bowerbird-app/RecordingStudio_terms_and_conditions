@@ -194,10 +194,18 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
 
     refute_includes agree, "FlatPack::Card::Component"
     assert_includes agree, "recording_studio_terms_agree(inside_form: true"
+    assert_includes agree, "terms_version_date"
+    assert_includes agree, "terms_content"
     helper = engine_source("app/helpers/recording_studio_terms_and_conditions/agree_helper.rb")
     assert_includes helper, "def recording_studio_terms_agree"
+    assert_includes helper, "link_terms: false"
+    assert_includes helper, "class: \"py-5\""
     refute_includes helper, "FlatPack::Button::Component"
     refute_includes helper, "form_with"
+    application_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/application_helper.rb")
+    assert_includes application_helper, "def terms_content"
+    assert_includes application_helper, "def terms_admin_hub_path"
+    assert_includes application_helper, "flat-pack-content-editor-content"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "helper RecordingStudioTermsAndConditions::ApplicationHelper"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/gate.rb"), "agree_helpers"
@@ -206,17 +214,25 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes agree, "FlatPack::Alert::Component"
     refute_includes public_show, "FlatPack::Card::Component"
     refute_includes public_show, "<article>"
+    assert_includes public_show, "terms_content"
+    assert_includes public_show, "terms_version_date"
     assert_includes admin_index, "page_title.slot"
+    assert_includes admin_index, 'title: "Published"'
+    assert_includes admin_index, "terms_admin_hub_path"
     assert_includes admin_show, "page_title.slot"
+    assert_includes admin_show, "terms_content"
     refute_includes admin_new, "FlatPack::Card::Component"
     refute_includes admin_new, "card.footer"
+    assert_includes admin_new, "terms_admin_hub_path"
     refute_includes engine_source("#{views}/admin/terms/edit.html.erb"), "FlatPack::Card::Component"
     refute_includes admin_show, "FlatPack::Card::Component"
     assert_includes admin_index, "FlatPack::Table::Component"
     assert_includes admin_index, "terms_rows"
     assert_includes admin_index, 'title: "Open"'
     refute_includes admin_index, "min_width: :lg"
-    assert_includes engine_source("#{views}/admin/terms/_form.html.erb"), "terms_body_editor"
+    form = engine_source("#{views}/admin/terms/_form.html.erb")
+    assert_includes form, "terms_body_editor"
+    assert_includes form, "gap-6"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/sample_terms.rb"), "Using the booth"
     importmap = File.read(File.expand_path("dummy/config/importmap.rb", __dir__))
     assert_includes importmap, "@tiptap/core"
@@ -313,6 +329,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
 
     assert_includes view_source, 'title: "Terms demo"'
     assert_includes view_source, 'subtitle: "This dummy app is the browser-facing demo surface for the addon."'
+    assert_includes view_source, 'text: "Write terms"'
+    assert_includes view_source, 'href: "/admin"'
     assert_includes view_source, "FlatPack::Card::Component"
     assert_includes view_source, "dummy_page_nav"
     refute_includes view_source, 'title: "Demo"'
@@ -375,6 +393,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes routes, "resources :terms"
     admin = File.read(File.join(engine_root, "lib/recording_studio_terms_and_conditions/admin.rb"))
     assert_includes admin, 'key "terms"'
+    assert_includes admin, "column :published"
+    assert_includes admin, "admin_write_path"
+    assert_includes admin, "admin_hub_path"
     dummy_routes = File.read(File.join(engine_root, "test/dummy/config/routes.rb"))
     assert_includes dummy_routes, "mount RecordingStudioTermsAndConditions::Engine"
     assert_includes dummy_routes, "mount RecordingStudioPublishable::Engine"

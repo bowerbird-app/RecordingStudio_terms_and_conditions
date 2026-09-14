@@ -30,6 +30,29 @@ module RecordingStudioTermsAndConditions
       terms.try(:published_url)
     end
 
+    def terms_admin_hub_path
+      if defined?(RecordingStudioAdmin)
+        RecordingStudioAdmin.configuration.default_mount_path.presence || "/admin"
+      else
+        admin_terms_path
+      end
+    end
+
+    def terms_published_at(recording)
+      return unless recording
+
+      recording.try(:current_publishable)&.try(:publish_at) ||
+        ((recording.respond_to?(:currently_published?) && recording.currently_published?) ? recording.updated_at : nil)
+    end
+
+    def terms_version_date(terms, recording: nil)
+      recording ||= RecordingStudio::Recording.find_by(recordable_type: Terms.name, recordable_id: terms&.id)
+      time = terms_published_at(recording) || terms&.updated_at || terms&.created_at
+      return if time.blank?
+
+      render(FlatPack::Timestamp::Component.new(timestamp: time, class: "mt-2 text-sm text-[var(--surface-muted-content-color)]"))
+    end
+
     def terms_body(text)
       html = text.to_s
       sanitized = if defined?(FlatPack::RichTextSanitizer)
@@ -43,6 +66,17 @@ module RecordingStudioTermsAndConditions
       sanitized.html_safe
     end
 
+    def terms_content(text)
+      body = terms_body(text)
+      return if body.blank?
+
+      if defined?(FlatPack::Content::Component)
+        render(FlatPack::Content::Component.new) { body }
+      else
+        content_tag(:div, body, class: "flat-pack-content-editor-content prose max-w-none")
+      end
+    end
+
     def terms_body_editor(value:)
       render FlatPack::TextArea::Component.new(
         name: "terms[body]",
@@ -51,7 +85,8 @@ module RecordingStudioTermsAndConditions
         required: true,
         placeholder: TERMS_BODY_PLACEHOLDER,
         rich_text: true,
-        rich_text_options: TERMS_BODY_EDITOR_OPTIONS
+        rich_text_options: TERMS_BODY_EDITOR_OPTIONS,
+        class: "border border-[var(--surface-border-color)] rounded-[var(--radius-md)] [&_.flat-pack-richtext-editor]:border [&_.flat-pack-richtext-editor]:border-[var(--surface-border-color)] [&_.flat-pack-richtext-editor]:rounded-[var(--radius-md)]"
       )
     end
   end

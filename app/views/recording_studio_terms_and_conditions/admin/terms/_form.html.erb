@@ -1,7 +1,9 @@
-<%= render FlatPack::TextInput::Component.new(
-  name: "terms[title]",
-  value: title,
-  label: "Title",
-  required: true
-) %>
-<%= terms_body_editor(value: body) %>
+<div class="flex w-full flex-col gap-6">
+  <%= render FlatPack::TextInput::Component.new(
+    name: "terms[title]",
+    value: title,
+    label: "Title",
+    required: true
+  ) %>
+  <%= terms_body_editor(value: body) %>
+</div>

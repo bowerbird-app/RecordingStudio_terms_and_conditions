@@ -16,6 +16,8 @@ class PublishedTermsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Studio Terms"
     assert_includes response.body, "Be kind"
+    assert_includes response.body, "flat-pack-content-editor-content"
+    assert_select "time.flat-pack-timestamp"
     assert_includes response.body, 'data-theme="rounded"'
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
     assert_select "nav[aria-label='Page navigation']", count: 1

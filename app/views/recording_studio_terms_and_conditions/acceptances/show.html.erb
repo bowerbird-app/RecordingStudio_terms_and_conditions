@@ -5,6 +5,7 @@
   subtitle: "The live version for this workspace.",
   variant: :h1
 ) %>
+<%= terms_version_date(@terms) %>
 
 <% if @terms.blank? %>
   <%= render FlatPack::EmptyState::Component.new(
@@ -12,7 +13,7 @@
     description: "Someone still needs to publish terms for this workspace."
   ) %>
 <% else %>
-  <%= terms_body(@terms.body) %>
+  <%= terms_content(@terms.body) %>
   <% unless @already_accepted %>
     <%= form_with url: acceptance_path, method: :post do %>
       <%= recording_studio_terms_agree(inside_form: true, actor: current_user, root: @root) %>

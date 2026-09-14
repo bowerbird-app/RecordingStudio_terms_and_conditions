@@ -24,7 +24,9 @@
   <% end %>
 <% end %>
 
-<%= terms_body(@terms.body) %>
+<%= terms_version_date(@terms, recording: @terms_recording) %>
+
+<%= terms_content(@terms.body) %>
 
 <%= render FlatPack::SectionTitle::Component.new(title: "Who agreed") %>
 

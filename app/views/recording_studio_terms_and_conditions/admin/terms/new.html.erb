@@ -1,16 +1,18 @@
-<% terms_page_nav(title: "Write terms", back_url: admin_terms_path, back_label: "Terms") %>
+<% terms_page_nav(title: "Write terms", back_url: terms_admin_hub_path, back_label: "Admin") %>
 
-<%= render FlatPack::PageTitle::Component.new(
-  title: "Write terms",
-  subtitle: "Save a draft. Publish when it should go live.",
-  variant: :h1
-) %>
-
-<%= form_with url: admin_terms_path, method: :post, scope: :terms do %>
-  <%= render "form", title: @title, body: @body %>
-  <%= render FlatPack::Button::Component.new(
-    text: "Save draft",
-    style: :primary,
-    type: "submit"
+<div class="mx-auto flex w-full flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: "Write terms",
+    subtitle: "Save a draft. Publish when it should go live.",
+    variant: :h1
   ) %>
-<% end %>
+
+  <%= form_with url: admin_terms_path, method: :post, scope: :terms, class: "flex w-full flex-col gap-6" do %>
+    <%= render "form", title: @title, body: @body %>
+    <%= render FlatPack::Button::Component.new(
+      text: "Save draft",
+      style: :primary,
+      type: "submit"
+    ) %>
+  <% end %>
+</div>

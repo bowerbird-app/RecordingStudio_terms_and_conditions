@@ -1,4 +1,4 @@
-<% terms_page_nav(title: "Terms", back_url: main_app.root_path) %>
+<% terms_page_nav(title: "Terms", back_url: terms_admin_hub_path, back_label: "Admin") %>
 
 <%= render FlatPack::PageTitle::Component.new(
   title: "Terms",
@@ -27,6 +27,7 @@
       title: title,
       href: admin_term_path(recording),
       live: live,
+      published: terms_published_at(recording),
       agrees: RecordingStudioTermsAndConditions::Acceptance.where(terms_recording_id: recording.id).count
     }
   } %>
@@ -44,6 +45,13 @@
         style: row[:live] ? :success : :default,
         size: :sm
       )
+    end %>
+    <% table.column(title: "Published") do |row|
+      if row[:published]
+        render FlatPack::Timestamp::Component.new(timestamp: row[:published])
+      else
+        "—"
+      end
     end %>
     <% table.column(title: "Agrees") { |row| row[:agrees] } %>
     <% table.column(title: "Open") do |row|
