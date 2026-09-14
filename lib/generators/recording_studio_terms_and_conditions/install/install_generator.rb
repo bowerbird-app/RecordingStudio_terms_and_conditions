@@ -21,13 +21,21 @@ module RecordingStudioTermsAndConditions
       end
 
       def copy_initializer
-        template "recording_studio_terms_and_conditions_initializer.rb", "config/initializers/recording_studio_terms_and_conditions.rb"
+        template(
+          "recording_studio_terms_and_conditions_initializer.rb",
+          "config/initializers/recording_studio_terms_and_conditions.rb"
+        )
       end
 
       def add_yaml_config
-        return unless yes?("Would you like to add `config/recording_studio_terms_and_conditions.yml` for environment-specific settings? [y/N]")
+        prompt = "Would you like to add `config/recording_studio_terms_and_conditions.yml` " \
+                 "for environment-specific settings? [y/N]"
+        return unless yes?(prompt)
 
-        template "recording_studio_terms_and_conditions.yml", "config/recording_studio_terms_and_conditions.yml"
+        template(
+          "recording_studio_terms_and_conditions.yml",
+          "config/recording_studio_terms_and_conditions.yml"
+        )
       end
 
       def add_tailwind_source
@@ -96,7 +104,8 @@ module RecordingStudioTermsAndConditions
       def tailwind_source_lines
         [
           '@source "../../vendor/bundle/**/recording_studio_terms_and_conditions/app/views/**/*.erb";',
-          '@source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/recording_studio_terms_and_conditions-*/app/views/**/*.erb";',
+          '@source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/' \
+          'recording_studio_terms_and_conditions-*/app/views/**/*.erb";',
           '@source "../../vendor/bundle/**/flatpack/app/components/**/*.{rb,erb}";',
           '@source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/flatpack-*/app/components/**/*.{rb,erb}";'
         ]

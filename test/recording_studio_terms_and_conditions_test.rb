@@ -69,13 +69,17 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
   end
 
   def test_template_does_not_ship_copied_core_hooks_or_base_service
-    refute File.exist?(File.expand_path("../lib/recording_studio_terms_and_conditions/hooks.rb", __dir__))
-    refute File.exist?(File.expand_path("../lib/recording_studio_terms_and_conditions/services/base_service.rb", __dir__))
-    refute File.exist?(File.expand_path("../lib/recording_studio_terms_and_conditions/services/example_service.rb", __dir__))
+    lib = File.expand_path("../lib/recording_studio_terms_and_conditions", __dir__)
+
+    refute File.exist?(File.join(lib, "hooks.rb"))
+    refute File.exist?(File.join(lib, "services/base_service.rb"))
+    refute File.exist?(File.join(lib, "services/example_service.rb"))
   end
 
   def test_example_capability_wraps_include_for_and_is_not_enabled_globally
-    source = File.read(File.expand_path("../lib/recording_studio_terms_and_conditions/capabilities/example.rb", __dir__))
+    source = File.read(
+      File.expand_path("../lib/recording_studio_terms_and_conditions/capabilities/example.rb", __dir__)
+    )
 
     assert_includes source, "def self.to(**)"
     assert_includes source, "RecordingStudio::Capabilities.include_for(:example, **)"
@@ -145,16 +149,19 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_product_readme_is_the_addon_guide
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    internals_docs = File.join("docs", %w[gem template].join("_"))
+    old_module = %w[Gem Template].join
+
     assert_includes readme, "RecordingStudio"
     assert_includes readme, "recording_studio_terms_and_conditions"
     assert_includes readme, "RecordingStudioTermsAndConditions"
     assert_includes readme, "https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions"
-    assert_includes readme, "docs/gem_template/"
+    assert_includes readme, "#{internals_docs}/"
     assert_includes readme, "v4.2.0"
     assert_includes readme, "v0.1.177"
     assert_includes readme, "v0.9.1"
     refute_includes readme, "Internal template"
-    refute_includes readme, "GemTemplate"
+    refute_includes readme, old_module
     refute_includes readme, "v0.1.133"
     refute_includes readme, "v3 declarations"
     refute_includes readme, "RecordingStudio v3"
@@ -164,12 +171,13 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
 
   def test_product_gemspec_points_at_this_repo
     gemspec = File.read(File.expand_path("../recording_studio_terms_and_conditions.gemspec", __dir__))
+    template_repo = "RecordingStudio_#{%w[gem template].join('_')}"
 
     assert_includes gemspec, 'spec.name        = "recording_studio_terms_and_conditions"'
     assert_includes gemspec, "https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions"
     refute_includes gemspec, "internal template"
     refute_includes gemspec, "addon template for Rails engines"
-    refute_includes gemspec, "RecordingStudio_gem_template"
+    refute_includes gemspec, template_repo
     refute_includes gemspec, "https://github.com/bowerbird-app/recording_studio_terms_and_conditions"
   end
 

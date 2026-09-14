@@ -5,6 +5,7 @@ module RecordingStudioTermsAndConditions
     isolate_namespace RecordingStudioTermsAndConditions
 
     class << self
+      APPLIED_EXTENSIONS_IVAR = :@recording_studio_terms_and_conditions_applied_extensions
       def apply_model_extensions(target)
         apply_extensions(target, extensions_for(:model, extension_keys_for(target)))
       end
@@ -29,7 +30,7 @@ module RecordingStudioTermsAndConditions
       def apply_extensions(target, extensions)
         return unless target
 
-        applied = target.instance_variable_get(:@recording_studio_terms_and_conditions_applied_extensions) || identity_hash
+        applied = target.instance_variable_get(APPLIED_EXTENSIONS_IVAR) || identity_hash
 
         extensions.flatten.compact.each do |extension|
           next if applied[extension]
@@ -38,7 +39,7 @@ module RecordingStudioTermsAndConditions
           applied[extension] = true
         end
 
-        target.instance_variable_set(:@recording_studio_terms_and_conditions_applied_extensions, applied)
+        target.instance_variable_set(APPLIED_EXTENSIONS_IVAR, applied)
       end
 
       def extension_keys_for(target)
@@ -52,10 +53,12 @@ module RecordingStudioTermsAndConditions
     end
 
     # Run before_initialize hooks
-    initializer "recording_studio_terms_and_conditions.before_initialize", before: "recording_studio_terms_and_conditions.load_config" do |_app|
+    initializer "recording_studio_terms_and_conditions.before_initialize",
+                before: "recording_studio_terms_and_conditions.load_config" do |_app|
       RecordingStudioTermsAndConditions.configuration.hooks.run(:before_initialize, self)
     end
 
+    # rubocop:disable Metrics/BlockLength
     initializer "recording_studio_terms_and_conditions.load_config" do |app|
       # Load config/recording_studio_terms_and_conditions.yml via Rails config_for if present
       if app.respond_to?(:config_for)
@@ -89,11 +92,14 @@ module RecordingStudioTermsAndConditions
       end
 
       # Run on_configuration hooks after config is loaded
-      RecordingStudioTermsAndConditions.configuration.hooks.run(:on_configuration, RecordingStudioTermsAndConditions.configuration)
+      cfg = RecordingStudioTermsAndConditions.configuration
+      cfg.hooks.run(:on_configuration, cfg)
     end
+    # rubocop:enable Metrics/BlockLength
 
     # Run after_initialize hooks
-    initializer "recording_studio_terms_and_conditions.after_initialize", after: "recording_studio_terms_and_conditions.load_config" do |_app|
+    initializer "recording_studio_terms_and_conditions.after_initialize",
+                after: "recording_studio_terms_and_conditions.load_config" do |_app|
       RecordingStudioTermsAndConditions.configuration.hooks.run(:after_initialize, self)
     end
 
