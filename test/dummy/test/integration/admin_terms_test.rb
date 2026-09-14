@@ -41,6 +41,9 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     get recording_studio_terms_and_conditions.admin_terms_path
     assert_response :success
     assert_includes response.body, "Write terms"
+    assert_includes response.body, "Title"
+    assert_includes response.body, "Status"
+    assert_includes response.body, "Agrees"
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
     assert_select "nav[aria-label='Page navigation']", count: 1
     assert_match %r{flat_pack/application}, response.body
@@ -71,6 +74,10 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_equal "Whisper, please.", recording.reload.recordable.body
     follow_redirect!
     assert_includes response.body, "Terms updated."
+
+    get recording_studio_terms_and_conditions.admin_terms_path
+    assert_response :success
+    assert_includes response.body, "House rules"
   end
 
   test "admin section registers terms coverage widgets" do
