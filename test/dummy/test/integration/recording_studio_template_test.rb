@@ -12,8 +12,9 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
 
   test "dummy app validates recordable declarations" do
     assert RecordingStudio.validate_recordable_declarations!
-    assert_equal [ "Workspace" ], RecordingStudio.root_recordable_types
+    assert_equal [ "RecordingStudioUser::People", "Workspace" ].sort, RecordingStudio.root_recordable_types.sort
     assert_equal [ "Workspace", "Folder" ], RecordingStudio.allowed_parent_types_for("Page")
+    assert_equal [ "Workspace" ], RecordingStudio.allowed_parent_types_for("RecordingStudioTermsAndConditions::Terms")
   end
 
   test "dummy app schema keeps accessible grants and excludes removed core tables" do

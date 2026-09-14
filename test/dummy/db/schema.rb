@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_11_024811) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_14_010007) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -38,6 +38,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_024811) do
     t.index ["depends_on_recording_id"], name: "index_recording_studio_accesses_on_depends_on_recording_id"
   end
 
+  create_table "recording_studio_attachable_attachments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "attachment_kind", null: false
+    t.bigint "byte_size", null: false
+    t.string "content_type", null: false
+    t.text "description"
+    t.string "name", null: false
+    t.string "original_filename", null: false
+    t.index ["attachment_kind", "content_type"], name: "idx_rs_attachable_kind_type"
+    t.index ["attachment_kind"], name: "idx_on_attachment_kind_d683071625"
+  end
+
   create_table "recording_studio_events", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "action", null: false
     t.uuid "actor_id"
@@ -60,6 +71,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_024811) do
     t.index ["recording_id"], name: "index_recording_studio_events_on_recording_id"
   end
 
+  create_table "recording_studio_publishable_publishables", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "canonical_url"
+    t.datetime "created_at", null: false
+    t.string "meta_robots"
+    t.datetime "publish_at"
+    t.text "seo_description"
+    t.string "seo_title"
+    t.string "slug", null: false
+    t.text "social_description"
+    t.string "social_title"
+    t.string "status", default: "draft", null: false
+    t.string "time_zone"
+    t.datetime "unpublish_at"
+    t.datetime "updated_at", null: false
+    t.index ["canonical_url"], name: "index_rs_publishables_on_canonical_url"
+    t.index ["slug"], name: "index_rs_publishables_on_slug"
+    t.index ["status", "publish_at", "unpublish_at"], name: "index_rs_publishables_on_state_window"
+  end
+
   create_table "recording_studio_recordings", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.uuid "parent_recording_id"
@@ -68,12 +98,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_024811) do
     t.uuid "root_recording_id"
     t.datetime "trashed_at"
     t.datetime "updated_at", null: false
+    t.index ["parent_recording_id"], name: "idx_rs_attachable_parent_active", where: "(((recordable_type)::text = 'RecordingStudioAttachable::Attachment'::text) AND (trashed_at IS NULL))"
     t.index ["parent_recording_id"], name: "index_recording_studio_recordings_on_parent_recording_id"
+    t.index ["parent_recording_id"], name: "index_rs_publishable_child_per_parent", unique: true, where: "(((recordable_type)::text = 'RecordingStudioPublishable::Publishable'::text) AND (trashed_at IS NULL))"
     t.index ["recordable_type", "recordable_id", "parent_recording_id", "trashed_at"], name: "index_recording_studio_recordings_on_recordable_parent_trashed"
     t.index ["recordable_type", "recordable_id"], name: "index_recording_studio_recordings_on_recordable"
     t.index ["recordable_type", "recordable_id"], name: "index_rs_unique_root_recording_per_recordable", unique: true, where: "(parent_recording_id IS NULL)"
     t.index ["root_recording_id", "parent_recording_id"], name: "index_rs_recordings_on_root_and_parent"
     t.index ["root_recording_id", "recordable_type", "recordable_id"], name: "index_rs_recordings_on_root_and_recordable"
+    t.index ["root_recording_id"], name: "idx_rs_attachable_root_active", where: "(((recordable_type)::text = 'RecordingStudioAttachable::Attachment'::text) AND (trashed_at IS NULL))"
     t.index ["root_recording_id"], name: "index_rs_recordings_on_root_recording"
   end
 
@@ -94,6 +127,50 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_024811) do
     t.index ["actor_type", "actor_id", "device_key", "scope_key"], name: "idx_rs_root_switchable_actor_device_scope", unique: true, where: "(actor_id IS NOT NULL)"
     t.index ["device_key", "scope_key"], name: "idx_rs_root_switchable_anonymous_device_scope", unique: true, where: "(actor_id IS NULL)"
     t.index ["root_recording_id"], name: "idx_rs_root_switchable_root_recording"
+  end
+
+  create_table "recording_studio_terms_and_conditions_acceptances", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "accepted_at", null: false
+    t.uuid "actor_id", null: false
+    t.string "actor_type", null: false
+    t.datetime "created_at", null: false
+    t.uuid "terms_id", null: false
+    t.uuid "terms_recording_id", null: false
+    t.index ["actor_type", "actor_id"], name: "index_rstac_acceptances_on_actor"
+    t.index ["terms_id"], name: "index_rstac_acceptances_on_terms_id"
+    t.index ["terms_recording_id"], name: "index_rstac_acceptances_on_terms_recording_id"
+  end
+
+  create_table "recording_studio_terms_and_conditions_terms", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.string "title", null: false
+  end
+
+  create_table "recording_studio_user_identities", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "email"
+    t.string "provider", null: false
+    t.string "uid", null: false
+    t.datetime "updated_at", null: false
+    t.uuid "user_id", null: false
+    t.index ["provider", "uid"], name: "index_recording_studio_user_identities_on_provider_and_uid", unique: true
+    t.index ["user_id", "provider"], name: "index_recording_studio_user_identities_on_user_id_and_provider", unique: true
+    t.index ["user_id"], name: "index_recording_studio_user_identities_on_user_id"
+  end
+
+  create_table "recording_studio_user_people", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+  end
+
+  create_table "recording_studio_user_profiles", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.jsonb "additional_profile_attributes", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.string "first_name", null: false
+    t.string "last_name", null: false
+    t.string "time_zone", default: "UTC", null: false
+    t.uuid "user_id", null: false
+    t.index ["user_id"], name: "index_recording_studio_user_profiles_on_user_id"
   end
 
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -117,4 +194,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_024811) do
   add_foreign_key "recording_studio_events", "recording_studio_recordings", column: "recording_id"
   add_foreign_key "recording_studio_recordings", "recording_studio_recordings", column: "parent_recording_id"
   add_foreign_key "recording_studio_recordings", "recording_studio_recordings", column: "root_recording_id"
+  add_foreign_key "recording_studio_user_identities", "users"
+  add_foreign_key "recording_studio_user_profiles", "users"
 end

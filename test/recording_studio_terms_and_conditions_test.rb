@@ -15,6 +15,11 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     gemspec = File.read(File.expand_path("../recording_studio_terms_and_conditions.gemspec", __dir__))
 
     assert_includes gemspec, 'spec.add_dependency "recording_studio", "~> 4.2"'
+    assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.144"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", "~> 0.8"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_admin", "~> 2.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_publishable", "~> 0.2"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_user", "~> 0.11"'
   end
 
   def test_gemspec_excludes_cursor_config
@@ -46,6 +51,10 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
 
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v4.2.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.9.1"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.5.1"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_publishable", tag: "v0.2.1"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.0.2"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.11.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.5.0"'
     assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.177"'
     refute_includes gemfile, "recording_studio/v3.0.0"
@@ -90,6 +99,20 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_empty RecordingStudio.configuration.enabled_recordable_types_for(:example)
   end
 
+  def test_terms_recordable_opts_into_publishable
+    terms_source = File.read(File.expand_path("../app/models/recording_studio_terms_and_conditions/terms.rb", __dir__))
+    acceptance_source = File.read(
+      File.expand_path("../app/models/recording_studio_terms_and_conditions/acceptance.rb", __dir__)
+    )
+
+    assert_includes terms_source, 'label: "Terms"'
+    assert_includes terms_source, 'self.table_name = "recording_studio_terms_and_conditions_terms"'
+    assert_includes terms_source, "RecordingStudio::Capabilities::Publishable.to"
+    refute_includes terms_source, "enable_capability"
+    assert_includes acceptance_source, 'self.table_name = "recording_studio_terms_and_conditions_acceptances"'
+    refute_includes acceptance_source, "recording_studio_recordable"
+  end
+
   def test_dummy_app_uses_recording_studio_default_layout
     application_controller_path = File.expand_path("dummy/app/controllers/application_controller.rb", __dir__)
     controller_source = File.read(application_controller_path)
@@ -130,7 +153,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     initializer_source = File.read(initializer_path)
 
     assert_includes initializer_source, "config.require_recordable_declarations = true"
-    assert_includes initializer_source, "config.recordable_types = [ \"Workspace\", \"Folder\", \"Page\" ]"
+    assert_includes initializer_source, "RecordingStudioTermsAndConditions::Terms"
+    assert_includes initializer_source, "RecordingStudioUser::People"
+    assert_includes initializer_source, "RecordingStudioPublishable::Publishable"
     refute_includes initializer_source, "config.include_children"
     refute_includes initializer_source, "config.features."
     refute_includes initializer_source, "v3"

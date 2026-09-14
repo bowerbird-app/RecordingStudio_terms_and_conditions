@@ -9,16 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.0] - 2026-09-14
 
+### Added
+- `RecordingStudioTermsAndConditions::Terms` recordable (table `recording_studio_terms_and_conditions_terms`, product label `"Terms"`). Publishable is opted in on the class with `RecordingStudio::Capabilities::Publishable.to` (no public UI in this slice).
+- `RecordingStudioTermsAndConditions::Acceptance` append-only table (`recording_studio_terms_and_conditions_acceptances`) for later clickwrap receipts. Not a recordable.
+
 ### Changed
 - Product identity is `recording_studio_terms_and_conditions` / `RecordingStudioTermsAndConditions` (was the gem-template engine name).
 - Homepage and source URLs point at https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions.
 - README is the product guide. `docs/gem_template/` stays as engine internals.
+- Hard kit dependencies: `recording_studio ~> 4.2`, `flat_pack >= 0.1.144`, `recording_studio_accessible ~> 0.8`, `recording_studio_admin ~> 2.0`, `recording_studio_publishable ~> 0.2`, `recording_studio_user ~> 0.11`.
 
 ### Upgrade notes
 - Depend on `recording_studio_terms_and_conditions` instead of `gem_template`.
 - Replace the previous engine module with `RecordingStudioTermsAndConditions` in require paths, mounts, and configuration.
 - Point install/migrations generators at `recording_studio_terms_and_conditions:install` and `recording_studio_terms_and_conditions:migrations`.
 - Rename host files `config/initializers/gem_template.rb` and `config/gem_template.yml` to the new gem name.
+- Bundle the new kit gems from GitHub (they are not on RubyGems). Register `RecordingStudioTermsAndConditions::Terms` (and Publishable's child type) in `config.recordable_types`.
+- Run this gem's migrations generator, then Publishable's (and Users/Attachable if those engines load). Do not treat Acceptance rows as recordings.
 
 ## [0.2.2] - 2026-09-11
 

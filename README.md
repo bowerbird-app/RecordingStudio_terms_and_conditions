@@ -6,13 +6,15 @@ A Recording Studio addon for terms and conditions.
 - Module: `RecordingStudioTermsAndConditions`
 - Source: [bowerbird-app/RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions)
 
-This slice is identity only. The engine, dummy host, and install generators use the product name. Versioned terms, clickwrap, acceptances, and admin screens are later work.
+This slice is the **data shape**. The engine owns a `Terms` recordable (Publishable-ready) and an append-only `Acceptance` table. Clickwrap UI, acceptance gates, admin screens, and Users signup wiring come later.
 
 ## What's included
 
 - **Recording Studio** 4.x gem pinned and configured
 - **Devise** authentication with a pre-seeded admin user
 - **Workspace**, **Folder**, and **Page** recordables seeded into the dummy host app
+- **Terms** recordable (`RecordingStudioTermsAndConditions::Terms`, product label `"Terms"`) with Publishable opted in on the type
+- **Acceptance** append-only table for later clickwrap receipts (not a recordable)
 - **FlatPack** UI component library for all views
 - **Dummy app** (`test/dummy/`) with a FlatPack sign-in screen, a home page on Recording Studio's default layout, mounted Recording Studio routes, and FlatPack's built-in rounded theme
 
@@ -83,8 +85,10 @@ bin/rails tailwindcss:build
 
 The dummy host follows Recording Studio's root recording pattern:
 
-- **Workspace** is the top-level recordable
-- **Folder** and **Page** demonstrate nested recordables under the workspace root
+- **Workspace** is the dummy content root. Users also registers shared **People**.
+- **Folder** and **Page** demonstrate nested host recordables under the workspace root
+- **Terms** is this gem's nested recordable under Workspace. Enable Publishable on the class with `RecordingStudio::Capabilities::Publishable.to` — installing the gem does not publish anything by itself
+- **Acceptance** rows are receipts, not tree nodes: actor, terms recording id, terms snapshot id, timestamps
 - Each configured recordable declares `recording_studio_recordable(...)`; strict declaration validation stays enabled
 - A root `RecordingStudio::Recording` wraps the Workspace
 - `Current.actor` is set from `current_user` (Devise) in `ApplicationController`
@@ -123,6 +127,8 @@ Every configured ActiveRecord recordable type must declare its hierarchy rules. 
 
 - `Workspace` declares `root: true`
 - `Folder` and `Page` declare `root: false, allowed_parent_types: ["Workspace", "Folder"]`
+- `RecordingStudioTermsAndConditions::Terms` declares `label: "Terms"`, `root: false`, `allowed_parent_types: ["Workspace"]`
+- Dummy also registers Users (`People`, `Profile`), Publishable, and Attachable types so those kit gems can boot
 - `config.require_recordable_declarations = true` remains enabled in the dummy app initializer
 
 Useful console checks:
@@ -179,12 +185,16 @@ See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full do
 | PostgreSQL      | 16      |
 | TailwindCSS     | 4       |
 | RecordingStudio | 4.x (`~> 4.2` in the gemspec; dummy GitHub tag `v4.2.0`) |
-| Accessible      | dummy GitHub tag `v0.9.1` |
+| Accessible      | gemspec `~> 0.8`; dummy GitHub tag `v0.9.1` |
+| Admin           | gemspec `~> 2.0`; dummy GitHub tag `v2.0.2` |
+| Users           | gemspec `recording_studio_user ~> 0.11`; dummy GitHub tag `v0.11.0` |
+| Publishable     | gemspec `~> 0.2`; dummy GitHub tag `v0.2.1` |
+| Attachable      | dummy GitHub tag `v0.5.1` (Users Profile needs it) |
 | Root Switchable | dummy GitHub tag `v0.5.0` |
-| FlatPack        | dummy GitHub tag `v0.1.177` |
+| FlatPack        | gemspec `>= 0.1.144`; dummy GitHub tag `v0.1.177` |
 | Devise          | latest  |
 
-The dummy Gemfile keeps `github:` sources so Bundler can fetch those gems. The gemspec still pins `recording_studio` to `~> 4.2`.
+The dummy Gemfile keeps `github:` sources so Bundler can fetch those gems. Hosts also need Publishable (and Users/Attachable) migrations from those gems — this addon only ships Terms and Acceptance migrations.
 
 ## Documentation
 
