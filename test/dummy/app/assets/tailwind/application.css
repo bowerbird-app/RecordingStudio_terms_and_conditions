@@ -10,6 +10,11 @@
 /* Scan FlatPack components for classes used by the bundled ViewComponents */
 @source "../../../vendor/bundle/**/flatpack/app/components/**/*.{rb,erb}";
 @source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/flatpack-*/app/components/**/*.{rb,erb}";
+@source "../../../../../../usr/local/lib/ruby/gems/**/bundler/gems/flatpack-*/app/components/**/*.{rb,erb}";
+
+/* Recording Studio + Root Switchable views (PageNav, workspace switch) */
+@source "../../../../../../usr/local/lib/ruby/gems/**/bundler/gems/recording_studio-*/app/views/**/*.erb";
+@source "../../../../../../usr/local/lib/ruby/gems/**/bundler/gems/recording_studio_root_switchable-*/app/**/*.{rb,erb}";
 
 /* Include the engine's views in the Tailwind build */
 @source "../../../../../app/views/**/*.erb";

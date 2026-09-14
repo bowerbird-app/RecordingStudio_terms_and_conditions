@@ -7,7 +7,7 @@ This Rails app exists to validate the Recording Studio Terms and Conditions addo
 - Devise authentication with a seeded admin user
 - `Current.actor` wiring for Recording Studio events
 - Root workspace plus seeded folder and page recordables
-- Recording Studio default layout, FlatPack assets, and Tailwind source scanning
+- Recording Studio default layout with Flatpack TopNav, FlatPack assets, and Tailwind source scanning (including `/usr/local/lib/ruby/gems/**/bundler/gems/flatpack-*`)
 - Mounted `RecordingStudio::Engine` route behavior inside a host app
 - Dummy-only `/docs/*` pages for gem-specific onboarding
 - Acceptance gate: a workspace with live published Terms sends signed-in people to Agree until they accept

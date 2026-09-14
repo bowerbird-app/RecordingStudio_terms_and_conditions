@@ -20,31 +20,38 @@
     description: "Write a draft, then publish it when the wording is ready."
   ) %>
 <% else %>
+  <% terms_rows = @terms_recordings.map { |recording|
+    title = recording.recordable&.title.presence || "Untitled"
+    live = recording.respond_to?(:currently_published?) && recording.currently_published?
+    {
+      title: title,
+      href: admin_term_path(recording),
+      live: live,
+      agrees: RecordingStudioTermsAndConditions::Acceptance.where(terms_recording_id: recording.id).count
+    }
+  } %>
+
   <%= render FlatPack::Table::Component.new(
-    data: @terms_recordings,
-    min_width: :lg
+    data: terms_rows,
+    class: "text-sm"
   ) do |table| %>
-    <% table.column(title: "Title") do |recording|
-      title = recording.recordable&.title.presence || "Untitled"
-      render FlatPack::Link::Component.new(href: admin_term_path(recording)).with_content(title)
+    <% table.column(title: "Title") do |row|
+      render FlatPack::Link::Component.new(href: row[:href]).with_content(row[:title])
     end %>
-    <% table.column(title: "Status") do |recording|
-      live = recording.respond_to?(:currently_published?) && recording.currently_published?
+    <% table.column(title: "Status") do |row|
       render FlatPack::Badge::Component.new(
-        text: live ? "Live" : "Draft",
-        style: live ? :success : :default,
+        text: row[:live] ? "Live" : "Draft",
+        style: row[:live] ? :success : :default,
         size: :sm
       )
     end %>
-    <% table.column(title: "Agrees") do |recording|
-      RecordingStudioTermsAndConditions::Acceptance.where(terms_recording_id: recording.id).count
-    end %>
-    <% table.column(title: "") do |recording|
+    <% table.column(title: "Agrees") { |row| row[:agrees] } %>
+    <% table.column(title: "Open") do |row|
       render FlatPack::Button::Component.new(
         text: "Open",
         style: :ghost,
         size: :sm,
-        href: admin_term_path(recording)
+        href: row[:href]
       )
     end %>
   <% end %>

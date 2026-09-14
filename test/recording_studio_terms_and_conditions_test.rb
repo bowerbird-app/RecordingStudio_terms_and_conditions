@@ -147,8 +147,22 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes layout, 'stylesheet_link_tag "flat_pack/application"'
     assert_includes layout, 'stylesheet_link_tag "tailwind"'
     assert_includes layout, '<html data-theme="rounded">'
+    assert_includes layout, "dummy_top_nav"
+    assert_includes layout, "anchor_href"
+    refute_includes layout, "page_nav_options[:back_url]"
+    refute_includes layout, "page_nav_options[:anchor_url]"
+    refute_includes layout, "url: back_url"
+    refute_includes layout, "url: anchor_url"
     refute_includes layout, "max-w-3xl"
     assert layout.index('stylesheet_link_tag "flat_pack/application"') < layout.index('stylesheet_link_tag "tailwind"')
+
+    helper = File.read(File.expand_path("dummy/app/helpers/application_helper.rb", __dir__))
+    top_nav = File.read(File.expand_path("dummy/app/views/layouts/flat_pack/_top_nav.html.erb", __dir__))
+    assert_includes helper, "def dummy_top_nav"
+    refute_includes helper, "url: main_app.destroy_user_session_path"
+    assert_includes top_nav, "FlatPack::TopNav::Component"
+    assert_includes top_nav, "href: main_app.destroy_user_session_path"
+    assert_includes top_nav, "method: :delete"
   end
 
   def test_agree_and_admin_views_use_cards_and_skip_echoed_tick_copy
@@ -184,7 +198,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin_new, "FlatPack::Card::Component"
     assert_includes admin_new, "card.footer"
     assert_includes admin_index, "FlatPack::Table::Component"
-    assert_includes admin_index, "min_width: :lg"
+    assert_includes admin_index, "terms_rows"
+    assert_includes admin_index, 'title: "Open"'
+    refute_includes admin_index, "min_width: :lg"
     assert_includes engine_source("#{views}/admin/terms/_form.html.erb"), "terms_body_editor"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/sample_terms.rb"), "Using the booth"
     importmap = File.read(File.expand_path("dummy/config/importmap.rb", __dir__))
@@ -208,6 +224,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
 
     assert_includes tailwind_source, "../../../vendor/bundle/**/flatpack/app/components/**/*.{rb,erb}"
     assert_includes tailwind_source, "flatpack-*/app/components/**/*.{rb,erb}"
+    assert_includes tailwind_source, "usr/local/lib/ruby/gems/**/bundler/gems/flatpack-"
     assert_includes tailwind_source, "../../../vendor/bundle/**/recording_studio/app/views/**/*.erb"
     assert_includes tailwind_source, "recordingstudio-*/app/views/**/*.erb"
     refute_includes tailwind_source, "@theme"

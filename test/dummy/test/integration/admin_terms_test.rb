@@ -45,7 +45,10 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Status"
     assert_includes response.body, "Agrees"
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
+    assert_select "header.fp-top-nav", count: 1
     assert_select "nav[aria-label='Page navigation']", count: 1
+    assert_select "a", text: "Sign out"
+    assert_select "a[href=?]", destroy_user_session_path
     assert_match %r{flat_pack/application}, response.body
 
     get recording_studio_terms_and_conditions.new_admin_term_path
@@ -78,6 +81,13 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     get recording_studio_terms_and_conditions.admin_terms_path
     assert_response :success
     assert_includes response.body, "House rules"
+    assert_select "table thead th", text: "Title"
+    assert_select "table thead th", text: "Status"
+    assert_select "table thead th", text: "Agrees"
+    assert_select "table thead th", text: "Open"
+    assert_select "table tbody td a", text: "House rules"
+    assert_select "table tbody td", text: "Draft"
+    assert_select "table tbody td a", text: "Open"
   end
 
   test "admin section registers terms coverage widgets" do
