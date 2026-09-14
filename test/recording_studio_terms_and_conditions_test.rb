@@ -161,7 +161,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes helper, "def dummy_top_nav"
     refute_includes helper, "url: main_app.destroy_user_session_path"
     assert_includes top_nav, "FlatPack::TopNav::Component"
-    assert_includes top_nav, "href: main_app.destroy_user_session_path"
+    assert_includes top_nav, 'href: "/users/sign_out"'
     assert_includes top_nav, "method: :delete"
   end
 

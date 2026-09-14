@@ -37,7 +37,7 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
     assert_select "header.fp-top-nav", count: 1
     assert_select "a", text: "Sign out"
-    assert_select "a[href=?]", destroy_user_session_path
+    assert_select "a[href='/users/sign_out']"
   end
 
   test "root switch page renders with the host default layout" do

@@ -48,7 +48,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_select "header.fp-top-nav", count: 1
     assert_select "nav[aria-label='Page navigation']", count: 1
     assert_select "a", text: "Sign out"
-    assert_select "a[href=?]", destroy_user_session_path
+    assert_select "a[href='/users/sign_out']"
     assert_match %r{flat_pack/application}, response.body
 
     get recording_studio_terms_and_conditions.new_admin_term_path
