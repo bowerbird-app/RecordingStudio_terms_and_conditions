@@ -12,12 +12,12 @@ module RecordingStudioTermsAndConditions
       actor ||= recording_studio_terms_agree_actor
       return if actor.present? && RecordingStudioTermsAndConditions.accepted?(actor, root)
 
-      recording_studio_terms_agree_fields(terms)
+      recording_studio_terms_agree_fields(terms, inside_form)
     end
 
     private
 
-    def recording_studio_terms_agree_fields(terms)
+    def recording_studio_terms_agree_fields(terms, _inside_form)
       checkbox = render(FlatPack::Checkbox::Component.new(**recording_studio_terms_agree_checkbox))
       safe_join([checkbox, recording_studio_terms_agree_full_terms_link(terms)].compact)
     end
