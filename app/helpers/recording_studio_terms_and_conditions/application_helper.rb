@@ -25,4 +25,3 @@ module RecordingStudioTermsAndConditions
     end
   end
 end
-

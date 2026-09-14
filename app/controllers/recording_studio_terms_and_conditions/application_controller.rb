@@ -11,9 +11,7 @@ module RecordingStudioTermsAndConditions
     if defined?(Rails.application) && Rails.application.respond_to?(:root)
       prepend_view_path Rails.application.root.join("app/views")
     end
-    if defined?(RecordingStudio::Engine)
-      append_view_path RecordingStudio::Engine.root.join("app/views")
-    end
+    append_view_path RecordingStudio::Engine.root.join("app/views") if defined?(RecordingStudio::Engine)
 
     layout "recording_studio/default_layout"
 

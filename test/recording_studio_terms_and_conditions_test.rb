@@ -152,17 +152,20 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
   end
 
   def test_agree_and_admin_views_use_cards_and_skip_echoed_tick_copy
-    agree = File.read(File.expand_path("../app/views/recording_studio_terms_and_conditions/acceptances/show.html.erb", __dir__))
-    admin_index = File.read(File.expand_path("../app/views/recording_studio_terms_and_conditions/admin/terms/index.html.erb", __dir__))
-    admin_show = File.read(File.expand_path("../app/views/recording_studio_terms_and_conditions/admin/terms/show.html.erb", __dir__))
-    admin_new = File.read(File.expand_path("../app/views/recording_studio_terms_and_conditions/admin/terms/new.html.erb", __dir__))
-    public_show = File.read(File.expand_path("../app/views/recording_studio_terms_and_conditions/published_terms/show.html.erb", __dir__))
-    controller = File.read(File.expand_path("../app/controllers/recording_studio_terms_and_conditions/application_controller.rb", __dir__))
-    terms_model = File.read(File.expand_path("../app/models/recording_studio_terms_and_conditions/terms.rb", __dir__))
+    views = "app/views/recording_studio_terms_and_conditions"
+    agree = engine_source("#{views}/acceptances/show.html.erb")
+    admin_index = engine_source("#{views}/admin/terms/index.html.erb")
+    admin_show = engine_source("#{views}/admin/terms/show.html.erb")
+    admin_new = engine_source("#{views}/admin/terms/new.html.erb")
+    public_show = engine_source("#{views}/published_terms/show.html.erb")
+    controller = engine_source(
+      "app/controllers/recording_studio_terms_and_conditions/application_controller.rb"
+    )
+    terms_model = engine_source("app/models/recording_studio_terms_and_conditions/terms.rb")
 
     assert_includes controller, 'layout "recording_studio/default_layout"'
     assert_includes terms_model, 'public_layout: "recording_studio/default_layout"'
-    refute File.exist?(File.expand_path("../app/views/layouts/recording_studio_terms_and_conditions/public.html.erb", __dir__))
+    refute File.exist?(engine_path("app/views/layouts/recording_studio_terms_and_conditions/public.html.erb"))
 
     assert_includes agree, "FlatPack::Card::Component"
     assert_includes agree, 'label: "I agree to these terms"'
@@ -345,5 +348,15 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     view_path = File.expand_path("../app/views/recording_studio_terms_and_conditions/home/index.html.erb", __dir__)
 
     refute File.exist?(view_path)
+  end
+
+  private
+
+  def engine_path(relative)
+    File.expand_path(File.join("..", relative), __dir__)
+  end
+
+  def engine_source(relative)
+    File.read(engine_path(relative))
   end
 end
