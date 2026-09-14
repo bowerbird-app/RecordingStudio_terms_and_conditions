@@ -101,6 +101,7 @@ module RecordingStudioTermsAndConditions
     initializer "recording_studio_terms_and_conditions.after_initialize",
                 after: "recording_studio_terms_and_conditions.load_config" do |_app|
       RecordingStudioTermsAndConditions.configuration.hooks.run(:after_initialize, self)
+      RecordingStudioTermsAndConditions::AcceptanceGateInstaller.call
     end
 
     # Apply model extensions when models are loaded

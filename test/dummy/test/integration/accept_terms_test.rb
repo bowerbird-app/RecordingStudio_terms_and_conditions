@@ -46,7 +46,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
   test "ticking agree records a clickwrap receipt" do
     post recording_studio_terms_and_conditions.acceptance_path, params: { agreed: "1" }
 
-    assert_redirected_to root_path
+    assert_redirected_to "/"
     follow_redirect!
     assert_includes CGI.unescapeHTML(response.body), "You're in. Thanks for reading."
     assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace)

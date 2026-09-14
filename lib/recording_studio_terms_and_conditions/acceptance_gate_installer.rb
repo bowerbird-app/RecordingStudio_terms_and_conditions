@@ -15,16 +15,16 @@ module RecordingStudioTermsAndConditions
     private
 
     def include_host_gate
-      return unless defined?(::ApplicationController)
-      return if ::ApplicationController.include?(ForcesAcceptance)
+      host = "::ApplicationController".safe_constantize
+      return unless host
+      return if host.include?(ForcesAcceptance)
 
-      ::ApplicationController.include ForcesAcceptance
+      host.include ForcesAcceptance
     end
 
     def prepend_users_auth_redirect
-      return unless defined?(RecordingStudioUser::Auth::BaseController)
-
-      auth = RecordingStudioUser::Auth::BaseController
+      auth = "RecordingStudioUser::Auth::BaseController".safe_constantize
+      return unless auth
       return if auth.ancestors.include?(UsersAuthRedirect)
 
       auth.prepend UsersAuthRedirect

@@ -19,7 +19,7 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     end
 
     sign_in @user
-    use_workspace_without_live_terms
+    accept_live_studio_terms!
   end
 
   test "install page renders successfully" do
@@ -156,14 +156,15 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
       "• #{ActionController::Base.helpers.pluralize(recordable_count, 'recordable')} in the database"
   end
 
-  def use_workspace_without_live_terms
-    workspace = Workspace.find_by(name: "Private Workspace") ||
-                Workspace.create!(name: "Docs free #{SecureRandom.hex(4)}")
-    recording = RecordingStudio.root_recording_for(workspace)
-    patch "/recording_studio_root_switchable/v1/root_switch", params: {
-      scope: "all_workspaces",
-      root_switch: { root_recording_id: recording.id, return_to: "/" }
-    }
+  def accept_live_studio_terms!
+    workspace = Workspace.find_by(name: "Studio Workspace")
+    return unless workspace
+
+    terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
+    return unless terms
+    return if RecordingStudioTermsAndConditions.accepted?(@user, workspace)
+
+    RecordingStudioTermsAndConditions.accept!(@user, terms, { "source" => "test" })
   end
 
   def record_child(recordable, root_recording, parent_recording)

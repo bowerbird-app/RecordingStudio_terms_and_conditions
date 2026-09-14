@@ -20,7 +20,6 @@ module RecordingStudioTermsAndConditions
     private
 
     def force_terms_acceptance
-      return unless request.format.html?
       return unless signed_in_actor
       return if Gate.exempt?(self)
       return unless Gate.required?(self, signed_in_actor)

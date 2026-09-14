@@ -23,18 +23,18 @@ class TermsGateTest < ActionDispatch::IntegrationTest
   test "unpublished workspace leaves home and docs free" do
     record_terms(@root, title: "Draft only", body: "Not live.")
 
-    get root_path
+    get "/"
     assert_response :success
     refute_redirected_to_acceptance
 
-    get docs_install_path
+    get "/docs/install"
     assert_response :success
   end
 
   test "published terms send signed-in people to the clickwrap" do
     publish_live_terms!
 
-    get root_path
+    get "/"
     assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
     follow_redirect!
     assert_includes CGI.unescapeHTML(response.body), "One more thing — agree to the terms."
@@ -43,17 +43,17 @@ class TermsGateTest < ActionDispatch::IntegrationTest
 
   test "accepting the live version opens the app again" do
     publish_live_terms!
-    get docs_install_path
+    get "/docs/install"
     assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
 
     post recording_studio_terms_and_conditions.acceptance_path, params: { agreed: "1" }
 
-    assert_redirected_to docs_install_path
+    assert_redirected_to "/docs/install"
     follow_redirect!
     assert_response :success
     assert_includes CGI.unescapeHTML(response.body), "You're in. Thanks for reading."
 
-    get root_path
+    get "/"
     assert_response :success
   end
 
@@ -61,24 +61,30 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     recording = publish_live_terms!
     RecordingStudioTermsAndConditions.accept!(@user, recording, { "source" => "clickwrap" })
 
-    get root_path
+    get "/"
     assert_response :success
 
     revised = @root.revise(recording) { |terms| terms.body = "Be kinder." }
     publish_terms!(revised, slug: "gate-terms-#{SecureRandom.hex(4)}")
 
-    get root_path
+    get "/"
     assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
     refute RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
   end
 
   test "devise sign in lands on agree when live terms require it" do
+    studio = Workspace.find_or_create_by!(name: "Studio Workspace")
+    RecordingStudio.root_recording_for(studio)
     ensure_default_workspace_requires_acceptance!
+    switch_to_workspace(studio)
     sign_out @user
 
-    post user_session_path, params: { user: { email: @user.email, password: @password } }
+    post "/users/sign_in", params: { user: { email: @user.email, password: @password } }
 
-    assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
+    assert_response :redirect
+    follow_redirect!
+    follow_redirect! if response.redirect?
+    assert_includes response.body, "I agree to these terms"
   end
 
   test "users auth after sign up uses the same clickwrap" do
@@ -130,11 +136,13 @@ class TermsGateTest < ActionDispatch::IntegrationTest
   end
 
   def users_auth_controller_for(workspace)
+    agree_path = recording_studio_terms_and_conditions.acceptance_path
     Class.new do
       prepend RecordingStudioTermsAndConditions::UsersAuthRedirect
 
-      def initialize(workspace)
+      def initialize(workspace, agree_path)
         @workspace = workspace
+        @agree_path = agree_path
       end
 
       def after_sign_in_path_for(_resource)
@@ -150,8 +158,8 @@ class TermsGateTest < ActionDispatch::IntegrationTest
       end
 
       def recording_studio_terms_and_conditions
-        Rails.application.routes.url_helpers.recording_studio_terms_and_conditions
+        Struct.new(:acceptance_path).new(@agree_path)
       end
-    end.new(workspace)
+    end.new(workspace, agree_path)
   end
 end

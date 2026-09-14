@@ -34,9 +34,20 @@ module RecordingStudioTermsAndConditions
     end
 
     def after_auth_path(controller, actor)
+      refresh_root(controller, actor)
       return unless required?(controller, actor)
 
       acceptance_path(controller)
+    end
+
+    def refresh_root(controller, actor)
+      return unless actor
+      return unless defined?(RecordingStudio::RootSwitchable::Current)
+
+      RecordingStudio::RootSwitchable::Current.actor = actor
+      return unless controller.respond_to?(:resolve_recording_studio_root_switchable_current, true)
+
+      controller.send(:resolve_recording_studio_root_switchable_current)
     end
 
     def acceptance_path(controller)
