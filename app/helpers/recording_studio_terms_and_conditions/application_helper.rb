@@ -41,16 +41,19 @@ module RecordingStudioTermsAndConditions
     def terms_published_at(recording)
       return unless recording
 
-      recording.try(:current_publishable)&.try(:publish_at) ||
-        ((recording.respond_to?(:currently_published?) && recording.currently_published?) ? recording.updated_at : nil)
+      recording.try(:current_publishable)&.try(:publish_at) || live_terms_updated_at(recording)
     end
 
     def terms_version_date(terms, recording: nil)
-      recording ||= RecordingStudio::Recording.find_by(recordable_type: Terms.name, recordable_id: terms&.id)
-      time = terms_published_at(recording) || recording&.updated_at || recording&.created_at || terms&.created_at
+      time = terms_version_time(terms, recording)
       return if time.blank?
 
-      render(FlatPack::Timestamp::Component.new(timestamp: time, class: "mt-2 text-sm text-[var(--surface-muted-content-color)]"))
+      render(
+        FlatPack::Timestamp::Component.new(
+          timestamp: time,
+          class: "mt-2 text-sm text-[var(--surface-muted-content-color)]"
+        )
+      )
     end
 
     def terms_body(text)
@@ -85,9 +88,27 @@ module RecordingStudioTermsAndConditions
         required: true,
         placeholder: TERMS_BODY_PLACEHOLDER,
         rich_text: true,
-        rich_text_options: TERMS_BODY_EDITOR_OPTIONS,
-        class: "border border-[var(--surface-border-color)] rounded-[var(--radius-md)] [&_.flat-pack-richtext-editor]:border [&_.flat-pack-richtext-editor]:border-[var(--surface-border-color)] [&_.flat-pack-richtext-editor]:rounded-[var(--radius-md)]"
+        rich_text_options: TERMS_BODY_EDITOR_OPTIONS
       )
+    end
+
+    private
+
+    def live_terms_updated_at(recording)
+      return unless recording.respond_to?(:currently_published?) && recording.currently_published?
+
+      recording.updated_at
+    end
+
+    def terms_version_time(terms, recording)
+      recording ||= RecordingStudio::Recording.find_by(
+        recordable_type: Terms.name,
+        recordable_id: terms&.id
+      )
+      terms_published_at(recording) ||
+        recording&.updated_at ||
+        recording&.created_at ||
+        terms&.created_at
     end
   end
 end

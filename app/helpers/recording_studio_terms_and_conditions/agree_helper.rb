@@ -19,6 +19,17 @@ module RecordingStudioTermsAndConditions
 
     def recording_studio_terms_agree_fields(terms, _inside_form, link_terms: false)
       checkbox_id = "agreed_#{SecureRandom.hex(4)}"
+      extras = link_terms ? [] : [recording_studio_terms_agree_full_terms_link(terms)]
+
+      content_tag(:div, class: "py-5") do
+        safe_join([
+          recording_studio_terms_agree_labeled_box(terms, checkbox_id, link_terms),
+          *extras
+        ].compact)
+      end
+    end
+
+    def recording_studio_terms_agree_labeled_box(terms, checkbox_id, link_terms)
       checkbox = render(
         FlatPack::Checkbox::Component.new(
           **recording_studio_terms_agree_checkbox,
@@ -26,17 +37,10 @@ module RecordingStudioTermsAndConditions
           label: link_terms ? nil : "I agree to these terms"
         )
       )
-      labeled = if link_terms
-                  content_tag(:div, class: "flex items-center") do
-                    safe_join([checkbox, recording_studio_terms_agree_linked_label(terms, checkbox_id)].compact)
-                  end
-                else
-                  checkbox
-                end
+      return checkbox unless link_terms
 
-      extras = link_terms ? [] : [recording_studio_terms_agree_full_terms_link(terms)]
-      content_tag(:div, class: "py-5") do
-        safe_join([labeled, *extras].compact)
+      content_tag(:div, class: "flex items-center") do
+        safe_join([checkbox, recording_studio_terms_agree_linked_label(terms, checkbox_id)])
       end
     end
 
@@ -60,7 +64,8 @@ module RecordingStudioTermsAndConditions
       label_tag(
         checkbox_id,
         safe_join(["I agree to these ".html_safe, terms_word]),
-        class: "ml-[var(--checkbox-label-gap)] text-sm font-medium text-[var(--surface-content-color)] cursor-pointer"
+        class: "ml-[var(--checkbox-label-gap)] text-sm font-medium " \
+               "text-[var(--surface-content-color)] cursor-pointer"
       )
     end
 
