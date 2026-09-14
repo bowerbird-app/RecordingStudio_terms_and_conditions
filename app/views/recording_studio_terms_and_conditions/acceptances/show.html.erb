@@ -24,13 +24,7 @@
     <% end %>
     <% card.footer do %>
       <%= form_with url: acceptance_path, method: :post do %>
-        <%= render FlatPack::Checkbox::Component.new(
-          name: "agreed",
-          value: "1",
-          checked: false,
-          required: true,
-          label: "I agree to these terms"
-        ) %>
+        <%= recording_studio_terms_agree(inside_form: true, actor: current_user, root: @root) %>
         <%= render FlatPack::Button::Component.new(
           text: "Agree",
           style: :primary,

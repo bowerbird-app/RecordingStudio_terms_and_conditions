@@ -16,6 +16,7 @@ class GateTest < Minitest::Test
     assert RecordingStudioTermsAndConditions::Gate.exempt?(
       FakeController.new("recording_studio_user/auth/registrations", false)
     )
+    assert RecordingStudioTermsAndConditions::Gate.exempt?(FakeController.new("agree_helpers", false))
     assert RecordingStudioTermsAndConditions::Gate.exempt?(FakeController.new("home", true))
     refute RecordingStudioTermsAndConditions::Gate.exempt?(FakeController.new("home", false))
     refute RecordingStudioTermsAndConditions::Gate.exempt?(FakeController.new("docs", false))

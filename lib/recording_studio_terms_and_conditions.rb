@@ -3,6 +3,7 @@
 require "recording_studio"
 require "recording_studio_publishable"
 require "recording_studio_terms_and_conditions/version"
+require "recording_studio_terms_and_conditions/sample_terms"
 require "recording_studio_terms_and_conditions/engine"
 require "recording_studio_terms_and_conditions/configuration"
 require "recording_studio_terms_and_conditions/terms_acceptance"

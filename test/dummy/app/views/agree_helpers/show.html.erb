@@ -1,0 +1,34 @@
+<% dummy_page_nav(title: "Agree helper", back_url: root_path) %>
+
+<div class="flex w-full flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: "Agree helper",
+    subtitle: "Drop the same control on a page or inside a host form.",
+    variant: :h1
+  ) %>
+
+  <%= render FlatPack::SectionTitle::Component.new(
+    title: "On a page",
+    subtitle: "Posts to the existing Agree path."
+  ) %>
+  <%= recording_studio_terms_agree %>
+
+  <%= render FlatPack::SectionTitle::Component.new(
+    title: "Inside a form",
+    subtitle: "The box is required. Submit still calls accept!."
+  ) %>
+  <%= form_with url: agree_helper_path, method: :post do %>
+    <%= render FlatPack::TextInput::Component.new(
+      name: "display_name",
+      value: params[:display_name],
+      label: "Name",
+      placeholder: "What should we call you?"
+    ) %>
+    <%= recording_studio_terms_agree(inside_form: true) %>
+    <%= render FlatPack::Button::Component.new(
+      text: "Join",
+      style: :primary,
+      type: "submit"
+    ) %>
+  <% end %>
+</div>

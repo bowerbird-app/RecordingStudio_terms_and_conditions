@@ -18,6 +18,11 @@
     href: recording_studio_terms_and_conditions.admin_terms_path
   ) %>
   <%= render FlatPack::Button::Component.new(
+    text: "Agree helper",
+    style: :ghost,
+    href: agree_helper_path
+  ) %>
+  <%= render FlatPack::Button::Component.new(
     text: "Admin",
     style: :ghost,
     href: "/admin"
@@ -36,7 +41,7 @@
 
       <% card.body do %>
         <ul class="space-y-3 text-sm leading-6">
-          <li>Clickwrap Agree screen for the live published Terms, plus a host gate after sign in.</li>
+          <li>Clickwrap Agree screen, a host gate after sign in, and <code>recording_studio_terms_agree</code> for any page or form.</li>
           <li>Admin create, edit, and Publishable publish.</li>
           <li>Public Terms URL at <code>/terms/:uuid/:slug</code>.</li>
           <li>The dummy app exercises authentication, the Recording Studio default layout, and FlatPack.</li>

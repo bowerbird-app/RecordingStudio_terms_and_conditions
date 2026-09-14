@@ -9,19 +9,7 @@
 <%= form_with url: admin_term_path(@terms_recording), method: :patch, scope: :terms do %>
   <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
     <% card.body do %>
-      <%= render FlatPack::TextInput::Component.new(
-        name: "terms[title]",
-        value: @terms.title,
-        label: "Title",
-        required: true
-      ) %>
-      <%= render FlatPack::TextArea::Component.new(
-        name: "terms[body]",
-        value: @terms.body,
-        label: "Body",
-        required: true,
-        rows: 12
-      ) %>
+      <%= render "form", title: @terms.title, body: @terms.body %>
     <% end %>
     <% card.footer do %>
       <%= render FlatPack::Button::Component.new(

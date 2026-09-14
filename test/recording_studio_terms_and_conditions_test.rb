@@ -168,7 +168,12 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute File.exist?(engine_path("app/views/layouts/recording_studio_terms_and_conditions/public.html.erb"))
 
     assert_includes agree, "FlatPack::Card::Component"
-    assert_includes agree, 'label: "I agree to these terms"'
+    assert_includes agree, "recording_studio_terms_agree(inside_form: true"
+    assert_includes engine_source("app/helpers/recording_studio_terms_and_conditions/agree_helper.rb"),
+                    "def recording_studio_terms_agree"
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
+                    "helper RecordingStudioTermsAndConditions::AgreeHelper"
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/gate.rb"), "agree_helpers"
     refute_includes agree, "help_text"
     refute_includes agree, "Read them, tick the box"
     refute_includes agree, "FlatPack::Alert::Component"
@@ -178,6 +183,13 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin_show, "page_title.slot"
     assert_includes admin_new, "FlatPack::Card::Component"
     assert_includes admin_new, "card.footer"
+    assert_includes admin_index, "FlatPack::Table::Component"
+    assert_includes admin_index, "min_width: :lg"
+    assert_includes engine_source("#{views}/admin/terms/_form.html.erb"), "terms_body_editor"
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/sample_terms.rb"), "Using the booth"
+    importmap = File.read(File.expand_path("dummy/config/importmap.rb", __dir__))
+    assert_includes importmap, "@tiptap/core"
+    assert_includes importmap, "flat_pack/tiptap"
   end
 
   def test_dummy_login_layout_keeps_flatpack_assets_without_tight_main_offset

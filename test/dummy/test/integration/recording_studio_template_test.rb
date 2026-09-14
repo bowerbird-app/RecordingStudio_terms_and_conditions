@@ -57,6 +57,7 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     assert_equal root_recording, page_recording.root_recording
     assert_equal 3, Workspace.count
     assert_equal "Studio Terms", terms.title
+    assert_includes terms.body, "Using the booth"
     assert RecordingStudio::Recording.find_by!(recordable: admin_root)
 
     assert_no_difference -> { User.count } do

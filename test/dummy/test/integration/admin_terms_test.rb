@@ -45,6 +45,11 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_select "nav[aria-label='Page navigation']", count: 1
     assert_match %r{flat_pack/application}, response.body
 
+    get recording_studio_terms_and_conditions.new_admin_term_path
+    assert_response :success
+    assert_includes response.body, "flat-pack--tiptap"
+    assert_includes response.body, "terms[body]"
+
     assert_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count }, 1 do
       post recording_studio_terms_and_conditions.admin_terms_path, params: {
         terms: { title: "House rules", body: "No yelling in the booth." }

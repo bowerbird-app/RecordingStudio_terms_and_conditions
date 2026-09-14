@@ -49,3 +49,12 @@ RecordingStudioTermsAndConditions.accepted?(user, workspace)
 Live means Publishable `currently_published?`. Acceptance rows are receipts, not recordings.
 
 The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends Users Auth after sign in / sign up to the same Agree screen.
+
+Drop the host helper onto any page or inside a form:
+
+```erb
+<%= recording_studio_terms_agree %>
+<%= recording_studio_terms_agree(inside_form: true) %>
+```
+
+Inside a form the checkbox is HTML `required` and named `agreed`. On submit call `accept!` with `params[:agreed]`. Do not add a second receipt table.

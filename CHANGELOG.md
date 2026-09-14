@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Agree, Admin Terms, and public `/terms/:uuid/:slug` use Recording Studio `recording_studio/default_layout` (PageNav + content column). Terms copy lives in a Flatpack Card. Agree checkbox keeps one label; the extra tick/agree help text is gone.
+- Admin Terms index uses a Flatpack Table with Title / Status / Agrees columns. New and edit use Flatpack `TextArea` rich text (`rich_text: true`, content preset). Dummy seeds ship a multi-section sample body.
+- Host helper `recording_studio_terms_agree` (optional `inside_form: true`) mounts the required Agree checkbox on any page or form. Standalone posts to the existing Agree path. Dummy `/agree_helper` shows both.
 - Product identity is `recording_studio_terms_and_conditions` / `RecordingStudioTermsAndConditions` (was the gem-template engine name).
 - Homepage and source URLs point at https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions.
 - README is the product guide. `docs/gem_template/` stays as engine internals.
@@ -35,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Call `RecordingStudioTermsAndConditions.current_published_for` / `accepted?` / `accept!` / `requires_acceptance?` instead of querying publishable children or inserting acceptance rows by hand.
 - Mount this engine for the Agree screen. Mount Publishable at `/` so `/terms/:uuid/:slug` works. Mount Admin, add an `AdminRoot`, enable `section :terms`, and grant Accessible access to that root. Publish through Publishable's edit UI, not a custom publish action. Hosts should use `recording_studio/default_layout` (or `UsesDefaultLayout`) for those screens — drop any copied `recording_studio_terms_and_conditions/public` layout. Load `flat_pack/application` from `_default_layout_head` and keep Tailwind last.
 - Expect the gem to include the acceptance gate on `ApplicationController` and to prepend the Users Auth redirect. Do not add a second clickwrap. After agree, people return to the page they asked for.
+- Drop `recording_studio_terms_agree` or `recording_studio_terms_agree(inside_form: true)` onto host screens. Inside a host form the checkbox is HTML `required` and named `agreed`; on submit call `accept!` with `params[:agreed]`. Do not add another receipt table.
 - Add `recording_studio_terms_and_conditions` to the approved kit in `recording-studio-gems` (published Terms + clickwrap). Do not hand-roll acceptances.
 
 ## [0.2.2] - 2026-09-11

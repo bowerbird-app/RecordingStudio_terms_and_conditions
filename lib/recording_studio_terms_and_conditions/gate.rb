@@ -7,6 +7,7 @@ module RecordingStudioTermsAndConditions
       recording_studio_terms_and_conditions/acceptances
       recording_studio_terms_and_conditions/admin
       recording_studio_terms_and_conditions/published_terms
+      agree_helpers
       recording_studio_publishable
       recording_studio_admin
       recording_studio_accessible

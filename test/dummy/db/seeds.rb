@@ -68,13 +68,22 @@ begin
       RecordingStudioTermsAndConditions::Terms,
       actor: user
     ) do |terms|
-      terms.title = "Studio Terms"
-      terms.body = "Be kind. Don't be a jerk. That's the deal."
+      terms.title = RecordingStudioTermsAndConditions::SampleTerms::TITLE
+      terms.body = RecordingStudioTermsAndConditions::SampleTerms::BODY
     end
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: terms_recording,
       attributes: { slug: "studio-terms", status: "published" }
     ).value!
+  else
+    terms = terms_recording.recordable
+    unless terms.body.to_s.include?("Using the booth")
+      terms.update_columns(
+        title: RecordingStudioTermsAndConditions::SampleTerms::TITLE,
+        body: RecordingStudioTermsAndConditions::SampleTerms::BODY,
+        updated_at: Time.current
+      )
+    end
   end
 ensure
   Current.actor = previous_actor

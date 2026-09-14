@@ -3,30 +3,33 @@
 <div class="flex w-full flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
     title: "Methods",
-    subtitle: "Document the public methods your addon exposes.",
+    subtitle: "Domain helpers plus the host Agree control.",
     variant: :h1
   ) %>
 
   <%= render FlatPack::SectionTitle::Component.new(
-    title: "Example method",
-    subtitle: "recordingstudio_addon.example_method",
+    title: "Accept",
+    subtitle: "RecordingStudioTermsAndConditions.accept!"
   ) %>
 
   <%= render FlatPack::CodeBlock::Component.new(
     language: :ruby,
     code: <<~'CODE'
-      # Explain what this method does before the example.
-      result = RecordingstudioAddon.example_method(
-        # Replace with the real arguments this method accepts.
-        input: "demo value"
-      )
-
-      # Show what the method returns or what side effect it creates.
-      puts result
+      terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
+      RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap" })
     CODE
   ) %>
 
-  <p class="text-sm text-(--body-muted-content-color)">
-    Provide one section title and codeblock for each method
-  </p>
+  <%= render FlatPack::SectionTitle::Component.new(
+    title: "Agree helper",
+    subtitle: "recording_studio_terms_agree"
+  ) %>
+
+  <%= render FlatPack::CodeBlock::Component.new(
+    language: :erb,
+    code: <<~'CODE'
+      <%= recording_studio_terms_agree %>
+      <%= recording_studio_terms_agree(inside_form: true) %>
+    CODE
+  ) %>
 </div>

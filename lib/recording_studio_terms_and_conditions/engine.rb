@@ -4,6 +4,12 @@ module RecordingStudioTermsAndConditions
   class Engine < ::Rails::Engine
     isolate_namespace RecordingStudioTermsAndConditions
 
+    initializer "recording_studio_terms_and_conditions.helpers" do
+      ActiveSupport.on_load(:action_controller_base) do
+        helper RecordingStudioTermsAndConditions::AgreeHelper
+      end
+    end
+
     class << self
       APPLIED_EXTENSIONS_IVAR = :@recording_studio_terms_and_conditions_applied_extensions
       def apply_model_extensions(target)

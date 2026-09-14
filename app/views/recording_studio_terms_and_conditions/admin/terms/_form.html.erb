@@ -1,0 +1,7 @@
+<%= render FlatPack::TextInput::Component.new(
+  name: "terms[title]",
+  value: title,
+  label: "Title",
+  required: true
+) %>
+<%= terms_body_editor(value: body) %>

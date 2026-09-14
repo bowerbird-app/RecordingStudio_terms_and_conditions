@@ -7,7 +7,7 @@ Next steps:
 3. Register `RecordingStudioTermsAndConditions::Terms` (and Publishable's child type) in `RecordingStudio.configure { |c| c.recordable_types }`. Keep `recording_studio_recordable(...)` on every configured type.
 4. Mount Publishable at `/` so the public page `/terms/:uuid/:slug` works. Publish through Publishable's edit UI, not a custom publish action.
 5. Mount Admin, add an `AdminRoot`, enable `section :terms` (or `root_section: :terms`), and grant Accessible access to that root (`bootstrap_owner_access!` for the first staff member).
-6. The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends Users Auth `after_sign_in` / `after_sign_up` to the same Agree screen. Do not add a second clickwrap.
+6. The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends Users Auth `after_sign_in` / `after_sign_up` to the same Agree screen. Do not add a second clickwrap. Drop `recording_studio_terms_agree` or `recording_studio_terms_agree(inside_form: true)` onto host pages; on form submit call `accept!`.
 7. Run `bin/rails tailwindcss:build` if you use Tailwind CSS.
 
 Useful routes after mount:

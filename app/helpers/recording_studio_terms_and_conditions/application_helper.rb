@@ -2,6 +2,7 @@
 
 module RecordingStudioTermsAndConditions
   module ApplicationHelper
+    include AgreeHelper
     def terms_page_nav(title:, back_url: nil, back_label: "Back")
       recording_studio_page_nav(
         title: title,
@@ -21,7 +22,33 @@ module RecordingStudioTermsAndConditions
     end
 
     def terms_body(text)
-      simple_format(text.to_s)
+      html = text.to_s
+      sanitized = if defined?(FlatPack::RichTextSanitizer)
+        FlatPack::RichTextSanitizer.sanitize(html)
+      else
+        sanitize(html)
+      end
+
+      return simple_format(html) unless html.include?("<")
+
+      sanitized.html_safe
+    end
+
+    def terms_body_editor(value:)
+      render FlatPack::TextArea::Component.new(
+        name: "terms[body]",
+        value: value,
+        label: "Body",
+        required: true,
+        placeholder: "Write the terms people will agree to.",
+        rich_text: true,
+        rich_text_options: {
+          preset: :content,
+          format: :html,
+          toolbar: :standard,
+          placeholder: "Write the terms people will agree to."
+        }
+      )
     end
   end
 end
