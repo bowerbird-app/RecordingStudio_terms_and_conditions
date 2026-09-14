@@ -1,0 +1,38 @@
+<% terms_page_nav(title: "Terms", back_url: main_app.root_path) %>
+
+<%= render FlatPack::PageTitle::Component.new(
+  title: "Terms",
+  subtitle: "Draft here. Publish next door.",
+  variant: :h1
+) %>
+
+<%= render FlatPack::Button::Component.new(
+  text: "Write terms",
+  style: :primary,
+  href: new_admin_term_path
+) %>
+
+<% if @terms_recordings.blank? %>
+  <%= render FlatPack::EmptyState::Component.new(
+    title: "No terms yet",
+    description: "Write a draft, then publish it when the wording is ready."
+  ) %>
+<% else %>
+  <%= render FlatPack::Table::Component.new(
+    data: @terms_recordings.map { |recording|
+      {
+        title: recording.recordable&.title,
+        status: recording.respond_to?(:currently_published?) && recording.currently_published? ? "Live" : "Draft",
+        agrees: RecordingStudioTermsAndConditions::Acceptance.where(terms_recording_id: recording.id).count,
+        path: admin_term_path(recording)
+      }
+    }
+  ) do |table| %>
+    <% table.column(title: "Title") { |row| row[:title] } %>
+    <% table.column(title: "Status") { |row| row[:status] } %>
+    <% table.column(title: "Agrees") { |row| row[:agrees] } %>
+    <% table.column(title: "") { |row|
+      render FlatPack::Link::Component.new(href: row[:path]) { "Open" }
+    } %>
+  <% end %>
+<% end %>

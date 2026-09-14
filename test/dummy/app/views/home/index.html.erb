@@ -7,6 +7,22 @@
     variant: :h1
   ) %>
 
+  <%= render FlatPack::Button::Component.new(
+    text: "Agree to terms",
+    style: :primary,
+    href: recording_studio_terms_and_conditions.acceptance_path
+  ) %>
+  <%= render FlatPack::Button::Component.new(
+    text: "Write terms",
+    style: :secondary,
+    href: recording_studio_terms_and_conditions.admin_terms_path
+  ) %>
+  <%= render FlatPack::Button::Component.new(
+    text: "Admin",
+    style: :ghost,
+    href: "/admin"
+  ) %>
+
   <div class="grid gap-6 lg:grid-cols-2">
     <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
       <% card.header do %>
@@ -20,9 +36,9 @@
 
       <% card.body do %>
         <ul class="space-y-3 text-sm leading-6">
-          <li>Rails engine routes are mounted and responding.</li>
-          <li>PostgreSQL UUID-oriented migrations are included in the engine.</li>
-          <li>Tailwind sources can be wired into a host app through the install generator.</li>
+          <li>Clickwrap Agree screen for the live published Terms.</li>
+          <li>Admin create, edit, and Publishable publish.</li>
+          <li>Public Terms URL at <code>/terms/:uuid/:slug</code>.</li>
           <li>The dummy app exercises authentication, the Recording Studio default layout, and FlatPack.</li>
         </ul>
       <% end %>

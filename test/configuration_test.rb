@@ -42,6 +42,7 @@ class ConfigurationTest < Minitest::Test
     assert_equal "env-token", configuration.api_key
     assert_equal false, configuration.enable_feature_x
     assert_equal 5, configuration.timeout
+    assert_equal "/recording_studio_terms_and_conditions", configuration.mount_path
     assert_instance_of RecordingStudio::Hooks, configuration.hooks
   ensure
     ENV["RECORDING_STUDIO_TERMS_AND_CONDITIONS_API_KEY"] = previous_value

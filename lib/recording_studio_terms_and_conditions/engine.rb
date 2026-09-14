@@ -116,6 +116,15 @@ module RecordingStudioTermsAndConditions
       end
     end
 
+    initializer "recording_studio_terms_and_conditions.admin_definitions" do
+      config.to_prepare do
+        next unless defined?(RecordingStudioAdmin)
+
+        require "recording_studio_terms_and_conditions/admin"
+        RecordingStudioTermsAndConditions::Admin.register!
+      end
+    end
+
     # Apply controller extensions
     initializer "recording_studio_terms_and_conditions.apply_controller_extensions" do
       config.to_prepare do

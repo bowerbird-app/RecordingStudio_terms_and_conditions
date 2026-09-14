@@ -1,0 +1,9 @@
+<%= render FlatPack::PageTitle::Component.new(
+  title: @terms&.title.presence || "Terms",
+  subtitle: "The live version. No checkbox here — this is just the public copy.",
+  variant: :h1
+) %>
+
+<article>
+  <%= simple_format(@terms&.body) %>
+</article>

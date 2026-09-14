@@ -108,6 +108,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes terms_source, 'label: "Terms"'
     assert_includes terms_source, 'self.table_name = "recording_studio_terms_and_conditions_terms"'
     assert_includes terms_source, "RecordingStudio::Capabilities::Publishable.to"
+    assert_includes terms_source, 'public_controller: "recording_studio_terms_and_conditions/published_terms"'
+    assert_includes terms_source, 'path: "/terms/:uuid/:slug"'
     refute_includes terms_source, "enable_capability"
     assert_includes acceptance_source, 'self.table_name = "recording_studio_terms_and_conditions_acceptances"'
     refute_includes acceptance_source, "recording_studio_recordable"
@@ -165,6 +167,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     initializer_source = File.read(initializer_path)
 
     assert_includes initializer_source, "config.require_recordable_declarations = true"
+    assert_includes initializer_source, "AdminRoot"
     assert_includes initializer_source, "RecordingStudioTermsAndConditions::Terms"
     assert_includes initializer_source, "RecordingStudioUser::People"
     assert_includes initializer_source, "RecordingStudioPublishable::Publishable"
@@ -272,6 +275,23 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes recording_tree_partial, "parent_builder.node"
     refute_includes recordings_tree_view, "Current structure"
     refute_includes recordings_tree_view, "This tree is generated from RecordingStudio::Recording records"
+  end
+
+  def test_engine_ships_clickwrap_and_admin_views
+    engine_root = File.expand_path("..", __dir__)
+
+    assert File.exist?(File.join(engine_root, "app/views/recording_studio_terms_and_conditions/acceptances/show.html.erb"))
+    assert File.exist?(File.join(engine_root, "app/views/recording_studio_terms_and_conditions/admin/terms/index.html.erb"))
+    assert File.exist?(File.join(engine_root, "app/views/recording_studio_terms_and_conditions/published_terms/show.html.erb"))
+    routes = File.read(File.join(engine_root, "config/routes.rb"))
+    assert_includes routes, "resource :acceptance"
+    assert_includes routes, "resources :terms"
+    admin = File.read(File.join(engine_root, "lib/recording_studio_terms_and_conditions/admin.rb"))
+    assert_includes admin, 'key "terms"'
+    dummy_routes = File.read(File.join(engine_root, "test/dummy/config/routes.rb"))
+    assert_includes dummy_routes, "mount RecordingStudioTermsAndConditions::Engine"
+    assert_includes dummy_routes, "mount RecordingStudioPublishable::Engine"
+    assert_includes dummy_routes, "recording_studio_admin_for :admin"
   end
 
   def test_engine_does_not_ship_a_home_view

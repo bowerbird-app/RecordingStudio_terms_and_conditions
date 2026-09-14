@@ -6,7 +6,7 @@ A Recording Studio addon for terms and conditions.
 - Module: `RecordingStudioTermsAndConditions`
 - Source: [bowerbird-app/RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions)
 
-This slice is the **data shape plus domain helpers**. The engine owns a `Terms` recordable (Publishable-ready), an append-only `Acceptance` table, and module-level helpers to read the live published version and record a clickwrap receipt. Clickwrap UI, acceptance gates, admin screens, and Users signup wiring come later.
+This addon ships the **data shape, domain helpers, clickwrap Agree screen, admin Terms screens, and a public published URL**. It does not force-gate the rest of the app after login, and it does not hook Users signup.
 
 ## What's included
 
@@ -16,6 +16,9 @@ This slice is the **data shape plus domain helpers**. The engine owns a `Terms` 
 - **Terms** recordable (`RecordingStudioTermsAndConditions::Terms`, product label `"Terms"`) with Publishable opted in on the type
 - **Acceptance** append-only table for later clickwrap receipts (not a recordable)
 - **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for`, `accepted?`, `accept!`, `requires_acceptance?`
+- **Agree screen** for the current published Terms (unchecked checkbox, gated Agree, `accept!`)
+- **Admin** create/edit Terms, Publishable publish, and simple acceptance coverage
+- **Public Terms URL** at `/terms/:uuid/:slug` via Publishable
 - **FlatPack** UI component library for all views
 - **Dummy app** (`test/dummy/`) with a FlatPack sign-in screen, a home page on Recording Studio's default layout, mounted Recording Studio routes, and FlatPack's built-in rounded theme
 
@@ -60,6 +63,10 @@ The login form is prefilled with these credentials for fast access.
 
 - `/` — dummy app home page
 - `/users/sign_in` — Devise sign-in page
+- `/recording_studio_terms_and_conditions` — Agree (clickwrap) screen
+- `/recording_studio_terms_and_conditions/admin/terms` — write and edit Terms
+- `/admin` — Admin Terms section (Accessible on the Admin root)
+- `/terms/:uuid/:slug` — public published Terms
 - `/recording_studio` — redirect to `/` while the mounted Recording Studio engine remains data/API-focused
 - `/docs/install`, `/docs/config`, `/docs/recordable_types`, `/docs/recordings_tree`, `/docs/gem_views`, `/docs/methods` — dummy-only starter pages
 

@@ -1,0 +1,54 @@
+<% terms_page_nav(title: @terms.title, back_url: admin_terms_path, back_label: "Terms") %>
+
+<%= render FlatPack::PageTitle::Component.new(
+  title: @terms.title,
+  subtitle: @terms_recording.respond_to?(:currently_published?) && @terms_recording.currently_published? ? "Live for clickwrap." : "Still a draft.",
+  variant: :h1
+) %>
+
+<% if flash[:notice].present? %>
+  <%= render FlatPack::Alert::Component.new(title: flash[:notice], style: :success) %>
+<% end %>
+
+<%= render FlatPack::Button::Component.new(
+  text: "Edit",
+  style: :secondary,
+  href: edit_admin_term_path(@terms_recording)
+) %>
+
+<% if (publish_path = terms_publishable_edit_path(@terms_recording)) %>
+  <%= render FlatPack::Button::Component.new(
+    text: "Publish",
+    style: :primary,
+    href: publish_path
+  ) %>
+<% end %>
+
+<% if (public_url = terms_public_url(@terms)) %>
+  <%= render FlatPack::Link::Component.new(href: public_url) { "Public page" } %>
+<% end %>
+
+<article>
+  <%= simple_format(@terms.body) %>
+</article>
+
+<%= render FlatPack::SectionTitle::Component.new(title: "Who agreed") %>
+
+<% if @acceptances.blank? %>
+  <%= render FlatPack::EmptyState::Component.new(
+    title: "Nobody yet",
+    description: "Receipts show up here after someone ticks the box."
+  ) %>
+<% else %>
+  <%= render FlatPack::Table::Component.new(
+    data: @acceptances.map { |row|
+      {
+        person: row.actor.try(:email) || "Someone",
+        agreed: row.accepted_at
+      }
+    }
+  ) do |table| %>
+    <% table.column(title: "Person") { |row| row[:person] } %>
+    <% table.column(title: "Agreed") { |row| row[:agreed] } %>
+  <% end %>
+<% end %>

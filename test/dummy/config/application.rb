@@ -19,6 +19,8 @@ require "action_cable/engine"
 Bundler.require(*Rails.groups)
 require "recording_studio_publishable"
 require "recording_studio_attachable"
+require "recording_studio_admin"
+require "recording_studio_accessible"
 
 module Dummy
   class Application < Rails::Application

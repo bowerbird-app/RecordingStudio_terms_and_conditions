@@ -8,9 +8,14 @@ module RecordingStudioTermsAndConditions
                                 root: false,
                                 allowed_parent_types: ["Workspace"]
 
+    validates :title, :body, presence: true
+
     if defined?(RecordingStudio::Capabilities::Publishable)
       include RecordingStudio::Capabilities::Publishable.to(
+        public_controller: "recording_studio_terms_and_conditions/published_terms",
         public_action: :show,
+        public_layout: "recording_studio_terms_and_conditions/public",
+        path: "/terms/:uuid/:slug",
         schedule: true,
         seo: false
       )

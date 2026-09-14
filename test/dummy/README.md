@@ -30,6 +30,10 @@ Then open the app and sign in with:
 ## Useful Routes
 
 - `/` - dummy app home page and addon guidance
+- `/recording_studio_terms_and_conditions` - Agree screen
+- `/recording_studio_terms_and_conditions/admin/terms` - Admin write/edit
+- `/admin` - Admin Terms section
+- `/terms/:uuid/:slug` - public published Terms
 - `/recording_studio` - redirects to `/` while the mounted Recording Studio engine stays available under that prefix for non-root routes
 - `/users/sign_in` - Devise sign-in page
 - `/docs/install`, `/docs/config`, `/docs/recordable_types`, `/docs/recordings_tree`, `/docs/gem_views`, `/docs/methods` - dummy-only starter pages

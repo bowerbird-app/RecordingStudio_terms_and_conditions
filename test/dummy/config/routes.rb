@@ -6,6 +6,10 @@ Rails.application.routes.draw do
   get "/recording_studio", to: redirect("/"), as: nil
   mount RecordingStudio::Engine, at: "/recording_studio"
   mount RecordingStudioRootSwitchable::Engine, at: "/recording_studio_root_switchable"
+  mount RecordingStudioTermsAndConditions::Engine, at: "/recording_studio_terms_and_conditions"
+  mount RecordingStudioAccessible::Engine, at: "/admin/access"
+  mount RecordingStudioPublishable::Engine, at: "/", as: :recording_studio_publishable
+  recording_studio_admin_for :admin, at: "/admin", root_section: :terms
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
