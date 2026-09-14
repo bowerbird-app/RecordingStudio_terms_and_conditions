@@ -106,11 +106,10 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     get docs_methods_path
     assert_response :success
     assert_select "h1", text: "Methods"
-    assert_includes response.body, "Document the public methods your addon exposes."
-    assert_includes response.body, "Example method"
-    assert_includes response.body, "recordingstudio_addon.example_method"
-    assert_includes response.body, "# Explain what this method does before the example."
-    assert_includes response.body, "Provide one section title and codeblock for each method"
+    assert_includes response.body, "Domain helpers plus the host Agree control."
+    assert_includes response.body, "Agree helper"
+    assert_includes response.body, "recording_studio_terms_agree"
+    assert_includes response.body, "accept!"
   end
 
   test "authenticated docs pages use the recording studio default layout" do

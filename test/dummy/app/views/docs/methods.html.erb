@@ -14,7 +14,7 @@
 
   <%= render FlatPack::CodeBlock::Component.new(
     language: :ruby,
-    code: <<~'CODE'
+    code: <<~CODE
       terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
       RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap" })
     CODE
@@ -27,9 +27,9 @@
 
   <%= render FlatPack::CodeBlock::Component.new(
     language: :erb,
-    code: <<~'CODE'
-      <%= recording_studio_terms_agree %>
-      <%= recording_studio_terms_agree(inside_form: true) %>
-    CODE
+    code: [
+      "<" + "%= recording_studio_terms_agree %" + ">",
+      "<" + "%= recording_studio_terms_agree(inside_form: true) %" + ">"
+    ].join("\n")
   ) %>
 </div>
