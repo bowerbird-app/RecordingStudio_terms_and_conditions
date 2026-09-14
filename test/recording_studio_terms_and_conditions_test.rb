@@ -139,6 +139,44 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute File.exist?(File.expand_path("dummy/app/views/layouts/flat_pack/_sidebar.html.erb", __dir__))
   end
 
+  def test_dummy_default_layout_head_loads_flatpack_application
+    head = File.read(File.expand_path("dummy/app/views/recording_studio/_default_layout_head.html.erb", __dir__))
+    layout = File.read(File.expand_path("dummy/app/views/layouts/recording_studio/default_layout.html.erb", __dir__))
+
+    assert_includes head, 'stylesheet_link_tag "flat_pack/application"'
+    assert_includes layout, 'stylesheet_link_tag "flat_pack/application"'
+    assert_includes layout, 'stylesheet_link_tag "tailwind"'
+    assert_includes layout, '<html data-theme="rounded">'
+    refute_includes layout, "max-w-3xl"
+    assert layout.index('stylesheet_link_tag "flat_pack/application"') < layout.index('stylesheet_link_tag "tailwind"')
+  end
+
+  def test_agree_and_admin_views_use_cards_and_skip_echoed_tick_copy
+    agree = File.read(File.expand_path("../app/views/recording_studio_terms_and_conditions/acceptances/show.html.erb", __dir__))
+    admin_index = File.read(File.expand_path("../app/views/recording_studio_terms_and_conditions/admin/terms/index.html.erb", __dir__))
+    admin_show = File.read(File.expand_path("../app/views/recording_studio_terms_and_conditions/admin/terms/show.html.erb", __dir__))
+    admin_new = File.read(File.expand_path("../app/views/recording_studio_terms_and_conditions/admin/terms/new.html.erb", __dir__))
+    public_show = File.read(File.expand_path("../app/views/recording_studio_terms_and_conditions/published_terms/show.html.erb", __dir__))
+    controller = File.read(File.expand_path("../app/controllers/recording_studio_terms_and_conditions/application_controller.rb", __dir__))
+    terms_model = File.read(File.expand_path("../app/models/recording_studio_terms_and_conditions/terms.rb", __dir__))
+
+    assert_includes controller, 'layout "recording_studio/default_layout"'
+    assert_includes terms_model, 'public_layout: "recording_studio/default_layout"'
+    refute File.exist?(File.expand_path("../app/views/layouts/recording_studio_terms_and_conditions/public.html.erb", __dir__))
+
+    assert_includes agree, "FlatPack::Card::Component"
+    assert_includes agree, 'label: "I agree to these terms"'
+    refute_includes agree, "help_text"
+    refute_includes agree, "Read them, tick the box"
+    refute_includes agree, "FlatPack::Alert::Component"
+    assert_includes public_show, "FlatPack::Card::Component"
+    refute_includes public_show, "<article>"
+    assert_includes admin_index, "page_title.slot"
+    assert_includes admin_show, "page_title.slot"
+    assert_includes admin_new, "FlatPack::Card::Component"
+    assert_includes admin_new, "card.footer"
+  end
+
   def test_dummy_login_layout_keeps_flatpack_assets_without_tight_main_offset
     application_layout = File.read(File.expand_path("dummy/app/views/layouts/application.html.erb", __dir__))
 

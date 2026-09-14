@@ -65,7 +65,7 @@ The login form is prefilled with these credentials for fast access.
 
 - `/` — dummy app home page
 - `/users/sign_in` — Devise sign-in page
-- `/recording_studio_terms_and_conditions` — Agree (clickwrap) screen
+- `/recording_studio_terms_and_conditions` — Agree (clickwrap) screen on the Recording Studio default layout
 - `/recording_studio_terms_and_conditions/admin/terms` — write and edit Terms
 - `/admin` — Admin Terms section (Accessible on the Admin root)
 - `/terms/:uuid/:slug` — public published Terms

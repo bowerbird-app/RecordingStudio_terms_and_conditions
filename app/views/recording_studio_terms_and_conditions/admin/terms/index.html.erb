@@ -4,13 +4,15 @@
   title: "Terms",
   subtitle: "Draft here. Publish next door.",
   variant: :h1
-) %>
-
-<%= render FlatPack::Button::Component.new(
-  text: "Write terms",
-  style: :primary,
-  href: new_admin_term_path
-) %>
+) do |page_title| %>
+  <% page_title.slot do %>
+    <%= render FlatPack::Button::Component.new(
+      text: "Write terms",
+      style: :primary,
+      href: new_admin_term_path
+    ) %>
+  <% end %>
+<% end %>
 
 <% if @terms_recordings.blank? %>
   <%= render FlatPack::EmptyState::Component.new(

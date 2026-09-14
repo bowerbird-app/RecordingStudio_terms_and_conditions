@@ -17,7 +17,11 @@ class PublishedTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Studio Terms"
     assert_includes response.body, "Be kind"
     assert_includes response.body, 'data-theme="rounded"'
+    assert_select "body[data-recording-studio-default-layout='true']", count: 1
+    assert_select "nav[aria-label='Page navigation']", count: 1
+    assert_match %r{flat_pack/application}, response.body
     refute_includes response.body, "I agree to these terms"
+    refute_includes response.body, "max-w-3xl"
   end
 
   test "draft terms are not on the public path" do

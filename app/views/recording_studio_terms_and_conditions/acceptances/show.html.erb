@@ -2,23 +2,9 @@
 
 <%= render FlatPack::PageTitle::Component.new(
   title: @terms&.title.presence || "Terms",
-  subtitle: "Read them, tick the box, then agree.",
+  subtitle: "The live version for this workspace.",
   variant: :h1
 ) %>
-
-<% if flash[:alert].present? %>
-  <%= render FlatPack::Alert::Component.new(
-    title: flash[:alert],
-    style: :warning
-  ) %>
-<% end %>
-
-<% if flash[:notice].present? %>
-  <%= render FlatPack::Alert::Component.new(
-    title: flash[:notice],
-    style: :success
-  ) %>
-<% end %>
 
 <% if @terms.blank? %>
   <%= render FlatPack::EmptyState::Component.new(
@@ -26,31 +12,31 @@
     description: "Someone still needs to publish terms for this workspace."
   ) %>
 <% elsif @already_accepted %>
-  <%= render FlatPack::Alert::Component.new(
-    title: "You're in. Thanks for reading.",
-    style: :success
-  ) %>
-  <article>
-    <%= simple_format(@terms.body) %>
-  </article>
+  <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
+    <% card.body do %>
+      <%= terms_body(@terms.body) %>
+    <% end %>
+  <% end %>
 <% else %>
-  <article>
-    <%= simple_format(@terms.body) %>
-  </article>
-
-  <%= form_with url: acceptance_path, method: :post do %>
-    <%= render FlatPack::Checkbox::Component.new(
-      name: "agreed",
-      value: "1",
-      checked: false,
-      required: true,
-      label: "I agree to these terms",
-      help_text: "Tick the box if you agree."
-    ) %>
-    <%= render FlatPack::Button::Component.new(
-      text: "Agree",
-      style: :primary,
-      type: "submit"
-    ) %>
+  <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
+    <% card.body do %>
+      <%= terms_body(@terms.body) %>
+    <% end %>
+    <% card.footer do %>
+      <%= form_with url: acceptance_path, method: :post do %>
+        <%= render FlatPack::Checkbox::Component.new(
+          name: "agreed",
+          value: "1",
+          checked: false,
+          required: true,
+          label: "I agree to these terms"
+        ) %>
+        <%= render FlatPack::Button::Component.new(
+          text: "Agree",
+          style: :primary,
+          type: "submit"
+        ) %>
+      <% end %>
+    <% end %>
   <% end %>
 <% end %>

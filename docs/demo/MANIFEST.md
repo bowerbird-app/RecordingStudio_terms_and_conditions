@@ -9,4 +9,11 @@
 | `tnc-agree.png` | Still of Studio Terms with the checkbox unchecked |
 | `tnc-agree.png.b64` | Base64 of the still |
 
-Decode a `.b64` file with `base64 -d tnc-clickwrap-demo.mp4.b64 > tnc-clickwrap-demo.mp4`.
+Rebuild the mp4 from parts:
+
+```
+cat docs/demo/tnc-clickwrap-demo.mp4.b64.part1 docs/demo/tnc-clickwrap-demo.mp4.b64.part2 \
+  | base64 -d > tnc-clickwrap-demo.mp4
+```
+
+Then check `sha256sum` against `tnc-clickwrap-demo.mp4.b64.manifest`.

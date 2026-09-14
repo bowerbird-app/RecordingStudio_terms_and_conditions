@@ -6,27 +6,29 @@
   variant: :h1
 ) %>
 
-<% if flash[:alert].present? %>
-  <%= render FlatPack::Alert::Component.new(title: flash[:alert], style: :warning) %>
-<% end %>
-
 <%= form_with url: admin_terms_path, method: :post, scope: :terms do %>
-  <%= render FlatPack::TextInput::Component.new(
-    name: "terms[title]",
-    value: @title,
-    label: "Title",
-    required: true
-  ) %>
-  <%= render FlatPack::TextArea::Component.new(
-    name: "terms[body]",
-    value: @body,
-    label: "Body",
-    required: true,
-    rows: 12
-  ) %>
-  <%= render FlatPack::Button::Component.new(
-    text: "Save draft",
-    style: :primary,
-    type: "submit"
-  ) %>
+  <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
+    <% card.body do %>
+      <%= render FlatPack::TextInput::Component.new(
+        name: "terms[title]",
+        value: @title,
+        label: "Title",
+        required: true
+      ) %>
+      <%= render FlatPack::TextArea::Component.new(
+        name: "terms[body]",
+        value: @body,
+        label: "Body",
+        required: true,
+        rows: 12
+      ) %>
+    <% end %>
+    <% card.footer do %>
+      <%= render FlatPack::Button::Component.new(
+        text: "Save draft",
+        style: :primary,
+        type: "submit"
+      ) %>
+    <% end %>
+  <% end %>
 <% end %>

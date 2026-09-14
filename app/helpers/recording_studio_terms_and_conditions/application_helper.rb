@@ -19,5 +19,10 @@ module RecordingStudioTermsAndConditions
     def terms_public_url(terms)
       terms.try(:published_url)
     end
+
+    def terms_body(text)
+      simple_format(text.to_s)
+    end
   end
 end
+

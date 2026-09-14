@@ -4,33 +4,31 @@
   title: @terms.title,
   subtitle: @terms_recording.respond_to?(:currently_published?) && @terms_recording.currently_published? ? "Live for clickwrap." : "Still a draft.",
   variant: :h1
-) %>
-
-<% if flash[:notice].present? %>
-  <%= render FlatPack::Alert::Component.new(title: flash[:notice], style: :success) %>
+) do |page_title| %>
+  <% page_title.slot do %>
+    <%= render FlatPack::Button::Component.new(
+      text: "Edit",
+      style: :secondary,
+      href: edit_admin_term_path(@terms_recording)
+    ) %>
+    <% if (publish_path = terms_publishable_edit_path(@terms_recording)) %>
+      <%= render FlatPack::Button::Component.new(
+        text: "Publish",
+        style: :primary,
+        href: publish_path
+      ) %>
+    <% end %>
+    <% if (public_url = terms_public_url(@terms)) %>
+      <%= render FlatPack::Link::Component.new(href: public_url) { "Public page" } %>
+    <% end %>
+  <% end %>
 <% end %>
 
-<%= render FlatPack::Button::Component.new(
-  text: "Edit",
-  style: :secondary,
-  href: edit_admin_term_path(@terms_recording)
-) %>
-
-<% if (publish_path = terms_publishable_edit_path(@terms_recording)) %>
-  <%= render FlatPack::Button::Component.new(
-    text: "Publish",
-    style: :primary,
-    href: publish_path
-  ) %>
+<%= render FlatPack::Card::Component.new(style: :default) do |card| %>
+  <% card.body do %>
+    <%= terms_body(@terms.body) %>
+  <% end %>
 <% end %>
-
-<% if (public_url = terms_public_url(@terms)) %>
-  <%= render FlatPack::Link::Component.new(href: public_url) { "Public page" } %>
-<% end %>
-
-<article>
-  <%= simple_format(@terms.body) %>
-</article>
 
 <%= render FlatPack::SectionTitle::Component.new(title: "Who agreed") %>
 

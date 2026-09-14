@@ -4,6 +4,18 @@ module RecordingStudioTermsAndConditions
   class ApplicationController < (defined?(::ApplicationController) ? ::ApplicationController : ActionController::Base)
     include RecordingStudio::UsesDefaultLayout if defined?(RecordingStudio::UsesDefaultLayout)
     helper RecordingStudioTermsAndConditions::ApplicationHelper
+    helper RecordingStudio::LayoutHelper if defined?(RecordingStudio::LayoutHelper)
+
+    # Isolated engines look up layouts in their own namespace first. Prepend the
+    # host and Recording Studio view paths so `recording_studio/default_layout` resolves.
+    if defined?(Rails.application) && Rails.application.respond_to?(:root)
+      prepend_view_path Rails.application.root.join("app/views")
+    end
+    if defined?(RecordingStudio::Engine)
+      append_view_path RecordingStudio::Engine.root.join("app/views")
+    end
+
+    layout "recording_studio/default_layout"
 
     protect_from_forgery with: :exception
   end

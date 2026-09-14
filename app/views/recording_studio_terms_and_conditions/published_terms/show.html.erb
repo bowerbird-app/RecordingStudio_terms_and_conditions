@@ -1,9 +1,15 @@
+<% if respond_to?(:recording_studio_page_nav) %>
+  <% recording_studio_page_nav(title: @terms&.title.presence || "Terms") %>
+<% end %>
+
 <%= render FlatPack::PageTitle::Component.new(
   title: @terms&.title.presence || "Terms",
-  subtitle: "The live version. No checkbox here — this is just the public copy.",
+  subtitle: "The public copy. No checkbox here.",
   variant: :h1
 ) %>
 
-<article>
-  <%= simple_format(@terms&.body) %>
-</article>
+<%= render FlatPack::Card::Component.new(style: :default) do |card| %>
+  <% card.body do %>
+    <%= simple_format(@terms&.body.to_s) %>
+  <% end %>
+<% end %>

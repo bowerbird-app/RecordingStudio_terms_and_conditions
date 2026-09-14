@@ -14,7 +14,7 @@ module RecordingStudioTermsAndConditions
       include RecordingStudio::Capabilities::Publishable.to(
         public_controller: "recording_studio_terms_and_conditions/published_terms",
         public_action: :show,
-        public_layout: "recording_studio_terms_and_conditions/public",
+        public_layout: "recording_studio/default_layout",
         path: "/terms/:uuid/:slug",
         schedule: true,
         seo: false

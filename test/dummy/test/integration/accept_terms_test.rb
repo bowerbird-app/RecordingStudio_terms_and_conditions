@@ -31,6 +31,11 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     assert_select "input[type=checkbox][name=agreed][required]"
     assert_select "input[type=checkbox][name=agreed][checked]", count: 0
     assert_includes response.body, "Agree"
+    assert_select "body[data-recording-studio-default-layout='true']", count: 1
+    assert_select "nav[aria-label='Page navigation']", count: 1
+    assert_match %r{flat_pack/application}, response.body
+    refute_includes response.body, "Read them, tick the box"
+    refute_includes response.body, "Tick the box if you agree."
   end
 
   test "agree stays gated on the server when the box is not ticked" do
