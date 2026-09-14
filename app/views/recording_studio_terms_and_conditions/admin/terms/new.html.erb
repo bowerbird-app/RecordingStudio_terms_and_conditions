@@ -7,16 +7,10 @@
 ) %>
 
 <%= form_with url: admin_terms_path, method: :post, scope: :terms do %>
-  <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
-    <% card.body do %>
-      <%= render "form", title: @title, body: @body %>
-    <% end %>
-    <% card.footer do %>
-      <%= render FlatPack::Button::Component.new(
-        text: "Save draft",
-        style: :primary,
-        type: "submit"
-      ) %>
-    <% end %>
-  <% end %>
+  <%= render "form", title: @title, body: @body %>
+  <%= render FlatPack::Button::Component.new(
+    text: "Save draft",
+    style: :primary,
+    type: "submit"
+  ) %>
 <% end %>

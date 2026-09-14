@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module RecordingStudioTermsAndConditions
-  # Host helper: drop Agree onto a page or inside a host form (signup, etc.).
+  # Host helper: drop the required Agree checkbox on a page or inside a host form.
   # Persistence stays on Acceptance via accept! / AcceptancesController.
   module AgreeHelper
     def recording_studio_terms_agree(inside_form: false, actor: nil, root: nil)
@@ -12,21 +12,10 @@ module RecordingStudioTermsAndConditions
       actor ||= recording_studio_terms_agree_actor
       return if actor.present? && RecordingStudioTermsAndConditions.accepted?(actor, root)
 
-      inside_form ? recording_studio_terms_agree_fields(terms) : recording_studio_terms_agree_form(terms)
+      recording_studio_terms_agree_fields(terms)
     end
 
     private
-
-    def recording_studio_terms_agree_form(terms)
-      form_with url: recording_studio_terms_agree_url, method: :post do
-        safe_join(
-          [
-            recording_studio_terms_agree_fields(terms),
-            render(FlatPack::Button::Component.new(text: "Agree", style: :primary, type: "submit"))
-          ]
-        )
-      end
-    end
 
     def recording_studio_terms_agree_fields(terms)
       checkbox = render(FlatPack::Checkbox::Component.new(**recording_studio_terms_agree_checkbox))
@@ -58,10 +47,6 @@ module RecordingStudioTermsAndConditions
       return current_user if respond_to?(:current_user) && current_user
 
       Current.actor if defined?(Current)
-    end
-
-    def recording_studio_terms_agree_url
-      Gate.acceptance_path(controller)
     end
   end
 end

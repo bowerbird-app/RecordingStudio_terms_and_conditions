@@ -19,10 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Install generator copies migrations, mounts the engine (skips if already mounted), and writes a host initializer. Kit skill `.github/skills/recording-studio-terms-and-conditions` names this gem for `recording-studio-gems`.
 
 ### Changed
-- Agree, Admin Terms, and public `/terms/:uuid/:slug` use Recording Studio `recording_studio/default_layout` (PageNav + content column). Terms copy lives in a Flatpack Card. Agree checkbox keeps one label; the extra tick/agree help text is gone.
+- Agree, Admin Terms, and public `/terms/:uuid/:slug` use Recording Studio `recording_studio/default_layout` (PageNav + content column). Terms copy and write/edit sit on the page — no Card border wrapper. Agree checkbox keeps one label; the extra tick/agree help text is gone.
 - Admin Terms index uses a Flatpack Table with Title / Status / Agrees / Open columns (hash rows, default table width). New and edit use Flatpack `TextArea` rich text (`rich_text: true`, content preset). Dummy seeds ship a multi-section sample body.
 - Dummy default layout renders Flatpack `TopNav` for workspace switch and Sign out (`href` + `method: :delete`). PageNav only gets kwargs it accepts (`anchor_href`, not `back_url` / `anchor_url`). Dummy Tailwind also scans `/usr/local/lib/ruby/gems/**/bundler/gems/flatpack-*` so table and nav utilities compile on Cloud Agent images.
-- Host helper `recording_studio_terms_agree` (optional `inside_form: true`) mounts the required Agree checkbox on any page or form. Standalone posts to the existing Agree path. Dummy `/agree_helper` shows both.
+- Host helper `recording_studio_terms_agree` (optional `inside_form: true`) mounts the required Agree checkbox. No helper button — put the box in a host form and call `accept!`. Dummy `/agree_helper` shows a code example plus the live checkbox.
+- Dummy sign-in uses Recording Studio Users Auth (`recording_studio_user_auth_for :users`): email first, then password. The old Devise Login card is gone.
 - Product identity is `recording_studio_terms_and_conditions` / `RecordingStudioTermsAndConditions` (was the gem-template engine name).
 - Homepage and source URLs point at https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions.
 - README is the product guide. `docs/gem_template/` stays as engine internals.
@@ -38,7 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Call `RecordingStudioTermsAndConditions.current_published_for` / `accepted?` / `accept!` / `requires_acceptance?` instead of querying publishable children or inserting acceptance rows by hand.
 - Mount this engine for the Agree screen. Mount Publishable at `/` so `/terms/:uuid/:slug` works. Mount Admin, add an `AdminRoot`, enable `section :terms`, and grant Accessible access to that root. Publish through Publishable's edit UI, not a custom publish action. Hosts should use `recording_studio/default_layout` (or `UsesDefaultLayout`) for those screens — drop any copied `recording_studio_terms_and_conditions/public` layout. Load `flat_pack/application` from `_default_layout_head` and keep Tailwind last.
 - Expect the gem to include the acceptance gate on `ApplicationController` and to prepend the Users Auth redirect. Do not add a second clickwrap. After agree, people return to the page they asked for.
-- Drop `recording_studio_terms_agree` or `recording_studio_terms_agree(inside_form: true)` onto host screens. Inside a host form the checkbox is HTML `required` and named `agreed`; on submit call `accept!` with `params[:agreed]`. Do not add another receipt table.
+- Drop `recording_studio_terms_agree` or `recording_studio_terms_agree(inside_form: true)` onto host screens. The helper is the required `agreed` checkbox only. Wrap it in your form, then call `accept!` with `params[:agreed]`. Do not add another receipt table. Standalone helper no longer posts or renders Agree.
+- Dummy and hosts that still use a one-screen Devise login should mount Users Auth: skip Devise sessions/registrations/passwords, then `recording_studio_user_auth_for :users`.
 - Add `recording_studio_terms_and_conditions` to the approved kit in `recording-studio-gems` (published Terms + clickwrap). Do not hand-roll acceptances.
 - Rebuild host Tailwind after adding `@source` for `/usr/local/lib/ruby/gems/**/bundler/gems/flatpack-*` (install generator writes it). Flatpack `Button` takes `href`, not `url`. Flatpack `PageNav` takes `anchor_href`, not `back_url` / `anchor_url`.
 

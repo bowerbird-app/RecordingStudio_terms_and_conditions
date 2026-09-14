@@ -11,26 +11,16 @@
     title: "Nothing to agree to yet",
     description: "Someone still needs to publish terms for this workspace."
   ) %>
-<% elsif @already_accepted %>
-  <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
-    <% card.body do %>
-      <%= terms_body(@terms.body) %>
-    <% end %>
-  <% end %>
 <% else %>
-  <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
-    <% card.body do %>
-      <%= terms_body(@terms.body) %>
-    <% end %>
-    <% card.footer do %>
-      <%= form_with url: acceptance_path, method: :post do %>
-        <%= recording_studio_terms_agree(inside_form: true, actor: current_user, root: @root) %>
-        <%= render FlatPack::Button::Component.new(
-          text: "Agree",
-          style: :primary,
-          type: "submit"
-        ) %>
-      <% end %>
+  <%= terms_body(@terms.body) %>
+  <% unless @already_accepted %>
+    <%= form_with url: acceptance_path, method: :post do %>
+      <%= recording_studio_terms_agree(inside_form: true, actor: current_user, root: @root) %>
+      <%= render FlatPack::Button::Component.new(
+        text: "Agree",
+        style: :primary,
+        type: "submit"
+      ) %>
     <% end %>
   <% end %>
 <% end %>

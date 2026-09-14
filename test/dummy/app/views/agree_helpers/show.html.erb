@@ -3,32 +3,17 @@
 <div class="flex w-full flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
     title: "Agree helper",
-    subtitle: "Drop the same control on a page or inside a host form.",
+    subtitle: "The checkbox. Hosts put it in their form and call accept!.",
     variant: :h1
   ) %>
 
-  <%= render FlatPack::SectionTitle::Component.new(
-    title: "On a page",
-    subtitle: "Posts to the existing Agree path."
+  <%= render FlatPack::CodeBlock::Component.new(
+    language: :erb,
+    code: [
+      "<" + "%= recording_studio_terms_agree %" + ">",
+      "<" + "%= recording_studio_terms_agree(inside_form: true) %" + ">"
+    ].join("\n")
   ) %>
-  <%= recording_studio_terms_agree %>
 
-  <%= render FlatPack::SectionTitle::Component.new(
-    title: "Inside a form",
-    subtitle: "The box is required. Submit still calls accept!."
-  ) %>
-  <%= form_with url: main_app.agree_helper_path, method: :post do %>
-    <%= render FlatPack::TextInput::Component.new(
-      name: "display_name",
-      value: params[:display_name],
-      label: "Name",
-      placeholder: "What should we call you?"
-    ) %>
-    <%= recording_studio_terms_agree(inside_form: true) %>
-    <%= render FlatPack::Button::Component.new(
-      text: "Join",
-      style: :primary,
-      type: "submit"
-    ) %>
-  <% end %>
+  <%= recording_studio_terms_agree(inside_form: true) %>
 </div>

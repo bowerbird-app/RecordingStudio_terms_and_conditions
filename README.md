@@ -6,18 +6,18 @@ A Recording Studio addon for terms and conditions.
 - Module: `RecordingStudioTermsAndConditions`
 - Source: [bowerbird-app/RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions)
 
-This addon ships the **data shape, domain helpers, clickwrap Agree screen, an embeddable Agree helper, admin Terms screens, a public published URL, and a host gate**. Signed-in people who still need to accept the current published Terms are sent to the same Agree screen. Recording Studio Users signup and post-auth use that path too. Hosts can also drop `recording_studio_terms_agree` onto any page or inside a form.
+This addon ships the **data shape, domain helpers, clickwrap Agree screen, an embeddable Agree helper, admin Terms screens, a public published URL, and a host gate**. Signed-in people who still need to accept the current published Terms are sent to the same Agree screen. Recording Studio Users signup and post-auth use that path too. Hosts can also drop `recording_studio_terms_agree` onto a form.
 
 ## What's included
 
 - **Recording Studio** 4.x gem pinned and configured
-- **Devise** authentication with a pre-seeded admin user
+- **Recording Studio Users Auth** (email, then password) with a pre-seeded admin user
 - **Workspace**, **Folder**, and **Page** recordables seeded into the dummy host app
 - **Terms** recordable (`RecordingStudioTermsAndConditions::Terms`, product label `"Terms"`) with Publishable opted in on the type
 - **Acceptance** append-only table for later clickwrap receipts (not a recordable)
 - **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for`, `accepted?`, `accept!`, `requires_acceptance?`
 - **Agree screen** for the current published Terms (unchecked checkbox, gated Agree, `accept!`)
-- **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox, HTML `required` in a form, same `accept!` path
+- **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`, same `accept!` path
 - **Gate** on the host `ApplicationController`: `requires_acceptance?` redirects to Agree until the live version is accepted, and again after a new publish
 - **Users hook** on `RecordingStudioUser::Auth::BaseController` so after sign in / sign up land on Agree when acceptance is still required
 - **Admin** create/edit Terms, Publishable publish, and simple acceptance coverage
@@ -25,7 +25,7 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, an em
 - **FlatPack** UI component library for all views
 - **Dummy app** (`test/dummy/`) with a FlatPack sign-in screen, a home page on Recording Studio's default layout, mounted Recording Studio routes, and FlatPack's built-in rounded theme
 
-Authenticated dummy pages use Recording Studio's shared default layout (`RecordingStudio::UsesDefaultLayout`) plus FlatPack CSS and JS. The dummy override adds Flatpack `TopNav` (workspace switch and Sign out) above PageNav. Devise keeps its own sign-in layout. Dummy `/docs/*` pages stay in the dummy app as a host-app sandbox; they are not the product README.
+Authenticated dummy pages use Recording Studio's shared default layout (`RecordingStudio::UsesDefaultLayout`) plus FlatPack CSS and JS. The dummy override adds Flatpack `TopNav` (workspace switch and Sign out) above PageNav. Sign-in uses Users Auth (`recording_studio_user/auth`). Dummy `/docs/*` pages stay in the dummy app as a host-app sandbox; they are not the product README.
 
 ## Quick start
 
@@ -60,18 +60,18 @@ The dummy app is a host-app validation surface for authentication, FlatPack rend
 | Email    | admin@admin.com   |
 | Password | Password          |
 
-The login form is prefilled with these credentials for fast access.
+Sign in at `/users/sign_in`: email first (**Continue with email**), then password.
 
 ### Useful routes
 
 - `/` — dummy app home page
-- `/users/sign_in` — Devise sign-in page
+- `/users/sign_in` — Users Auth sign-in (email, then password)
 - `/recording_studio_terms_and_conditions` — Agree (clickwrap) screen on the Recording Studio default layout
 - `/recording_studio_terms_and_conditions/admin/terms` — write and edit Terms
 - `/admin` — Admin Terms section (Accessible on the Admin root)
 - `/terms/:uuid/:slug` — public published Terms
 - `/recording_studio` — redirect to `/` while the mounted Recording Studio engine remains data/API-focused
-- `/agree_helper` — dummy demo of the embeddable Agree helper (on a page and inside a form)
+- `/agree_helper` — dummy demo of the embeddable Agree helper (code example + checkbox)
 - `/docs/install`, `/docs/config`, `/docs/recordable_types`, `/docs/recordings_tree`, `/docs/gem_views`, `/docs/methods` — dummy-only starter pages
 
 The home page in `test/dummy/app/views/home/index.html.erb` is a starting point for a minimal demo of the gem's primary behavior. Keep deeper explanations on the dummy docs pages, not in this README.
@@ -113,7 +113,7 @@ The dummy host follows Recording Studio's root recording pattern:
   ```
   Live means Publishable `currently_published?` (scheduled-in-the-future is not current). `indexable` is SEO and is not used for clickwrap.
 - The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends `UsersAuthRedirect` on Users Auth. Both reuse `requires_acceptance?` and the mounted Agree screen. Auth, Agree, Admin, public Terms, and root switch stay reachable so people can sign in, accept, publish, or switch workspace.
-- Hosts can render `recording_studio_terms_agree` (standalone form to the Agree path) or `recording_studio_terms_agree(inside_form: true)` inside signup or similar. The checkbox is `required` and named `agreed`. On the host POST, call `accept!` — do not invent a second receipt.
+- Hosts can render `recording_studio_terms_agree` or `recording_studio_terms_agree(inside_form: true)` inside signup or similar. The helper is the `required` `agreed` checkbox only. On the host POST, call `accept!` — do not invent a second receipt.
 - Each configured recordable declares `recording_studio_recordable(...)`; strict declaration validation stays enabled
 - A root `RecordingStudio::Recording` wraps the Workspace
 - `Current.actor` is set from `current_user` (Devise) in `ApplicationController`

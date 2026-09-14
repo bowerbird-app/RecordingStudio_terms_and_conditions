@@ -72,14 +72,17 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     refute RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
   end
 
-  test "devise sign in lands on agree when live terms require it" do
+  test "users auth sign in lands on agree when live terms require it" do
     studio = Workspace.find_or_create_by!(name: "Studio Workspace")
     RecordingStudio.root_recording_for(studio)
     ensure_default_workspace_requires_acceptance!
     switch_to_workspace(studio)
     sign_out @user
 
-    post "/users/sign_in", params: { user: { email: @user.email, password: @password } }
+    post "/users/sign_in", params: { user: { email: @user.email } }
+    assert_redirected_to "/users/sign_in/password"
+    follow_redirect!
+    post "/users/sign_in/password", params: { user: { email: @user.email, password: @password } }
 
     assert_response :redirect
     follow_redirect!

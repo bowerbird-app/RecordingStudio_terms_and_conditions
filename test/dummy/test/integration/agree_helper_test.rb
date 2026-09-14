@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "cgi"
 require "devise/test/integration_helpers"
 
 class AgreeHelperTest < ActionDispatch::IntegrationTest
@@ -28,34 +27,14 @@ class AgreeHelperTest < ActionDispatch::IntegrationTest
     get "/agree_helper"
     assert_response :success
     assert_includes response.body, "Agree helper"
-    assert_includes response.body, "On a page"
-    assert_includes response.body, "Inside a form"
+    assert_includes response.body, "recording_studio_terms_agree"
+    assert_includes response.body, "inside_form: true"
     assert_includes response.body, "I agree to these terms"
-    assert_includes response.body, "Join"
-    assert_select "input[type=checkbox][name=agreed][required]", count: 2
-    assert_select "form[action=?]", recording_studio_terms_and_conditions.acceptance_path
-    assert_select "form[action=?]", "/agree_helper"
-  end
-
-  test "the in-form demo posts through accept!" do
-    assert_difference -> { RecordingStudioTermsAndConditions::Acceptance.count }, 1 do
-      post "/agree_helper", params: { agreed: "1", display_name: "Kit" }
-    end
-
-    assert_redirected_to "/agree_helper"
-    follow_redirect!
-    assert_includes CGI.unescapeHTML(response.body), "You're in. Thanks for reading."
-    assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
-    assert_equal "clickwrap", RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last.provenance["source"]
-  end
-
-  test "the in-form demo stays gated on the server when the box is not ticked" do
-    assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
-      post "/agree_helper", params: { agreed: "0", display_name: "Kit" }
-    end
-
-    assert_response :unprocessable_entity
-    assert_includes response.body, "Tick the box if you agree."
-    refute RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
+    refute_includes response.body, "Join"
+    refute_includes response.body, "On a page"
+    refute_includes response.body, "Inside a form"
+    assert_select "input[type=checkbox][name=agreed][required]", count: 1
+    assert_select "button[type=submit]", count: 0
+    assert_select "form[action=?]", recording_studio_terms_and_conditions.acceptance_path, count: 0
   end
 end

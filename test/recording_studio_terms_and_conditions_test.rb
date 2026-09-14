@@ -137,6 +137,17 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes controller_source, "flat_pack_sidebar"
     refute File.exist?(File.expand_path("dummy/app/views/layouts/flat_pack_sidebar.html.erb", __dir__))
     refute File.exist?(File.expand_path("dummy/app/views/layouts/flat_pack/_sidebar.html.erb", __dir__))
+    refute File.exist?(File.expand_path("dummy/app/views/devise/sessions/new.html.erb", __dir__))
+
+    dummy_routes = File.read(File.expand_path("dummy/config/routes.rb", __dir__))
+    assert_includes dummy_routes, "recording_studio_user_auth_for :users"
+    assert_includes dummy_routes, "skip: %i[sessions registrations passwords]"
+    assert_includes dummy_routes, "mount RecordingStudioUser::Engine"
+
+    agree_helper_page = File.read(File.expand_path("dummy/app/views/agree_helpers/show.html.erb", __dir__))
+    assert_includes agree_helper_page, "FlatPack::CodeBlock::Component"
+    refute_includes agree_helper_page, "Join"
+    refute_includes agree_helper_page, "FlatPack::Button::Component"
   end
 
   def test_dummy_default_layout_head_loads_flatpack_application
@@ -165,7 +176,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes top_nav, "method: :delete"
   end
 
-  def test_agree_and_admin_views_use_cards_and_skip_echoed_tick_copy
+  def test_agree_and_admin_views_skip_card_wrappers_and_echoed_tick_copy
     views = "app/views/recording_studio_terms_and_conditions"
     agree = engine_source("#{views}/acceptances/show.html.erb")
     admin_index = engine_source("#{views}/admin/terms/index.html.erb")
@@ -181,22 +192,26 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes terms_model, 'public_layout: "recording_studio/default_layout"'
     refute File.exist?(engine_path("app/views/layouts/recording_studio_terms_and_conditions/public.html.erb"))
 
-    assert_includes agree, "FlatPack::Card::Component"
+    refute_includes agree, "FlatPack::Card::Component"
     assert_includes agree, "recording_studio_terms_agree(inside_form: true"
-    assert_includes engine_source("app/helpers/recording_studio_terms_and_conditions/agree_helper.rb"),
-                    "def recording_studio_terms_agree"
+    helper = engine_source("app/helpers/recording_studio_terms_and_conditions/agree_helper.rb")
+    assert_includes helper, "def recording_studio_terms_agree"
+    refute_includes helper, "FlatPack::Button::Component"
+    refute_includes helper, "form_with"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "helper RecordingStudioTermsAndConditions::ApplicationHelper"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/gate.rb"), "agree_helpers"
     refute_includes agree, "help_text"
     refute_includes agree, "Read them, tick the box"
     refute_includes agree, "FlatPack::Alert::Component"
-    assert_includes public_show, "FlatPack::Card::Component"
+    refute_includes public_show, "FlatPack::Card::Component"
     refute_includes public_show, "<article>"
     assert_includes admin_index, "page_title.slot"
     assert_includes admin_show, "page_title.slot"
-    assert_includes admin_new, "FlatPack::Card::Component"
-    assert_includes admin_new, "card.footer"
+    refute_includes admin_new, "FlatPack::Card::Component"
+    refute_includes admin_new, "card.footer"
+    refute_includes engine_source("#{views}/admin/terms/edit.html.erb"), "FlatPack::Card::Component"
+    refute_includes admin_show, "FlatPack::Card::Component"
     assert_includes admin_index, "FlatPack::Table::Component"
     assert_includes admin_index, "terms_rows"
     assert_includes admin_index, 'title: "Open"'

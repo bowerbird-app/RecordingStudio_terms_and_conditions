@@ -8,6 +8,8 @@ class ApplicationController < ActionController::Base
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
 
+  # Users Auth brings its own layout. Leftover Devise screens keep
+  # layouts/application. Everything else uses core default layout.
   layout :application_layout
 
   before_action :authenticate_user!

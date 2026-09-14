@@ -8,7 +8,7 @@
 | `tnc-clickwrap-demo.mp4.b64.manifest` | original_bytes, sha256, ordered part paths |
 | `tnc-agree.png` | Still of Studio Terms (multi-section sample body) |
 | `tnc-agree.png.b64` | Base64 of the still |
-| `tnc-agree-helper.png` | Dummy `/agree_helper` page + in-form mounts |
+| `tnc-agree-helper.png` | Dummy `/agree_helper` code example + checkbox |
 | `tnc-admin-terms.png` | Admin Terms Flatpack table |
 | `tnc-admin-richtext.png` | Admin edit TipTap body |
 

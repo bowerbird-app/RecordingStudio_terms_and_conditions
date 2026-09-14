@@ -4,7 +4,7 @@ This Rails app exists to validate the Recording Studio Terms and Conditions addo
 
 ## What It Covers
 
-- Devise authentication with a seeded admin user
+- Recording Studio Users Auth (email, then password) with a seeded admin user
 - `Current.actor` wiring for Recording Studio events
 - Root workspace plus seeded folder and page recordables
 - Recording Studio default layout with Flatpack TopNav, FlatPack assets, and Tailwind source scanning (including `/usr/local/lib/ruby/gems/**/bundler/gems/flatpack-*`)
@@ -24,7 +24,7 @@ bin/dev
 
 Run the commands above from the dummy app directory, not the repository root.
 
-Then open the app and sign in with:
+Then open `/users/sign_in`, continue with email, and sign in with:
 
 - Email: `admin@admin.com`
 - Password: `Password`
@@ -37,8 +37,8 @@ Then open the app and sign in with:
 - `/admin` - Admin Terms section
 - `/terms/:uuid/:slug` - public published Terms
 - `/recording_studio` - redirects to `/` while the mounted Recording Studio engine stays available under that prefix for non-root routes
-- `/users/sign_in` - Devise sign-in page
-- `/agree_helper` - embeddable Agree helper demo (page + in-form)
+- `/users/sign_in` - Users Auth sign-in (email, then password)
+- `/agree_helper` - embeddable Agree helper demo (code example + checkbox)
 - `/docs/install`, `/docs/config`, `/docs/recordable_types`, `/docs/recordings_tree`, `/docs/gem_views`, `/docs/methods` - dummy-only starter pages
 - `/up` - Rails health check
 
@@ -46,6 +46,6 @@ Then open the app and sign in with:
 
 Use this app to verify the addon experience before copying patterns into another host app. If a layout, route, asset source, or Recording Studio initializer change breaks here, the gem likely needs adjustment before reuse.
 
-Authenticated pages use Recording Studio's shared default layout. Devise sign-in keeps `layouts/application`. Replace dummy docs page content so it matches the gem's actual concepts.
+Authenticated pages use Recording Studio's shared default layout. Sign-in uses Users Auth. Replace dummy docs page content so it matches the gem's actual concepts.
 
 The home page in `app/views/home/index.html.erb` should stay a minimal demo surface for the gem's core feature. Do not turn it into a wall of documentation; the dummy docs pages exist so deeper explanations can live in focused sections.
