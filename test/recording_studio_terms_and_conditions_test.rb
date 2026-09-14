@@ -196,6 +196,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes agree, "recording_studio_terms_agree(inside_form: true"
     assert_includes agree, "terms_version_date"
     assert_includes agree, "terms_content"
+    assert_includes agree, "-mt-5 mb-6"
     helper = engine_source("app/helpers/recording_studio_terms_and_conditions/agree_helper.rb")
     assert_includes helper, "def recording_studio_terms_agree"
     assert_includes helper, "link_terms: false"
@@ -207,9 +208,6 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes application_helper, "def terms_content"
     assert_includes application_helper, "def terms_admin_hub_path"
     assert_includes application_helper, "flat-pack-content-editor-content"
-    assert_includes application_helper, "tight: true"
-    assert_includes application_helper, "-mt-5 mb-6"
-    assert_includes application_helper, "border-0 bg-transparent p-0 shadow-none rounded-none"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "helper RecordingStudioTermsAndConditions::ApplicationHelper"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/gate.rb"), "agree_helpers"
@@ -220,6 +218,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes public_show, "<article>"
     assert_includes public_show, "terms_content"
     assert_includes public_show, "terms_version_date"
+    assert_includes public_show, "-mt-5 mb-6"
     assert_includes admin_index, "page_title.slot"
     assert_includes admin_index, 'title: "Published"'
     assert_includes admin_index, "terms_admin_hub_path"
@@ -237,6 +236,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     form = engine_source("#{views}/admin/terms/_form.html.erb")
     assert_includes form, "terms_body_editor"
     assert_includes form, "gap-6"
+    assert_includes form, "flat-pack-input-wrapper]:border-0"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/sample_terms.rb"), "Using the booth"
     importmap = File.read(File.expand_path("dummy/config/importmap.rb", __dir__))
     assert_includes importmap, "@tiptap/core"

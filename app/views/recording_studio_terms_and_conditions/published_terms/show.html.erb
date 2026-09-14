@@ -7,6 +7,8 @@
   subtitle: "The public copy. No checkbox here.",
   variant: :h1
 ) %>
-<%= terms_version_date(@terms) %>
+<div class="-mt-5 mb-6">
+  <%= terms_version_date(@terms) %>
+</div>
 
 <%= terms_content(@terms&.body) %>

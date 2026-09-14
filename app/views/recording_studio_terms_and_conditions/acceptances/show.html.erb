@@ -5,7 +5,9 @@
   subtitle: "The live version for this workspace.",
   variant: :h1
 ) %>
-<%= terms_version_date(@terms) %>
+<div class="-mt-5 mb-6">
+  <%= terms_version_date(@terms) %>
+</div>
 
 <% if @terms.blank? %>
   <%= render FlatPack::EmptyState::Component.new(
