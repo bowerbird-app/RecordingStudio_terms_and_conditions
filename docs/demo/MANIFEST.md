@@ -1,5 +1,7 @@
 # Clickwrap demo files
 
+Stills retaken 2026-09-14 after Users Auth sign-in and no-Card terms/write/helper screens.
+
 | File | Role |
 | --- | --- |
 | `tnc-clickwrap-demo.mp4` | ~18s dummy Agree flow: unchecked checkbox → check → Agree → “You're in. Thanks for reading.” |
