@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `RecordingStudioTermsAndConditions::Terms` recordable (table `recording_studio_terms_and_conditions_terms`, product label `"Terms"`). Publishable is opted in on the class with `RecordingStudio::Capabilities::Publishable.to` (no public UI in this slice).
 - `RecordingStudioTermsAndConditions::Acceptance` append-only table (`recording_studio_terms_and_conditions_acceptances`) for later clickwrap receipts. Not a recordable.
+- Domain helpers on `RecordingStudioTermsAndConditions`: `current_published_for(root)`, `accepted?(actor, root)`, `accept!(actor, version, provenance)`, `requires_acceptance?(actor, root)`. Live Terms use Publishable `currently_published?`. Acceptance rows store jsonb `provenance`.
 
 ### Changed
 - Product identity is `recording_studio_terms_and_conditions` / `RecordingStudioTermsAndConditions` (was the gem-template engine name).
@@ -26,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rename host files `config/initializers/gem_template.rb` and `config/gem_template.yml` to the new gem name.
 - Bundle the new kit gems from GitHub (they are not on RubyGems). Register `RecordingStudioTermsAndConditions::Terms` (and Publishable's child type) in `config.recordable_types`.
 - Run this gem's migrations generator, then Publishable's (and Users/Attachable if those engines load). Do not treat Acceptance rows as recordings.
+- Call `RecordingStudioTermsAndConditions.current_published_for` / `accepted?` / `accept!` / `requires_acceptance?` instead of querying publishable children or inserting acceptance rows by hand.
 
 ## [0.2.2] - 2026-09-11
 

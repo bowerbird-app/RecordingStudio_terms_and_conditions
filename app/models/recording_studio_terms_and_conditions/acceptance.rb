@@ -9,6 +9,10 @@ module RecordingStudioTermsAndConditions
 
     validates :actor_type, :actor_id, :terms_recording_id, :terms_id, :accepted_at, presence: true
 
+    def provenance
+      super.presence || {}
+    end
+
     def readonly?
       persisted?
     end

@@ -6,7 +6,7 @@ A Recording Studio addon for terms and conditions.
 - Module: `RecordingStudioTermsAndConditions`
 - Source: [bowerbird-app/RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions)
 
-This slice is the **data shape**. The engine owns a `Terms` recordable (Publishable-ready) and an append-only `Acceptance` table. Clickwrap UI, acceptance gates, admin screens, and Users signup wiring come later.
+This slice is the **data shape plus domain helpers**. The engine owns a `Terms` recordable (Publishable-ready), an append-only `Acceptance` table, and module-level helpers to read the live published version and record a clickwrap receipt. Clickwrap UI, acceptance gates, admin screens, and Users signup wiring come later.
 
 ## What's included
 
@@ -15,6 +15,7 @@ This slice is the **data shape**. The engine owns a `Terms` recordable (Publisha
 - **Workspace**, **Folder**, and **Page** recordables seeded into the dummy host app
 - **Terms** recordable (`RecordingStudioTermsAndConditions::Terms`, product label `"Terms"`) with Publishable opted in on the type
 - **Acceptance** append-only table for later clickwrap receipts (not a recordable)
+- **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for`, `accepted?`, `accept!`, `requires_acceptance?`
 - **FlatPack** UI component library for all views
 - **Dummy app** (`test/dummy/`) with a FlatPack sign-in screen, a home page on Recording Studio's default layout, mounted Recording Studio routes, and FlatPack's built-in rounded theme
 
@@ -88,7 +89,15 @@ The dummy host follows Recording Studio's root recording pattern:
 - **Workspace** is the dummy content root. Users also registers shared **People**.
 - **Folder** and **Page** demonstrate nested host recordables under the workspace root
 - **Terms** is this gem's nested recordable under Workspace. Enable Publishable on the class with `RecordingStudio::Capabilities::Publishable.to` — installing the gem does not publish anything by itself
-- **Acceptance** rows are receipts, not tree nodes: actor, terms recording id, terms snapshot id, timestamps
+- **Acceptance** rows are receipts, not tree nodes: actor, terms recording id, terms snapshot id, timestamps, provenance
+- Hosts ask the module for the live published version and whether an actor still needs to accept:
+  ```ruby
+  terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
+  RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace)
+  RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap" })
+  RecordingStudioTermsAndConditions.accepted?(user, workspace)
+  ```
+  Live means Publishable `currently_published?` (scheduled-in-the-future is not current). `indexable` is SEO and is not used for clickwrap.
 - Each configured recordable declares `recording_studio_recordable(...)`; strict declaration validation stays enabled
 - A root `RecordingStudio::Recording` wraps the Workspace
 - `Current.actor` is set from `current_user` (Devise) in `ApplicationController`

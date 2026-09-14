@@ -113,6 +113,18 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes acceptance_source, "recording_studio_recordable"
   end
 
+  def test_module_exposes_terms_acceptance_helpers
+    source = File.read(File.expand_path("../lib/recording_studio_terms_and_conditions.rb", __dir__))
+
+    assert_includes source, "def current_published_for(root)"
+    assert_includes source, "def accepted?(actor, root)"
+    assert_includes source, "def requires_acceptance?(actor, root)"
+    assert_includes source, "def accept!(actor, version, provenance = {})"
+    %i[current_published_for accepted? requires_acceptance? accept!].each do |helper|
+      assert_includes RecordingStudioTermsAndConditions.singleton_methods, helper
+    end
+  end
+
   def test_dummy_app_uses_recording_studio_default_layout
     application_controller_path = File.expand_path("dummy/app/controllers/application_controller.rb", __dir__)
     controller_source = File.read(application_controller_path)
