@@ -30,6 +30,7 @@ class AgreeHelperTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "recording_studio_terms_agree"
     assert_includes response.body, "inside_form: true"
     assert_includes response.body, "link_terms: true"
+    refute_includes response.body, "data-controller=\"recording-studio-terms-and-conditions--scroll-to-end\""
     assert_includes response.body, "I agree to these"
     assert_select "a.flat-pack-link[href*='/terms/']", text: "terms"
     refute_includes response.body, "Join"

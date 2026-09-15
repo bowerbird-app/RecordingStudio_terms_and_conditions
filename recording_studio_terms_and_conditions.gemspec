@@ -7,10 +7,11 @@ Gem::Specification.new do |spec|
   spec.version     = RecordingStudioTermsAndConditions::VERSION
   spec.authors     = ["Bowerbird"]
   spec.homepage    = "https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions"
-  spec.summary     = "Recording Studio addon for terms and conditions"
-  spec.description = "A Recording Studio addon for terms and conditions. This slice is the data " \
-                     "shape: a Terms recordable, an append-only Acceptance table, and kit " \
-                     "dependencies. Clickwrap UI, gates, and admin screens come later."
+  spec.summary     = "Recording Studio addon for published Terms and clickwrap acceptance"
+  spec.description = "A Recording Studio addon for published Terms. Ships a Terms recordable, " \
+                     "append-only Acceptance receipts, a clickwrap Agree screen, an embeddable " \
+                     "Agree helper, Admin Terms screens, a Publishable public URL, a host " \
+                     "acceptance gate, and an install generator."
   spec.license     = "MIT"
   spec.required_ruby_version = ">= 3.3.0"
 

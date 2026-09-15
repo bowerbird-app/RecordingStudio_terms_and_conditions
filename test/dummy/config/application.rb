@@ -21,6 +21,7 @@ require "recording_studio_publishable"
 require "recording_studio_attachable"
 require "recording_studio_admin"
 require "recording_studio_accessible"
+require "recording_studio_terms_and_conditions"
 
 module Dummy
   class Application < Rails::Application

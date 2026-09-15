@@ -7,10 +7,12 @@ require "recording_studio_terms_and_conditions/sample_terms"
 require "recording_studio_terms_and_conditions/engine"
 require "recording_studio_terms_and_conditions/configuration"
 require "recording_studio_terms_and_conditions/terms_acceptance"
+require "recording_studio_terms_and_conditions/table_page"
 require "recording_studio_terms_and_conditions/gate"
 require "recording_studio_terms_and_conditions/forces_acceptance"
 require "recording_studio_terms_and_conditions/users_auth_redirect"
 require "recording_studio_terms_and_conditions/acceptance_gate_installer"
+require "recording_studio_terms_and_conditions/admin_widget_card"
 require "recording_studio_terms_and_conditions/admin" if defined?(RecordingStudioAdmin)
 require "recording_studio_terms_and_conditions/capabilities/example"
 

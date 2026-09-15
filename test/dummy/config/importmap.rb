@@ -1,9 +1,14 @@
 # Pin npm packages by running ./bin/importmap
 
 pin "application"
+pin "@hotwired/turbo-rails", to: "turbo.min.js"
 pin "@hotwired/stimulus", to: "stimulus.min.js"
 pin "@hotwired/stimulus-loading", to: "stimulus-loading.js"
 pin_all_from "app/javascript/controllers", under: "controllers"
+pin_all_from File.expand_path("../../../app/javascript/recording_studio_terms_and_conditions/controllers", __dir__),
+             under: "controllers/recording_studio_terms_and_conditions",
+             to: "recording_studio_terms_and_conditions/controllers",
+             preload: false
 
 # Pin FlatPack controllers
 pin_all_from FlatPack::Engine.root.join("app/javascript/flat_pack/controllers"), under: "controllers/flat_pack", to: "flat_pack/controllers", preload: false

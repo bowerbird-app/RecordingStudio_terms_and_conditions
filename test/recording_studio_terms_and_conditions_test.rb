@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.3.0", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.3.1", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -198,14 +198,32 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes agree, "terms_content"
     assert_includes agree, "-mt-5 mb-6"
     helper = engine_source("app/helpers/recording_studio_terms_and_conditions/agree_helper.rb")
+    scroll_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/scroll_to_end_helper.rb")
+    assert_includes helper, "include ScrollToEndHelper"
     assert_includes helper, "def recording_studio_terms_agree"
     assert_includes helper, "link_terms: false"
+    assert_includes scroll_helper, "def recording_studio_terms_scroll_to_end"
+    assert_includes scroll_helper, "def recording_studio_terms_agree_button"
+    assert_includes scroll_helper, "require_scroll_to_end"
     assert_includes helper, "class: \"py-5\""
     assert_includes helper, "with_content(\"terms\")"
     refute_includes helper, "Read the full terms"
-    refute_includes helper, "FlatPack::Button::Component"
     refute_includes helper, "form_with"
     application_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/application_helper.rb")
+    assert_includes application_helper, "include TablePaginationHelper"
+    pagination_helper = engine_source(
+      "app/helpers/recording_studio_terms_and_conditions/table_pagination_helper.rb"
+    )
+    assert_includes pagination_helper, "def terms_table_pagination"
+    assert_includes pagination_helper, "FlatPack::Pagination::Component"
+    base_controller = engine_source(
+      "app/controllers/recording_studio_terms_and_conditions/admin/base_controller.rb"
+    )
+    assert_includes base_controller, "include ::Pagy::Backend"
+    table_page = engine_source("lib/recording_studio_terms_and_conditions/table_page.rb")
+    assert_includes table_page, "SIZE = 25"
+    assert_includes table_page, "def paginate_table"
+    assert_includes table_page, "overflow: :last_page"
     assert_includes application_helper, "def terms_calendar_date"
     assert_includes application_helper, "%e %b %Y"
     assert_includes application_helper, "def terms_content"
@@ -227,6 +245,16 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin_index, "terms_admin_hub_path"
     assert_includes admin_show, "page_title.slot"
     assert_includes admin_show, "terms_content"
+    assert_includes admin_show, 'text: "Users"'
+    assert_includes admin_show, "admin_term_users_path"
+    refute_includes admin_show, "Who agreed"
+    assert_includes admin_show, "Recording"
+    assert_includes admin_show, "snapshot"
+    users = engine_source("#{views}/admin/term_users/index.html.erb")
+    assert_includes users, 'title: "Users"'
+    assert_includes users, "Nobody yet"
+    assert_includes users, "terms_table_pagination"
+    assert_includes engine_source("config/routes.rb"), 'controller: "term_users"'
     refute_includes admin_new, "FlatPack::Card::Component"
     refute_includes admin_new, "card.footer"
     assert_includes admin_new, 'class="inline-block"'
@@ -235,6 +263,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes engine_source("#{views}/admin/terms/edit.html.erb"), 'class="inline-block"'
     refute_includes admin_show, "FlatPack::Card::Component"
     assert_includes admin_index, "FlatPack::Table::Component"
+    assert_includes admin_index, "terms_table_pagination"
     assert_includes admin_index, "terms_rows"
     assert_includes admin_index, 'title: "Open"'
     refute_includes admin_index, "min_width: :lg"
@@ -246,6 +275,16 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     importmap = File.read(File.expand_path("dummy/config/importmap.rb", __dir__))
     assert_includes importmap, "@tiptap/core"
     assert_includes importmap, "flat_pack/tiptap"
+    assert_includes importmap, "recording_studio_terms_and_conditions/controllers"
+    assert_includes importmap, "File.expand_path"
+    assert_includes importmap, 'pin "@hotwired/turbo-rails", to: "turbo.min.js"'
+    application_js = File.read(File.expand_path("dummy/app/javascript/application.js", __dir__))
+    assert_includes application_js, 'import "@hotwired/turbo-rails"'
+    accept = engine_source("#{views}/acceptances/show.html.erb")
+    assert_includes accept, "recording_studio_terms_scroll_to_end"
+    assert_includes accept, "recording_studio_terms_agree_button"
+    controller_js = "app/javascript/recording_studio_terms_and_conditions/controllers/scroll_to_end_controller.js"
+    assert File.exist?(engine_path(controller_js))
   end
 
   def test_dummy_login_layout_keeps_flatpack_assets_without_tight_main_offset
@@ -307,6 +346,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes readme, "RecordingStudioTermsAndConditions"
     assert_includes readme, "https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions"
     assert_includes readme, "recording-studio-gems"
+    assert_includes readme, "require_scroll_to_end"
+    refute_includes readme, "come later"
     assert_includes readme, "#{internals_docs}/"
     assert_includes readme, "v4.2.0"
     assert_includes readme, "v0.1.183"
@@ -330,6 +371,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes gemspec, "addon template for Rails engines"
     refute_includes gemspec, template_repo
     refute_includes gemspec, "https://github.com/bowerbird-app/recording_studio_terms_and_conditions"
+    refute_includes gemspec, "come later"
+    assert_includes gemspec, "clickwrap Agree screen"
+    assert_includes gemspec, "Publishable public URL"
   end
 
   def test_dummy_home_page_uses_demo_title_only
@@ -367,6 +411,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
 
     gem_views_view = File.read(File.expand_path("dummy/app/views/docs/gem_views.html.erb", __dir__))
     assert_includes gem_views_view, "FlatPack::Table::Component"
+    assert_includes gem_views_view, "FlatPack::Pagination::Component"
     refute_includes gem_views_view, "FlatPack::List::Component"
 
     recordable_types_view = File.read(File.expand_path("dummy/app/views/docs/recordable_types.html.erb", __dir__))
@@ -396,12 +441,22 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     views = "app/views/recording_studio_terms_and_conditions"
     assert File.exist?(File.join(engine_root, views, "acceptances/show.html.erb"))
     assert File.exist?(File.join(engine_root, views, "admin/terms/index.html.erb"))
+    assert File.exist?(File.join(engine_root, views, "admin/term_users/index.html.erb"))
     assert File.exist?(File.join(engine_root, views, "published_terms/show.html.erb"))
     routes = File.read(File.join(engine_root, "config/routes.rb"))
     assert_includes routes, "resource :acceptance"
     assert_includes routes, "resources :terms"
     admin = File.read(File.join(engine_root, "lib/recording_studio_terms_and_conditions/admin.rb"))
     assert_includes admin, 'key "terms"'
+    assert_includes admin, "paginate per_page: 25"
+    assert_includes admin, 'text: "Every version"'
+    assert_includes admin, 'widget "widgets.terms.live", view_variant: :card'
+    assert_includes admin, 'widget "widgets.terms.agrees", view_variant: :card'
+    refute_includes admin, "view_variant: :compact"
+    assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/admin_widget_card.rb"))
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
+                    "AdminWidgetCard"
+    assert_includes admin, 'admin_screen_path("recording_studio_terms")'
     assert_includes admin, "column :published"
     assert_includes admin, "admin_write_path"
     assert_includes admin, "admin_hub_path"

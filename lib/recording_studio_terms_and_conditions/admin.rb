@@ -15,12 +15,16 @@ module RecordingStudioTermsAndConditions
            text: "Write terms",
            url: ->(_context) { RecordingStudioTermsAndConditions.admin_write_path },
            style: :primary
+      link :versions,
+           text: "Every version",
+           url: ->(context) { context.admin_screen_path("recording_studio_terms") },
+           style: :secondary
       link :agrees,
            text: "Who agreed",
            url: ->(context) { context.admin_screen_path("recording_studio_terms_acceptances") },
            style: :secondary
-      widget "widgets.terms.live", view_variant: :compact
-      widget "widgets.terms.agrees", view_variant: :compact
+      widget "widgets.terms.live", view_variant: :card
+      widget "widgets.terms.agrees", view_variant: :card
     end
 
     class TermsScreen < RecordingStudioAdmin::Screen
@@ -36,6 +40,7 @@ module RecordingStudioTermsAndConditions
       end
 
       table do
+        paginate per_page: 25
         column :title,
                title: "Title",
                sortable: false,
@@ -57,8 +62,8 @@ module RecordingStudioTermsAndConditions
                sortable: false,
                value: ->(recording, _context) { Acceptance.where(terms_recording_id: recording.id).count }
       end
-      widget "widgets.terms.live"
-      widget "widgets.terms.agrees"
+      widget "widgets.terms.live", view_variant: :card
+      widget "widgets.terms.agrees", view_variant: :card
     end
 
     class AcceptancesScreen < RecordingStudioAdmin::Screen
@@ -70,6 +75,7 @@ module RecordingStudioTermsAndConditions
       query { |_context| Acceptance.order(accepted_at: :desc) }
 
       table do
+        paginate per_page: 25
         column :actor,
                title: "Person",
                sortable: false,
@@ -82,7 +88,7 @@ module RecordingStudioTermsAndConditions
                  Terms.find_by(id: row.terms_id)&.title || "A past version"
                }
       end
-      widget "widgets.terms.agrees"
+      widget "widgets.terms.agrees", view_variant: :card
     end
 
     LiveTermsWidget = RecordingStudioAdmin::Widget.new("widgets.terms.live", blast_radius: :site) do
@@ -94,7 +100,7 @@ module RecordingStudioTermsAndConditions
           recording.respond_to?(:currently_published?) && recording.currently_published?
         end
       end
-      link_to { |_context| RecordingStudioTermsAndConditions.admin_hub_path }
+      link_to { |context| context.admin_screen_path("recording_studio_terms") }
       hide_change
       hide_period
     end

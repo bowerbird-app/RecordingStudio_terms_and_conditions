@@ -4,6 +4,8 @@ module RecordingStudioTermsAndConditions
   # Host helper: drop the required Agree checkbox on a page or inside a host form.
   # Persistence stays on Acceptance via accept! / AcceptancesController.
   module AgreeHelper
+    include ScrollToEndHelper
+
     def recording_studio_terms_agree(inside_form: false, actor: nil, root: nil, link_terms: false)
       root ||= recording_studio_terms_agree_root
       terms = RecordingStudioTermsAndConditions.current_published_for(root)

@@ -59,3 +59,13 @@ Drop the host helper onto a form:
 ```
 
 The helper is the checkbox only — HTML `required`, named `agreed`. Put it in a form. On submit call `accept!` with `params[:agreed]`. Do not add a second receipt table.
+
+Optional scroll-to-end before Agree (default off):
+
+```ruby
+RecordingStudioTermsAndConditions.configure do |config|
+  config.require_scroll_to_end = true
+end
+```
+
+Or wrap a host clickwrap with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` and `recording_studio_terms_agree_button(require_scroll_to_end: true)`. Pin `recording_studio_terms_and_conditions/controllers` in the host importmap. The checkbox is still required.

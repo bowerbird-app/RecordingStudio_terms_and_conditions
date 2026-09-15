@@ -6,7 +6,7 @@ module RecordingStudioTermsAndConditions
       before_action :require_admin_write_access!, only: %i[create update]
 
       def index
-        @terms_recordings = terms_scope
+        @pagy, @terms_recordings = paginate_table(terms_scope)
       end
 
       def new
@@ -23,9 +23,6 @@ module RecordingStudioTermsAndConditions
 
       def show
         @terms = terms_recording.recordable
-        @acceptances = Acceptance.where(terms_recording_id: terms_recording.id)
-                                 .order(accepted_at: :desc)
-                                 .limit(50)
       end
 
       def edit

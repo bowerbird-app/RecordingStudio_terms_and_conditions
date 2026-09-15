@@ -10,6 +10,10 @@ module RecordingStudioTermsAndConditions
       end
     end
 
+    initializer "recording_studio_terms_and_conditions.assets" do |app|
+      app.config.assets.paths << root.join("app/javascript") if app.config.respond_to?(:assets)
+    end
+
     class << self
       APPLIED_EXTENSIONS_IVAR = :@recording_studio_terms_and_conditions_applied_extensions
       def apply_model_extensions(target)
@@ -127,8 +131,14 @@ module RecordingStudioTermsAndConditions
       config.to_prepare do
         next unless defined?(RecordingStudioAdmin)
 
-        require "recording_studio_terms_and_conditions/admin"
+        # Reload so `register!` survives Zeitwerk resetting Admin to the
+        # controllers namespace in development.
+        load File.expand_path("admin.rb", __dir__)
         RecordingStudioTermsAndConditions::Admin.register!
+        helper = RecordingStudioAdmin::WidgetRenderingHelper
+        unless helper.ancestors.include?(RecordingStudioTermsAndConditions::AdminWidgetCard)
+          helper.prepend RecordingStudioTermsAndConditions::AdminWidgetCard
+        end
       end
     end
 

@@ -197,9 +197,50 @@ class InstallGeneratorTest < Minitest::Test
     assert_includes install_guide, "section :terms"
     assert_includes install_guide, "ForcesAcceptance"
     assert_includes install_guide, "/terms/:uuid/:slug"
+    assert_includes install_guide, "require_scroll_to_end"
+    assert_includes install_guide, "importmap"
     assert_includes initializer, "config.mount_path"
+    assert_includes initializer, "require_scroll_to_end"
     refute_includes initializer, "enable_feature_x"
     refute_includes install_guide, "RecordingStudio v3"
+  end
+
+  def test_add_importmap_pin_appends_scroll_controller
+    with_temp_app do |dir|
+      FileUtils.mkdir_p(File.join(dir, "config"))
+      File.write(File.join(dir, "config/importmap.rb"), "pin \"application\"\n")
+      generator = build_generator(dir)
+
+      generator.stub(:say, nil) do
+        generator.add_importmap_pin
+      end
+
+      importmap = File.read(File.join(dir, "config/importmap.rb"))
+      assert_includes importmap, "recording_studio_terms_and_conditions/controllers"
+      assert_includes importmap, "controllers/recording_studio_terms_and_conditions"
+    end
+  end
+
+  def test_add_importmap_pin_skips_when_already_present
+    with_temp_app do |dir|
+      FileUtils.mkdir_p(File.join(dir, "config"))
+      File.write(
+        File.join(dir, "config/importmap.rb"),
+        "pin_all_from RecordingStudioTermsAndConditions::Engine.root.join(" \
+        "\"app/javascript/recording_studio_terms_and_conditions/controllers\")\n"
+      )
+      generator = build_generator(dir)
+      messages = []
+
+      generator.stub(:say, ->(message, color = nil) { messages << [message, color] }) do
+        generator.add_importmap_pin
+      end
+
+      assert_includes messages, ["Importmap already pins the scroll-to-end controller.", :green]
+      pin_mentions = File.read(File.join(dir, "config/importmap.rb"))
+                         .scan("recording_studio_terms_and_conditions/controllers")
+      assert_equal 1, pin_mentions.size
+    end
   end
 
   def test_kit_skill_lists_this_gem
