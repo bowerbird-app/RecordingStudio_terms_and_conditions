@@ -99,6 +99,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Users"
     assert_includes response.body, "Nobody yet"
 
+    publish_terms!(recording, slug: "house-rules-#{SecureRandom.hex(4)}")
     RecordingStudioTermsAndConditions.accept!(@member, recording, { "source" => "clickwrap" })
     get recording_studio_terms_and_conditions.admin_term_users_path(recording)
     assert_response :success
@@ -131,7 +132,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_select "table thead th", text: "Agrees"
     assert_select "table thead th", text: "Open"
     assert_select "table tbody td a", text: "House rules"
-    assert_select "table tbody td", text: "Draft"
+    assert_select "table tbody td", text: (recording.currently_published? ? "Live" : "Draft")
     assert_select "table tbody td a", text: "Open"
   end
 
@@ -188,6 +189,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
       terms.title = "Crowd"
       terms.body = "Many people tick this."
     end
+    publish_terms!(recording, slug: "crowd-#{SecureRandom.hex(4)}")
     26.times do |index|
       person = User.create!(
         email: "agree-#{index}-#{SecureRandom.hex(3)}@example.com",
@@ -240,6 +242,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
       terms.title = "Crowd hub"
       terms.body = "Many people tick this."
     end
+    publish_terms!(recording, slug: "crowd-hub-#{SecureRandom.hex(4)}")
     26.times do |index|
       person = User.create!(
         email: "hub-agree-#{index}-#{SecureRandom.hex(3)}@example.com",
