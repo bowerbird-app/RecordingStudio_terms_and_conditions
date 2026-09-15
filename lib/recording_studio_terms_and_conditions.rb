@@ -12,6 +12,7 @@ require "recording_studio_terms_and_conditions/gate"
 require "recording_studio_terms_and_conditions/forces_acceptance"
 require "recording_studio_terms_and_conditions/users_auth_redirect"
 require "recording_studio_terms_and_conditions/acceptance_gate_installer"
+require "recording_studio_terms_and_conditions/admin_widget_card"
 require "recording_studio_terms_and_conditions/admin" if defined?(RecordingStudioAdmin)
 require "recording_studio_terms_and_conditions/capabilities/example"
 

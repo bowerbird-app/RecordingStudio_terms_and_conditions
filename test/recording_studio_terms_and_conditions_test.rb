@@ -453,6 +453,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin, 'widget "widgets.terms.live", view_variant: :card'
     assert_includes admin, 'widget "widgets.terms.agrees", view_variant: :card'
     refute_includes admin, "view_variant: :compact"
+    assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/admin_widget_card.rb"))
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
+                    "AdminWidgetCard"
     assert_includes admin, 'admin_screen_path("recording_studio_terms")'
     assert_includes admin, "column :published"
     assert_includes admin, "admin_write_path"

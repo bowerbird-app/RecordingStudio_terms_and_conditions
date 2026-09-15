@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - `Admin.register!` reloads after Zeitwerk so the Terms hub survives a code reload. Term show prints Recording and snapshot ids.
-- Admin hub Live terms and Agrees cards use `view_variant: :card` so the title sits above the number, not beside it.
+- Admin hub Live terms and Agrees cards use `view_variant: :card` so the title sits above the number, not beside it. Admin screens that still force compact still render these widgets stacked, via `AdminWidgetCard`.
 
 ### Upgrade notes
 - Scroll-to-end is off unless you set `config.require_scroll_to_end = true` or pass `require_scroll_to_end: true` to `recording_studio_terms_scroll_to_end` / `recording_studio_terms_agree_button`. Pin `recording_studio_terms_and_conditions/controllers` in the host importmap. The checkbox is still required.

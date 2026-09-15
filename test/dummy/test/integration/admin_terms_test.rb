@@ -143,6 +143,15 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     usages = RecordingStudioTermsAndConditions::Admin::TermsSection.widget_usages
     assert_equal %w[widgets.terms.live widgets.terms.agrees], usages.map(&:key)
     assert usages.all? { |usage| usage.view_variant == :card }
+    screen_usages = RecordingStudioTermsAndConditions::Admin::TermsScreen.widget_usages
+    assert_equal %w[widgets.terms.live widgets.terms.agrees], screen_usages.map(&:key)
+    assert screen_usages.all? { |usage| usage.view_variant == :card }
+    agree_usages = RecordingStudioTermsAndConditions::Admin::AcceptancesScreen.widget_usages
+    assert_equal %w[widgets.terms.agrees], agree_usages.map(&:key)
+    assert_equal :card, agree_usages.first.view_variant
+    assert RecordingStudioAdmin::WidgetRenderingHelper.ancestors.include?(
+      RecordingStudioTermsAndConditions::AdminWidgetCard
+    )
     keys = AdminRoot.recording_studio_admin_section_keys_for(@admin_root, @admin_recording, nil)
     assert_includes keys, "terms"
   end
@@ -261,6 +270,39 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Every version"
     assert_includes response.body, "Terms"
     assert_includes response.body, RecordingStudioTermsAndConditions.admin_write_path
+    assert_includes response.body, "widget_view_variant=card"
+    refute_includes response.body, "widget_view_variant=compact"
+  end
+
+  test "admin terms and who agreed screens stack widget title above the count" do
+    sign_in @admin
+    switch_to_workspace(@admin_root)
+
+    get "/admin/screens/recording_studio_terms"
+    assert_response :success
+    assert_includes response.body, "widget_view_variant=card"
+    refute_includes response.body, "widget_view_variant=compact"
+
+    get "/admin/screens/recording_studio_terms/widgets/widgets.terms.live",
+        params: { widget_usage_index: 0, widget_view_variant: "card" },
+        headers: { "Sec-Fetch-Dest" => "empty", "Turbo-Frame" => "widget" }
+    assert_response :success
+    assert_includes response.body, "Live terms"
+    assert_includes response.body, "text-5xl"
+    refute_includes response.body, "min-h-28"
+
+    get "/admin/screens/recording_studio_terms_acceptances"
+    assert_response :success
+    assert_includes response.body, "widget_view_variant=card"
+    refute_includes response.body, "widget_view_variant=compact"
+
+    get "/admin/screens/recording_studio_terms_acceptances/widgets/widgets.terms.agrees",
+        params: { widget_usage_index: 0, widget_view_variant: "card" },
+        headers: { "Sec-Fetch-Dest" => "empty", "Turbo-Frame" => "widget" }
+    assert_response :success
+    assert_includes response.body, "Agrees"
+    assert_includes response.body, "text-5xl"
+    refute_includes response.body, "min-h-28"
   end
 
   private

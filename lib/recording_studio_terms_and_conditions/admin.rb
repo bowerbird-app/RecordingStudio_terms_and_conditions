@@ -62,8 +62,8 @@ module RecordingStudioTermsAndConditions
                sortable: false,
                value: ->(recording, _context) { Acceptance.where(terms_recording_id: recording.id).count }
       end
-      widget "widgets.terms.live"
-      widget "widgets.terms.agrees"
+      widget "widgets.terms.live", view_variant: :card
+      widget "widgets.terms.agrees", view_variant: :card
     end
 
     class AcceptancesScreen < RecordingStudioAdmin::Screen
@@ -88,7 +88,7 @@ module RecordingStudioTermsAndConditions
                  Terms.find_by(id: row.terms_id)&.title || "A past version"
                }
       end
-      widget "widgets.terms.agrees"
+      widget "widgets.terms.agrees", view_variant: :card
     end
 
     LiveTermsWidget = RecordingStudioAdmin::Widget.new("widgets.terms.live", blast_radius: :site) do

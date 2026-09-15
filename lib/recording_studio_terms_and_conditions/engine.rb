@@ -135,6 +135,10 @@ module RecordingStudioTermsAndConditions
         # controllers namespace in development.
         load File.expand_path("admin.rb", __dir__)
         RecordingStudioTermsAndConditions::Admin.register!
+        helper = RecordingStudioAdmin::WidgetRenderingHelper
+        unless helper.ancestors.include?(RecordingStudioTermsAndConditions::AdminWidgetCard)
+          helper.prepend RecordingStudioTermsAndConditions::AdminWidgetCard
+        end
       end
     end
 
