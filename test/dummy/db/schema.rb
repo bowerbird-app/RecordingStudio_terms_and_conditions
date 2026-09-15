@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_14_010009) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_15_010004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -139,11 +139,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_14_010009) do
     t.datetime "accepted_at", null: false
     t.uuid "actor_id", null: false
     t.string "actor_type", null: false
+    t.string "body_digest"
     t.datetime "created_at", null: false
     t.jsonb "provenance", default: {}, null: false
     t.uuid "terms_id", null: false
     t.uuid "terms_recording_id", null: false
-    t.index ["actor_type", "actor_id", "terms_recording_id", "terms_id"], name: "index_rstac_acceptances_on_actor_and_version"
+    t.index ["actor_type", "actor_id", "terms_recording_id", "terms_id"], name: "index_rstac_acceptances_on_actor_and_version", unique: true
     t.index ["actor_type", "actor_id"], name: "index_rstac_acceptances_on_actor"
     t.index ["terms_id"], name: "index_rstac_acceptances_on_terms_id"
     t.index ["terms_recording_id"], name: "index_rstac_acceptances_on_terms_recording_id"
@@ -151,8 +152,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_14_010009) do
 
   create_table "recording_studio_terms_and_conditions_terms", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.text "body", null: false
+    t.text "change_note"
     t.datetime "created_at", null: false
+    t.string "kind", default: "terms", null: false
     t.string "title", null: false
+    t.index ["kind"], name: "index_rstac_terms_on_kind"
   end
 
   create_table "recording_studio_user_identities", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

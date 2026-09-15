@@ -25,7 +25,26 @@ module RecordingStudioTermsAndConditions
       return unless Gate.required?(self, signed_in_actor)
 
       remember_requested_page
-      redirect_to Gate.acceptance_path(self), notice: "One more thing — agree to the terms."
+      redirect_to Gate.acceptance_path(self), notice: terms_gate_notice
+    end
+
+    def terms_gate_notice
+      pending = Gate.pending_for(self, signed_in_actor)
+      labels = pending.map(&:kind_label)
+      root = Gate.root_for(self)
+      if RecordingStudioTermsAndConditions.reaccepting?(signed_in_actor, root)
+        return "Terms changed. Agree again." if terms_only_pending?(pending)
+
+        "#{labels.to_sentence} changed. Agree again."
+      else
+        return "One more thing — agree to the terms." if terms_only_pending?(pending)
+
+        "One more thing — agree to #{labels.to_sentence}."
+      end
+    end
+
+    def terms_only_pending?(pending)
+      pending.size <= 1 && pending.first&.kind.to_s == Terms::DEFAULT_KIND
     end
 
     def signed_in_actor

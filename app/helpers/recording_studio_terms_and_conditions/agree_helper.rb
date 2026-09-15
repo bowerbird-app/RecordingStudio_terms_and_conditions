@@ -5,45 +5,62 @@ module RecordingStudioTermsAndConditions
   # Persistence stays on Acceptance via accept! / AcceptancesController.
   module AgreeHelper
     include ScrollToEndHelper
+    include AgreeCopyHelper
 
-    def recording_studio_terms_agree(inside_form: false, actor: nil, root: nil, link_terms: false)
+    def recording_studio_terms_agree(inside_form: false, actor: nil, root: nil, link_terms: false, pending: nil)
       root ||= recording_studio_terms_agree_root
-      terms = RecordingStudioTermsAndConditions.current_published_for(root)
-      return if terms.blank?
-
       actor ||= recording_studio_terms_agree_actor
-      return if actor.present? && RecordingStudioTermsAndConditions.accepted?(actor, root)
+      pending_terms = recording_studio_terms_pending_list(actor, root, pending)
+      return if pending.nil? && actor.present? &&
+                !RecordingStudioTermsAndConditions.requires_acceptance?(actor, root)
+      return if pending_terms.blank?
 
-      recording_studio_terms_agree_fields(terms, inside_form, link_terms: link_terms)
+      recording_studio_terms_agree_fields(pending_terms, inside_form, link_terms: link_terms)
     end
 
     private
 
-    def recording_studio_terms_agree_fields(terms, _inside_form, link_terms: false)
+    def recording_studio_terms_pending_list(actor, root, pending)
+      return Array(pending).compact unless pending.nil?
+
+      list = RecordingStudioTermsAndConditions.pending_published_list(actor, root)
+      return list if list.any?
+
+      Array(RecordingStudioTermsAndConditions.current_published_for(root)).compact
+    end
+
+    def recording_studio_terms_agree_fields(terms_list, _inside_form, link_terms: false)
       checkbox_id = "agreed_#{SecureRandom.hex(4)}"
 
       content_tag(:div, class: "py-5") do
-        recording_studio_terms_agree_labeled_box(terms, checkbox_id, link_terms)
+        recording_studio_terms_agree_labeled_box(terms_list, checkbox_id, link_terms)
       end
     end
 
-    def recording_studio_terms_agree_labeled_box(terms, checkbox_id, link_terms)
-      checkbox = recording_studio_terms_agree_checkbox_tag(checkbox_id, link_terms)
-      return checkbox unless link_terms
+    def recording_studio_terms_agree_labeled_box(terms_list, checkbox_id, link_terms)
+      checkbox = recording_studio_terms_agree_checkbox_tag(terms_list, checkbox_id, link_terms)
+      return checkbox unless link_terms && terms_list.size == 1
 
       content_tag(:div, class: "flex items-center") do
-        safe_join([checkbox, recording_studio_terms_agree_linked_label(terms, checkbox_id)])
+        safe_join([checkbox, recording_studio_terms_agree_linked_label(terms_list.first, checkbox_id)])
       end
     end
 
-    def recording_studio_terms_agree_checkbox_tag(checkbox_id, link_terms)
+    def recording_studio_terms_agree_checkbox_tag(terms_list, checkbox_id, link_terms)
       render(
         FlatPack::Checkbox::Component.new(
           **recording_studio_terms_agree_checkbox,
           id: checkbox_id,
-          label: link_terms ? nil : "I agree to these terms"
+          label: link_terms && terms_list.size == 1 ? nil : recording_studio_terms_agree_label(terms_list)
         )
       )
+    end
+
+    def recording_studio_terms_agree_label(terms_list)
+      labels = Array(terms_list).map { |terms| terms.try(:kind_label).presence || "Terms" }
+      return "I agree to these terms" if labels.size <= 1 && labels.first == "Terms"
+
+      "I agree to #{labels.to_sentence}."
     end
 
     def recording_studio_terms_agree_checkbox

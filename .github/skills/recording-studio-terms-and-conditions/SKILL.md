@@ -7,7 +7,7 @@ description: Published Terms, clickwrap acceptance, and the host gate for Record
 
 This is the kit gem for **published Terms** and **clickwrap acceptance**. Do not invent a second acceptance table, accept screen, or post-auth redirect.
 
-Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`.
+Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.4.0**.
 
 ## Need
 
@@ -41,14 +41,18 @@ The install generator mounts the engine, copies migrations, and writes the initi
 
 ```ruby
 terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
+RecordingStudioTermsAndConditions.current_published_by_kind(workspace)
+RecordingStudioTermsAndConditions.pending_published_list(user, workspace)
 RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace)
+RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace, required_kinds: %w[terms])
 RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap" })
 RecordingStudioTermsAndConditions.accepted?(user, workspace)
+RecordingStudioTermsAndConditions.current_published_for(workspace, kind: "privacy")
 ```
 
-Live means Publishable `currently_published?`. Acceptance rows are receipts, not recordings.
+Live means Publishable `currently_published?`. `accept!` raises `NotLive` for drafts and unpublished versions. Retrying the same actor and live snapshot returns the existing receipt. A later published revision still inserts a new row. People who already agreed to an older snapshot see a re-gate Alert (new date, optional `change_note`). Acceptance rows are receipts, not recordings. New receipts store `body_digest` (read via `receipt_contract`).
 
-The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends Users Auth after sign in / sign up to the same Agree screen.
+`kind` on Terms is `terms`, `privacy`, or `usage` — one recording per kind per workspace, still `::Terms`. `current_published_for` and `accepted?` default to `terms`. `requires_acceptance?` covers every published kind unless you pass `kind:` or `required_kinds:` (or `config.required_kinds`). `pending_published_list` is the pending live set the Agree screen shows. One checkbox covers that set; the Agree POST calls `accept!` for each. The host gate (`ForcesAcceptance`) and Users Auth post-auth stay on until that set is empty. Admin Terms filter with `kind=` and show coverage per kind.
 
 Drop the host helper onto a form:
 
@@ -58,7 +62,7 @@ Drop the host helper onto a form:
 <%= recording_studio_terms_agree(link_terms: true) %>
 ```
 
-The helper is the checkbox only — HTML `required`, named `agreed`. Put it in a form. On submit call `accept!` with `params[:agreed]`. Do not add a second receipt table.
+The helper is the checkbox only — HTML `required`, named `agreed`. Put it in a form. On submit call `accept!` for each pending live version from `pending_published_list`. Do not add a second receipt table.
 
 Optional scroll-to-end before Agree (default off):
 
@@ -68,4 +72,17 @@ RecordingStudioTermsAndConditions.configure do |config|
 end
 ```
 
-Or wrap a host clickwrap with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` and `recording_studio_terms_agree_button(require_scroll_to_end: true)`. Pin `recording_studio_terms_and_conditions/controllers` in the host importmap. The checkbox is still required.
+Or wrap a host clickwrap with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` and `recording_studio_terms_agree_button(require_scroll_to_end: true)`. Pin `recording_studio_terms_and_conditions/controllers` in the host importmap. The checkbox is still required. Missing IntersectionObserver leaves Agree enabled.
+
+Set `config.capture_request_provenance = true` only if the gem Agree screen should store IP and user agent (default off). Product config is `mount_path`, `require_scroll_to_end`, `capture_request_provenance`, and optional `required_kinds`. There is no API key.
+
+## Upgrade (0.3.x → 0.4.0)
+
+```bash
+bin/rails generate recording_studio_terms_and_conditions:migrations
+bin/rails db:migrate
+```
+
+Run `body_digest`, unique actor+snapshot, `change_note`, and `kind`. Do not backfill old receipts. Delete `config.api_key`, `config.enable_feature_x`, `config.timeout`, and `RECORDING_STUDIO_TERMS_AND_CONDITIONS_API_KEY`.
+
+Publishing privacy or usage now gates that kind unless you narrow with `required_kinds`. `accept!` must be a live version (`NotLive` otherwise). Host forms that ticked one document should call `accept!` for each item in `pending_published_list`. Details: repo `CHANGELOG.md` and `MIGRATION_NOTES.md`.

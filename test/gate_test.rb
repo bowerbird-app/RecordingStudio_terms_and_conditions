@@ -17,6 +17,16 @@ class GateTest < Minitest::Test
       FakeController.new("recording_studio_user/auth/registrations", false)
     )
     assert RecordingStudioTermsAndConditions::Gate.exempt?(FakeController.new("agree_helpers", false))
+    assert RecordingStudioTermsAndConditions::Gate.exempt?(
+      FakeController.new("recording_studio_terms_and_conditions/admin/terms", false)
+    )
+    assert RecordingStudioTermsAndConditions::Gate.exempt?(
+      FakeController.new("recording_studio_terms_and_conditions/published_terms", false)
+    )
+    assert RecordingStudioTermsAndConditions::Gate.exempt?(
+      FakeController.new("recording_studio_publishable/publishables", false)
+    )
+    assert RecordingStudioTermsAndConditions::Gate.exempt?(FakeController.new("devise/sessions", false))
     assert RecordingStudioTermsAndConditions::Gate.exempt?(FakeController.new("home", true))
     refute RecordingStudioTermsAndConditions::Gate.exempt?(FakeController.new("home", false))
     refute RecordingStudioTermsAndConditions::Gate.exempt?(FakeController.new("docs", false))
@@ -96,9 +106,13 @@ class GateTest < Minitest::Test
     forces = File.read(File.expand_path("../lib/recording_studio_terms_and_conditions/forces_acceptance.rb", __dir__))
     users = File.read(File.expand_path("../lib/recording_studio_terms_and_conditions/users_auth_redirect.rb", __dir__))
 
-    assert_includes gate, "requires_acceptance?"
+    assert_includes gate, "pending_published_list"
+    assert_includes gate, "def pending_for"
     assert_includes forces, "force_terms_acceptance"
+    assert_includes forces, "Gate.pending_for"
     assert_includes users, "after_sign_up_path_for"
+    assert_includes users, "Gate.after_auth_path"
     refute_includes forces, "Acceptance.create"
+    refute_includes gate, "accepted?"
   end
 end

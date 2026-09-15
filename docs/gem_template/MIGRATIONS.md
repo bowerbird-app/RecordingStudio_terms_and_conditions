@@ -117,8 +117,13 @@ touch db/migrate/$(date +%Y%m%d%H%M%S)_create_gem_template_pages.rb
 ```
 db/
 └── migrate/
-   └── 20250101000001_create_gem_template_pages.rb
+    ├── 20260914000001_create_recording_studio_terms_and_conditions_terms.rb
+    ├── 20260914000002_create_recording_studio_terms_and_conditions_acceptances.rb
+    ├── 20260914000003_add_provenance_to_recording_studio_terms_and_conditions_acceptances.rb
+    └── 20260915000004_add_body_digest_to_recording_studio_terms_and_conditions_acceptances.rb
 ```
+
+The template `*_pages` example migration is not part of this addon. Hosts copy Terms and Acceptance migrations only.
 
 Migrations are included in the gem via the gemspec:
 

@@ -45,6 +45,10 @@ module RecordingStudioTermsAndConditions
                title: "Title",
                sortable: false,
                value: ->(recording, _context) { recording.recordable&.title }
+        column :kind,
+               title: "Kind",
+               sortable: false,
+               value: ->(recording, _context) { recording.recordable&.kind_label }
         column :status,
                title: "Status",
                sortable: false,
@@ -86,6 +90,12 @@ module RecordingStudioTermsAndConditions
                sortable: false,
                value: lambda { |row, _context|
                  Terms.find_by(id: row.terms_id)&.title || "A past version"
+               }
+        column :kind,
+               title: "Kind",
+               sortable: false,
+               value: lambda { |row, _context|
+                 Terms.find_by(id: row.terms_id)&.kind_label || "—"
                }
       end
       widget "widgets.terms.agrees", view_variant: :card

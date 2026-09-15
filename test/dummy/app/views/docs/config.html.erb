@@ -3,14 +3,19 @@
 <div class="flex w-full flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
     title: "Config",
-    subtitle: "Replace this placeholder with the configuration settings your generated gem exposes.",
+    subtitle: "Product knobs for Terms: mount path, optional scroll-to-end, optional request provenance, optional required kinds.",
     variant: :h1
   ) %>
 
   <%= render FlatPack::CodeBlock::Component.new(
     language: :ruby,
     code: <<~'CODE'
-      # Add the config settings for the gem here.
+      RecordingStudioTermsAndConditions.configure do |config|
+        config.mount_path = "/recording_studio_terms_and_conditions"
+        config.require_scroll_to_end = false
+        config.capture_request_provenance = false
+        config.required_kinds = nil
+      end
     CODE
   ) %>
 </div>

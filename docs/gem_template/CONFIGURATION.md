@@ -1,6 +1,6 @@
 > **Architecture Documentation**
 > *   **Canonical Source:** [bowerbird-app/gem_template](https://github.com/bowerbird-app/gem_template/tree/main/docs/gem_template)
-> *   **Last Updated:** May 5, 2026
+> *   **Last Updated:** September 15, 2026
 >
 > *Maintainers: Please update the date above when modifying this file.*
 
@@ -30,11 +30,13 @@ This will:
 
 ## Configuration Options
 
-| Option              | Type    | Default                          | Description                                 |
-|---------------------|---------|----------------------------------|---------------------------------------------|
-| `api_key`           | String  | `ENV["GEM_TEMPLATE_API_KEY"]`    | API key for external service integration.  |
-| `enable_feature_x`  | Boolean | `false`                          | Toggle optional feature X.                 |
-| `timeout`           | Integer | `5`                              | Timeout (seconds) for external calls.      |
+This addon does not ship template knobs (`api_key`, `enable_feature_x`, `timeout`). Product settings:
+
+| Option                        | Type    | Default                                      | Description |
+|-------------------------------|---------|----------------------------------------------|-------------|
+| `mount_path`                  | String  | `/recording_studio_terms_and_conditions`     | Engine mount used by Agree and admin path helpers. |
+| `require_scroll_to_end`       | Boolean | `false`                                      | When true, Agree starts disabled until the live copy sentinel is visible. Missing `IntersectionObserver` leaves Agree enabled. The checkbox is still required. |
+| `capture_request_provenance`  | Boolean | `false`                                      | When true, the gem Agree screen stores IP and user agent on new receipts. Direct `accept!` callers pass their own provenance. Default stays off. |
 
 ### RecordingStudio Host-App Declarations
 
@@ -67,10 +69,10 @@ Use `RecordingStudio.validate_recordable_declarations!`, `RecordingStudio.root_r
 Edit `config/initializers/gem_template.rb`:
 
 ```ruby
-GemTemplate.configure do |config|
-  config.api_key          = ENV["GEM_TEMPLATE_API_KEY"]
-  config.enable_feature_x = true
-  config.timeout          = 10
+RecordingStudioTermsAndConditions.configure do |config|
+  config.mount_path = "/recording_studio_terms_and_conditions"
+  config.require_scroll_to_end = false
+  config.capture_request_provenance = false
 end
 ```
 
@@ -82,14 +84,12 @@ If you prefer environment-specific static settings, create `config/gem_template.
 
 ```yaml
 development:
-  api_key: "dev-key"
-  enable_feature_x: true
-  timeout: 5
+  mount_path: "/recording_studio_terms_and_conditions"
+  require_scroll_to_end: false
 
 production:
-  api_key: <%= ENV["GEM_TEMPLATE_API_KEY"] %>
-  enable_feature_x: false
-  timeout: 5
+  mount_path: "/recording_studio_terms_and_conditions"
+  require_scroll_to_end: false
 ```
 
 The engine loads this file automatically via `Rails.application.config_for(:gem_template)`.
@@ -100,8 +100,8 @@ You can also set values in `config/application.rb` or environment files:
 
 ```ruby
 # config/environments/production.rb
-config.x.gem_template.api_key = ENV["GEM_TEMPLATE_API_KEY"]
-config.x.gem_template.timeout = 10
+config.x.recording_studio_terms_and_conditions.mount_path = "/recording_studio_terms_and_conditions"
+config.x.recording_studio_terms_and_conditions.require_scroll_to_end = false
 ```
 
 ---
@@ -122,14 +122,14 @@ Configuration is merged in the following order (later sources override earlier o
 ## Accessing Configuration at Runtime
 
 ```ruby
-GemTemplate.configuration.api_key
-# => "your-api-key"
+RecordingStudioTermsAndConditions.configuration.mount_path
+# => "/recording_studio_terms_and_conditions"
 
-GemTemplate.configuration.enable_feature_x
-# => true
+RecordingStudioTermsAndConditions.configuration.require_scroll_to_end
+# => false
 
-GemTemplate.configuration.to_h
-# => { api_key: "...", enable_feature_x: true, timeout: 5 }
+RecordingStudioTermsAndConditions.configuration.to_h
+# => { mount_path: "...", require_scroll_to_end: false, capture_request_provenance: false, ... }
 ```
 
 You can access these values from anywhere in your application or from within the engine's controllers, models, and jobs.
@@ -138,12 +138,7 @@ You can access these values from anywhere in your application or from within the
 
 ## Secret Management
 
-For sensitive values like `api_key`, we recommend:
-
-- **Environment variables** – `ENV["GEM_TEMPLATE_API_KEY"]`
-- **Rails credentials** – `Rails.application.credentials.gem_template[:api_key]`
-
-Avoid committing secrets to version control. The generator templates use `ENV` by default to encourage this practice.
+This addon has no API key. If you turn on `capture_request_provenance`, treat IP and user agent as personal data in your host retention policy. Keep the flag off unless you need it.
 
 ---
 
