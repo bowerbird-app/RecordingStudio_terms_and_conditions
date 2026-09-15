@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_15_010001) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_15_010002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -144,7 +144,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_010001) do
     t.jsonb "provenance", default: {}, null: false
     t.uuid "terms_id", null: false
     t.uuid "terms_recording_id", null: false
-    t.index ["actor_type", "actor_id", "terms_recording_id", "terms_id"], name: "index_rstac_acceptances_on_actor_and_version"
+    t.index ["actor_type", "actor_id", "terms_recording_id", "terms_id"], name: "index_rstac_acceptances_on_actor_and_version", unique: true
     t.index ["actor_type", "actor_id"], name: "index_rstac_acceptances_on_actor"
     t.index ["terms_id"], name: "index_rstac_acceptances_on_terms_id"
     t.index ["terms_recording_id"], name: "index_rstac_acceptances_on_terms_recording_id"

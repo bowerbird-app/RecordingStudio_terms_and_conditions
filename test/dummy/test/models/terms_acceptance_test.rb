@@ -122,6 +122,56 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     assert_raises(ActiveRecord::ReadOnlyRecord) { older.update!(body_digest: receipt.body_digest) }
   end
 
+  test "accept! returns the existing receipt for the same actor and snapshot" do
+    recording = record_terms("Once", "One tick.")
+    publish_terms!(recording, slug: "once-terms")
+    first = RecordingStudioTermsAndConditions.accept!(
+      @actor,
+      recording,
+      { "source" => "clickwrap", "attempt" => "1" }
+    )
+
+    second = nil
+    assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
+      second = RecordingStudioTermsAndConditions.accept!(
+        @actor,
+        recording,
+        { "source" => "retry", "attempt" => "2" }
+      )
+    end
+
+    assert_equal first.id, second.id
+    assert_equal first.body_digest, second.body_digest
+    assert_equal({ "source" => "clickwrap", "attempt" => "1" }, second.provenance)
+    assert_equal first.receipt_contract, second.receipt_contract
+    assert_raises(ActiveRecord::RecordNotUnique) do
+      RecordingStudioTermsAndConditions::Acceptance.create!(
+        actor: @actor,
+        terms_recording_id: recording.id,
+        terms_id: recording.recordable.id,
+        accepted_at: Time.current,
+        body_digest: first.body_digest
+      )
+    end
+  end
+
+  test "accept! inserts a new receipt after a later published revision" do
+    recording = record_terms("v1", "First.")
+    publish_terms!(recording, slug: "retry-versioned")
+    first = RecordingStudioTermsAndConditions.accept!(@actor, recording, source: "clickwrap")
+
+    revised = @root.revise(recording) { |terms| terms.body = "Second." }
+    publish_terms!(revised, slug: "retry-versioned")
+    second = RecordingStudioTermsAndConditions.accept!(@actor, revised, source: "clickwrap")
+
+    assert_not_equal first.id, second.id
+    assert_not_equal first.terms_id, second.terms_id
+    assert_equal RecordingStudioTermsAndConditions::BodyDigest.call("First."), first.body_digest
+    assert_equal RecordingStudioTermsAndConditions::BodyDigest.call("Second."), second.body_digest
+    first.reload
+    assert_equal "First.", RecordingStudioTermsAndConditions::Terms.find(first.terms_id).body
+  end
+
   private
 
   def record_terms(title, body)

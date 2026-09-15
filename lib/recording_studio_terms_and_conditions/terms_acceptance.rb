@@ -39,6 +39,15 @@ module RecordingStudioTermsAndConditions
       private
 
       def create_receipt!(actor:, recording:, terms:, provenance:)
+        existing = receipt_for(actor: actor, terms_recording_id: recording.id, terms_id: terms.id)
+        return existing if existing
+
+        insert_receipt!(actor: actor, recording: recording, terms: terms, provenance: provenance)
+      rescue ActiveRecord::RecordNotUnique
+        receipt_for(actor: actor, terms_recording_id: recording.id, terms_id: terms.id) || raise
+      end
+
+      def insert_receipt!(actor:, recording:, terms:, provenance:)
         Acceptance.create!(
           actor: actor,
           terms_recording_id: recording.id,
@@ -46,6 +55,15 @@ module RecordingStudioTermsAndConditions
           accepted_at: Time.current,
           body_digest: BodyDigest.call(terms.body),
           provenance: normalize_provenance(provenance)
+        )
+      end
+
+      def receipt_for(actor:, terms_recording_id:, terms_id:)
+        Acceptance.find_by(
+          actor_type: actor.class.base_class.name,
+          actor_id: actor.id,
+          terms_recording_id: terms_recording_id,
+          terms_id: terms_id
         )
       end
 
@@ -92,12 +110,7 @@ module RecordingStudioTermsAndConditions
       end
 
       def acceptance_exists?(actor:, terms_recording_id:, terms_id:)
-        Acceptance.where(
-          actor_type: actor.class.base_class.name,
-          actor_id: actor.id,
-          terms_recording_id: terms_recording_id,
-          terms_id: terms_id
-        ).exists?
+        receipt_for(actor: actor, terms_recording_id: terms_recording_id, terms_id: terms_id).present?
       end
 
       def normalize_provenance(provenance)

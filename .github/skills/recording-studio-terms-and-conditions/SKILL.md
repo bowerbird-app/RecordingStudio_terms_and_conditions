@@ -70,4 +70,4 @@ end
 
 Or wrap a host clickwrap with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` and `recording_studio_terms_agree_button(require_scroll_to_end: true)`. Pin `recording_studio_terms_and_conditions/controllers` in the host importmap. The checkbox is still required. Missing IntersectionObserver leaves Agree enabled.
 
-`accept!` stores a SHA-256 digest of the live Terms body on the Acceptance row (`body_digest`). Read it via `receipt_contract`. Old receipts are not rewritten. Set `config.capture_request_provenance = true` only if the gem Agree screen should store IP and user agent (default off).
+`accept!` stores a SHA-256 digest of the live Terms body on the Acceptance row (`body_digest`). Read it via `receipt_contract`. Old receipts are not rewritten. Retrying `accept!` for the same actor and snapshot returns the existing receipt. A later published revision still inserts a new row. Set `config.capture_request_provenance = true` only if the gem Agree screen should store IP and user agent (default off).

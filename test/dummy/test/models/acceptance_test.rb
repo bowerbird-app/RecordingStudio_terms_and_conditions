@@ -18,6 +18,11 @@ class AcceptanceTest < ActiveSupport::TestCase
     refute connection.column_exists?(:recording_studio_terms_and_conditions_acceptances, :updated_at)
     refute_includes configured, "RecordingStudioTermsAndConditions::Acceptance"
     refute RecordingStudio.recordable_declaration_defined?("RecordingStudioTermsAndConditions::Acceptance")
+    unique = connection.indexes(:recording_studio_terms_and_conditions_acceptances).find do |index|
+      index.name == "index_rstac_acceptances_on_actor_and_version"
+    end
+    assert unique.unique
+    assert_equal %w[actor_type actor_id terms_recording_id terms_id], unique.columns
   end
 
   test "acceptance stores an immutable receipt for an actor and terms version" do

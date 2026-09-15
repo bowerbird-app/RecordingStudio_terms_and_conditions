@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Append-only Acceptance receipts store a SHA-256 `body_digest` of the live Terms body at `accept!` time. `Acceptance#receipt_contract` returns actor, version ids, timestamp, digest, algorithm, and provenance. Existing receipts keep a null digest and are not rewritten.
 - Optional `config.capture_request_provenance` (default off). When true, the gem Agree screen adds IP and user agent to provenance on new accepts.
+- `accept!` is idempotent for the same actor and Terms snapshot. A unique index on actor + recording + snapshot returns the existing receipt on retry. A later published revision still inserts a new row.
 
 ### Changed
 - Scroll-to-end no longer deadlocks Agree when `IntersectionObserver` is missing. Already-visible sentinels unlock immediately. The checkbox is still required. Scroll-to-end stays optional (default off). The Stimulus controller is self-contained (no extra importmap module).
@@ -23,7 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Upgrade notes
 - Delete `config.api_key`, `config.enable_feature_x`, `config.timeout`, and `RECORDING_STUDIO_TERMS_AND_CONDITIONS_API_KEY` from host initializers and YAML. Unknown keys are ignored.
 - Run `bin/rails generate recording_studio_terms_and_conditions:migrations` then `bin/rails db:migrate` so `body_digest` exists. Do not backfill old receipts.
-- New `accept!` rows always set `body_digest`. Callers cannot pass a spoofed digest in provenance.
+- New `accept!` rows always set `body_digest`. Callers cannot pass a spoofed digest in provenance. Retrying `accept!` for the same actor and snapshot returns the existing row and does not rewrite provenance or digest.
+- Run the unique-index migration. If it fails, the table already has duplicate actor+snapshot receipts — do not rewrite those rows; resolve the duplicates first.
 - Leave `config.capture_request_provenance` off unless you intend to store IP and user agent from the gem Agree screen.
 - If you opt into `require_scroll_to_end`, pin the engine Stimulus controllers. Missing IntersectionObserver leaves Agree enabled.
 

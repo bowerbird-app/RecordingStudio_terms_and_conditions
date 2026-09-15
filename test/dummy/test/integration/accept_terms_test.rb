@@ -71,6 +71,19 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     refute receipt.provenance.key?("user_agent")
   end
 
+  test "double agree for the same live snapshot does not insert a second receipt" do
+    post recording_studio_terms_and_conditions.acceptance_path, params: { agreed: "1" }
+    receipt = RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last
+
+    assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
+      post recording_studio_terms_and_conditions.acceptance_path, params: { agreed: "1" }
+    end
+
+    assert_redirected_to "/"
+    assert_equal receipt.id, RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last.id
+    assert_equal receipt.body_digest, receipt.reload.body_digest
+  end
+
   test "gem UI stores IP and user agent only when capture_request_provenance is on" do
     RecordingStudioTermsAndConditions.configuration.capture_request_provenance = true
 
