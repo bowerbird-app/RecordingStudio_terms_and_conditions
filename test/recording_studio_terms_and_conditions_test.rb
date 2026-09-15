@@ -202,9 +202,12 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes helper, "link_terms: false"
     assert_includes helper, "class: \"py-5\""
     assert_includes helper, "with_content(\"terms\")"
+    refute_includes helper, "Read the full terms"
     refute_includes helper, "FlatPack::Button::Component"
     refute_includes helper, "form_with"
     application_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/application_helper.rb")
+    assert_includes application_helper, "def terms_calendar_date"
+    assert_includes application_helper, "%e %b %Y"
     assert_includes application_helper, "def terms_content"
     assert_includes application_helper, "def terms_admin_hub_path"
     assert_includes application_helper, "flat-pack-content-editor-content"
@@ -226,8 +229,10 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin_show, "terms_content"
     refute_includes admin_new, "FlatPack::Card::Component"
     refute_includes admin_new, "card.footer"
+    assert_includes admin_new, 'class="inline-block"'
     assert_includes admin_new, "terms_admin_hub_path"
     refute_includes engine_source("#{views}/admin/terms/edit.html.erb"), "FlatPack::Card::Component"
+    assert_includes engine_source("#{views}/admin/terms/edit.html.erb"), 'class="inline-block"'
     refute_includes admin_show, "FlatPack::Card::Component"
     assert_includes admin_index, "FlatPack::Table::Component"
     assert_includes admin_index, "terms_rows"

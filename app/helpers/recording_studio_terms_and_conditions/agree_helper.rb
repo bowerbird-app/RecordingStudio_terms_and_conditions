@@ -19,13 +19,9 @@ module RecordingStudioTermsAndConditions
 
     def recording_studio_terms_agree_fields(terms, _inside_form, link_terms: false)
       checkbox_id = "agreed_#{SecureRandom.hex(4)}"
-      extras = link_terms ? [] : [recording_studio_terms_agree_full_terms_link(terms)]
 
       content_tag(:div, class: "py-5") do
-        safe_join([
-          recording_studio_terms_agree_labeled_box(terms, checkbox_id, link_terms),
-          *extras
-        ].compact)
+        recording_studio_terms_agree_labeled_box(terms, checkbox_id, link_terms)
       end
     end
 
@@ -71,13 +67,6 @@ module RecordingStudioTermsAndConditions
       return "terms" if url.blank?
 
       render(FlatPack::Link::Component.new(href: url).with_content("terms"))
-    end
-
-    def recording_studio_terms_agree_full_terms_link(terms)
-      url = terms.try(:published_url)
-      return if url.blank?
-
-      render(FlatPack::Link::Component.new(href: url).with_content("Read the full terms"))
     end
 
     def recording_studio_terms_agree_root

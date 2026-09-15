@@ -56,6 +56,8 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "flat-pack--tiptap"
     assert_includes response.body, "terms[body]"
+    assert_includes response.body, "Save draft"
+    assert_select "div.inline-block button[type=submit]", text: "Save draft"
 
     assert_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count }, 1 do
       post recording_studio_terms_and_conditions.admin_terms_path, params: {

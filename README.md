@@ -16,8 +16,8 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, an em
 - **Terms** recordable (`RecordingStudioTermsAndConditions::Terms`, product label `"Terms"`) with Publishable opted in on the type
 - **Acceptance** append-only table for later clickwrap receipts (not a recordable)
 - **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for`, `accepted?`, `accept!`, `requires_acceptance?`
-- **Agree screen** for the current published Terms (unchecked checkbox, gated Agree, `accept!`)
-- **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`, same `accept!` path
+- **Agree screen** for the current published Terms (unchecked checkbox, gated Agree, `accept!`). The live body sits on the page with a calendar date (`13 Aug 2026`), not a relative “hours ago”
+- **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`, same `accept!` path. Pass `link_terms: true` to turn the word terms into a link to the public URL. The helper does not add a “Read the full terms” line; the Agree screen already shows the copy
 - **Gate** on the host `ApplicationController`: `requires_acceptance?` redirects to Agree until the live version is accepted, and again after a new publish
 - **Users hook** on `RecordingStudioUser::Auth::BaseController` so after sign in / sign up land on Agree when acceptance is still required
 - **Admin** create/edit Terms, Publishable publish, and simple acceptance coverage

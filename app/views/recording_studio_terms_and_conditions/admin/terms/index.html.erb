@@ -47,11 +47,7 @@
       )
     end %>
     <% table.column(title: "Published") do |row|
-      if row[:published]
-        render FlatPack::Timestamp::Component.new(timestamp: row[:published])
-      else
-        "—"
-      end
+      terms_calendar_date(row[:published]) || "—"
     end %>
     <% table.column(title: "Agrees") { |row| row[:agrees] } %>
     <% table.column(title: "Open") do |row|

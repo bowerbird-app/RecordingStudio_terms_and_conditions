@@ -5,6 +5,7 @@ module RecordingStudioTermsAndConditions
     include AgreeHelper
 
     TERMS_BODY_PLACEHOLDER = "Write the terms people will agree to."
+    TERMS_DATE_FORMAT = "%e %b %Y"
     TERMS_BODY_EDITOR_OPTIONS = {
       preset: :content,
       format: :html,
@@ -48,12 +49,18 @@ module RecordingStudioTermsAndConditions
       time = terms_version_time(terms, recording)
       return if time.blank?
 
-      render(
-        FlatPack::Timestamp::Component.new(
-          timestamp: time,
-          class: "text-sm text-[var(--surface-muted-content-color)]"
-        )
+      content_tag(
+        :time,
+        terms_calendar_date(time),
+        datetime: time.in_time_zone.iso8601,
+        class: "text-sm text-[var(--surface-muted-content-color)]"
       )
+    end
+
+    def terms_calendar_date(time)
+      return if time.blank?
+
+      time.in_time_zone.strftime(TERMS_DATE_FORMAT).squish
     end
 
     def terms_body(text)

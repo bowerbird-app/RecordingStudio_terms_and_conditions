@@ -9,10 +9,12 @@
 
   <%= form_with url: admin_terms_path, method: :post, scope: :terms, class: "flex w-full flex-col gap-6" do %>
     <%= render "form", title: @title, body: @body %>
-    <%= render FlatPack::Button::Component.new(
-      text: "Save draft",
-      style: :primary,
-      type: "submit"
-    ) %>
+    <div class="inline-block">
+      <%= render FlatPack::Button::Component.new(
+        text: "Save draft",
+        style: :primary,
+        type: "submit"
+      ) %>
+    </div>
   <% end %>
 </div>
