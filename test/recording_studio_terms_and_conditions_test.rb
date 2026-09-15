@@ -126,8 +126,14 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert names.grep(/create_recording_studio_terms_and_conditions_acceptances/).any?
     assert names.grep(/add_provenance_to_recording_studio_terms_and_conditions_acceptances/).any?
     assert names.grep(/add_body_digest_to_recording_studio_terms_and_conditions_acceptances/).any?
+    create = File.read(File.join(migrate_dir, names.grep(/create_recording_studio_terms_and_conditions_acceptances/).first))
+    provenance = File.read(File.join(migrate_dir, names.grep(/add_provenance_to_recording_studio_terms_and_conditions_acceptances/).first))
     unique = File.read(File.join(migrate_dir, names.grep(/unique_per_actor_and_version/).first))
+    assert_includes create, "unique: true"
+    assert_includes create, "index_rstac_acceptances_on_actor_and_version"
+    refute_includes provenance, "index_rstac_acceptances_on_actor_and_version"
     assert_includes unique, "unique: true"
+    assert_includes unique, "if_exists: true"
     refute_includes unique, "UPDATE"
     refute File.read(File.join(migrate_dir, names.grep(/body_digest/).first)).include?("UPDATE")
   end

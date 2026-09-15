@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Delete `config.api_key`, `config.enable_feature_x`, `config.timeout`, and `RECORDING_STUDIO_TERMS_AND_CONDITIONS_API_KEY` from host initializers and YAML. Unknown keys are ignored.
 - Run `bin/rails generate recording_studio_terms_and_conditions:migrations` then `bin/rails db:migrate` so `body_digest` exists. Do not backfill old receipts.
 - New `accept!` rows always set `body_digest`. Callers cannot pass a spoofed digest in provenance. Retrying `accept!` for the same actor and snapshot returns the existing row and does not rewrite provenance or digest.
-- Run the unique-index migration. If it fails, the table already has duplicate actor+snapshot receipts — do not rewrite those rows; resolve the duplicates first.
+- Run the unique-index migration. It removes `index_rstac_acceptances_on_actor_and_version` only if that index exists, then adds it unique. New installs get the unique index from the create migration. If migrate fails, the table already has duplicate actor+snapshot receipts — do not rewrite those rows; resolve the duplicates first.
 - Leave `config.capture_request_provenance` off unless you intend to store IP and user agent from the gem Agree screen.
 - If you opt into `require_scroll_to_end`, pin the engine Stimulus controllers. Missing IntersectionObserver leaves Agree enabled.
 
