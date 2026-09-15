@@ -9,6 +9,7 @@ require "recording_studio_terms_and_conditions/body_digest"
 require "recording_studio_terms_and_conditions/engine"
 require "recording_studio_terms_and_conditions/terms_acceptance"
 require "recording_studio_terms_and_conditions/kind_uniqueness"
+require "recording_studio_terms_and_conditions/kind_coverage"
 require "recording_studio_terms_and_conditions/table_page"
 require "recording_studio_terms_and_conditions/gate"
 require "recording_studio_terms_and_conditions/forces_acceptance"
@@ -40,6 +41,10 @@ module RecordingStudioTermsAndConditions
 
     def pending_published_for(actor, root, required_kinds: nil)
       TermsAcceptance.pending_published_for(actor, root, required_kinds: required_kinds)
+    end
+
+    def pending_published_list(actor, root, required_kinds: nil)
+      TermsAcceptance.pending_published_list(actor, root, required_kinds: required_kinds)
     end
 
     def accepted?(actor, root, kind: Terms::DEFAULT_KIND)

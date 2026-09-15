@@ -6,7 +6,9 @@ module RecordingStudioTermsAndConditions
       before_action :require_admin_write_access!, only: %i[create update]
 
       def index
-        @pagy, @terms_recordings = paginate_table(terms_scope)
+        @kind_filter = filtered_kind
+        @kind_coverage = KindCoverage.rows(terms_scope.to_a)
+        @pagy, @terms_recordings = paginate_table(filtered_terms_scope)
       end
 
       def new
@@ -51,8 +53,20 @@ module RecordingStudioTermsAndConditions
 
       def terms_scope
         RecordingStudio::Recording.where(recordable_type: Terms.name, trashed_at: nil)
-                                  .includes(:recordable)
+                                  .preload(:recordable)
                                   .order(updated_at: :desc)
+      end
+
+      def filtered_terms_scope
+        kind = filtered_kind
+        return terms_scope if kind.blank?
+
+        terms_scope.where(recordable_id: Terms.where(kind: kind).select(:id))
+      end
+
+      def filtered_kind
+        kind = Terms.normalize_kind(params[:kind])
+        kind if params[:kind].present? && Terms::KINDS.include?(kind)
       end
 
       def draft_terms!(parent)

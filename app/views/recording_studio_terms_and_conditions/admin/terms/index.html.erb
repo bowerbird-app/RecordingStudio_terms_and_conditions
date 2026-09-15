@@ -14,10 +14,33 @@
   <% end %>
 <% end %>
 
+<%= render FlatPack::Table::Component.new(
+  data: @kind_coverage,
+  class: "mb-8 text-sm"
+) do |table| %>
+  <% table.column(title: "Kind") { |row| row[:kind] } %>
+  <% table.column(title: "Coverage") { |row| row[:status] } %>
+  <% table.column(title: "Agrees") { |row| row[:agrees] } %>
+<% end %>
+
+<%= form_with url: admin_terms_path, method: :get, class: "mb-6 flex flex-col gap-4 sm:flex-row sm:items-end" do %>
+  <%= render FlatPack::Select::Component.new(
+    name: "kind",
+    options: [["Every kind", ""]] + RecordingStudioTermsAndConditions::Terms.kind_select_options,
+    value: @kind_filter.to_s,
+    label: "Kind"
+  ) %>
+  <%= render FlatPack::Button::Component.new(
+    text: "Filter",
+    style: :secondary,
+    type: "submit"
+  ) %>
+<% end %>
+
 <% if @terms_recordings.blank? %>
   <%= render FlatPack::EmptyState::Component.new(
-    title: "No terms yet",
-    description: "Write a draft, then publish it when the wording is ready."
+    title: @kind_filter.present? ? "Nothing in that kind" : "No terms yet",
+    description: @kind_filter.present? ? "Try another kind, or write a draft." : "Write a draft, then publish it when the wording is ready."
   ) %>
 <% else %>
   <% terms_rows = @terms_recordings.map { |recording|

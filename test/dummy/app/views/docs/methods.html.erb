@@ -19,6 +19,7 @@
       RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap" })
       RecordingStudioTermsAndConditions.current_published_for(workspace, kind: "privacy")
       RecordingStudioTermsAndConditions.current_published_by_kind(workspace)
+      RecordingStudioTermsAndConditions.pending_published_list(user, workspace)
       RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace, required_kinds: %w[terms])
     CODE
   ) %>

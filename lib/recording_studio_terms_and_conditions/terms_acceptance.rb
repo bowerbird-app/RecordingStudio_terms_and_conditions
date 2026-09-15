@@ -41,8 +41,13 @@ module RecordingStudioTermsAndConditions
       end
 
       def pending_published_for(actor, root, required_kinds: nil)
-        kind = pending_kinds_for(actor, root, required_kinds: required_kinds).first
-        current_published_for(root, kind: kind) if kind
+        pending_published_list(actor, root, required_kinds: required_kinds).first
+      end
+
+      def pending_published_list(actor, root, required_kinds: nil)
+        pending_kinds_for(actor, root, required_kinds: required_kinds).filter_map do |kind|
+          current_published_for(root, kind: kind)
+        end
       end
 
       def accept!(actor, version, provenance = {})

@@ -50,6 +50,78 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Agree again"
   end
 
+  test "agree lists every pending kind behind one checkbox and accepts the set" do
+    privacy = record_terms(@root, title: "Booth privacy", body: "Keep the tape.", kind: "privacy")
+    publish_terms!(privacy, slug: "privacy-#{SecureRandom.hex(4)}")
+
+    get recording_studio_terms_and_conditions.acceptance_path
+
+    assert_response :success
+    assert_includes response.body, "Studio Terms"
+    assert_includes response.body, "Booth privacy"
+    assert_includes response.body, "Keep the tape."
+    assert_includes CGI.unescapeHTML(response.body), "Read every document. One tick covers the lot."
+    assert_includes CGI.unescapeHTML(response.body), "I agree to Terms and Privacy."
+    refute_includes CGI.unescapeHTML(response.body), "The live version for this workspace."
+    assert_select "input[type=checkbox][name=agreed][required]", count: 1
+    assert_select "[data-recording-studio-terms-and-conditions--scroll-to-end-target='end']", count: 1
+
+    assert_difference -> { RecordingStudioTermsAndConditions::Acceptance.count }, 2 do
+      post recording_studio_terms_and_conditions.acceptance_path, params: { agreed: "1" }
+    end
+
+    assert_redirected_to "/"
+    assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace, kind: "terms")
+    assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace, kind: "privacy")
+    refute RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace)
+    terms_receipt = RecordingStudioTermsAndConditions::Acceptance.find_by(
+      actor: @user, terms_id: @recording.recordable_id
+    )
+    privacy_receipt = RecordingStudioTermsAndConditions::Acceptance.find_by(
+      actor: @user, terms_id: privacy.recordable_id
+    )
+    assert_equal RecordingStudioTermsAndConditions::BodyDigest.call("Be kind. Don't be a jerk."),
+                 terms_receipt.body_digest
+    assert_equal RecordingStudioTermsAndConditions::BodyDigest.call("Keep the tape."),
+                 privacy_receipt.body_digest
+  end
+
+  test "re-gate with mixed pending still uses one alert and one checkbox" do
+    privacy = record_terms(@root, title: "Booth privacy", body: "Keep the tape.", kind: "privacy")
+    publish_terms!(privacy, slug: "privacy-#{SecureRandom.hex(4)}")
+    RecordingStudioTermsAndConditions.accept!(@user, @recording, { "source" => "clickwrap" })
+    RecordingStudioTermsAndConditions.accept!(@user, privacy, { "source" => "clickwrap" })
+    revised = @root.revise(@recording) do |terms|
+      terms.body = "Be kinder."
+      terms.change_note = "We added a kindness clause."
+    end
+    publish_terms!(revised, slug: "studio-terms-#{SecureRandom.hex(4)}")
+    privacy_revised = @root.revise(privacy) do |terms|
+      terms.body = "Tape stays in the booth."
+      terms.change_note = "Clearer tape line."
+    end
+    publish_terms!(privacy_revised, slug: "privacy-#{SecureRandom.hex(4)}")
+
+    get recording_studio_terms_and_conditions.acceptance_path
+
+    assert_response :success
+    assert_includes response.body, "Studio Terms"
+    assert_includes response.body, "Booth privacy"
+    assert_includes response.body, "Documents updated"
+    assert_includes CGI.unescapeHTML(response.body), "Some of these changed. Read them, then tick once."
+    assert_includes response.body, "We added a kindness clause."
+    assert_includes response.body, "Clearer tape line."
+    assert_select "input[type=checkbox][name=agreed]", count: 1
+    assert_select "button[type=submit]", text: "Agree again"
+    refute_includes response.body, "Terms updated"
+
+    assert_difference -> { RecordingStudioTermsAndConditions::Acceptance.count }, 2 do
+      post recording_studio_terms_and_conditions.acceptance_path, params: { agreed: "1" }
+    end
+
+    refute RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace)
+  end
+
   test "re-gate after a new live version shows the updated notice and date" do
     RecordingStudioTermsAndConditions.accept!(@user, @recording, { "source" => "clickwrap" })
     revised = @root.revise(@recording) do |terms|
@@ -183,16 +255,20 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     mod.class_eval do
       alias_method :current_published_for_without_a3, :current_published_for
       alias_method :pending_published_for_without_a3, :pending_published_for
+      alias_method :pending_published_list_without_a3, :pending_published_list
       define_method(:current_published_for) { |*_args, **_kwargs| terms }
       define_method(:pending_published_for) { |*_args, **_kwargs| terms }
+      define_method(:pending_published_list) { |*_args, **_kwargs| Array(terms).compact }
     end
     yield
   ensure
     mod.class_eval do
       alias_method :current_published_for, :current_published_for_without_a3
       alias_method :pending_published_for, :pending_published_for_without_a3
+      alias_method :pending_published_list, :pending_published_list_without_a3
       remove_method :current_published_for_without_a3
       remove_method :pending_published_for_without_a3
+      remove_method :pending_published_list_without_a3
     end
   end
 end

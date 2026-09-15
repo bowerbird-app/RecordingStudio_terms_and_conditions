@@ -104,6 +104,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Users"
     assert_includes response.body, "Nobody yet"
+    assert_includes response.body, "People who ticked the box for these terms."
 
     publish_terms!(recording, slug: "house-rules-#{SecureRandom.hex(4)}")
     RecordingStudioTermsAndConditions.accept!(@member, recording, { "source" => "clickwrap" })
@@ -136,6 +137,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "House rules"
     assert_select "table thead th", text: "Title"
     assert_select "table thead th", text: "Kind"
+    assert_select "table thead th", text: "Coverage"
     assert_select "table thead th", text: "Status"
     assert_select "table thead th", text: "Published"
     assert_select "table thead th", text: "Agrees"
@@ -172,6 +174,49 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_equal "privacy", privacy.recordable.kind
     follow_redirect!
     assert_includes response.body, "Privacy · Recording"
+  end
+
+  test "admin index filters by kind and shows coverage per kind" do
+    sign_in @admin
+    switch_to_workspace(@workspace)
+    root = RecordingStudio.root_recording_for(@workspace)
+    terms = root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |recordable|
+      recordable.title = "House rules"
+      recordable.body = "No yelling."
+      recordable.kind = "terms"
+    end
+    privacy = root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |recordable|
+      recordable.title = "Booth privacy"
+      recordable.body = "Keep the tape."
+      recordable.kind = "privacy"
+    end
+    publish_terms!(terms, slug: "house-#{SecureRandom.hex(4)}")
+    RecordingStudioTermsAndConditions.accept!(@member, terms, { "source" => "clickwrap" })
+
+    get recording_studio_terms_and_conditions.admin_terms_path
+    assert_response :success
+    assert_includes response.body, "House rules"
+    assert_includes response.body, "Booth privacy"
+    assert_select "select[name=kind]"
+    assert_select "table thead th", text: "Coverage"
+    coverage = css_select("table").find { |table| table.css("thead th").map(&:text).include?("Coverage") }
+    refute_nil coverage
+    assert_includes coverage.text, "Terms"
+    assert_includes coverage.text, "Privacy"
+    assert_includes coverage.text, "Usage"
+    assert_includes coverage.text, "Live"
+    assert_includes coverage.text, "Draft"
+
+    get recording_studio_terms_and_conditions.admin_terms_path, params: { kind: "privacy" }
+    assert_response :success
+    list = css_select("table").find { |table| table.css("thead th").map(&:text).include?("Open") }
+    refute_nil list
+    assert_includes list.text, "Booth privacy"
+    refute_includes list.text, "House rules"
+
+    get recording_studio_terms_and_conditions.admin_term_users_path(privacy)
+    assert_response :success
+    assert_includes response.body, "People who ticked the box for this privacy."
   end
 
   test "admin section registers terms coverage widgets" do
@@ -351,7 +396,10 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
   private
 
   def first_table_row_count
-    table = css_select("table").first
+    table = css_select("table").find do |candidate|
+      headers = candidate.css("thead th").map(&:text)
+      headers.include?("Open") || headers.include?("Person")
+    end
     return 0 unless table
 
     table.css("tbody tr").size

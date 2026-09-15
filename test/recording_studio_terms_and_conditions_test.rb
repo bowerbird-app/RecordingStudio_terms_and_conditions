@@ -153,6 +153,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes source, "def current_published_for(root, kind: Terms::DEFAULT_KIND)"
     assert_includes source, "def current_published_by_kind(root)"
     assert_includes source, "def pending_published_for(actor, root, required_kinds: nil)"
+    assert_includes source, "def pending_published_list(actor, root, required_kinds: nil)"
     assert_includes source, "def accepted?(actor, root, kind: Terms::DEFAULT_KIND)"
     assert_includes source, "def requires_acceptance?(actor, root, kind: nil, required_kinds: nil)"
     assert_includes source, "def reaccepting?(actor, root, kind: nil, required_kinds: nil)"
@@ -161,6 +162,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
       current_published_for
       current_published_by_kind
       pending_published_for
+      pending_published_list
       accepted?
       requires_acceptance?
       accept!
@@ -179,6 +181,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes acceptance, "def current_published_by_kind"
     assert_includes acceptance, "required_kinds"
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/kind_uniqueness.rb"))
+    assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/kind_coverage.rb"))
   end
 
   def test_dummy_app_uses_recording_studio_default_layout
@@ -247,7 +250,10 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute File.exist?(engine_path("app/views/layouts/recording_studio_terms_and_conditions/public.html.erb"))
 
     refute_includes agree, "FlatPack::Card::Component"
-    assert_includes agree, "recording_studio_terms_agree(inside_form: true"
+    assert_includes agree, "inside_form: true"
+    assert_includes agree, "pending: @pending_terms"
+    assert_includes agree, "terms_agree_heading"
+    assert_includes agree, "FlatPack::SectionTitle::Component"
     assert_includes agree, "terms_version_date"
     assert_includes agree, "terms_content"
     assert_includes agree, "-mt-5 mb-6"
@@ -255,6 +261,11 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     scroll_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/scroll_to_end_helper.rb")
     assert_includes helper, "include ScrollToEndHelper"
     assert_includes helper, "def recording_studio_terms_agree"
+    assert_includes helper, "pending: nil"
+    assert_includes helper, "recording_studio_terms_agree_label"
+    copy_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/agree_copy_helper.rb")
+    assert_includes copy_helper, "def terms_agree_heading"
+    assert_includes copy_helper, "def terms_users_subtitle"
     assert_includes helper, "requires_acceptance?"
     assert_includes helper, "link_terms: false"
     assert_includes scroll_helper, "def recording_studio_terms_scroll_to_end"
@@ -307,6 +318,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin_index, "page_title.slot"
     assert_includes admin_index, 'title: "Published"'
     assert_includes admin_index, 'title: "Kind"'
+    assert_includes admin_index, 'title: "Coverage"'
+    assert_includes admin_index, 'name: "kind"'
+    assert_includes admin_index, "kind_select_options"
     assert_includes admin_index, "terms_admin_hub_path"
     assert_includes admin_show, "page_title.slot"
     assert_includes admin_show, "terms_content"
@@ -317,6 +331,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin_show, "snapshot"
     users = engine_source("#{views}/admin/term_users/index.html.erb")
     assert_includes users, 'title: "Users"'
+    assert_includes users, "terms_users_subtitle"
     assert_includes users, "Nobody yet"
     assert_includes users, "terms_table_pagination"
     assert_includes engine_source("config/routes.rb"), 'controller: "term_users"'
@@ -527,6 +542,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin, 'admin_screen_path("recording_studio_terms")'
     assert_includes admin, "column :published"
     assert_includes admin, "column :kind"
+    assert_includes admin, "kind_label"
     assert_includes admin, "admin_write_path"
     assert_includes admin, "admin_hub_path"
     dummy_routes = File.read(File.join(engine_root, "test/dummy/config/routes.rb"))

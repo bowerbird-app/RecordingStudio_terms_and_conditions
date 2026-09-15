@@ -11,7 +11,7 @@ module RecordingStudioTermsAndConditions
     def create
       load_acceptance_context
       return reject_agreement("Tick the box if you agree.") unless agreed?
-      return reject_agreement("There are no live terms to agree to.") if @terms.blank?
+      return reject_agreement("There are no live terms to agree to.") if documents_to_accept.blank?
 
       accept_current_terms!
     end
@@ -20,11 +20,13 @@ module RecordingStudioTermsAndConditions
 
     def load_acceptance_context
       @root = acceptance_root
-      @terms = RecordingStudioTermsAndConditions.pending_published_for(current_actor, @root) ||
-               RecordingStudioTermsAndConditions.current_published_for(@root)
-      kind = @terms&.kind || Terms::DEFAULT_KIND
-      @already_accepted = RecordingStudioTermsAndConditions.accepted?(current_actor, @root, kind: kind)
-      @reaccepting = RecordingStudioTermsAndConditions.reaccepting?(current_actor, @root, kind: kind)
+      @pending_terms = RecordingStudioTermsAndConditions.pending_published_list(current_actor, @root)
+      @terms = @pending_terms.first || RecordingStudioTermsAndConditions.current_published_for(@root)
+      @already_accepted = @pending_terms.empty? && @terms.present?
+      @reaccepting_terms = @pending_terms.select do |terms|
+        RecordingStudioTermsAndConditions.reaccepting?(current_actor, @root, kind: terms.kind)
+      end
+      @reaccepting = @reaccepting_terms.any?
     end
 
     def reject_agreement(message)
@@ -34,10 +36,16 @@ module RecordingStudioTermsAndConditions
     end
 
     def accept_current_terms!
-      RecordingStudioTermsAndConditions.accept!(current_actor, @terms, clickwrap_provenance)
+      documents_to_accept.each do |terms|
+        RecordingStudioTermsAndConditions.accept!(current_actor, terms, clickwrap_provenance)
+      end
       redirect_to next_path_after_acceptance, notice: "You're in. Thanks for reading."
     rescue RecordingStudioTermsAndConditions::NotLive
       reject_agreement("Those terms aren't live. Refresh and agree to the current ones.")
+    end
+
+    def documents_to_accept
+      @pending_terms.presence || Array(@terms).compact
     end
 
     def clickwrap_provenance

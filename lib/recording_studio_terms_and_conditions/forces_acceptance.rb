@@ -30,11 +30,21 @@ module RecordingStudioTermsAndConditions
 
     def terms_gate_notice
       root = Gate.root_for(self)
+      pending = RecordingStudioTermsAndConditions.pending_published_list(signed_in_actor, root)
+      labels = pending.map(&:kind_label)
       if RecordingStudioTermsAndConditions.reaccepting?(signed_in_actor, root)
-        "Terms changed. Agree again."
+        return "Terms changed. Agree again." if terms_only_pending?(pending)
+
+        "#{labels.to_sentence} changed. Agree again."
       else
-        "One more thing — agree to the terms."
+        return "One more thing — agree to the terms." if terms_only_pending?(pending)
+
+        "One more thing — agree to #{labels.to_sentence}."
       end
+    end
+
+    def terms_only_pending?(pending)
+      pending.size <= 1 && pending.first&.kind.to_s == Terms::DEFAULT_KIND
     end
 
     def signed_in_actor

@@ -91,6 +91,12 @@ module RecordingStudioTermsAndConditions
                value: lambda { |row, _context|
                  Terms.find_by(id: row.terms_id)&.title || "A past version"
                }
+        column :kind,
+               title: "Kind",
+               sortable: false,
+               value: lambda { |row, _context|
+                 Terms.find_by(id: row.terms_id)&.kind_label || "—"
+               }
       end
       widget "widgets.terms.agrees", view_variant: :card
     end

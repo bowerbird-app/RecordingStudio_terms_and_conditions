@@ -42,6 +42,7 @@ The install generator mounts the engine, copies migrations, and writes the initi
 ```ruby
 terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
 RecordingStudioTermsAndConditions.current_published_by_kind(workspace)
+RecordingStudioTermsAndConditions.pending_published_list(user, workspace)
 RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace)
 RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace, required_kinds: %w[terms])
 RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap" })
@@ -51,7 +52,7 @@ RecordingStudioTermsAndConditions.current_published_for(workspace, kind: "privac
 
 Live means Publishable `currently_published?`. `accept!` raises `NotLive` for drafts and unpublished versions. People who already agreed to an older snapshot see a re-gate Alert (new date, optional `change_note`). Acceptance rows are receipts, not recordings.
 
-`kind` on Terms is `terms`, `privacy`, or `usage` — one recording per kind per workspace, still `::Terms`. `current_published_for` defaults to `terms`. `requires_acceptance?` covers every published kind unless you pass `kind:` or `required_kinds:` (or `config.required_kinds`). The host gate uses that helper. `accept!` still needs a live version of the kind you pass.
+`kind` on Terms is `terms`, `privacy`, or `usage` — one recording per kind per workspace, still `::Terms`. `current_published_for` defaults to `terms`. `requires_acceptance?` covers every published kind unless you pass `kind:` or `required_kinds:` (or `config.required_kinds`). `pending_published_list` is the pending live set the Agree screen shows. One checkbox covers that set; the Agree POST calls `accept!` for each. The host gate uses `requires_acceptance?`. `accept!` still needs a live version of the kind you pass. Admin Terms filter with `kind=` and show coverage per kind.
 
 The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends Users Auth after sign in / sign up to the same Agree screen.
 
@@ -63,7 +64,7 @@ Drop the host helper onto a form:
 <%= recording_studio_terms_agree(link_terms: true) %>
 ```
 
-The helper is the checkbox only — HTML `required`, named `agreed`. Put it in a form. On submit call `accept!` with `params[:agreed]`. Do not add a second receipt table.
+The helper is the checkbox only — HTML `required`, named `agreed`. Put it in a form. On submit call `accept!` for each pending live version from `pending_published_list`. Do not add a second receipt table.
 
 Optional scroll-to-end before Agree (default off):
 

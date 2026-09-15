@@ -102,21 +102,22 @@ The dummy host follows Recording Studio's root recording pattern:
 
 - **Workspace** is the dummy content root. Users also registers shared **People**.
 - **Folder** and **Page** demonstrate nested host recordables under the workspace root
-- **Terms** is this gem's nested recordable under Workspace. Enable Publishable on the class with `RecordingStudio::Capabilities::Publishable.to` — installing the gem does not publish anything by itself. `kind` is `terms`, `privacy`, or `usage` on the same `::Terms` class — not separate recordable types. One recording per kind per workspace. Clickwrap helpers default to `kind: "terms"`.
+- **Terms** is this gem's nested recordable under Workspace. Enable Publishable on the class with `RecordingStudio::Capabilities::Publishable.to` — installing the gem does not publish anything by itself. `kind` is `terms`, `privacy`, or `usage` on the same `::Terms` class — not separate recordable types. One recording per kind per workspace. Clickwrap helpers default to `kind: "terms"`. Admin drafts pick kind, the Terms index filters by kind, and coverage (live/draft/agrees) is per kind.
 - **Acceptance** rows are receipts, not tree nodes: actor, terms recording id, terms snapshot id, timestamps, SHA-256 `body_digest`, provenance. Old receipts stay untouched. `Acceptance#receipt_contract` is the readable shape
 - Hosts ask the module for the live published version and whether an actor still needs to accept:
   ```ruby
   terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
   RecordingStudioTermsAndConditions.current_published_by_kind(workspace)
+  RecordingStudioTermsAndConditions.pending_published_list(user, workspace)
   RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace)
   RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace, required_kinds: %w[terms])
   RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap" })
   RecordingStudioTermsAndConditions.accepted?(user, workspace)
   RecordingStudioTermsAndConditions.current_published_for(workspace, kind: "privacy")
   ```
-  Live means Publishable `currently_published?` (scheduled-in-the-future is not current). `accept!` raises `RecordingStudioTermsAndConditions::NotLive` for drafts and unpublished versions and does not write a receipt. `indexable` is SEO and is not used for clickwrap. Retrying `accept!` for the same actor and snapshot returns the existing receipt. A new published revision still needs a new tick. People who already agreed see a re-gate Alert with the new calendar date (and optional `change_note`). First-time Agree stays the same.
+  Live means Publishable `currently_published?` (scheduled-in-the-future is not current). `accept!` raises `RecordingStudioTermsAndConditions::NotLive` for drafts and unpublished versions and does not write a receipt. `indexable` is SEO and is not used for clickwrap. Retrying `accept!` for the same actor and snapshot returns the existing receipt. A new published revision still needs a new tick. People who already agreed see a re-gate Alert with the new calendar date (and optional `change_note`). First-time Agree stays the same. The gem Agree screen lists every pending live kind. One checkbox covers that set. The POST calls `accept!` for each pending live version.
 - The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends `UsersAuthRedirect` on Users Auth. Both reuse `requires_acceptance?` and the mounted Agree screen. Auth, Agree, Admin, public Terms, and root switch stay reachable so people can sign in, accept, publish, or switch workspace.
-- Hosts can render `recording_studio_terms_agree` or `recording_studio_terms_agree(inside_form: true)` inside signup or similar. The helper is the `required` `agreed` checkbox only. On the host POST, call `accept!` — do not invent a second receipt.
+- Hosts can render `recording_studio_terms_agree` or `recording_studio_terms_agree(inside_form: true)` inside signup or similar. The helper is the `required` `agreed` checkbox only. On the host POST, call `accept!` for each item in `pending_published_list` — do not invent a second receipt.
 - Scroll-to-end before Agree is optional. Set `config.require_scroll_to_end = true`, or wrap the live copy and Agree button with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` and `recording_studio_terms_agree_button(require_scroll_to_end: true)`. Pin the engine Stimulus controller in the host importmap. The checkbox stays required either way. Missing IntersectionObserver leaves Agree enabled. An already-visible sentinel unlocks immediately.
 - Product configuration is `mount_path`, `require_scroll_to_end`, `capture_request_provenance` (IP/UA on gem UI accepts, default off), and optional `required_kinds` (nil means every published kind). There is no API key.
 - Each configured recordable declares `recording_studio_recordable(...)`; strict declaration validation stays enabled

@@ -247,6 +247,22 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     assert RecordingStudioTermsAndConditions.accepted?(@actor, @workspace, kind: "privacy")
   end
 
+  test "pending_published_list returns live kinds the actor still needs" do
+    terms = record_terms("Live terms", "Be kind.")
+    publish_terms!(terms, slug: "pending-list-terms")
+    privacy = record_terms("Privacy", "Keep the tape.", kind: "privacy")
+    publish_terms!(privacy, slug: "pending-list-privacy")
+
+    pending = RecordingStudioTermsAndConditions.pending_published_list(@actor, @workspace)
+
+    assert_equal [terms.recordable, privacy.recordable], pending
+    RecordingStudioTermsAndConditions.accept!(@actor, terms, source: "clickwrap")
+    assert_equal [privacy.recordable],
+                 RecordingStudioTermsAndConditions.pending_published_list(@actor, @workspace)
+    assert_equal privacy.recordable,
+                 RecordingStudioTermsAndConditions.pending_published_for(@actor, @workspace)
+  end
+
   test "required_kinds and config.required_kinds narrow the gate" do
     previous = RecordingStudioTermsAndConditions.configuration.required_kinds
     terms = record_terms("Live terms", "Be kind.")
