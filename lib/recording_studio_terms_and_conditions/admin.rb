@@ -23,8 +23,8 @@ module RecordingStudioTermsAndConditions
            text: "Who agreed",
            url: ->(context) { context.admin_screen_path("recording_studio_terms_acceptances") },
            style: :secondary
-      widget "widgets.terms.live", view_variant: :compact
-      widget "widgets.terms.agrees", view_variant: :compact
+      widget "widgets.terms.live", view_variant: :card
+      widget "widgets.terms.agrees", view_variant: :card
     end
 
     class TermsScreen < RecordingStudioAdmin::Screen

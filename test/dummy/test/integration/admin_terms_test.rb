@@ -140,6 +140,9 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert RecordingStudioAdmin.screen_for("recording_studio_terms_acceptances")
     assert RecordingStudioAdmin.widget_for("widgets.terms.live")
     assert RecordingStudioAdmin.widget_for("widgets.terms.agrees")
+    usages = RecordingStudioTermsAndConditions::Admin::TermsSection.widget_usages
+    assert_equal %w[widgets.terms.live widgets.terms.agrees], usages.map(&:key)
+    assert usages.all? { |usage| usage.view_variant == :card }
     keys = AdminRoot.recording_studio_admin_section_keys_for(@admin_root, @admin_recording, nil)
     assert_includes keys, "terms"
   end
