@@ -1,0 +1,26 @@
+<% terms_page_nav(title: "Users", back_url: admin_term_path(@terms_recording), back_label: @terms.title) %>
+
+<%= render FlatPack::PageTitle::Component.new(
+  title: "Users",
+  subtitle: "People who ticked the box for these terms.",
+  variant: :h1
+) %>
+
+<% if @acceptances.blank? %>
+  <%= render FlatPack::EmptyState::Component.new(
+    title: "Nobody yet",
+    description: "Receipts show up here after someone ticks the box."
+  ) %>
+<% else %>
+  <%= render FlatPack::Table::Component.new(
+    data: @acceptances.map { |row|
+      {
+        person: row.actor.try(:email) || "Someone",
+        agreed: row.accepted_at
+      }
+    }
+  ) do |table| %>
+    <% table.column(title: "Person") { |row| row[:person] } %>
+    <% table.column(title: "Agreed") { |row| row[:agreed] } %>
+  <% end %>
+<% end %>

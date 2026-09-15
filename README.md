@@ -20,7 +20,7 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, an em
 - **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`, same `accept!` path. Pass `link_terms: true` to turn the word terms into a link to the public URL. The helper does not add a “Read the full terms” line; the Agree screen already shows the copy
 - **Gate** on the host `ApplicationController`: `requires_acceptance?` redirects to Agree until the live version is accepted, and again after a new publish
 - **Users hook** on `RecordingStudioUser::Auth::BaseController` so after sign in / sign up land on Agree when acceptance is still required
-- **Admin** create/edit Terms, Publishable publish, and simple acceptance coverage
+- **Admin** create/edit Terms, Publishable publish, and a Users page of receipts for each term
 - **Public Terms URL** at `/terms/:uuid/:slug` via Publishable
 - **FlatPack** UI component library for all views
 - **Dummy app** (`test/dummy/`) with a FlatPack sign-in screen, a home page on Recording Studio's default layout, mounted Recording Studio routes, and FlatPack's built-in rounded theme

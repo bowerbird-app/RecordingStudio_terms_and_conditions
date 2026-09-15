@@ -231,8 +231,15 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin_index, "terms_admin_hub_path"
     assert_includes admin_show, "page_title.slot"
     assert_includes admin_show, "terms_content"
+    assert_includes admin_show, 'text: "Users"'
+    assert_includes admin_show, "admin_term_users_path"
+    refute_includes admin_show, "Who agreed"
     assert_includes admin_show, "Recording"
     assert_includes admin_show, "snapshot"
+    users = engine_source("#{views}/admin/term_users/index.html.erb")
+    assert_includes users, 'title: "Users"'
+    assert_includes users, "Nobody yet"
+    assert_includes engine_source("config/routes.rb"), 'controller: "term_users"'
     refute_includes admin_new, "FlatPack::Card::Component"
     refute_includes admin_new, "card.footer"
     assert_includes admin_new, 'class="inline-block"'
@@ -414,6 +421,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     views = "app/views/recording_studio_terms_and_conditions"
     assert File.exist?(File.join(engine_root, views, "acceptances/show.html.erb"))
     assert File.exist?(File.join(engine_root, views, "admin/terms/index.html.erb"))
+    assert File.exist?(File.join(engine_root, views, "admin/term_users/index.html.erb"))
     assert File.exist?(File.join(engine_root, views, "published_terms/show.html.erb"))
     routes = File.read(File.join(engine_root, "config/routes.rb"))
     assert_includes routes, "resource :acceptance"

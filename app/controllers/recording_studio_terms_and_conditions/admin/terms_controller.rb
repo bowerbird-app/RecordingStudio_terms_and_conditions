@@ -23,9 +23,6 @@ module RecordingStudioTermsAndConditions
 
       def show
         @terms = terms_recording.recordable
-        @acceptances = Acceptance.where(terms_recording_id: terms_recording.id)
-                                 .order(accepted_at: :desc)
-                                 .limit(50)
       end
 
       def edit

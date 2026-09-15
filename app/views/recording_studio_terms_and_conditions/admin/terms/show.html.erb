@@ -7,6 +7,11 @@
 ) do |page_title| %>
   <% page_title.slot do %>
     <%= render FlatPack::Button::Component.new(
+      text: "Users",
+      style: :secondary,
+      href: admin_term_users_path(@terms_recording)
+    ) %>
+    <%= render FlatPack::Button::Component.new(
       text: "Edit",
       style: :secondary,
       href: edit_admin_term_path(@terms_recording)
@@ -32,24 +37,3 @@
 </div>
 
 <%= terms_content(@terms.body) %>
-
-<%= render FlatPack::SectionTitle::Component.new(title: "Who agreed") %>
-
-<% if @acceptances.blank? %>
-  <%= render FlatPack::EmptyState::Component.new(
-    title: "Nobody yet",
-    description: "Receipts show up here after someone ticks the box."
-  ) %>
-<% else %>
-  <%= render FlatPack::Table::Component.new(
-    data: @acceptances.map { |row|
-      {
-        person: row.actor.try(:email) || "Someone",
-        agreed: row.accepted_at
-      }
-    }
-  ) do |table| %>
-    <% table.column(title: "Person") { |row| row[:person] } %>
-    <% table.column(title: "Agreed") { |row| row[:agreed] } %>
-  <% end %>
-<% end %>

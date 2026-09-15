@@ -45,7 +45,7 @@ module RecordingStudioTermsAndConditions
 
       def terms_recording
         @terms_recording ||= RecordingStudio::Recording.find_by!(
-          id: params[:id],
+          id: params[:term_id] || params[:id],
           recordable_type: Terms.name,
           trashed_at: nil
         )

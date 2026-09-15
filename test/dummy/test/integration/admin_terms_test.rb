@@ -34,6 +34,23 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
   end
 
+  test "member cannot open Users receipts" do
+    sign_in @admin
+    switch_to_workspace(@workspace)
+    recording = RecordingStudio.root_recording_for(@workspace).record(
+      RecordingStudioTermsAndConditions::Terms,
+      actor: @admin
+    ) do |terms|
+      terms.title = "Quiet hours"
+      terms.body = "Headphones after ten."
+    end
+
+    sign_in @member
+    get recording_studio_terms_and_conditions.admin_term_users_path(recording)
+
+    assert_response :forbidden
+  end
+
   test "admin can draft and revise terms" do
     sign_in @admin
     switch_to_workspace(@workspace)
@@ -73,6 +90,20 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "House rules"
     assert_includes response.body, "flat-pack-content-editor-content"
     assert_includes response.body, "Publish"
+    assert_select "a", text: "Users"
+    refute_includes response.body, "Who agreed"
+    refute_includes response.body, "Nobody yet"
+
+    get recording_studio_terms_and_conditions.admin_term_users_path(recording)
+    assert_response :success
+    assert_includes response.body, "Users"
+    assert_includes response.body, "Nobody yet"
+
+    RecordingStudioTermsAndConditions.accept!(@member, recording, { "source" => "clickwrap" })
+    get recording_studio_terms_and_conditions.admin_term_users_path(recording)
+    assert_response :success
+    assert_includes response.body, @member.email
+    refute_includes response.body, "Nobody yet"
 
     original_snapshot_id = recording.recordable_id
     assert_difference -> { RecordingStudioTermsAndConditions::Terms.count }, 1 do
