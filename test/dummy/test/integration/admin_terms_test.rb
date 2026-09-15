@@ -74,13 +74,22 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "flat-pack-content-editor-content"
     assert_includes response.body, "Publish"
 
-    patch recording_studio_terms_and_conditions.admin_term_path(recording), params: {
-      terms: { title: "House rules", body: "Whisper, please." }
-    }
+    original_snapshot_id = recording.recordable_id
+    assert_difference -> { RecordingStudioTermsAndConditions::Terms.count }, 1 do
+      assert_no_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count } do
+        patch recording_studio_terms_and_conditions.admin_term_path(recording), params: {
+          terms: { title: "House rules", body: "Whisper, please." }
+        }
+      end
+    end
 
-    assert_equal "Whisper, please.", recording.reload.recordable.body
+    recording.reload
+    refute_equal original_snapshot_id, recording.recordable_id
+    assert_equal "Whisper, please.", recording.recordable.body
     follow_redirect!
     assert_includes response.body, "Terms updated."
+    assert_includes response.body, "Recording #{recording.id}"
+    assert_includes response.body, "snapshot #{recording.recordable_id}"
 
     get recording_studio_terms_and_conditions.admin_terms_path
     assert_response :success

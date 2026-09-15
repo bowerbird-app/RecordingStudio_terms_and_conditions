@@ -231,6 +231,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin_index, "terms_admin_hub_path"
     assert_includes admin_show, "page_title.slot"
     assert_includes admin_show, "terms_content"
+    assert_includes admin_show, "Recording"
+    assert_includes admin_show, "snapshot"
     refute_includes admin_new, "FlatPack::Card::Component"
     refute_includes admin_new, "card.footer"
     assert_includes admin_new, 'class="inline-block"'

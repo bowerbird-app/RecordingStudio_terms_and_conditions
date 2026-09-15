@@ -131,7 +131,9 @@ module RecordingStudioTermsAndConditions
       config.to_prepare do
         next unless defined?(RecordingStudioAdmin)
 
-        require "recording_studio_terms_and_conditions/admin"
+        # Reload so `register!` survives Zeitwerk resetting Admin to the
+        # controllers namespace in development.
+        load File.expand_path("admin.rb", __dir__)
         RecordingStudioTermsAndConditions::Admin.register!
       end
     end
