@@ -198,11 +198,13 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes agree, "terms_content"
     assert_includes agree, "-mt-5 mb-6"
     helper = engine_source("app/helpers/recording_studio_terms_and_conditions/agree_helper.rb")
+    scroll_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/scroll_to_end_helper.rb")
+    assert_includes helper, "include ScrollToEndHelper"
     assert_includes helper, "def recording_studio_terms_agree"
-    assert_includes helper, "def recording_studio_terms_scroll_to_end"
-    assert_includes helper, "def recording_studio_terms_agree_button"
-    assert_includes helper, "require_scroll_to_end"
     assert_includes helper, "link_terms: false"
+    assert_includes scroll_helper, "def recording_studio_terms_scroll_to_end"
+    assert_includes scroll_helper, "def recording_studio_terms_agree_button"
+    assert_includes scroll_helper, "require_scroll_to_end"
     assert_includes helper, "class: \"py-5\""
     assert_includes helper, "with_content(\"terms\")"
     refute_includes helper, "Read the full terms"

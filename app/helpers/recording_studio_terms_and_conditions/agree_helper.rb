@@ -4,7 +4,7 @@ module RecordingStudioTermsAndConditions
   # Host helper: drop the required Agree checkbox on a page or inside a host form.
   # Persistence stays on Acceptance via accept! / AcceptancesController.
   module AgreeHelper
-    SCROLL_TO_END_CONTROLLER = "recording-studio-terms-and-conditions--scroll-to-end"
+    include ScrollToEndHelper
 
     def recording_studio_terms_agree(inside_form: false, actor: nil, root: nil, link_terms: false)
       root ||= recording_studio_terms_agree_root
@@ -15,40 +15,6 @@ module RecordingStudioTermsAndConditions
       return if actor.present? && RecordingStudioTermsAndConditions.accepted?(actor, root)
 
       recording_studio_terms_agree_fields(terms, inside_form, link_terms: link_terms)
-    end
-
-    def recording_studio_terms_require_scroll_to_end?(require_scroll_to_end: nil)
-      if require_scroll_to_end.nil?
-        RecordingStudioTermsAndConditions.configuration.require_scroll_to_end
-      else
-        ActiveModel::Type::Boolean.new.cast(require_scroll_to_end)
-      end
-    end
-
-    def recording_studio_terms_scroll_to_end(require_scroll_to_end: nil, &block)
-      html = capture(&block)
-      return html unless recording_studio_terms_require_scroll_to_end?(require_scroll_to_end: require_scroll_to_end)
-
-      content_tag(:div, html, data: { controller: SCROLL_TO_END_CONTROLLER })
-    end
-
-    def recording_studio_terms_scroll_to_end_sentinel
-      tag.span(
-        "",
-        "aria-hidden": true,
-        data: { recording_studio_terms_and_conditions__scroll_to_end_target: "end" }
-      )
-    end
-
-    def recording_studio_terms_agree_button(require_scroll_to_end: nil)
-      scroll = recording_studio_terms_require_scroll_to_end?(require_scroll_to_end: require_scroll_to_end)
-      arguments = { text: "Agree", style: :primary, type: "submit" }
-      if scroll
-        arguments[:disabled] = true
-        arguments[:data] = { recording_studio_terms_and_conditions__scroll_to_end_target: "agree" }
-      end
-
-      render(FlatPack::Button::Component.new(**arguments))
     end
 
     private
