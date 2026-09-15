@@ -13,6 +13,16 @@ class EngineTest < Minitest::Test
     RecordingStudioTermsAndConditions.instance_variable_set(:@configuration, @original_configuration)
   end
 
+  def test_assets_initializer_adds_javascript_path
+    paths = []
+    assets = Struct.new(:paths).new(paths)
+    app = Struct.new(:config).new(Struct.new(:assets).new(assets))
+
+    find_initializer("recording_studio_terms_and_conditions.assets").block.call(app)
+
+    assert_includes paths, RecordingStudioTermsAndConditions::Engine.root.join("app/javascript")
+  end
+
   def test_before_and_after_initialize_initializers_run_hooks
     before_called = false
     after_called = false

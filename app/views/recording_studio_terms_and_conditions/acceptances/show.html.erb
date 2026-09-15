@@ -15,15 +15,15 @@
     description: "Someone still needs to publish terms for this workspace."
   ) %>
 <% else %>
-  <%= terms_content(@terms.body) %>
-  <% unless @already_accepted %>
-    <%= form_with url: acceptance_path, method: :post do %>
-      <%= recording_studio_terms_agree(inside_form: true, actor: current_user, root: @root) %>
-      <%= render FlatPack::Button::Component.new(
-        text: "Agree",
-        style: :primary,
-        type: "submit"
-      ) %>
+  <% require_scroll_to_end = recording_studio_terms_require_scroll_to_end? %>
+  <%= recording_studio_terms_scroll_to_end(require_scroll_to_end: require_scroll_to_end) do %>
+    <%= terms_content(@terms.body) %>
+    <%= recording_studio_terms_scroll_to_end_sentinel if require_scroll_to_end %>
+    <% unless @already_accepted %>
+      <%= form_with url: acceptance_path, method: :post do %>
+        <%= recording_studio_terms_agree(inside_form: true, actor: current_user, root: @root) %>
+        <%= recording_studio_terms_agree_button(require_scroll_to_end: require_scroll_to_end) %>
+      <% end %>
     <% end %>
   <% end %>
 <% end %>

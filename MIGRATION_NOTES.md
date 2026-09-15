@@ -7,7 +7,7 @@ bin/rails generate recording_studio_terms_and_conditions:install
 bin/rails db:migrate
 ```
 
-That copies Terms and Acceptance migrations, mounts the engine, and writes `config/initializers/recording_studio_terms_and_conditions.rb`. Register `RecordingStudioTermsAndConditions::Terms` in `recordable_types`. Mount Publishable at `/`. Enable Admin `section :terms` on an Admin root and grant Accessible access. The host gate and Users post-auth hook attach automatically.
+That copies Terms and Acceptance migrations, mounts the engine, writes `config/initializers/recording_studio_terms_and_conditions.rb`, and pins the scroll-to-end Stimulus controller when `config/importmap.rb` exists. Register `RecordingStudioTermsAndConditions::Terms` in `recordable_types`. Mount Publishable at `/`. Enable Admin `section :terms` on an Admin root and grant Accessible access. The host gate and Users post-auth hook attach automatically. Scroll-to-end before Agree stays off until `config.require_scroll_to_end = true` (or the helper option).
 
 ## Current Requirements
 

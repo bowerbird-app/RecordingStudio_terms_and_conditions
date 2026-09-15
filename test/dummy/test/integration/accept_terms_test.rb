@@ -37,6 +37,9 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     assert_select "input[type=checkbox][name=agreed][required]"
     assert_select "input[type=checkbox][name=agreed][checked]", count: 0
     assert_includes response.body, "Agree"
+    assert_select "[data-controller='recording-studio-terms-and-conditions--scroll-to-end']", count: 1
+    assert_select "[data-recording-studio-terms-and-conditions--scroll-to-end-target='end']", count: 1
+    assert_select "button[type=submit][disabled]", text: "Agree"
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
     assert_select "nav[aria-label='Page navigation']", count: 1
     assert_match %r{flat_pack/application}, response.body
@@ -61,6 +64,21 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_includes CGI.unescapeHTML(response.body), "You're in. Thanks for reading."
     assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
+  end
+
+  test "agree stays enabled when the host leaves scroll-to-end off" do
+    RecordingStudioTermsAndConditions.configuration.require_scroll_to_end = false
+
+    get recording_studio_terms_and_conditions.acceptance_path
+
+    assert_response :success
+    assert_select "[data-controller='recording-studio-terms-and-conditions--scroll-to-end']", count: 0
+    assert_select "[data-recording-studio-terms-and-conditions--scroll-to-end-target='end']", count: 0
+    assert_select "button[type=submit][disabled]", text: "Agree", count: 0
+    assert_select "button[type=submit]", text: "Agree"
+    assert_select "input[type=checkbox][name=agreed][required]"
+  ensure
+    RecordingStudioTermsAndConditions.configuration.require_scroll_to_end = true
   end
 
   test "empty state when the current workspace has no live terms" do

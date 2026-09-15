@@ -10,6 +10,10 @@ module RecordingStudioTermsAndConditions
       end
     end
 
+    initializer "recording_studio_terms_and_conditions.assets" do |app|
+      app.config.assets.paths << root.join("app/javascript") if app.config.respond_to?(:assets)
+    end
+
     class << self
       APPLIED_EXTENSIONS_IVAR = :@recording_studio_terms_and_conditions_applied_extensions
       def apply_model_extensions(target)

@@ -37,6 +37,21 @@ module RecordingStudioTermsAndConditions
         template("recording_studio_terms_and_conditions_initializer.rb", path)
       end
 
+      def add_importmap_pin
+        importmap_path = File.join(destination_root, "config/importmap.rb")
+        return unless File.exist?(importmap_path)
+
+        importmap = File.read(importmap_path)
+        if importmap.include?(importmap_pin_needle)
+          return say("Importmap already pins the scroll-to-end controller.", :green)
+        end
+
+        append_to_file "config/importmap.rb", <<~RUBY
+
+          #{importmap_pin_line}
+        RUBY
+      end
+
       def add_yaml_config
         prompt = "Would you like to add `config/recording_studio_terms_and_conditions.yml` " \
                  "for environment-specific settings? [y/N]"
@@ -114,6 +129,17 @@ module RecordingStudioTermsAndConditions
         missing_lines.each do |line|
           say "  #{line}", :yellow
         end
+      end
+
+      def importmap_pin_needle
+        "recording_studio_terms_and_conditions/controllers"
+      end
+
+      def importmap_pin_line
+        "pin_all_from RecordingStudioTermsAndConditions::Engine.root.join(" \
+          "\"app/javascript/recording_studio_terms_and_conditions/controllers\"), " \
+          "under: \"controllers/recording_studio_terms_and_conditions\", " \
+          "to: \"recording_studio_terms_and_conditions/controllers\", preload: false"
       end
 
       def tailwind_source_lines
