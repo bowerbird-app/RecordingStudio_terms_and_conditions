@@ -165,7 +165,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
   end
 
   test "agreeing to a non-live version does not write a receipt" do
-    draft = record_terms(@root, title: "Stale draft", body: "Skip me.")
+    draft = record_terms(@root, title: "Stale draft", body: "Skip me.", kind: "privacy")
     force_current_published_for(draft.recordable) do
       assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
         post recording_studio_terms_and_conditions.acceptance_path, params: { agreed: "1" }
@@ -182,7 +182,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     mod = RecordingStudioTermsAndConditions.singleton_class
     mod.class_eval do
       alias_method :current_published_for_without_a3, :current_published_for
-      define_method(:current_published_for) { |_root| terms }
+      define_method(:current_published_for) { |*_args, **_kwargs| terms }
     end
     yield
   ensure

@@ -21,17 +21,27 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
   end
 
   test "current_published_for returns live published Terms for a host root" do
-    draft_recording = record_terms("Draft", "Not live.")
-    live_recording = record_terms("Live terms", "Be kind.")
-    publish_terms!(live_recording, slug: "live-terms")
-    publish_terms!(draft_recording, slug: "draft-terms", status: "draft")
+    recording = record_terms("Live terms", "Be kind.")
+    publish_terms!(recording, slug: "live-terms")
+    privacy = record_terms("Privacy", "Cookies stay in the booth.", kind: "privacy")
+    publish_terms!(privacy, slug: "privacy-policy")
 
     published = RecordingStudioTermsAndConditions.current_published_for(@workspace)
 
-    assert_equal live_recording.recordable, published
+    assert_equal recording.recordable, published
     assert_equal "Live terms", published.title
+    assert_equal "terms", published.kind
+    assert_equal privacy.recordable,
+                 RecordingStudioTermsAndConditions.current_published_for(@workspace, kind: "privacy")
     assert_nil RecordingStudioTermsAndConditions.current_published_for(@other_workspace)
     assert_equal published, RecordingStudioTermsAndConditions.current_published_for(@root)
+    refute RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace, kind: "usage")
+  end
+
+  test "current_published_for ignores a draft terms recording" do
+    record_terms("Draft", "Not live.")
+
+    assert_nil RecordingStudioTermsAndConditions.current_published_for(@workspace)
   end
 
   test "current_published_for ignores scheduled Terms that are not live yet" do
@@ -97,9 +107,9 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
 
   test "accept! refuses drafts, unpublished, and scheduled terms" do
     draft = record_terms("Draft", "Not live.")
-    soon = record_terms("Soon", "Wait.")
+    soon = record_terms("Soon", "Wait.", kind: "privacy")
     publish_terms!(soon, slug: "soon-refuse", publish_at: 1.day.from_now)
-    unpublished = record_terms("Was live", "Gone.")
+    unpublished = record_terms("Was live", "Gone.", kind: "usage")
     publish_terms!(unpublished, slug: "was-live")
     publish_terms!(unpublished, slug: "was-live", status: "draft")
 
@@ -210,10 +220,10 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
 
   private
 
-  def record_terms(title, body)
+  def record_terms(title, body, kind: RecordingStudioTermsAndConditions::Terms::DEFAULT_KIND)
     RecordingStudio.record!(
       action: "created",
-      recordable: RecordingStudioTermsAndConditions::Terms.new(title: title, body: body),
+      recordable: RecordingStudioTermsAndConditions::Terms.new(title: title, body: body, kind: kind),
       root_recording: @root,
       parent_recording: @root
     ).recording

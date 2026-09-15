@@ -31,6 +31,17 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "published privacy does not gate the terms clickwrap" do
+    recording = record_terms(@root, title: "Privacy", body: "Keep the tape.", kind: "privacy")
+    publish_terms!(recording, slug: "privacy-#{SecureRandom.hex(4)}")
+
+    get "/"
+    assert_response :success
+    refute_redirected_to_acceptance
+    refute RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace)
+    assert RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace, kind: "privacy")
+  end
+
   test "published terms send signed-in people to the clickwrap" do
     publish_live_terms!
 

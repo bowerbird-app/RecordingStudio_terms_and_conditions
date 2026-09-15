@@ -1,4 +1,12 @@
 <div class="flex w-full flex-col gap-6">
+  <%= render FlatPack::Select::Component.new(
+    name: "terms[kind]",
+    options: RecordingStudioTermsAndConditions::Terms.kind_select_options,
+    value: kind,
+    label: "Kind",
+    required: true,
+    placeholder: nil
+  ) %>
   <%= render FlatPack::TextInput::Component.new(
     name: "terms[title]",
     value: title,

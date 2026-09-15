@@ -44,9 +44,12 @@ terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
 RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace)
 RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap" })
 RecordingStudioTermsAndConditions.accepted?(user, workspace)
+RecordingStudioTermsAndConditions.current_published_for(workspace, kind: "privacy")
 ```
 
 Live means Publishable `currently_published?`. `accept!` raises `NotLive` for drafts and unpublished versions. People who already agreed to an older snapshot see a re-gate Alert (new date, optional `change_note`). Acceptance rows are receipts, not recordings.
+
+`kind` on Terms is `terms`, `privacy`, or `usage` — one recording per kind per workspace, still `::Terms`. Clickwrap and the host gate use `terms` unless you pass `kind:`.
 
 The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends Users Auth after sign in / sign up to the same Agree screen.
 

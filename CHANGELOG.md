@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `accept!` is idempotent for the same actor and Terms snapshot. A unique index on actor + recording + snapshot returns the existing receipt on retry. A later published revision still inserts a new row.
 - `accept!` refuses drafts, unpublished, and scheduled-but-not-live versions (`RecordingStudioTermsAndConditions::NotLive`). The Agree screen flashes and does not write a receipt.
 - Re-gate Agree shows a Flatpack Alert when the person already accepted an older snapshot. Copy and the new live calendar date are distinct from first-time Agree. Optional `change_note` on the Terms snapshot appears in that Alert.
+- Terms snapshots have a stable `kind` (`terms`, `privacy`, `usage`). Existing rows default to `terms`. A workspace may have at most one Terms recording per kind. Clickwrap helpers default to `kind: "terms"`. Admin create/edit sets kind with a Flatpack Select.
 
 ### Changed
 - Scroll-to-end no longer deadlocks Agree when `IntersectionObserver` is missing. Already-visible sentinels unlock immediately. The checkbox is still required. Scroll-to-end stays optional (default off). The Stimulus controller is self-contained (no extra importmap module).
@@ -32,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Run the unique-index migration. It removes `index_rstac_acceptances_on_actor_and_version` only if that index exists, then adds it unique. New installs get the unique index from the create migration. If migrate fails, the table already has duplicate actor+snapshot receipts — do not rewrite those rows; resolve the duplicates first.
 - Leave `config.capture_request_provenance` off unless you intend to store IP and user agent from the gem Agree screen.
 - If you opt into `require_scroll_to_end`, pin the engine Stimulus controllers. Missing IntersectionObserver leaves Agree enabled.
+- Run the `kind` migration. Existing Terms rows become `kind: "terms"`. Do not add a second Terms recording of the same kind in a workspace. Clickwrap and the gate still follow `kind: "terms"` unless you pass `kind:`. Privacy and usage are the same `::Terms` class.
 
 ## [0.3.1] - 2026-09-15
 

@@ -45,6 +45,10 @@ module RecordingStudioTermsAndConditions
                title: "Title",
                sortable: false,
                value: ->(recording, _context) { recording.recordable&.title }
+        column :kind,
+               title: "Kind",
+               sortable: false,
+               value: ->(recording, _context) { recording.recordable&.kind_label }
         column :status,
                title: "Status",
                sortable: false,

@@ -25,6 +25,7 @@
     live = recording.respond_to?(:currently_published?) && recording.currently_published?
     {
       title: title,
+      kind: recording.recordable&.kind_label || "Terms",
       href: admin_term_path(recording),
       live: live,
       published: terms_published_at(recording),
@@ -39,6 +40,7 @@
     <% table.column(title: "Title") do |row|
       render FlatPack::Link::Component.new(href: row[:href]).with_content(row[:title])
     end %>
+    <% table.column(title: "Kind") { |row| row[:kind] } %>
     <% table.column(title: "Status") do |row|
       render FlatPack::Badge::Component.new(
         text: row[:live] ? "Live" : "Draft",

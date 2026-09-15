@@ -17,6 +17,7 @@
     code: <<~CODE
       terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
       RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap" })
+      RecordingStudioTermsAndConditions.current_published_for(workspace, kind: "privacy")
     CODE
   ) %>
 

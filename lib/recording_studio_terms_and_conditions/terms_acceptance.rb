@@ -4,17 +4,17 @@ module RecordingStudioTermsAndConditions
   # Domain helpers for live published Terms and append-only acceptances.
   class TermsAcceptance # rubocop:disable Metrics/ClassLength
     class << self
-      def current_published_for(root)
+      def current_published_for(root, kind: Terms::DEFAULT_KIND)
         root_recording = resolve_root_recording(root)
         return if root_recording.blank?
 
-        published_terms_recording_for(root_recording)&.recordable
+        published_terms_recording_for(root_recording, kind: kind)&.recordable
       end
 
-      def accepted?(actor, root)
+      def accepted?(actor, root, kind: Terms::DEFAULT_KIND)
         return false if actor.blank?
 
-        terms = current_published_for(root)
+        terms = current_published_for(root, kind: kind)
         return false if terms.blank?
 
         recording = recording_for_terms(terms)
@@ -23,14 +23,14 @@ module RecordingStudioTermsAndConditions
         acceptance_exists?(actor: actor, terms_recording_id: recording.id, terms_id: terms.id)
       end
 
-      def requires_acceptance?(actor, root)
-        current_published_for(root).present? && !accepted?(actor, root)
+      def requires_acceptance?(actor, root, kind: Terms::DEFAULT_KIND)
+        current_published_for(root, kind: kind).present? && !accepted?(actor, root, kind: kind)
       end
 
-      def reaccepting?(actor, root)
-        return false unless requires_acceptance?(actor, root)
+      def reaccepting?(actor, root, kind: Terms::DEFAULT_KIND)
+        return false unless requires_acceptance?(actor, root, kind: kind)
 
-        terms = current_published_for(root)
+        terms = current_published_for(root, kind: kind)
         recording = recording_for_terms(terms)
         recording.present? && Acceptance.where(
           actor_type: actor.class.base_class.name,
@@ -96,9 +96,17 @@ module RecordingStudioTermsAndConditions
         root.respond_to?(:id) && root.id.present? && RecordingStudio.root_allowed?(root.class.name)
       end
 
-      def published_terms_recording_for(root_recording)
+      def published_terms_recording_for(root_recording, kind:)
+        wanted = Terms.normalize_kind(kind)
+        return if Terms::KINDS.exclude?(wanted)
+
         candidates = root_recording.recordings_query(include_children: true, type: Terms.name)
-        candidates.select(&:currently_published?).max_by { |recording| publish_sort_key(recording) }
+        candidates.select { |recording| live_kind?(recording, wanted) }
+                  .max_by { |recording| publish_sort_key(recording) }
+      end
+
+      def live_kind?(recording, kind)
+        recording.currently_published? && recording.recordable&.kind == kind
       end
 
       def publish_sort_key(recording)

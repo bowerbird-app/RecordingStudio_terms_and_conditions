@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "cgi"
 require "devise/test/integration_helpers"
 
 class AdminTermsTest < ActionDispatch::IntegrationTest
@@ -75,6 +76,8 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "terms[body]"
     assert_includes response.body, "terms[change_note]"
     assert_includes response.body, "What changed"
+    assert_includes response.body, "terms[kind]"
+    assert_includes response.body, "Kind"
     assert_includes response.body, "Save draft"
     assert_select "div.inline-block button[type=submit]", text: "Save draft"
 
@@ -90,6 +93,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_includes response.body, "Terms drafted. Publish when they are ready."
     assert_includes response.body, "House rules"
+    assert_includes response.body, "Terms · Recording"
     assert_includes response.body, "flat-pack-content-editor-content"
     assert_includes response.body, "Publish"
     assert_select "a", text: "Users"
@@ -121,6 +125,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     refute_equal original_snapshot_id, recording.recordable_id
     assert_equal "Whisper, please.", recording.recordable.body
     assert_equal "Quieter booths.", recording.recordable.change_note
+    assert_equal "terms", recording.recordable.kind
     follow_redirect!
     assert_includes response.body, "Terms updated."
     assert_includes response.body, "Recording #{recording.id}"
@@ -130,6 +135,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "House rules"
     assert_select "table thead th", text: "Title"
+    assert_select "table thead th", text: "Kind"
     assert_select "table thead th", text: "Status"
     assert_select "table thead th", text: "Published"
     assert_select "table thead th", text: "Agrees"
@@ -137,6 +143,35 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_select "table tbody td a", text: "House rules"
     assert_select "table tbody td", text: (recording.currently_published? ? "Live" : "Draft")
     assert_select "table tbody td a", text: "Open"
+  end
+
+  test "admin can draft privacy beside terms but not a second terms kind" do
+    sign_in @admin
+    switch_to_workspace(@workspace)
+
+    post recording_studio_terms_and_conditions.admin_terms_path, params: {
+      terms: { title: "House rules", body: "No yelling in the booth.", kind: "terms" }
+    }
+    assert_response :redirect
+
+    assert_no_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count } do
+      post recording_studio_terms_and_conditions.admin_terms_path, params: {
+        terms: { title: "More rules", body: "Also no yelling.", kind: "terms" }
+      }
+    end
+    assert_response :unprocessable_entity
+    assert_includes CGI.unescapeHTML(response.body), "This workspace already has Terms."
+
+    assert_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count }, 1 do
+      post recording_studio_terms_and_conditions.admin_terms_path, params: {
+        terms: { title: "Privacy", body: "We keep notes in the booth.", kind: "privacy" }
+      }
+    end
+    privacy = RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name)
+                                        .order(:created_at).last
+    assert_equal "privacy", privacy.recordable.kind
+    follow_redirect!
+    assert_includes response.body, "Privacy · Recording"
   end
 
   test "admin section registers terms coverage widgets" do
@@ -163,8 +198,9 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
   test "admin terms index paginates like other kit tables" do
     sign_in @admin
     switch_to_workspace(@workspace)
-    root = RecordingStudio.root_recording_for(@workspace)
     26.times do |index|
+      workspace = Workspace.create!(name: "Page #{index} #{SecureRandom.hex(3)}")
+      root = RecordingStudio.root_recording_for(workspace)
       root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
         terms.title = "Page #{index} #{SecureRandom.hex(3)}"
         terms.body = "Body #{index}."
@@ -216,8 +252,9 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
   test "admin terms screen table paginates" do
     sign_in @admin
     switch_to_workspace(@admin_root)
-    root = RecordingStudio.root_recording_for(@workspace)
     26.times do |index|
+      workspace = Workspace.create!(name: "Hub #{index} #{SecureRandom.hex(3)}")
+      root = RecordingStudio.root_recording_for(workspace)
       root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
         terms.title = "Hub #{index} #{SecureRandom.hex(3)}"
         terms.body = "Hub body #{index}."

@@ -8,6 +8,7 @@ require "recording_studio_terms_and_conditions/configuration"
 require "recording_studio_terms_and_conditions/body_digest"
 require "recording_studio_terms_and_conditions/engine"
 require "recording_studio_terms_and_conditions/terms_acceptance"
+require "recording_studio_terms_and_conditions/kind_uniqueness"
 require "recording_studio_terms_and_conditions/table_page"
 require "recording_studio_terms_and_conditions/gate"
 require "recording_studio_terms_and_conditions/forces_acceptance"
@@ -29,24 +30,24 @@ module RecordingStudioTermsAndConditions
       yield(configuration) if block_given?
     end
 
-    def current_published_for(root)
-      TermsAcceptance.current_published_for(root)
+    def current_published_for(root, kind: Terms::DEFAULT_KIND)
+      TermsAcceptance.current_published_for(root, kind: kind)
     end
 
-    def accepted?(actor, root)
-      TermsAcceptance.accepted?(actor, root)
+    def accepted?(actor, root, kind: Terms::DEFAULT_KIND)
+      TermsAcceptance.accepted?(actor, root, kind: kind)
     end
 
-    def requires_acceptance?(actor, root)
-      TermsAcceptance.requires_acceptance?(actor, root)
+    def requires_acceptance?(actor, root, kind: Terms::DEFAULT_KIND)
+      TermsAcceptance.requires_acceptance?(actor, root, kind: kind)
     end
 
     def accept!(actor, version, provenance = {})
       TermsAcceptance.accept!(actor, version, provenance)
     end
 
-    def reaccepting?(actor, root)
-      TermsAcceptance.reaccepting?(actor, root)
+    def reaccepting?(actor, root, kind: Terms::DEFAULT_KIND)
+      TermsAcceptance.reaccepting?(actor, root, kind: kind)
     end
   end
 end
