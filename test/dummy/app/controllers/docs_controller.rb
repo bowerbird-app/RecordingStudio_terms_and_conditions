@@ -42,7 +42,7 @@ class DocsController < ApplicationController
   def paginate_view_paths(paths)
     page = [params[:page].to_i, 1].max
     limit = RecordingStudioTermsAndConditions::TablePage::SIZE
-    pagy = Pagy.new(count: paths.size, page: page, limit: limit)
+    pagy = Pagy.new(count: paths.size, page: page, limit: limit, overflow: :last_page)
     [pagy, paths.slice(pagy.offset, pagy.limit) || []]
   end
 

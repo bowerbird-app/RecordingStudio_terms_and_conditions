@@ -157,11 +157,11 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
     get recording_studio_terms_and_conditions.admin_terms_path
     assert_response :success
-    assert_select "table tbody tr", count: 25
+    assert_equal 25, first_table_row_count
 
     get recording_studio_terms_and_conditions.admin_terms_path, params: { page: 2 }
     assert_response :success
-    page_two = css_select("table tbody tr").count
+    page_two = first_table_row_count
     assert_operator page_two, :>, 0
     assert_operator page_two, :<=, 25
   end
@@ -187,11 +187,11 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
     get recording_studio_terms_and_conditions.admin_term_users_path(recording)
     assert_response :success
-    assert_select "table tbody tr", count: 25
+    assert_equal 25, first_table_row_count
 
     get recording_studio_terms_and_conditions.admin_term_users_path(recording), params: { page: 2 }
     assert_response :success
-    page_two = css_select("table tbody tr").count
+    page_two = first_table_row_count
     assert_operator page_two, :>, 0
     assert_operator page_two, :<=, 25
   end
@@ -255,7 +255,17 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     get "/admin"
     assert_response :success
     assert_includes response.body, "Write terms"
+    assert_includes response.body, "Every version"
     assert_includes response.body, "Terms"
     assert_includes response.body, RecordingStudioTermsAndConditions.admin_write_path
+  end
+
+  private
+
+  def first_table_row_count
+    table = css_select("table").first
+    return 0 unless table
+
+    table.css("tbody tr").size
   end
 end

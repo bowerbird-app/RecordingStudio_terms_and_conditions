@@ -15,6 +15,10 @@ module RecordingStudioTermsAndConditions
            text: "Write terms",
            url: ->(_context) { RecordingStudioTermsAndConditions.admin_write_path },
            style: :primary
+      link :versions,
+           text: "Every version",
+           url: ->(context) { context.admin_screen_path("recording_studio_terms") },
+           style: :secondary
       link :agrees,
            text: "Who agreed",
            url: ->(context) { context.admin_screen_path("recording_studio_terms_acceptances") },
@@ -96,7 +100,7 @@ module RecordingStudioTermsAndConditions
           recording.respond_to?(:currently_published?) && recording.currently_published?
         end
       end
-      link_to { |_context| RecordingStudioTermsAndConditions.admin_hub_path }
+      link_to { |context| context.admin_screen_path("recording_studio_terms") }
       hide_change
       hide_period
     end

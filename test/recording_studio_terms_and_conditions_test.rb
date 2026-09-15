@@ -219,6 +219,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     table_page = engine_source("lib/recording_studio_terms_and_conditions/table_page.rb")
     assert_includes table_page, "SIZE = 25"
     assert_includes table_page, "def paginate_table"
+    assert_includes table_page, "overflow: :last_page"
     assert_includes application_helper, "def terms_calendar_date"
     assert_includes application_helper, "%e %b %Y"
     assert_includes application_helper, "def terms_content"
@@ -441,6 +442,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     admin = File.read(File.join(engine_root, "lib/recording_studio_terms_and_conditions/admin.rb"))
     assert_includes admin, 'key "terms"'
     assert_includes admin, "paginate per_page: 25"
+    assert_includes admin, 'text: "Every version"'
+    assert_includes admin, 'admin_screen_path("recording_studio_terms")'
     assert_includes admin, "column :published"
     assert_includes admin, "admin_write_path"
     assert_includes admin, "admin_hub_path"

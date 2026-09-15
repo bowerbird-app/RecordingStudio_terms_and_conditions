@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "pagy"
+require "pagy/extras/overflow"
 
 module RecordingStudioTermsAndConditions
   # Shared page size for engine tables. Matches Recording Studio Admin dummy tables
@@ -9,7 +10,7 @@ module RecordingStudioTermsAndConditions
     SIZE = 25
 
     def paginate_table(scope)
-      pagy(scope, limit: SIZE)
+      pagy(scope, limit: SIZE, overflow: :last_page)
     end
   end
 end

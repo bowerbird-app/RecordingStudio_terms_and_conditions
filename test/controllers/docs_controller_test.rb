@@ -105,13 +105,13 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
   test "gem_views table paginates with the shared table page size" do
     get docs_gem_views_path
     assert_response :success
-    first_page = css_select("table tbody tr").count
+    first_page = css_select("table").first&.css("tbody tr")&.size.to_i
     assert_operator first_page, :>, 0
     assert_operator first_page, :<=, RecordingStudioTermsAndConditions::TablePage::SIZE
 
     get docs_gem_views_path, params: { page: 2 }
     assert_response :success
-    second_page = css_select("table tbody tr").count
+    second_page = css_select("table").first&.css("tbody tr")&.size.to_i
     assert_operator second_page, :<=, RecordingStudioTermsAndConditions::TablePage::SIZE
   end
 
