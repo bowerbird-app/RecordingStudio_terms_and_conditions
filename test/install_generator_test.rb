@@ -256,6 +256,9 @@ class InstallGeneratorTest < Minitest::Test
     assert_includes skill, "recording_studio_terms_and_conditions"
     assert_includes skill, "recording-studio-gems"
     assert_includes skill, "ForcesAcceptance"
+    assert_includes skill, "Upgrade (0.3.x → 0.4.0)"
+    assert_includes skill, "pending_published_list"
+    assert_includes skill, "required_kinds"
   end
 
   private

@@ -15,12 +15,12 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, an em
 - **Workspace**, **Folder**, and **Page** recordables seeded into the dummy host app
 - **Terms** recordable (`RecordingStudioTermsAndConditions::Terms`, product label `"Terms"`) with Publishable opted in on the type. Snapshots carry a stable `kind` (`terms`, `privacy`, `usage`). Existing rows default to `terms`. A workspace keeps at most one Terms recording per kind.
 - **Acceptance** append-only table for clickwrap receipts (not a recordable). New rows store a SHA-256 body digest of the live copy at accept time
-- **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for`, `current_published_by_kind`, `accepted?`, `accept!`, `requires_acceptance?`. `current_published_for` still defaults to `kind: "terms"`. `requires_acceptance?` is true if any published kind still needs a tick, unless you pass `kind:` or `required_kinds:`.
-- **Agree screen** for the current published Terms (unchecked checkbox, gated Agree, `accept!`). Optional `require_scroll_to_end` keeps Agree disabled until the live copy is scrolled to the end (default off). If IntersectionObserver is missing, Agree stays enabled so keyboard users are not stuck. The live body sits on the page with a calendar date (`13 Aug 2026`), not a relative “hours ago”
-- **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`, same `accept!` path. Pass `link_terms: true` to turn the word terms into a link to the public URL. The helper does not add a “Read the full terms” line; the Agree screen already shows the copy
-- **Gate** on the host `ApplicationController`: `pending_published_list` redirects to Agree until every published kind (or `config.required_kinds`) is accepted, and again after a new publish
-- **Users hook** on `RecordingStudioUser::Auth::BaseController` so after sign in / sign up land on Agree when acceptance is still required
-- **Admin** create/edit Terms, Publishable publish, and a Users page of receipts for each term. Engine tables use `TablePage` (Pagy, 25 rows) and Flatpack infinite pagination. Admin hub Terms and Who agreed tables set `paginate per_page: 25` the same way Recording Studio Admin dummy tables do. Dummy `/docs/gem_views` is the other table page and uses the same page size. Live terms and Agrees widgets stack the title above the count (`view_variant: :card`) on the hub and on Admin screens.
+- **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for` / `current_published_by_kind`, `pending_published_list` / `pending_published_for`, `accepted?`, `accept!`, `requires_acceptance?`, `reaccepting?`. `current_published_for` and `accepted?` still default to `kind: "terms"`. `requires_acceptance?` is true if any published kind still needs a tick, unless you pass `kind:` or `required_kinds:`
+- **Agree screen** lists every pending live kind (bodies and public links) behind one checkbox, then `accept!` each. Optional `require_scroll_to_end` keeps Agree disabled until a sentinel after the last body is visible (default off). If IntersectionObserver is missing, Agree stays enabled. The live body sits on the page with a calendar date, not a relative “hours ago”
+- **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`. Pass `link_terms: true` to turn the word terms into a link to the public URL. On submit, call `accept!` for each item in `pending_published_list`
+- **Gate** on the host `ApplicationController`: redirects to Agree until `pending_published_list` is empty (every published kind, or `config.required_kinds`), and again after a new publish
+- **Users hook** on `RecordingStudioUser::Auth::BaseController` so after sign in / sign up land on Agree while any required kind is still pending
+- **Admin** create/edit Terms (including kind), Publishable publish, kind filter and coverage on the Terms index, and a Users page of receipts for each term. Engine tables use `TablePage` (Pagy, 25 rows) and Flatpack infinite pagination. Admin hub Terms and Who agreed tables set `paginate per_page: 25`. Live terms and Agrees widgets stack the title above the count (`view_variant: :card`)
 - **Public Terms URL** at `/terms/:uuid/:slug` via Publishable
 - **FlatPack** UI component library for all views
 - **Dummy app** (`test/dummy/`) with a FlatPack sign-in screen, a home page on Recording Studio's default layout, mounted Recording Studio routes, and FlatPack's built-in rounded theme
@@ -93,6 +93,10 @@ bin/rails tailwindcss:build
 `recording_studio_terms_and_conditions:install` mounts the engine, copies this gem's migrations, and writes the initializer. Then register `RecordingStudioTermsAndConditions::Terms` in `recordable_types`, mount Publishable at `/`, and enable Admin `section :terms` on an Admin root with Accessible access.
 
 This is the kit gem for published Terms and clickwrap. Add it to the approved list in `recording-studio-gems`. Do not hand-roll acceptances.
+
+## Upgrading from 0.3.x
+
+Bump to **0.4.0**, copy migrations, migrate. Run `body_digest`, unique actor+snapshot, `change_note`, and `kind`. Do not backfill old receipts. Drop template knobs `api_key`, `enable_feature_x`, `timeout`. Publishing privacy or usage now gates that kind unless you set `required_kinds`. Host `accept!` must be a live version (`NotLive` otherwise). Full notes: `CHANGELOG.md` (0.4.0) and `MIGRATION_NOTES.md`.
 
 ## Architecture
 
@@ -230,4 +234,4 @@ The dummy Gemfile keeps `github:` sources so Bundler can fetch those gems. Hosts
 
 ## Documentation
 
-Engine internals from the original gem template stay in `docs/gem_template/` as architectural reference. This README and the dummy app are the source of truth for the addon.
+Engine internals from the original gem template stay in `docs/gem_template/` as architectural reference. This README, `CHANGELOG.md`, `MIGRATION_NOTES.md`, and the dummy app are the source of truth for the addon.

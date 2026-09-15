@@ -431,6 +431,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes readme, "https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions"
     assert_includes readme, "recording-studio-gems"
     assert_includes readme, "require_scroll_to_end"
+    assert_includes readme, "Upgrading from 0.3.x"
+    assert_includes readme, "pending_published_list"
+    assert_includes readme, "MIGRATION_NOTES.md"
     refute_includes readme, "come later"
     assert_includes readme, "#{internals_docs}/"
     assert_includes readme, "v4.2.0"
@@ -557,6 +560,26 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     skill = File.join(engine_root, ".github/skills/recording-studio-terms-and-conditions/SKILL.md")
     assert File.exist?(skill)
     assert_includes File.read(skill), "recording-studio-gems"
+    assert_includes File.read(skill), "Upgrade (0.3.x → 0.4.0)"
+  end
+
+  def test_zero_four_upgrade_docs_match_shipped_behavior
+    changelog = File.read(File.expand_path("../CHANGELOG.md", __dir__))
+    notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
+    readme = File.read(File.expand_path("../README.md", __dir__))
+
+    assert_includes changelog, "## [0.4.0]"
+    assert_includes changelog, "Upgrade notes (0.3.x → 0.4.0)"
+    assert_includes changelog, "body_digest"
+    assert_includes changelog, "NotLive"
+    assert_includes changelog, 'kind` (`terms`, `privacy`, `usage`)'
+    assert_includes changelog, "required_kinds"
+    assert_includes changelog, "api_key"
+    assert_includes notes, "Upgrade from 0.3.x to 0.4.0"
+    assert_includes notes, "change_note"
+    assert_includes notes, "pending_published_list"
+    assert_includes readme, "Upgrading from 0.3.x"
+    refute_includes changelog, "enable_feature_x = true"
   end
 
   def test_engine_does_not_ship_a_home_view

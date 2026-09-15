@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.0] - 2026-09-15
 
 ### Removed
-- Template Configuration knobs `api_key`, `enable_feature_x`, and `timeout`. Product config is `mount_path`, `require_scroll_to_end`, and `capture_request_provenance`.
+- Template Configuration knobs `api_key`, `enable_feature_x`, and `timeout`. Product config is `mount_path`, `require_scroll_to_end`, `capture_request_provenance`, and optional `required_kinds`.
 - Unused example `create_recording_studio_terms_and_conditions_pages` migration. Dummy never applied it; hosts that already copied it locally can leave the unused table.
 
 ### Added
@@ -20,24 +20,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `accept!` refuses drafts, unpublished, and scheduled-but-not-live versions (`RecordingStudioTermsAndConditions::NotLive`). The Agree screen flashes and does not write a receipt.
 - Re-gate Agree shows a Flatpack Alert when the person already accepted an older snapshot. Copy and the new live calendar date are distinct from first-time Agree. Optional `change_note` on the Terms snapshot appears in that Alert.
 - Terms snapshots have a stable `kind` (`terms`, `privacy`, `usage`). Existing rows default to `terms`. A workspace may have at most one Terms recording per kind. Clickwrap helpers default to `kind: "terms"`. Admin create/edit sets kind with a Flatpack Select.
-- Domain helpers: `current_published_for(root, kind:)` (default `"terms"`), `current_published_by_kind(root)`, `pending_published_list(actor, root)`, `accepted?(actor, root, kind:)`, and `requires_acceptance?(actor, root, kind:, required_kinds:)`. With no narrowing, `requires_acceptance?` is true if any published kind still needs a tick. Pass `required_kinds` or `config.required_kinds` to constrain the host gate. `accept!` still takes a live version of that kind and raises `NotLive` otherwise.
+- Domain helpers: `current_published_for(root, kind:)` (default `"terms"`), `current_published_by_kind(root)`, `pending_published_for` / `pending_published_list`, `accepted?(actor, root, kind:)`, `requires_acceptance?(actor, root, kind:, required_kinds:)`, and `reaccepting?`. With no narrowing, `requires_acceptance?` is true if any published kind still needs a tick. Pass `required_kinds` or `config.required_kinds` to constrain the host gate. `accept!` still takes a live version of that kind and raises `NotLive` otherwise.
 - Agree lists every pending live kind on one screen. One checkbox covers the listed set. The Agree POST calls `accept!` for each pending live version (idempotent, `NotLive`, digests unchanged). Scroll-to-end still uses one sentinel after the last document.
 - Admin Terms index filters by kind (`kind=`), shows coverage (live/draft/agrees) per kind, and Users receipts copy names the kind. The Admin Who agreed screen has a Kind column.
 - Host `ForcesAcceptance` and Users Auth `after_sign_in` / `after_sign_up` follow `pending_published_list`. The HTTP gate stays on until every published kind (or `required_kinds`) is accepted. Accepting one kind still redirects while others remain. Terms-only hosts are unchanged.
 
 ### Changed
 - Scroll-to-end no longer deadlocks Agree when `IntersectionObserver` is missing. Already-visible sentinels unlock immediately. The checkbox is still required. Scroll-to-end stays optional (default off). The Stimulus controller is self-contained (no extra importmap module).
+- `requires_acceptance?` with no `kind:` / `required_kinds:` follows every currently published kind, not only `terms`. `accepted?` and `current_published_for` still default to `kind: "terms"`.
 
-### Upgrade notes
-- Delete `config.api_key`, `config.enable_feature_x`, `config.timeout`, and `RECORDING_STUDIO_TERMS_AND_CONDITIONS_API_KEY` from host initializers and YAML. Unknown keys are ignored.
-- Run `bin/rails generate recording_studio_terms_and_conditions:migrations` then `bin/rails db:migrate` so `body_digest` exists. Do not backfill old receipts.
-- New `accept!` rows always set `body_digest`. Callers cannot pass a spoofed digest in provenance. Retrying `accept!` for the same actor and live snapshot returns the existing row and does not rewrite provenance or digest.
-- Host `accept!` callers must pass a live published version. Rescue `RecordingStudioTermsAndConditions::NotLive` for drafts and unpublished copy — do not write a receipt.
-- Run the `change_note` migration. It is optional on Terms snapshots. Leave it blank unless you want a short “what changed” line on the re-gate Agree Alert.
-- Run the unique-index migration. It removes `index_rstac_acceptances_on_actor_and_version` only if that index exists, then adds it unique. New installs get the unique index from the create migration. If migrate fails, the table already has duplicate actor+snapshot receipts — do not rewrite those rows; resolve the duplicates first.
-- Leave `config.capture_request_provenance` off unless you intend to store IP and user agent from the gem Agree screen.
+### Upgrade notes (0.3.x → 0.4.0)
+
+Copy this gem's migrations, then `bin/rails db:migrate`:
+
+- `body_digest` on acceptances. Do not backfill old receipts.
+- Unique index on actor + recording + snapshot. The migration drops `index_rstac_acceptances_on_actor_and_version` only if that name exists, then adds it unique. If migrate fails, resolve duplicate actor+snapshot rows first. Do not rewrite those rows.
+- Optional `change_note` on Terms (re-gate Alert).
+- `kind` on Terms (default `"terms"`).
+
+Delete `config.api_key`, `config.enable_feature_x`, `config.timeout`, and `RECORDING_STUDIO_TERMS_AND_CONDITIONS_API_KEY`. Unknown keys are ignored.
+
+Behavior hosts must account for:
+
+- Publishing privacy or usage now gates that kind unless you pass `kind:`, `required_kinds:`, or `config.required_kinds`. A terms-only workspace behaves as in 0.3.
+- Do not add a second Terms recording of the same kind in a workspace. Privacy and usage stay `::Terms`.
+- `current_published_for` still means `kind: "terms"` unless you pass `kind:`.
+- Host `accept!` callers must pass a live published version. Rescue `NotLive`. Retrying the same actor and snapshot returns the existing receipt and does not rewrite provenance or digest. Callers cannot spoof `body_digest` in provenance.
+- The gem Agree screen lists every pending kind; one tick calls `accept!` for each. Host forms that use the checkbox helper should do the same with `pending_published_list`.
+- The host gate and Users post-auth hook stay on until that pending set is empty.
+- Leave `capture_request_provenance` off unless the gem Agree screen should store IP and user agent.
 - If you opt into `require_scroll_to_end`, pin the engine Stimulus controllers. Missing IntersectionObserver leaves Agree enabled.
-- Run the `kind` migration. Existing Terms rows become `kind: "terms"`. Do not add a second Terms recording of the same kind in a workspace. Clickwrap `current_published_for` still means `kind: "terms"` unless you pass `kind:`. Privacy and usage are the same `::Terms` class. `requires_acceptance?` now follows every published kind unless you pass `kind:`, `required_kinds:`, or `config.required_kinds`. The gem Agree screen lists every pending kind and one tick calls `accept!` for each. The host gate and Users post-auth hook stay on until that pending set is empty. Use `pending_published_list` when a host screen needs the same set. Admin Terms filter with `kind=` and read coverage per kind on that index.
 
 ## [0.3.1] - 2026-09-15
 
