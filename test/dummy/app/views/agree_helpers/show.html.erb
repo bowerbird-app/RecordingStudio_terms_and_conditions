@@ -1,0 +1,20 @@
+<% dummy_page_nav(title: "Agree helper", back_url: root_path) %>
+
+<div class="flex w-full flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: "Agree helper",
+    subtitle: "The checkbox. Hosts put it in their form and call accept!.",
+    variant: :h1
+  ) %>
+
+  <%= render FlatPack::CodeBlock::Component.new(
+    language: :erb,
+    code: [
+      "<" + "%= recording_studio_terms_agree %" + ">",
+      "<" + "%= recording_studio_terms_agree(inside_form: true) %" + ">",
+      "<" + "%= recording_studio_terms_agree(link_terms: true) %" + ">"
+    ].join("\n")
+  ) %>
+
+  <%= recording_studio_terms_agree(inside_form: true, link_terms: true) %>
+</div>

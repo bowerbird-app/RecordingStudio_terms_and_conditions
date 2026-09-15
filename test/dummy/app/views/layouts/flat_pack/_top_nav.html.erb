@@ -1,0 +1,22 @@
+<%= render FlatPack::TopNav::Component.new do |nav| %>
+  <% nav.left(always_display: true) do %>
+    <%= render FlatPack::Link::Component.new(href: main_app.root_path).with_content("Terms demo") %>
+  <% end %>
+
+  <% nav.center do %>
+    <span aria-hidden="true"></span>
+  <% end %>
+
+  <% nav.right(always_display: true) do %>
+    <% if respond_to?(:user_signed_in?) && user_signed_in? %>
+      <%= recording_studio_root_switch_dropdown(style: :ghost, size: :md) if respond_to?(:recording_studio_root_switch_dropdown) %>
+      <%= render FlatPack::Button::Component.new(
+        text: "Sign out",
+        style: :ghost,
+        size: :md,
+        href: "/users/sign_out",
+        method: :delete
+      ) %>
+    <% end %>
+  <% end %>
+<% end %>

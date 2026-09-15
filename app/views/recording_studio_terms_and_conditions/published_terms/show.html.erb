@@ -1,0 +1,14 @@
+<% if respond_to?(:recording_studio_page_nav) %>
+  <% recording_studio_page_nav(title: @terms&.title.presence || "Terms") %>
+<% end %>
+
+<%= render FlatPack::PageTitle::Component.new(
+  title: @terms&.title.presence || "Terms",
+  subtitle: "The public copy. No checkbox here.",
+  variant: :h1
+) %>
+<div class="-mt-5 mb-6">
+  <%= terms_version_date(@terms) %>
+</div>
+
+<%= terms_content(@terms&.body) %>

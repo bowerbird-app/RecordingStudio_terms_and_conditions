@@ -1,0 +1,5 @@
+development:
+  mount_path: "/recording_studio_terms_and_conditions"
+
+production:
+  mount_path: "/recording_studio_terms_and_conditions"

@@ -1,0 +1,62 @@
+<% terms_page_nav(title: "Terms", back_url: terms_admin_hub_path, back_label: "Admin") %>
+
+<%= render FlatPack::PageTitle::Component.new(
+  title: "Terms",
+  subtitle: "Draft here. Publish next door.",
+  variant: :h1
+) do |page_title| %>
+  <% page_title.slot do %>
+    <%= render FlatPack::Button::Component.new(
+      text: "Write terms",
+      style: :primary,
+      href: new_admin_term_path
+    ) %>
+  <% end %>
+<% end %>
+
+<% if @terms_recordings.blank? %>
+  <%= render FlatPack::EmptyState::Component.new(
+    title: "No terms yet",
+    description: "Write a draft, then publish it when the wording is ready."
+  ) %>
+<% else %>
+  <% terms_rows = @terms_recordings.map { |recording|
+    title = recording.recordable&.title.presence || "Untitled"
+    live = recording.respond_to?(:currently_published?) && recording.currently_published?
+    {
+      title: title,
+      href: admin_term_path(recording),
+      live: live,
+      published: terms_published_at(recording),
+      agrees: RecordingStudioTermsAndConditions::Acceptance.where(terms_recording_id: recording.id).count
+    }
+  } %>
+
+  <%= render FlatPack::Table::Component.new(
+    data: terms_rows,
+    class: "text-sm"
+  ) do |table| %>
+    <% table.column(title: "Title") do |row|
+      render FlatPack::Link::Component.new(href: row[:href]).with_content(row[:title])
+    end %>
+    <% table.column(title: "Status") do |row|
+      render FlatPack::Badge::Component.new(
+        text: row[:live] ? "Live" : "Draft",
+        style: row[:live] ? :success : :default,
+        size: :sm
+      )
+    end %>
+    <% table.column(title: "Published") do |row|
+      terms_calendar_date(row[:published]) || "—"
+    end %>
+    <% table.column(title: "Agrees") { |row| row[:agrees] } %>
+    <% table.column(title: "Open") do |row|
+      render FlatPack::Button::Component.new(
+        text: "Open",
+        style: :ghost,
+        size: :sm,
+        href: row[:href]
+      )
+    end %>
+  <% end %>
+<% end %>

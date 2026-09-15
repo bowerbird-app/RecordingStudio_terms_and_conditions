@@ -6,16 +6,17 @@ require "devise/test/integration_helpers"
 class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
   include Devise::Test::IntegrationHelpers
 
-  test "sign in page uses the devise layout and is not squished by the default layout" do
+  test "sign in page uses Users Auth and is not squished by the default layout" do
     get new_user_session_path
 
     assert_response :success
-    assert_includes response.body, "admin@admin.com"
-    assert_includes response.body, "Password"
+    assert_includes response.body, "Welcome back"
+    assert_includes response.body, "Continue with email"
     assert_includes response.body, 'data-theme="rounded"'
     refute_includes response.body, "data-recording-studio-default-layout"
     refute_includes response.body, "mt-28"
     refute_includes response.body, "fixed inset-0"
+    refute_includes response.body, "Default: admin@admin.com / Password"
   end
 
   test "home page renders the root switch dropdown trigger" do
@@ -28,12 +29,16 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
 
     workspace = Workspace.create!(name: "Dropdown Workspace")
     RecordingStudio.root_recording_for(workspace)
+    switch_to_workspace(workspace)
 
     get root_path
 
     assert_response :success
     assert_includes response.body, workspace.name
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
+    assert_select "header.fp-top-nav", count: 1
+    assert_select "a", text: "Sign out"
+    assert_select "a[href='/users/sign_out']"
   end
 
   test "root switch page renders with the host default layout" do

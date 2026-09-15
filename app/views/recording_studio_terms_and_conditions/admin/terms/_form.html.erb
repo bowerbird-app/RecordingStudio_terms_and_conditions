@@ -1,0 +1,11 @@
+<div class="flex w-full flex-col gap-6">
+  <%= render FlatPack::TextInput::Component.new(
+    name: "terms[title]",
+    value: title,
+    label: "Title",
+    required: true
+  ) %>
+  <div class="[&_.flat-pack-input-wrapper]:border-0 [&_.flat-pack-input-wrapper]:bg-transparent [&_.flat-pack-input-wrapper]:p-0 [&_.flat-pack-input-wrapper]:shadow-none [&_.flat-pack-richtext-wrapper]:rounded-none">
+    <%= terms_body_editor(value: body) %>
+  </div>
+</div>

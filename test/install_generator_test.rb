@@ -3,11 +3,11 @@
 require "test_helper"
 require "fileutils"
 require "tmpdir"
-require "generators/gem_template/install/install_generator"
+require "generators/recording_studio_terms_and_conditions/install/install_generator"
 
 class InstallGeneratorTest < Minitest::Test
   INSTALL_TEMPLATE_PATH = File.expand_path(
-    "../lib/generators/gem_template/install/templates/INSTALL.md",
+    "../lib/generators/recording_studio_terms_and_conditions/install/templates/INSTALL.md",
     __dir__
   )
 
@@ -19,11 +19,57 @@ class InstallGeneratorTest < Minitest::Test
   end
 
   def build_generator(destination_root, options = {})
-    GemTemplate::Generators::InstallGenerator.new(
+    RecordingStudioTermsAndConditions::Generators::InstallGenerator.new(
       [],
       options,
       destination_root: destination_root
     )
+  end
+
+  def test_install_migrations_invokes_migrations_generator
+    generator = build_generator("/tmp")
+    commands = []
+
+    generator.stub(:generate, ->(command) { commands << command }) do
+      generator.install_migrations
+    end
+
+    assert_equal ["recording_studio_terms_and_conditions:migrations"], commands
+  end
+
+  def test_install_migrations_can_be_skipped
+    generator = build_generator("/tmp", skip_migrations: true)
+    commands = []
+
+    generator.stub(:generate, ->(command) { commands << command }) do
+      generator.install_migrations
+    end
+
+    assert_empty commands
+  end
+
+  def test_mount_engine_skips_when_already_mounted
+    with_temp_app do |dir|
+      FileUtils.mkdir_p(File.join(dir, "config"))
+      File.write(File.join(dir, "config/routes.rb"), <<~RUBY)
+        Rails.application.routes.draw do
+          mount RecordingStudioTermsAndConditions::Engine, at: "/recording_studio_terms_and_conditions"
+        end
+      RUBY
+
+      generator = build_generator(dir)
+      routes = []
+      messages = []
+
+      generator.stub(:route, ->(value) { routes << value }) do
+        generator.stub(:say, ->(message, color = nil) { messages << [message, color] }) do
+          generator.mount_engine
+        end
+      end
+
+      assert_empty routes
+      assert_includes messages, ["RecordingStudioTermsAndConditions is already mounted.", :green]
+    end
   end
 
   def test_mount_engine_uses_configured_mount_path
@@ -34,7 +80,7 @@ class InstallGeneratorTest < Minitest::Test
       generator.mount_engine
     end
 
-    assert_equal ["mount GemTemplate::Engine, at: \"/addons/recording\""], routes
+    assert_equal ["mount RecordingStudioTermsAndConditions::Engine, at: \"/addons/recording\""], routes
   end
 
   def test_add_tailwind_source_injects_engine_and_flatpack_sources
@@ -60,8 +106,8 @@ class InstallGeneratorTest < Minitest::Test
       css_path = File.join(dir, "app/assets/tailwind/application.css")
       File.write(css_path, <<~CSS)
         @import "tailwindcss";
-        @source "../../vendor/bundle/**/gem_template/app/views/**/*.erb";
-        @source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/gem_template-*/app/views/**/*.erb";
+        @source "../../vendor/bundle/**/recording_studio_terms_and_conditions/app/views/**/*.erb";
+        @source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/recording_studio_terms_and_conditions-*/app/views/**/*.erb";
         @source "../../vendor/bundle/**/flatpack/app/components/**/*.{rb,erb}";
         @source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/flatpack-*/app/components/**/*.{rb,erb}";
       CSS
@@ -137,12 +183,34 @@ class InstallGeneratorTest < Minitest::Test
 
   def test_install_guide_includes_migration_and_host_setup_steps
     install_guide = File.read(INSTALL_TEMPLATE_PATH)
+    initializer = File.read(
+      File.expand_path(
+        "../lib/generators/recording_studio_terms_and_conditions/install/templates/" \
+        "recording_studio_terms_and_conditions_initializer.rb",
+        __dir__
+      )
+    )
 
-    assert_includes install_guide, "bin/rails generate gem_template:migrations"
     assert_includes install_guide, "bin/rails db:migrate"
-    assert_includes install_guide, "auth, layout, and current actor integration"
-    assert_includes install_guide, "recording_studio_recordable"
+    assert_includes install_guide, "copied this gem's migrations"
+    assert_includes install_guide, "RecordingStudioTermsAndConditions::Terms"
+    assert_includes install_guide, "section :terms"
+    assert_includes install_guide, "ForcesAcceptance"
+    assert_includes install_guide, "/terms/:uuid/:slug"
+    assert_includes initializer, "config.mount_path"
+    refute_includes initializer, "enable_feature_x"
     refute_includes install_guide, "RecordingStudio v3"
+  end
+
+  def test_kit_skill_lists_this_gem
+    skill = File.read(
+      File.expand_path("../.github/skills/recording-studio-terms-and-conditions/SKILL.md", __dir__)
+    )
+
+    assert_includes skill, "name: recording-studio-terms-and-conditions"
+    assert_includes skill, "recording_studio_terms_and_conditions"
+    assert_includes skill, "recording-studio-gems"
+    assert_includes skill, "ForcesAcceptance"
   end
 
   private
@@ -161,10 +229,12 @@ class InstallGeneratorTest < Minitest::Test
 
   def tailwind_source_lines
     [
-      '@source "../../vendor/bundle/**/gem_template/app/views/**/*.erb";',
-      '@source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/gem_template-*/app/views/**/*.erb";',
+      '@source "../../vendor/bundle/**/recording_studio_terms_and_conditions/app/views/**/*.erb";',
+      '@source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/' \
+      'recording_studio_terms_and_conditions-*/app/views/**/*.erb";',
       '@source "../../vendor/bundle/**/flatpack/app/components/**/*.{rb,erb}";',
-      '@source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/flatpack-*/app/components/**/*.{rb,erb}";'
+      '@source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/flatpack-*/app/components/**/*.{rb,erb}";',
+      '@source "../../../../../../usr/local/lib/ruby/gems/**/bundler/gems/flatpack-*/app/components/**/*.{rb,erb}";'
     ]
   end
 end

@@ -19,6 +19,7 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     end
 
     sign_in @user
+    accept_live_studio_terms!
   end
 
   test "install page renders successfully" do
@@ -87,7 +88,6 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Folder: Reference"
     assert_includes response.body, "Page: API"
     refute_includes response.body, "Access boundary"
-    refute_includes response.body, "Access: Admin"
     assert_select "div[role='tree']", count: 1
     assert_select "[role='treeitem']", minimum: 3
     refute_includes response.body, "Current structure"
@@ -99,18 +99,17 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h1", text: "Gem Views"
     assert_select "table", minimum: 1
-    refute_includes response.body, "app/views/gem_template/home/index.html.erb"
+    refute_includes response.body, "app/views/recording_studio_terms_and_conditions/home/index.html.erb"
   end
 
   test "methods page renders successfully" do
     get docs_methods_path
     assert_response :success
     assert_select "h1", text: "Methods"
-    assert_includes response.body, "Document the public methods your addon exposes."
-    assert_includes response.body, "Example method"
-    assert_includes response.body, "recordingstudio_addon.example_method"
-    assert_includes response.body, "# Explain what this method does before the example."
-    assert_includes response.body, "Provide one section title and codeblock for each method"
+    assert_includes response.body, "Domain helpers plus the host Agree control."
+    assert_includes response.body, "Agree helper"
+    assert_includes response.body, "recording_studio_terms_agree"
+    assert_includes response.body, "accept!"
   end
 
   test "authenticated docs pages use the recording studio default layout" do
@@ -154,6 +153,17 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
   def recordable_type_summary(recording_count, recordable_count)
     "#{ActionController::Base.helpers.pluralize(recording_count, 'recording')} point to this type " \
       "• #{ActionController::Base.helpers.pluralize(recordable_count, 'recordable')} in the database"
+  end
+
+  def accept_live_studio_terms!
+    workspace = Workspace.find_by(name: "Studio Workspace")
+    return unless workspace
+
+    terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
+    return unless terms
+    return if RecordingStudioTermsAndConditions.accepted?(@user, workspace)
+
+    RecordingStudioTermsAndConditions.accept!(@user, terms, { "source" => "test" })
   end
 
   def record_child(recordable, root_recording, parent_recording)

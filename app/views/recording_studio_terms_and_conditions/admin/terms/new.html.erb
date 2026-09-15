@@ -1,0 +1,20 @@
+<% terms_page_nav(title: "Write terms", back_url: terms_admin_hub_path, back_label: "Admin") %>
+
+<div class="mx-auto flex w-full flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: "Write terms",
+    subtitle: "Save a draft. Publish when it should go live.",
+    variant: :h1
+  ) %>
+
+  <%= form_with url: admin_terms_path, method: :post, scope: :terms, class: "flex w-full flex-col gap-6" do %>
+    <%= render "form", title: @title, body: @body %>
+    <div class="inline-block">
+      <%= render FlatPack::Button::Component.new(
+        text: "Save draft",
+        style: :primary,
+        type: "submit"
+      ) %>
+    </div>
+  <% end %>
+</div>

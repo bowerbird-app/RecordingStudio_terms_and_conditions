@@ -8,12 +8,16 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     assert_equal :application_layout, RecordingStudioRootSwitchable.configuration.layout
     assert_includes ApplicationController.ancestors, RecordingStudio::RootSwitchable::ControllerSupport
     assert_includes ApplicationController.ancestors, RecordingStudio::UsesDefaultLayout
+    assert_includes ApplicationController.ancestors, RecordingStudioTermsAndConditions::ForcesAcceptance
+    assert_includes RecordingStudioUser::Auth::BaseController.ancestors,
+                    RecordingStudioTermsAndConditions::UsersAuthRedirect
   end
 
   test "dummy app validates recordable declarations" do
     assert RecordingStudio.validate_recordable_declarations!
-    assert_equal [ "Workspace" ], RecordingStudio.root_recordable_types
+    assert_equal [ "AdminRoot", "RecordingStudioUser::People", "Workspace" ].sort, RecordingStudio.root_recordable_types.sort
     assert_equal [ "Workspace", "Folder" ], RecordingStudio.allowed_parent_types_for("Page")
+    assert_equal [ "Workspace" ], RecordingStudio.allowed_parent_types_for("RecordingStudioTermsAndConditions::Terms")
   end
 
   test "dummy app schema keeps accessible grants and excludes removed core tables" do
@@ -35,6 +39,8 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     private_workspace = Workspace.find_by!(name: "Private Workspace")
     folder = Folder.find_by!(name: "Product Docs")
     page = Page.find_by!(title: "Getting Started")
+    admin_root = AdminRoot.find_by!(name: "Admin")
+    terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
     root_recording = RecordingStudio::Recording.find_by!(recordable: workspace)
     accessible_root_recording = RecordingStudio::Recording.find_by!(recordable: accessible_workspace)
     private_root_recording = RecordingStudio::Recording.find_by!(recordable: private_workspace)
@@ -50,6 +56,11 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     assert_equal folder_recording, page_recording.parent_recording
     assert_equal root_recording, page_recording.root_recording
     assert_equal 3, Workspace.count
+    assert_equal "Studio Terms", terms.title
+    assert_includes RecordingStudioTermsAndConditions::SampleTerms::BODY, "Using the booth"
+    seeds_source = File.read(Rails.root.join("db/seeds.rb"))
+    assert_includes seeds_source, "SampleTerms::BODY"
+    assert RecordingStudio::Recording.find_by!(recordable: admin_root)
 
     assert_no_difference -> { User.count } do
       assert_no_difference -> { RecordingStudio::Recording.count } do
@@ -63,7 +74,7 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
 
   test "workspace opts into accessible and the example mixin without enabling them globally" do
     workspace_source = File.read(Rails.root.join("app/models/workspace.rb"))
-    example_source = File.read(GemTemplate::Engine.root.join("lib/gem_template/capabilities/example.rb"))
+    example_source = File.read(RecordingStudioTermsAndConditions::Engine.root.join("lib/recording_studio_terms_and_conditions/capabilities/example.rb"))
 
     assert_includes workspace_source, "include RecordingStudio::Capabilities::Example.to(label: \"dummy workspace\")"
     assert_includes example_source, "RecordingStudio::Capabilities.include_for(:example, **)"

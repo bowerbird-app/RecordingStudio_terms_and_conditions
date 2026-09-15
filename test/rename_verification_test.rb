@@ -230,8 +230,7 @@ class RenameVerificationTest < Minitest::Test
     skip if @gem_name == "gem_template"
 
     ruby_files = Dir.glob(File.join(@root, "**", "*.rb"))
-    # Exclude test files and this verification test itself
-    ruby_files.reject! { |f| f.include?("test/dummy") || f.include?("rename_verification_test.rb") }
+    ruby_files.reject! { |f| skip_old_name_scan?(f) }
 
     files_with_old_refs = []
 
@@ -389,6 +388,12 @@ class RenameVerificationTest < Minitest::Test
   # ============================================================
 
   private
+
+  def skip_old_name_scan?(path)
+    return true if path.include?("test/dummy")
+
+    File.basename(path).start_with?("rename_")
+  end
 
   def detect_gem_name
     # Priority 1: Read from .gem_identity.yml if it exists

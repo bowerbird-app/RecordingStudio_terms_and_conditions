@@ -1,11 +1,21 @@
 Rails.application.routes.draw do
-  devise_for :users
+  devise_for :users,
+             skip: %i[sessions registrations passwords],
+             controllers: {
+               confirmations: "recording_studio_user/auth/confirmations"
+             }
+  recording_studio_user_auth_for :users
 
   # RecordingStudio engine is data/API-focused and has no browser root route.
   # Keep legacy links working by redirecting the base path to the app home.
   get "/recording_studio", to: redirect("/"), as: nil
+  mount RecordingStudioUser::Engine => RecordingStudioUser.config.mount_path, as: :recording_studio_users
   mount RecordingStudio::Engine, at: "/recording_studio"
   mount RecordingStudioRootSwitchable::Engine, at: "/recording_studio_root_switchable"
+  mount RecordingStudioTermsAndConditions::Engine, at: "/recording_studio_terms_and_conditions"
+  mount RecordingStudioAccessible::Engine, at: "/admin/access"
+  mount RecordingStudioPublishable::Engine, at: "/", as: :recording_studio_publishable
+  recording_studio_admin_for :admin, at: "/admin", root_section: :terms
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
@@ -23,6 +33,7 @@ Rails.application.routes.draw do
   get "docs/recordings_tree", to: "docs#recordings_tree", as: :docs_recordings_tree
   get "docs/gem_views", to: "docs#gem_views", as: :docs_gem_views
   get "docs/methods", to: "docs#methods", as: :docs_methods
+  get "agree_helper", to: "agree_helpers#show", as: :agree_helper
 
   # Defines the root path route ("/")
   root "home#index"

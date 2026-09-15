@@ -1,0 +1,20 @@
+<% terms_page_nav(title: "Edit terms", back_url: admin_term_path(@terms_recording), back_label: "Terms") %>
+
+<div class="mx-auto flex w-full flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: "Edit terms",
+    subtitle: "This writes a new version. People must agree again after you publish.",
+    variant: :h1
+  ) %>
+
+  <%= form_with url: admin_term_path(@terms_recording), method: :patch, scope: :terms, class: "flex w-full flex-col gap-6" do %>
+    <%= render "form", title: @terms.title, body: @terms.body %>
+    <div class="inline-block">
+      <%= render FlatPack::Button::Component.new(
+        text: "Save version",
+        style: :primary,
+        type: "submit"
+      ) %>
+    </div>
+  <% end %>
+</div>

@@ -28,6 +28,7 @@ accessible_workspace = Workspace.find_or_create_by!(name: "Client Workspace")
 private_workspace = Workspace.find_or_create_by!(name: "Private Workspace")
 folder = Folder.find_or_create_by!(name: "Product Docs")
 page = Page.find_or_create_by!(title: "Getting Started")
+admin_root = AdminRoot.find_or_create_by!(name: "Admin")
 
 previous_actor = Current.actor
 Current.actor = user
@@ -37,10 +38,44 @@ begin
   root_recording = RecordingStudio.root_recording_for(workspace)
   accessible_root_recording = RecordingStudio.root_recording_for(accessible_workspace)
   private_root_recording = RecordingStudio.root_recording_for(private_workspace)
+  admin_root_recording = RecordingStudio.root_recording_for(admin_root)
 
   folder_recording = find_or_record_child.call(folder, root_recording, root_recording)
 
   find_or_record_child.call(page, root_recording, folder_recording)
+
+  if defined?(RecordingStudioAccessible)
+    unless RecordingStudioAccessible.authorized?(
+      actor: user,
+      recording: admin_root_recording,
+      role: :edit
+    )
+      result = RecordingStudioAccessible.bootstrap_owner_access!(
+        recording: admin_root_recording,
+        actor: user
+      )
+      raise result.error if result.respond_to?(:failure?) && result.failure?
+    end
+  end
+
+  terms_recording = RecordingStudio::Recording.find_by(
+    recordable_type: RecordingStudioTermsAndConditions::Terms.name,
+    root_recording: root_recording,
+    trashed_at: nil
+  )
+  if terms_recording.blank?
+    terms_recording = root_recording.record(
+      RecordingStudioTermsAndConditions::Terms,
+      actor: user
+    ) do |terms|
+      terms.title = RecordingStudioTermsAndConditions::SampleTerms::TITLE
+      terms.body = RecordingStudioTermsAndConditions::SampleTerms::BODY
+    end
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: terms_recording,
+      attributes: { slug: "studio-terms", status: "published" }
+    ).value!
+  end
 ensure
   Current.actor = previous_actor
 end
@@ -50,3 +85,5 @@ puts "Seeded: Workspace '#{workspace.name}' with root recording ##{root_recordin
 puts "Seeded: Workspace '#{accessible_workspace.name}' with root recording ##{accessible_root_recording.id}"
 puts "Seeded: Workspace '#{private_workspace.name}' with root recording ##{private_root_recording.id}"
 puts "Seeded: Folder '#{folder.name}' and page '#{page.title}'"
+puts "Seeded: AdminRoot '#{admin_root.name}' with root recording ##{admin_root_recording.id}"
+puts "Seeded: published Studio Terms under '#{workspace.name}'"

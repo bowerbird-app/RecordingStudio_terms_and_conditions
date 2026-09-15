@@ -1,0 +1,106 @@
+# frozen_string_literal: true
+
+module RecordingStudioTermsAndConditions
+  # Domain helpers for live published Terms and append-only acceptances.
+  class TermsAcceptance
+    class << self
+      def current_published_for(root)
+        root_recording = resolve_root_recording(root)
+        return if root_recording.blank?
+
+        published_terms_recording_for(root_recording)&.recordable
+      end
+
+      def accepted?(actor, root)
+        return false if actor.blank?
+
+        terms = current_published_for(root)
+        return false if terms.blank?
+
+        recording = recording_for_terms(terms)
+        return false if recording.blank?
+
+        acceptance_exists?(actor: actor, terms_recording_id: recording.id, terms_id: terms.id)
+      end
+
+      def requires_acceptance?(actor, root)
+        current_published_for(root).present? && !accepted?(actor, root)
+      end
+
+      def accept!(actor, version, provenance = {})
+        raise ArgumentError, "actor is required" if actor.blank?
+
+        recording, terms = resolve_version(version)
+        raise ArgumentError, "version must be Terms or a Terms recording" if recording.blank? || terms.blank?
+
+        Acceptance.create!(
+          actor: actor,
+          terms_recording_id: recording.id,
+          terms_id: terms.id,
+          accepted_at: Time.current,
+          provenance: normalize_provenance(provenance)
+        )
+      end
+
+      private
+
+      def resolve_root_recording(root)
+        return if root.blank?
+        return recording_root(root) if root.is_a?(RecordingStudio::Recording)
+        return unless persisted_root_recordable?(root)
+
+        RecordingStudio.root_recording_for(root)
+      end
+
+      def recording_root(recording)
+        recording.parent_recording_id.blank? ? recording : recording.root_recording
+      end
+
+      def persisted_root_recordable?(root)
+        root.respond_to?(:id) && root.id.present? && RecordingStudio.root_allowed?(root.class.name)
+      end
+
+      def published_terms_recording_for(root_recording)
+        candidates = root_recording.recordings_query(include_children: true, type: Terms.name)
+        candidates.select(&:currently_published?).max_by { |recording| publish_sort_key(recording) }
+      end
+
+      def publish_sort_key(recording)
+        [recording.current_publishable&.publish_at || recording.created_at, recording.created_at]
+      end
+
+      def resolve_version(version)
+        if version.is_a?(RecordingStudio::Recording)
+          terms = version.recordable
+          return unless terms.is_a?(Terms)
+
+          [version, terms]
+        elsif version.is_a?(Terms)
+          recording = recording_for_terms(version)
+          [recording, version] if recording
+        end
+      end
+
+      def recording_for_terms(terms)
+        RecordingStudio::Recording.find_by(recordable_type: Terms.name, recordable_id: terms.id) ||
+          RecordingStudio::Event.find_by(recordable_type: Terms.name, recordable_id: terms.id)&.recording
+      end
+
+      def acceptance_exists?(actor:, terms_recording_id:, terms_id:)
+        Acceptance.where(
+          actor_type: actor.class.base_class.name,
+          actor_id: actor.id,
+          terms_recording_id: terms_recording_id,
+          terms_id: terms_id
+        ).exists?
+      end
+
+      def normalize_provenance(provenance)
+        return {} if provenance.nil?
+        raise ArgumentError, "provenance must be a hash" unless provenance.respond_to?(:to_h)
+
+        provenance.to_h.stringify_keys
+      end
+    end
+  end
+end
