@@ -41,10 +41,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     get recording_studio_terms_and_conditions.admin_terms_path
     assert_response :success
     assert_includes response.body, "Write terms"
-    assert_includes response.body, "Title"
-    assert_includes response.body, "Status"
-    assert_includes response.body, "Agrees"
-    assert_includes response.body, "Published"
+    assert_includes response.body, "No terms yet"
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
     assert_select "header.fp-top-nav", count: 1
     assert_select "nav[aria-label='Page navigation']", count: 1

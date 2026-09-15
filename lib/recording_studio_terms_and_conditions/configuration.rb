@@ -15,7 +15,7 @@ module RecordingStudioTermsAndConditions
     end
 
     def require_scroll_to_end=(value)
-      @require_scroll_to_end = ActiveModel::Type::Boolean.new.cast(value)
+      @require_scroll_to_end = value == true || value.to_s.casecmp("true").zero? || value.to_s == "1"
     end
 
     def to_h

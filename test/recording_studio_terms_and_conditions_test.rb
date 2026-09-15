@@ -252,7 +252,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     accept = engine_source("#{views}/acceptances/show.html.erb")
     assert_includes accept, "recording_studio_terms_scroll_to_end"
     assert_includes accept, "recording_studio_terms_agree_button"
-    assert File.exist?(engine_path("app/javascript/recording_studio_terms_and_conditions/controllers/scroll_to_end_controller.js"))
+    controller_js = "app/javascript/recording_studio_terms_and_conditions/controllers/scroll_to_end_controller.js"
+    assert File.exist?(engine_path(controller_js))
   end
 
   def test_dummy_login_layout_keeps_flatpack_assets_without_tight_main_offset
