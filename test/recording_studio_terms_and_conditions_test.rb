@@ -15,7 +15,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     gemspec = File.read(File.expand_path("../recording_studio_terms_and_conditions.gemspec", __dir__))
 
     assert_includes gemspec, 'spec.add_dependency "recording_studio", "~> 4.2"'
-    assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.144"'
+    assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.183"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", "~> 0.8"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_admin", "~> 2.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_publishable", "~> 0.2"'
@@ -56,7 +56,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.0.2"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.11.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.5.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.177"'
+    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.183"'
     refute_includes gemfile, "recording_studio/v3.0.0"
     refute_includes gemfile, 'tag: "v0.1.133"'
     refute_includes gemfile, 'tag: "v0.6.0"'
@@ -309,7 +309,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes readme, "recording-studio-gems"
     assert_includes readme, "#{internals_docs}/"
     assert_includes readme, "v4.2.0"
-    assert_includes readme, "v0.1.177"
+    assert_includes readme, "v0.1.183"
     assert_includes readme, "v0.9.1"
     refute_includes readme, "Internal template"
     refute_includes readme, old_module

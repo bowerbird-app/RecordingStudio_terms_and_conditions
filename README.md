@@ -217,7 +217,7 @@ See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full do
 | Publishable     | gemspec `~> 0.2`; dummy GitHub tag `v0.2.1` |
 | Attachable      | dummy GitHub tag `v0.5.1` (Users Profile needs it) |
 | Root Switchable | dummy GitHub tag `v0.5.0` |
-| FlatPack        | gemspec `>= 0.1.144`; dummy GitHub tag `v0.1.177` |
+| FlatPack        | gemspec `>= 0.1.183`; dummy GitHub tag `v0.1.183` |
 | Devise          | latest  |
 
 The dummy Gemfile keeps `github:` sources so Bundler can fetch those gems. Hosts also need Publishable (and Users/Attachable) migrations from those gems — this addon only ships Terms and Acceptance migrations.

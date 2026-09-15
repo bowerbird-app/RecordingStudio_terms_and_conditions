@@ -15,7 +15,7 @@ That copies Terms and Acceptance migrations, mounts the engine, and writes `conf
 - Rails 8.1 or newer
 - Recording Studio 4.x (`~> 4.2` in the gemspec; dummy GitHub tag `v4.2.0`)
 - Accessible dummy tag `v0.9.1` and Root Switchable dummy tag `v0.5.0`
-- FlatPack dummy tag `v0.1.177`
+- FlatPack dummy tag `v0.1.183`
 - Public RubyGems and GitHub access for dependency installation
 
 ## Verification

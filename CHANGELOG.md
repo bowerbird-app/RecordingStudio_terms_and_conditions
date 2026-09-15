@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Product identity is `recording_studio_terms_and_conditions` / `RecordingStudioTermsAndConditions` (was the gem-template engine name).
 - Homepage and source URLs point at https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions.
 - README is the product guide. `docs/gem_template/` stays as engine internals.
-- Hard kit dependencies: `recording_studio ~> 4.2`, `flat_pack >= 0.1.144`, `recording_studio_accessible ~> 0.8`, `recording_studio_admin ~> 2.0`, `recording_studio_publishable ~> 0.2`, `recording_studio_user ~> 0.11`.
+- Hard kit dependencies: `recording_studio ~> 4.2`, `flat_pack >= 0.1.183`, `recording_studio_accessible ~> 0.8`, `recording_studio_admin ~> 2.0`, `recording_studio_publishable ~> 0.2`, `recording_studio_user ~> 0.11`. Dummy and root Gemfiles pin FlatPack `v0.1.183`.
 
 ### Upgrade notes
 - Depend on `recording_studio_terms_and_conditions` instead of `gem_template`.
@@ -44,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Open Write Terms from Recording Studio Admin (`/admin` when `root_section: :terms`). The engine write path is still there for the form.
 - Dummy and hosts that still use a one-screen Devise login should mount Users Auth: skip Devise sessions/registrations/passwords, then `recording_studio_user_auth_for :users`.
 - Add `recording_studio_terms_and_conditions` to the approved kit in `recording-studio-gems` (published Terms + clickwrap). Do not hand-roll acceptances.
-- Rebuild host Tailwind after adding `@source` for `/usr/local/lib/ruby/gems/**/bundler/gems/flatpack-*` (install generator writes it). Flatpack `Button` takes `href`, not `url`. Flatpack `PageNav` takes `anchor_href`, not `back_url` / `anchor_url`.
+- Point host and dummy Gemfiles at FlatPack `v0.1.183` (gemspec `>= 0.1.183`). Rebuild host Tailwind after adding `@source` for `/usr/local/lib/ruby/gems/**/bundler/gems/flatpack-*` (install generator writes it). Flatpack `Button` takes `href`, not `url`. Flatpack `PageNav` takes `anchor_href`, not `back_url` / `anchor_url`.
 
 ## [0.2.2] - 2026-09-11
 
