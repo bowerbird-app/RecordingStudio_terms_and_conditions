@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optional `config.capture_request_provenance` (default off). When true, the gem Agree screen adds IP and user agent to provenance on new accepts.
 
 ### Changed
-- Scroll-to-end no longer deadlocks Agree when `IntersectionObserver` is missing. Already-visible sentinels unlock immediately. The checkbox is still required. Scroll-to-end stays optional (default off).
+- Scroll-to-end no longer deadlocks Agree when `IntersectionObserver` is missing. Already-visible sentinels unlock immediately. The checkbox is still required. Scroll-to-end stays optional (default off). The Stimulus controller is self-contained (no extra importmap module).
 
 ### Upgrade notes
 - Delete `config.api_key`, `config.enable_feature_x`, `config.timeout`, and `RECORDING_STUDIO_TERMS_AND_CONDITIONS_API_KEY` from host initializers and YAML. Unknown keys are ignored.

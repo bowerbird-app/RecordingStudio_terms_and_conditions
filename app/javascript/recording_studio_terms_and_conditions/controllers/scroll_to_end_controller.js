@@ -1,5 +1,15 @@
 import { Controller } from "@hotwired/stimulus"
-import { shouldLockAgree, elementIsInViewport } from "./scroll_to_end_gate"
+
+function shouldLockAgree(canObserve, endVisible) {
+  return canObserve === true && endVisible !== true
+}
+
+function elementIsInViewport(element, viewportHeight) {
+  if (!element || typeof element.getBoundingClientRect !== "function") return false
+
+  const rect = element.getBoundingClientRect()
+  return rect.bottom > 0 && rect.top < viewportHeight
+}
 
 // Optional clickwrap gate: Agree stays disabled until the end sentinel is visible.
 // Missing IntersectionObserver must not deadlock Agree. The checkbox is still required.

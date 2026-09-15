@@ -5,10 +5,6 @@ require "open3"
 require "test_helper"
 
 class ScrollToEndControllerTest < Minitest::Test
-  GATE = File.expand_path(
-    "../app/javascript/recording_studio_terms_and_conditions/controllers/scroll_to_end_gate.js",
-    __dir__
-  )
   CONTROLLER = File.expand_path(
     "../app/javascript/recording_studio_terms_and_conditions/controllers/scroll_to_end_controller.js",
     __dir__
@@ -33,7 +29,8 @@ class ScrollToEndControllerTest < Minitest::Test
   def test_controller_unlocks_when_observer_is_missing_or_sentinel_is_visible
     source = File.read(CONTROLLER)
 
-    assert_includes source, 'import { shouldLockAgree, elementIsInViewport } from "./scroll_to_end_gate"'
+    refute_includes source, "scroll_to_end_gate"
+    refute_includes source, "from \"./"
     assert_includes source, 'this.hasEndTarget && "IntersectionObserver" in window'
     assert_includes source, "if (!shouldLockAgree(canObserve, visible))"
     assert_includes source, "this.unlockAgree()"
@@ -42,15 +39,15 @@ class ScrollToEndControllerTest < Minitest::Test
   private
 
   def gate_js(expression)
-    href = "file://#{GATE}"
+    source = File.read(CONTROLLER)
+    helpers = source[/\Aimport \{ Controller \} from "@hotwired\/stimulus"\n\n(.*)\n\n\/\/ Optional clickwrap/m, 1]
+    raise "could not extract scroll helpers" if helpers.blank?
+
     stdout, stderr, status = Open3.capture3(
       "node",
       "--input-type=module",
       "-e",
-      <<~JS
-        import { shouldLockAgree, elementIsInViewport } from #{href.to_json};
-        console.log(JSON.stringify(#{expression}));
-      JS
+      "#{helpers}\nconsole.log(JSON.stringify(#{expression}));"
     )
 
     raise "node gate failed: #{stderr}" unless status.success?
