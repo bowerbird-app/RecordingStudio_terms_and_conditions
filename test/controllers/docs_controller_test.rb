@@ -102,6 +102,19 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "app/views/recording_studio_terms_and_conditions/home/index.html.erb"
   end
 
+  test "gem_views table paginates with the shared table page size" do
+    get docs_gem_views_path
+    assert_response :success
+    first_page = css_select("table tbody tr").count
+    assert_operator first_page, :>, 0
+    assert_operator first_page, :<=, RecordingStudioTermsAndConditions::TablePage::SIZE
+
+    get docs_gem_views_path, params: { page: 2 }
+    assert_response :success
+    second_page = css_select("table tbody tr").count
+    assert_operator second_page, :<=, RecordingStudioTermsAndConditions::TablePage::SIZE
+  end
+
   test "methods page renders successfully" do
     get docs_methods_path
     assert_response :success

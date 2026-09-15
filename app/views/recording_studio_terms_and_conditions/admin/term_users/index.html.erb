@@ -23,4 +23,5 @@
     <% table.column(title: "Person") { |row| row[:person] } %>
     <% table.column(title: "Agreed") { |row| row[:agreed] } %>
   <% end %>
+  <%= terms_table_pagination(@pagy) %>
 <% end %>

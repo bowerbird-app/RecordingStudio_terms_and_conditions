@@ -36,6 +36,7 @@ module RecordingStudioTermsAndConditions
       end
 
       table do
+        paginate per_page: 25
         column :title,
                title: "Title",
                sortable: false,
@@ -70,6 +71,7 @@ module RecordingStudioTermsAndConditions
       query { |_context| Acceptance.order(accepted_at: :desc) }
 
       table do
+        paginate per_page: 25
         column :actor,
                title: "Person",
                sortable: false,

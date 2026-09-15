@@ -7,14 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-09-15
+
+### Added
+- Optional `config.require_scroll_to_end` (default off) keeps Agree disabled until a Stimulus sentinel at the end of the live copy is visible.
+- Admin term show puts receipts behind **Users** (left of Edit / Publish). The Who agreed table lives on that page, not under the copy.
+- Engine Terms and Users tables paginate with Flatpack infinite pages (`Pagy`, 25 per page), same as Recording Studio Admin dummy tables. Admin `Terms` and `Who agreed` screens set `paginate per_page: 25`. Dummy `/docs/gem_views` uses the same page size.
+
+### Changed
+- `Admin.register!` reloads after Zeitwerk so the Terms hub survives a code reload. Term show prints Recording and snapshot ids.
+
+### Upgrade notes
+- Scroll-to-end is off unless you set `config.require_scroll_to_end = true` or pass `require_scroll_to_end: true` to `recording_studio_terms_scroll_to_end` / `recording_studio_terms_agree_button`. Pin `recording_studio_terms_and_conditions/controllers` in the host importmap. The checkbox is still required.
+- Receipts for a term are on **Users** (next to Edit / Publish), not under the copy on show. Terms, Users, and Admin hub tables load 25 rows at a time (infinite).
+
 ## [0.3.0] - 2026-09-14
 
 ### Added
 - `RecordingStudioTermsAndConditions::Terms` recordable (table `recording_studio_terms_and_conditions_terms`, product label `"Terms"`). Publishable is opted in on the class with `RecordingStudio::Capabilities::Publishable.to`. Public `/terms/:uuid/:slug` is the Publishable page.
 - `RecordingStudioTermsAndConditions::Acceptance` append-only table (`recording_studio_terms_and_conditions_acceptances`) for clickwrap receipts. Not a recordable.
 - Domain helpers on `RecordingStudioTermsAndConditions`: `current_published_for(root)`, `accepted?(actor, root)`, `accept!(actor, version, provenance)`, `requires_acceptance?(actor, root)`. Live Terms use Publishable `currently_published?`. Acceptance rows store jsonb `provenance`.
-- Clickwrap Accept UI (`AcceptancesController`) for the current published Terms. Checkbox starts unchecked; Agree is gated until it is ticked. Optional `config.require_scroll_to_end` (default off) also keeps Agree disabled until a Stimulus sentinel at the end of the live copy is visible. Receipts call `accept!`.
-- Admin Terms screens (create, edit, Users receipts, acceptance coverage) and a Publishable public page at `/terms/:uuid/:slug`. Admin registers a `terms` section. Dummy mounts Admin, Accessible, Publishable, and the engine.
+- Clickwrap Accept UI (`AcceptancesController`) for the current published Terms. Checkbox starts unchecked; Agree is gated until it is ticked. Receipts call `accept!`.
+- Admin Terms screens (create, edit, acceptance coverage) and a Publishable public page at `/terms/:uuid/:slug`. Admin registers a `terms` section. Dummy mounts Admin, Accessible, Publishable, and the engine.
 - Host gate plus Users signup/post-auth hook: signed-in people who `requires_acceptance?` are sent to the existing Agree screen. A later published version gates them again.
 - Install generator copies migrations, mounts the engine (skips if already mounted), and writes a host initializer. Kit skill `.github/skills/recording-studio-terms-and-conditions` names this gem for `recording-studio-gems`.
 
@@ -25,7 +39,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Host helper `recording_studio_terms_agree` (optional `inside_form: true`) mounts the required Agree checkbox. No helper button — put the box in a host form and call `accept!`. Dummy `/agree_helper` shows a code example plus the live checkbox.
 - Dummy sign-in uses Recording Studio Users Auth (`recording_studio_user_auth_for :users`): email first, then password. The old Devise Login card is gone.
 - Write Terms parks under Recording Studio Admin (`/admin`). Show pages put copy in the Flatpack content surface, print the calendar date (for example `13 Aug 2026`) tight under the subtitle, and give the Agree checkbox more vertical space. `recording_studio_terms_agree(link_terms: true)` turns the word terms into a link to the live public page. The helper does not add a second “Read the full terms” line — the Agree screen already shows the copy. Admin Terms tables include a Published column. Write/edit keep Title/Body spacing. The Body wrapper has no extra border; Save draft stays content-width.
-- Admin term show puts receipts behind **Users** (left of Edit / Publish). The Who agreed table lives on that page, not under the copy.
 - Product identity is `recording_studio_terms_and_conditions` / `RecordingStudioTermsAndConditions` (was the gem-template engine name).
 - Homepage and source URLs point at https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions.
 - README is the product guide. `docs/gem_template/` stays as engine internals.
@@ -42,8 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Mount this engine for the Agree screen. Mount Publishable at `/` so `/terms/:uuid/:slug` works. Mount Admin, add an `AdminRoot`, enable `section :terms`, and grant Accessible access to that root. Publish through Publishable's edit UI, not a custom publish action. Hosts should use `recording_studio/default_layout` (or `UsesDefaultLayout`) for those screens — drop any copied `recording_studio_terms_and_conditions/public` layout. Load `flat_pack/application` from `_default_layout_head` and keep Tailwind last.
 - Expect the gem to include the acceptance gate on `ApplicationController` and to prepend the Users Auth redirect. Do not add a second clickwrap. After agree, people return to the page they asked for.
 - Drop `recording_studio_terms_agree` or `recording_studio_terms_agree(inside_form: true)` onto host screens. Pass `link_terms: true` to turn the word terms into a link to the live public page. The helper is the required `agreed` checkbox only. Wrap it in your form, then call `accept!` with `params[:agreed]`. Do not add another receipt table. Standalone helper no longer posts or renders Agree.
-- Scroll-to-end is off unless you set `config.require_scroll_to_end = true` or pass `require_scroll_to_end: true` to `recording_studio_terms_scroll_to_end` / `recording_studio_terms_agree_button`. Pin `recording_studio_terms_and_conditions/controllers` in the host importmap. The checkbox is still required.
-- Open Write Terms from Recording Studio Admin (`/admin` when `root_section: :terms`). The engine write path is still there for the form. Receipts for a term are on **Users** (next to Edit / Publish), not under the copy on show.
+- Open Write Terms from Recording Studio Admin (`/admin` when `root_section: :terms`). The engine write path is still there for the form.
 - Dummy and hosts that still use a one-screen Devise login should mount Users Auth: skip Devise sessions/registrations/passwords, then `recording_studio_user_auth_for :users`.
 - Add `recording_studio_terms_and_conditions` to the approved kit in `recording-studio-gems` (published Terms + clickwrap). Do not hand-roll acceptances.
 - Point host and dummy Gemfiles at FlatPack `v0.1.183` (gemspec `>= 0.1.183`). Rebuild host Tailwind after adding `@source` for `/usr/local/lib/ruby/gems/**/bundler/gems/flatpack-*` (install generator writes it). Flatpack `Button` takes `href`, not `url`. Flatpack `PageNav` takes `anchor_href`, not `back_url` / `anchor_url`.
@@ -131,7 +143,8 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.3.1
 [0.3.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.3.0
 [0.2.2]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.2.2
 [0.2.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.2.1

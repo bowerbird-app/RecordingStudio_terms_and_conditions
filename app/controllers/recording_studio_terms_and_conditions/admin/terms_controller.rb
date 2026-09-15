@@ -6,7 +6,7 @@ module RecordingStudioTermsAndConditions
       before_action :require_admin_write_access!, only: %i[create update]
 
       def index
-        @terms_recordings = terms_scope
+        @pagy, @terms_recordings = paginate_table(terms_scope)
       end
 
       def new

@@ -3,6 +3,9 @@
 module RecordingStudioTermsAndConditions
   module Admin
     class BaseController < RecordingStudioTermsAndConditions::ApplicationController
+      include Pagy::Backend
+      include TablePage
+
       before_action :authenticate_user!, raise: false
       before_action :require_admin_access!
 

@@ -28,15 +28,23 @@ class DocsController < ApplicationController
   def gem_views
     prefix = "#{RecordingStudioTermsAndConditions::Engine.root}/"
 
-    @engine_views = Dir.glob(RecordingStudioTermsAndConditions::Engine.root.join("app/views/recording_studio_terms_and_conditions/**/*.erb").to_s)
+    paths = Dir.glob(RecordingStudioTermsAndConditions::Engine.root.join("app/views/recording_studio_terms_and_conditions/**/*.erb").to_s)
       .sort
       .map { |path| path.delete_prefix(prefix) }
+    @pagy, @engine_views = paginate_view_paths(paths)
   end
 
   def methods
   end
 
   private
+
+  def paginate_view_paths(paths)
+    page = [params[:page].to_i, 1].max
+    limit = RecordingStudioTermsAndConditions::TablePage::SIZE
+    pagy = Pagy.new(count: paths.size, page: page, limit: limit)
+    [pagy, paths.slice(pagy.offset, pagy.limit) || []]
+  end
 
   def normalize_recordable_declaration(declaration)
     {

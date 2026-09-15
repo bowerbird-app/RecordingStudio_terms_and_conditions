@@ -144,6 +144,110 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes keys, "terms"
   end
 
+  test "admin terms index paginates like other kit tables" do
+    sign_in @admin
+    switch_to_workspace(@workspace)
+    root = RecordingStudio.root_recording_for(@workspace)
+    26.times do |index|
+      root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
+        terms.title = "Page #{index} #{SecureRandom.hex(3)}"
+        terms.body = "Body #{index}."
+      end
+    end
+
+    get recording_studio_terms_and_conditions.admin_terms_path
+    assert_response :success
+    assert_select "table tbody tr", count: 25
+
+    get recording_studio_terms_and_conditions.admin_terms_path, params: { page: 2 }
+    assert_response :success
+    page_two = css_select("table tbody tr").count
+    assert_operator page_two, :>, 0
+    assert_operator page_two, :<=, 25
+  end
+
+  test "term users paginates receipts" do
+    sign_in @admin
+    switch_to_workspace(@workspace)
+    recording = RecordingStudio.root_recording_for(@workspace).record(
+      RecordingStudioTermsAndConditions::Terms,
+      actor: @admin
+    ) do |terms|
+      terms.title = "Crowd"
+      terms.body = "Many people tick this."
+    end
+    26.times do |index|
+      person = User.create!(
+        email: "agree-#{index}-#{SecureRandom.hex(3)}@example.com",
+        password: "Password",
+        password_confirmation: "Password"
+      )
+      RecordingStudioTermsAndConditions.accept!(person, recording, { "source" => "clickwrap" })
+    end
+
+    get recording_studio_terms_and_conditions.admin_term_users_path(recording)
+    assert_response :success
+    assert_select "table tbody tr", count: 25
+
+    get recording_studio_terms_and_conditions.admin_term_users_path(recording), params: { page: 2 }
+    assert_response :success
+    page_two = css_select("table tbody tr").count
+    assert_operator page_two, :>, 0
+    assert_operator page_two, :<=, 25
+  end
+
+  test "admin terms screen table paginates" do
+    sign_in @admin
+    switch_to_workspace(@admin_root)
+    root = RecordingStudio.root_recording_for(@workspace)
+    26.times do |index|
+      root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
+        terms.title = "Hub #{index} #{SecureRandom.hex(3)}"
+        terms.body = "Hub body #{index}."
+      end
+    end
+
+    get "/admin/screens/recording_studio_terms/table"
+    assert_response :success
+    assert_select "table tbody tr", count: 25
+
+    get "/admin/screens/recording_studio_terms/table", params: { page: 2 }
+    assert_response :success
+    page_two = css_select("table tbody tr").count
+    assert_operator page_two, :>, 0
+    assert_operator page_two, :<=, 25
+  end
+
+  test "admin who agreed screen table paginates" do
+    sign_in @admin
+    switch_to_workspace(@admin_root)
+    recording = RecordingStudio.root_recording_for(@workspace).record(
+      RecordingStudioTermsAndConditions::Terms,
+      actor: @admin
+    ) do |terms|
+      terms.title = "Crowd hub"
+      terms.body = "Many people tick this."
+    end
+    26.times do |index|
+      person = User.create!(
+        email: "hub-agree-#{index}-#{SecureRandom.hex(3)}@example.com",
+        password: "Password",
+        password_confirmation: "Password"
+      )
+      RecordingStudioTermsAndConditions.accept!(person, recording, { "source" => "clickwrap" })
+    end
+
+    get "/admin/screens/recording_studio_terms_acceptances/table"
+    assert_response :success
+    assert_select "table tbody tr", count: 25
+
+    get "/admin/screens/recording_studio_terms_acceptances/table", params: { page: 2 }
+    assert_response :success
+    page_two = css_select("table tbody tr").count
+    assert_operator page_two, :>, 0
+    assert_operator page_two, :<=, 25
+  end
+
   test "recording studio admin terms hub is reachable and write parks there" do
     sign_in @admin
     switch_to_workspace(@admin_root)

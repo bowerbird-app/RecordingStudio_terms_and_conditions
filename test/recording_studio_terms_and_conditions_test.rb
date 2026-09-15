@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.3.0", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.3.1", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -210,6 +210,15 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes helper, "Read the full terms"
     refute_includes helper, "form_with"
     application_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/application_helper.rb")
+    assert_includes application_helper, "include TablePaginationHelper"
+    pagination_helper = engine_source(
+      "app/helpers/recording_studio_terms_and_conditions/table_pagination_helper.rb"
+    )
+    assert_includes pagination_helper, "def terms_table_pagination"
+    assert_includes pagination_helper, "FlatPack::Pagination::Component"
+    table_page = engine_source("lib/recording_studio_terms_and_conditions/table_page.rb")
+    assert_includes table_page, "SIZE = 25"
+    assert_includes table_page, "def paginate_table"
     assert_includes application_helper, "def terms_calendar_date"
     assert_includes application_helper, "%e %b %Y"
     assert_includes application_helper, "def terms_content"
@@ -239,6 +248,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     users = engine_source("#{views}/admin/term_users/index.html.erb")
     assert_includes users, 'title: "Users"'
     assert_includes users, "Nobody yet"
+    assert_includes users, "terms_table_pagination"
     assert_includes engine_source("config/routes.rb"), 'controller: "term_users"'
     refute_includes admin_new, "FlatPack::Card::Component"
     refute_includes admin_new, "card.footer"
@@ -248,6 +258,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes engine_source("#{views}/admin/terms/edit.html.erb"), 'class="inline-block"'
     refute_includes admin_show, "FlatPack::Card::Component"
     assert_includes admin_index, "FlatPack::Table::Component"
+    assert_includes admin_index, "terms_table_pagination"
     assert_includes admin_index, "terms_rows"
     assert_includes admin_index, 'title: "Open"'
     refute_includes admin_index, "min_width: :lg"
@@ -392,6 +403,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
 
     gem_views_view = File.read(File.expand_path("dummy/app/views/docs/gem_views.html.erb", __dir__))
     assert_includes gem_views_view, "FlatPack::Table::Component"
+    assert_includes gem_views_view, "FlatPack::Pagination::Component"
     refute_includes gem_views_view, "FlatPack::List::Component"
 
     recordable_types_view = File.read(File.expand_path("dummy/app/views/docs/recordable_types.html.erb", __dir__))
@@ -428,6 +440,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes routes, "resources :terms"
     admin = File.read(File.join(engine_root, "lib/recording_studio_terms_and_conditions/admin.rb"))
     assert_includes admin, 'key "terms"'
+    assert_includes admin, "paginate per_page: 25"
     assert_includes admin, "column :published"
     assert_includes admin, "admin_write_path"
     assert_includes admin, "admin_hub_path"

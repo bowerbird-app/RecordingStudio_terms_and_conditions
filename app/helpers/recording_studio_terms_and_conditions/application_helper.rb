@@ -3,6 +3,7 @@
 module RecordingStudioTermsAndConditions
   module ApplicationHelper
     include AgreeHelper
+    include TablePaginationHelper
 
     TERMS_BODY_PLACEHOLDER = "Write the terms people will agree to."
     TERMS_DATE_FORMAT = "%e %b %Y"
