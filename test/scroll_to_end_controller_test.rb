@@ -40,7 +40,7 @@ class ScrollToEndControllerTest < Minitest::Test
 
   def gate_js(expression)
     source = File.read(CONTROLLER)
-    helpers = source[/\Aimport \{ Controller \} from "@hotwired\/stimulus"\n\n(.*)\n\n\/\/ Optional clickwrap/m, 1]
+    helpers = source[%r{\Aimport \{ Controller \} from "@hotwired/stimulus"\n\n(.*)\n\n// Optional clickwrap}m, 1]
     raise "could not extract scroll helpers" if helpers.blank?
 
     stdout, stderr, status = Open3.capture3(
