@@ -202,6 +202,7 @@ class InstallGeneratorTest < Minitest::Test
     assert_includes initializer, "config.mount_path"
     assert_includes initializer, "require_scroll_to_end"
     assert_includes initializer, "capture_request_provenance"
+    assert_includes initializer, "required_kinds"
     refute_includes initializer, "enable_feature_x"
     refute_includes initializer, "api_key"
     refute_includes initializer, "config.timeout"

@@ -182,13 +182,17 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     mod = RecordingStudioTermsAndConditions.singleton_class
     mod.class_eval do
       alias_method :current_published_for_without_a3, :current_published_for
+      alias_method :pending_published_for_without_a3, :pending_published_for
       define_method(:current_published_for) { |*_args, **_kwargs| terms }
+      define_method(:pending_published_for) { |*_args, **_kwargs| terms }
     end
     yield
   ensure
     mod.class_eval do
       alias_method :current_published_for, :current_published_for_without_a3
+      alias_method :pending_published_for, :pending_published_for_without_a3
       remove_method :current_published_for_without_a3
+      remove_method :pending_published_for_without_a3
     end
   end
 end

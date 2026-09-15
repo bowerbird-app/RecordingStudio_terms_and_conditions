@@ -8,11 +8,12 @@ module RecordingStudioTermsAndConditions
 
     def recording_studio_terms_agree(inside_form: false, actor: nil, root: nil, link_terms: false)
       root ||= recording_studio_terms_agree_root
-      terms = RecordingStudioTermsAndConditions.current_published_for(root)
-      return if terms.blank?
-
       actor ||= recording_studio_terms_agree_actor
-      return if actor.present? && RecordingStudioTermsAndConditions.accepted?(actor, root)
+      return if actor.present? && !RecordingStudioTermsAndConditions.requires_acceptance?(actor, root)
+
+      terms = RecordingStudioTermsAndConditions.pending_published_for(actor, root) ||
+              RecordingStudioTermsAndConditions.current_published_for(root)
+      return if terms.blank?
 
       recording_studio_terms_agree_fields(terms, inside_form, link_terms: link_terms)
     end

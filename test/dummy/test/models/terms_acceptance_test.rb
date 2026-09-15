@@ -218,6 +218,57 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     refute RecordingStudioTermsAndConditions.accepted?(@actor, @workspace)
   end
 
+  test "current_published_by_kind maps live kinds and requires_acceptance? covers any of them" do
+    terms = record_terms("Live terms", "Be kind.")
+    publish_terms!(terms, slug: "live-terms-map")
+    privacy = record_terms("Privacy", "Keep the tape.", kind: "privacy")
+    publish_terms!(privacy, slug: "privacy-map")
+
+    by_kind = RecordingStudioTermsAndConditions.current_published_by_kind(@workspace)
+
+    assert_equal %w[terms privacy], by_kind.keys
+    assert_equal terms.recordable, by_kind.fetch("terms")
+    assert_equal privacy.recordable, by_kind.fetch("privacy")
+    assert_empty RecordingStudioTermsAndConditions.current_published_by_kind(@other_workspace)
+    assert RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace)
+    assert RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace, kind: "privacy")
+
+    RecordingStudioTermsAndConditions.accept!(@actor, terms, source: "clickwrap")
+    refute RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace, kind: "terms")
+    refute RecordingStudioTermsAndConditions.requires_acceptance?(
+      @actor, @workspace, required_kinds: ["terms"]
+    )
+    assert RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace)
+    refute RecordingStudioTermsAndConditions.accepted?(@actor, @workspace, kind: "privacy")
+    assert RecordingStudioTermsAndConditions.accepted?(@actor, @workspace)
+
+    RecordingStudioTermsAndConditions.accept!(@actor, privacy, source: "clickwrap")
+    refute RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace)
+    assert RecordingStudioTermsAndConditions.accepted?(@actor, @workspace, kind: "privacy")
+  end
+
+  test "required_kinds and config.required_kinds narrow the gate" do
+    previous = RecordingStudioTermsAndConditions.configuration.required_kinds
+    terms = record_terms("Live terms", "Be kind.")
+    publish_terms!(terms, slug: "live-terms-narrow")
+    privacy = record_terms("Privacy", "Keep the tape.", kind: "privacy")
+    publish_terms!(privacy, slug: "privacy-narrow")
+    RecordingStudioTermsAndConditions.accept!(@actor, terms, source: "clickwrap")
+
+    assert RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace)
+    refute RecordingStudioTermsAndConditions.requires_acceptance?(
+      @actor, @workspace, required_kinds: %w[terms]
+    )
+    assert RecordingStudioTermsAndConditions.requires_acceptance?(
+      @actor, @workspace, required_kinds: %w[privacy]
+    )
+
+    RecordingStudioTermsAndConditions.configuration.required_kinds = %w[terms]
+    refute RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace)
+  ensure
+    RecordingStudioTermsAndConditions.configuration.required_kinds = previous
+  end
+
   private
 
   def record_terms(title, body, kind: RecordingStudioTermsAndConditions::Terms::DEFAULT_KIND)

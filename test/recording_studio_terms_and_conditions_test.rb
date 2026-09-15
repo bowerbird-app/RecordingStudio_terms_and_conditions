@@ -151,11 +151,22 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     source = File.read(File.expand_path("../lib/recording_studio_terms_and_conditions.rb", __dir__))
 
     assert_includes source, "def current_published_for(root, kind: Terms::DEFAULT_KIND)"
+    assert_includes source, "def current_published_by_kind(root)"
+    assert_includes source, "def pending_published_for(actor, root, required_kinds: nil)"
     assert_includes source, "def accepted?(actor, root, kind: Terms::DEFAULT_KIND)"
-    assert_includes source, "def requires_acceptance?(actor, root, kind: Terms::DEFAULT_KIND)"
-    assert_includes source, "def reaccepting?(actor, root, kind: Terms::DEFAULT_KIND)"
+    assert_includes source, "def requires_acceptance?(actor, root, kind: nil, required_kinds: nil)"
+    assert_includes source, "def reaccepting?(actor, root, kind: nil, required_kinds: nil)"
     assert_includes source, "class NotLive < StandardError"
-    %i[current_published_for accepted? requires_acceptance? accept! reaccepting?].each do |helper|
+    helpers = %i[
+      current_published_for
+      current_published_by_kind
+      pending_published_for
+      accepted?
+      requires_acceptance?
+      accept!
+      reaccepting?
+    ]
+    helpers.each do |helper|
       assert_includes RecordingStudioTermsAndConditions.singleton_methods, helper
     end
     assert_operator RecordingStudioTermsAndConditions::NotLive, :<, StandardError
@@ -165,6 +176,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes acceptance, "currently_published?"
     assert_includes acceptance, "raise NotLive"
     assert_includes acceptance, "kind:"
+    assert_includes acceptance, "def current_published_by_kind"
+    assert_includes acceptance, "required_kinds"
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/kind_uniqueness.rb"))
   end
 
@@ -242,6 +255,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     scroll_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/scroll_to_end_helper.rb")
     assert_includes helper, "include ScrollToEndHelper"
     assert_includes helper, "def recording_studio_terms_agree"
+    assert_includes helper, "requires_acceptance?"
     assert_includes helper, "link_terms: false"
     assert_includes scroll_helper, "def recording_studio_terms_scroll_to_end"
     assert_includes scroll_helper, "def recording_studio_terms_agree_button"

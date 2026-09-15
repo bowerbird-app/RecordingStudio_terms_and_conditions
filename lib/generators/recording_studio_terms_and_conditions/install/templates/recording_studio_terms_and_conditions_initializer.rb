@@ -13,4 +13,8 @@ RecordingStudioTermsAndConditions.configure do |config|
   # Optional. When true, the gem Agree screen stores IP and user agent in provenance.
   # Default stays off. Direct accept! callers pass their own provenance hash.
   # config.capture_request_provenance = false
+
+  # Optional. Which published kinds the host gate checks. Default (nil) is every
+  # currently published kind. Pass %w[terms] to keep clickwrap on Terms only.
+  # config.required_kinds = nil
 end

@@ -38,6 +38,7 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "mount_path"
     assert_includes response.body, "capture_request_provenance"
     assert_includes response.body, "require_scroll_to_end"
+    assert_includes response.body, "required_kinds"
     refute_includes response.body, "Replace this placeholder with the configuration settings " \
                                    "your generated gem exposes."
     refute_includes response.body, "# Add the config settings for the gem here."

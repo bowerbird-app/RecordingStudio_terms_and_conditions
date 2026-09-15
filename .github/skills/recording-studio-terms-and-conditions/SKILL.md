@@ -41,7 +41,9 @@ The install generator mounts the engine, copies migrations, and writes the initi
 
 ```ruby
 terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
+RecordingStudioTermsAndConditions.current_published_by_kind(workspace)
 RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace)
+RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace, required_kinds: %w[terms])
 RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap" })
 RecordingStudioTermsAndConditions.accepted?(user, workspace)
 RecordingStudioTermsAndConditions.current_published_for(workspace, kind: "privacy")
@@ -49,7 +51,7 @@ RecordingStudioTermsAndConditions.current_published_for(workspace, kind: "privac
 
 Live means Publishable `currently_published?`. `accept!` raises `NotLive` for drafts and unpublished versions. People who already agreed to an older snapshot see a re-gate Alert (new date, optional `change_note`). Acceptance rows are receipts, not recordings.
 
-`kind` on Terms is `terms`, `privacy`, or `usage` — one recording per kind per workspace, still `::Terms`. Clickwrap and the host gate use `terms` unless you pass `kind:`.
+`kind` on Terms is `terms`, `privacy`, or `usage` — one recording per kind per workspace, still `::Terms`. `current_published_for` defaults to `terms`. `requires_acceptance?` covers every published kind unless you pass `kind:` or `required_kinds:` (or `config.required_kinds`). The host gate uses that helper. `accept!` still needs a live version of the kind you pass.
 
 The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends Users Auth after sign in / sign up to the same Agree screen.
 

@@ -34,20 +34,28 @@ module RecordingStudioTermsAndConditions
       TermsAcceptance.current_published_for(root, kind: kind)
     end
 
+    def current_published_by_kind(root)
+      TermsAcceptance.current_published_by_kind(root)
+    end
+
+    def pending_published_for(actor, root, required_kinds: nil)
+      TermsAcceptance.pending_published_for(actor, root, required_kinds: required_kinds)
+    end
+
     def accepted?(actor, root, kind: Terms::DEFAULT_KIND)
       TermsAcceptance.accepted?(actor, root, kind: kind)
     end
 
-    def requires_acceptance?(actor, root, kind: Terms::DEFAULT_KIND)
-      TermsAcceptance.requires_acceptance?(actor, root, kind: kind)
+    def requires_acceptance?(actor, root, kind: nil, required_kinds: nil)
+      TermsAcceptance.requires_acceptance?(actor, root, kind: kind, required_kinds: required_kinds)
     end
 
     def accept!(actor, version, provenance = {})
       TermsAcceptance.accept!(actor, version, provenance)
     end
 
-    def reaccepting?(actor, root, kind: Terms::DEFAULT_KIND)
-      TermsAcceptance.reaccepting?(actor, root, kind: kind)
+    def reaccepting?(actor, root, kind: nil, required_kinds: nil)
+      TermsAcceptance.reaccepting?(actor, root, kind: kind, required_kinds: required_kinds)
     end
   end
 end

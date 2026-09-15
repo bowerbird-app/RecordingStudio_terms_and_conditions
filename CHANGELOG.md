@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `accept!` refuses drafts, unpublished, and scheduled-but-not-live versions (`RecordingStudioTermsAndConditions::NotLive`). The Agree screen flashes and does not write a receipt.
 - Re-gate Agree shows a Flatpack Alert when the person already accepted an older snapshot. Copy and the new live calendar date are distinct from first-time Agree. Optional `change_note` on the Terms snapshot appears in that Alert.
 - Terms snapshots have a stable `kind` (`terms`, `privacy`, `usage`). Existing rows default to `terms`. A workspace may have at most one Terms recording per kind. Clickwrap helpers default to `kind: "terms"`. Admin create/edit sets kind with a Flatpack Select.
+- Domain helpers: `current_published_for(root, kind:)` (default `"terms"`), `current_published_by_kind(root)`, `accepted?(actor, root, kind:)`, and `requires_acceptance?(actor, root, kind:, required_kinds:)`. With no narrowing, `requires_acceptance?` is true if any published kind still needs a tick. Pass `required_kinds` or `config.required_kinds` to constrain the host gate. `accept!` still takes a live version of that kind and raises `NotLive` otherwise.
 
 ### Changed
 - Scroll-to-end no longer deadlocks Agree when `IntersectionObserver` is missing. Already-visible sentinels unlock immediately. The checkbox is still required. Scroll-to-end stays optional (default off). The Stimulus controller is self-contained (no extra importmap module).
@@ -33,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Run the unique-index migration. It removes `index_rstac_acceptances_on_actor_and_version` only if that index exists, then adds it unique. New installs get the unique index from the create migration. If migrate fails, the table already has duplicate actor+snapshot receipts — do not rewrite those rows; resolve the duplicates first.
 - Leave `config.capture_request_provenance` off unless you intend to store IP and user agent from the gem Agree screen.
 - If you opt into `require_scroll_to_end`, pin the engine Stimulus controllers. Missing IntersectionObserver leaves Agree enabled.
-- Run the `kind` migration. Existing Terms rows become `kind: "terms"`. Do not add a second Terms recording of the same kind in a workspace. Clickwrap and the gate still follow `kind: "terms"` unless you pass `kind:`. Privacy and usage are the same `::Terms` class.
+- Run the `kind` migration. Existing Terms rows become `kind: "terms"`. Do not add a second Terms recording of the same kind in a workspace. Clickwrap `current_published_for` still means `kind: "terms"` unless you pass `kind:`. Privacy and usage are the same `::Terms` class. `requires_acceptance?` now follows every published kind unless you pass `kind:`, `required_kinds:`, or `config.required_kinds`.
 
 ## [0.3.1] - 2026-09-15
 

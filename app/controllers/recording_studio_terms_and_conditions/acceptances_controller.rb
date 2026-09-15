@@ -20,9 +20,11 @@ module RecordingStudioTermsAndConditions
 
     def load_acceptance_context
       @root = acceptance_root
-      @terms = RecordingStudioTermsAndConditions.current_published_for(@root)
-      @already_accepted = RecordingStudioTermsAndConditions.accepted?(current_actor, @root)
-      @reaccepting = RecordingStudioTermsAndConditions.reaccepting?(current_actor, @root)
+      @terms = RecordingStudioTermsAndConditions.pending_published_for(current_actor, @root) ||
+               RecordingStudioTermsAndConditions.current_published_for(@root)
+      kind = @terms&.kind || Terms::DEFAULT_KIND
+      @already_accepted = RecordingStudioTermsAndConditions.accepted?(current_actor, @root, kind: kind)
+      @reaccepting = RecordingStudioTermsAndConditions.reaccepting?(current_actor, @root, kind: kind)
     end
 
     def reject_agreement(message)

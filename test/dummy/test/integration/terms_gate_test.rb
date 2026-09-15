@@ -31,15 +31,47 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "published privacy does not gate the terms clickwrap" do
+  test "published privacy gates until that kind is accepted" do
     recording = record_terms(@root, title: "Privacy", body: "Keep the tape.", kind: "privacy")
     publish_terms!(recording, slug: "privacy-#{SecureRandom.hex(4)}")
 
     get "/"
+    assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
+    follow_redirect!
+    assert_includes response.body, "Privacy"
+    assert RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace)
+    refute RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace, kind: "terms")
+    assert RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace, kind: "privacy")
+  end
+
+  test "required_kinds can keep the gate on terms only" do
+    recording = publish_live_terms!
+    privacy = record_terms(@root, title: "Privacy", body: "Keep the tape.", kind: "privacy")
+    publish_terms!(privacy, slug: "privacy-narrow-#{SecureRandom.hex(4)}")
+    RecordingStudioTermsAndConditions.accept!(@user, recording, { "source" => "clickwrap" })
+
+    refute RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace, required_kinds: ["terms"])
+    assert RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace)
+
+    get "/"
+    assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
+    follow_redirect!
+    assert_includes response.body, "Privacy"
+  end
+
+  test "config.required_kinds can leave the HTTP gate on terms only" do
+    previous = RecordingStudioTermsAndConditions.configuration.required_kinds
+    recording = publish_live_terms!
+    privacy = record_terms(@root, title: "Privacy", body: "Keep the tape.", kind: "privacy")
+    publish_terms!(privacy, slug: "privacy-config-#{SecureRandom.hex(4)}")
+    RecordingStudioTermsAndConditions.accept!(@user, recording, { "source" => "clickwrap" })
+    RecordingStudioTermsAndConditions.configuration.required_kinds = %w[terms]
+
+    get "/"
     assert_response :success
     refute_redirected_to_acceptance
-    refute RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace)
-    assert RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace, kind: "privacy")
+  ensure
+    RecordingStudioTermsAndConditions.configuration.required_kinds = previous
   end
 
   test "published terms send signed-in people to the clickwrap" do
