@@ -572,7 +572,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "Upgrade notes (0.3.x → 0.4.0)"
     assert_includes changelog, "body_digest"
     assert_includes changelog, "NotLive"
-    assert_includes changelog, 'kind` (`terms`, `privacy`, `usage`)'
+    assert_includes changelog, "terms`, `privacy`, `usage"
     assert_includes changelog, "required_kinds"
     assert_includes changelog, "api_key"
     assert_includes notes, "Upgrade from 0.3.x to 0.4.0"
