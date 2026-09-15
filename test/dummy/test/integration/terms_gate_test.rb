@@ -74,6 +74,55 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     RecordingStudioTermsAndConditions.configuration.required_kinds = previous
   end
 
+  test "gate stays until every published kind is accepted" do
+    terms = publish_live_terms!
+    privacy = record_terms(@root, title: "Booth privacy", body: "Keep the tape.", kind: "privacy")
+    publish_terms!(privacy, slug: "privacy-all-#{SecureRandom.hex(4)}")
+
+    get "/"
+    assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
+    follow_redirect!
+    assert_includes response.body, "Gate Terms"
+    assert_includes response.body, "Booth privacy"
+    assert_includes CGI.unescapeHTML(response.body), "I agree to Terms and Privacy."
+    assert_includes CGI.unescapeHTML(response.body), "One more thing — agree to Terms and Privacy."
+
+    RecordingStudioTermsAndConditions.accept!(@user, terms, { "source" => "clickwrap" })
+
+    get "/"
+    assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
+    follow_redirect!
+    assert_includes response.body, "Booth privacy"
+    refute RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace, kind: "terms")
+    assert RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace, kind: "privacy")
+    assert RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace)
+
+    RecordingStudioTermsAndConditions.accept!(@user, privacy, { "source" => "clickwrap" })
+
+    get "/"
+    assert_response :success
+    refute_redirected_to_acceptance
+    refute RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace)
+  end
+
+  test "users auth stays on agree until every published kind is accepted" do
+    terms = publish_live_terms!
+    privacy = record_terms(@root, title: "Booth privacy", body: "Keep the tape.", kind: "privacy")
+    publish_terms!(privacy, slug: "privacy-auth-#{SecureRandom.hex(4)}")
+    controller = users_auth_controller_for(@workspace)
+
+    assert_equal recording_studio_terms_and_conditions.acceptance_path, controller.after_sign_in_path_for(@user)
+    assert_equal recording_studio_terms_and_conditions.acceptance_path, controller.after_sign_up_path_for(@user)
+
+    RecordingStudioTermsAndConditions.accept!(@user, terms, { "source" => "clickwrap" })
+    assert_equal recording_studio_terms_and_conditions.acceptance_path, controller.after_sign_in_path_for(@user)
+    assert_equal recording_studio_terms_and_conditions.acceptance_path, controller.after_sign_up_path_for(@user)
+
+    RecordingStudioTermsAndConditions.accept!(@user, privacy, { "source" => "clickwrap" })
+    assert_equal "/after-auth", controller.after_sign_in_path_for(@user)
+    assert_equal "/after-auth", controller.after_sign_up_path_for(@user)
+  end
+
   test "published terms send signed-in people to the clickwrap" do
     publish_live_terms!
 

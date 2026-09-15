@@ -29,9 +29,9 @@ module RecordingStudioTermsAndConditions
     end
 
     def terms_gate_notice
-      root = Gate.root_for(self)
-      pending = RecordingStudioTermsAndConditions.pending_published_list(signed_in_actor, root)
+      pending = Gate.pending_for(self, signed_in_actor)
       labels = pending.map(&:kind_label)
+      root = Gate.root_for(self)
       if RecordingStudioTermsAndConditions.reaccepting?(signed_in_actor, root)
         return "Terms changed. Agree again." if terms_only_pending?(pending)
 

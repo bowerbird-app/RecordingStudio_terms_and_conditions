@@ -54,7 +54,7 @@ Live means Publishable `currently_published?`. `accept!` raises `NotLive` for dr
 
 `kind` on Terms is `terms`, `privacy`, or `usage` — one recording per kind per workspace, still `::Terms`. `current_published_for` defaults to `terms`. `requires_acceptance?` covers every published kind unless you pass `kind:` or `required_kinds:` (or `config.required_kinds`). `pending_published_list` is the pending live set the Agree screen shows. One checkbox covers that set; the Agree POST calls `accept!` for each. The host gate uses `requires_acceptance?`. `accept!` still needs a live version of the kind you pass. Admin Terms filter with `kind=` and show coverage per kind.
 
-The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends Users Auth after sign in / sign up to the same Agree screen.
+The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends Users Auth after sign in / sign up to the same Agree screen. The gate stays on until every pending published kind is accepted (`required_kinds` / `config.required_kinds` still narrow it). Accepting one kind does not clear the others.
 
 Drop the host helper onto a form:
 

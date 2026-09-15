@@ -305,6 +305,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "KindUniqueness.install!"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/gate.rb"), "agree_helpers"
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/gate.rb"), "pending_published_list"
     refute_includes agree, "help_text"
     refute_includes agree, "Read them, tick the box"
     assert_includes agree, "FlatPack::Alert::Component"
