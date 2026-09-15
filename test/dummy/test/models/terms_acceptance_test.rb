@@ -49,6 +49,8 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     refute RecordingStudioTermsAndConditions.accepted?(@actor, @workspace)
     refute RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @other_workspace)
 
+    live = recording.recordable
+    expected_digest = RecordingStudioTermsAndConditions::BodyDigest.call(live.body)
     receipt = RecordingStudioTermsAndConditions.accept!(
       @actor,
       recording,
@@ -57,6 +59,11 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
 
     assert_predicate receipt, :readonly?
     assert_equal({ "source" => "clickwrap", "ip" => "203.0.113.10" }, receipt.provenance)
+    assert_equal expected_digest, receipt.body_digest
+    assert_equal expected_digest, receipt.receipt_contract.fetch("body_digest")
+    assert_equal "sha256", receipt.receipt_contract.fetch("body_digest_algorithm")
+    assert_equal live.id.to_s, receipt.receipt_contract.fetch("terms_id")
+    refute receipt.provenance.key?("body_digest")
     assert RecordingStudioTermsAndConditions.accepted?(@actor, @workspace)
     refute RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace)
     refute RecordingStudioTermsAndConditions.accepted?(@other_actor, @workspace)
@@ -86,6 +93,33 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     assert_raises(ArgumentError) { RecordingStudioTermsAndConditions.accept!(nil, recording, {}) }
     assert_raises(ArgumentError) { RecordingStudioTermsAndConditions.accept!(@actor, @workspace, {}) }
     assert_raises(ArgumentError) { RecordingStudioTermsAndConditions.accept!(@actor, recording, "clickwrap") }
+  end
+
+  test "accept! ignores a caller body_digest and never rewrites an older receipt" do
+    recording = record_terms("Digest", "Live copy.")
+    publish_terms!(recording, slug: "digest-terms")
+    terms = recording.recordable
+    older = RecordingStudioTermsAndConditions::Acceptance.create!(
+      actor: @other_actor,
+      terms_recording_id: recording.id,
+      terms_id: terms.id,
+      accepted_at: Time.current,
+      body_digest: nil,
+      provenance: { "source" => "legacy" }
+    )
+
+    receipt = RecordingStudioTermsAndConditions.accept!(
+      @actor,
+      terms,
+      { "source" => "clickwrap", "body_digest" => "sha256:spoofed" }
+    )
+
+    older.reload
+    assert_nil older.body_digest
+    assert_equal({ "source" => "legacy" }, older.provenance)
+    assert_equal RecordingStudioTermsAndConditions::BodyDigest.call("Live copy."), receipt.body_digest
+    refute receipt.provenance.key?("body_digest")
+    assert_raises(ActiveRecord::ReadOnlyRecord) { older.update!(body_digest: receipt.body_digest) }
   end
 
   private

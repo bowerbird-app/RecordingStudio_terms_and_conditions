@@ -64,6 +64,26 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_includes CGI.unescapeHTML(response.body), "You're in. Thanks for reading."
     assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
+    receipt = RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last
+    assert_equal RecordingStudioTermsAndConditions::BodyDigest.call("Be kind. Don't be a jerk."), receipt.body_digest
+    assert_equal({ "source" => "clickwrap" }, receipt.provenance)
+    refute receipt.provenance.key?("ip")
+    refute receipt.provenance.key?("user_agent")
+  end
+
+  test "gem UI stores IP and user agent only when capture_request_provenance is on" do
+    RecordingStudioTermsAndConditions.configuration.capture_request_provenance = true
+
+    post recording_studio_terms_and_conditions.acceptance_path,
+         params: { agreed: "1" },
+         headers: { "User-Agent" => "TermsTest/1.0" }
+
+    receipt = RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last
+    assert_equal "clickwrap", receipt.provenance.fetch("source")
+    assert receipt.provenance["ip"].present?
+    assert_equal "TermsTest/1.0", receipt.provenance.fetch("user_agent")
+  ensure
+    RecordingStudioTermsAndConditions.configuration.capture_request_provenance = false
   end
 
   test "agree stays enabled when the host leaves scroll-to-end off" do

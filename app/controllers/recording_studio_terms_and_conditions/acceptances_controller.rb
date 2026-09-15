@@ -31,8 +31,18 @@ module RecordingStudioTermsAndConditions
     end
 
     def accept_current_terms!
-      RecordingStudioTermsAndConditions.accept!(current_actor, @terms, { "source" => "clickwrap" })
+      RecordingStudioTermsAndConditions.accept!(current_actor, @terms, clickwrap_provenance)
       redirect_to next_path_after_acceptance, notice: "You're in. Thanks for reading."
+    end
+
+    def clickwrap_provenance
+      provenance = { "source" => "clickwrap" }
+      return provenance unless RecordingStudioTermsAndConditions.configuration.capture_request_provenance
+
+      provenance.merge(
+        "ip" => request.remote_ip.to_s,
+        "user_agent" => request.user_agent.to_s
+      )
     end
 
     def next_path_after_acceptance

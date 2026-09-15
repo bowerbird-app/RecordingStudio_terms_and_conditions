@@ -45,11 +45,11 @@ class EngineTest < Minitest::Test
       hook_payload = cfg
     end
 
-    xcfg = Struct.new(:recording_studio_terms_and_conditions).new({ enable_feature_x: true })
+    xcfg = Struct.new(:recording_studio_terms_and_conditions).new({ require_scroll_to_end: true })
     app_config = Struct.new(:x).new(xcfg)
     app = Struct.new(:config) do
       def config_for(_name)
-        { api_key: "from_yaml", timeout: 12 }
+        { mount_path: "/from-yaml", capture_request_provenance: true }
       end
     end.new(app_config)
 
@@ -57,15 +57,15 @@ class EngineTest < Minitest::Test
 
     assert hook_called
     assert_equal RecordingStudioTermsAndConditions.configuration, hook_payload
-    assert_equal "from_yaml", RecordingStudioTermsAndConditions.configuration.api_key
-    assert_equal 12, RecordingStudioTermsAndConditions.configuration.timeout
-    assert_equal true, RecordingStudioTermsAndConditions.configuration.enable_feature_x
+    assert_equal "/from-yaml", RecordingStudioTermsAndConditions.configuration.mount_path
+    assert_equal true, RecordingStudioTermsAndConditions.configuration.capture_request_provenance
+    assert_equal true, RecordingStudioTermsAndConditions.configuration.require_scroll_to_end
   end
 
   def test_load_config_handles_errors_and_each_pair_fallback
     pair_config = Class.new do
       def each_pair
-        yield(:timeout, 15)
+        yield(:mount_path, "/from-pairs")
       end
     end.new
 
@@ -80,7 +80,7 @@ class EngineTest < Minitest::Test
 
     find_initializer("recording_studio_terms_and_conditions.load_config").block.call(app)
 
-    assert_equal 15, RecordingStudioTermsAndConditions.configuration.timeout
+    assert_equal "/from-pairs", RecordingStudioTermsAndConditions.configuration.mount_path
   end
 
   def test_load_config_swallow_each_pair_errors
@@ -94,14 +94,14 @@ class EngineTest < Minitest::Test
     app_config = Struct.new(:x).new(xcfg)
     app = Struct.new(:config) do
       def config_for(_name)
-        { api_key: "ok" }
+        { mount_path: "/ok" }
       end
     end.new(app_config)
 
     # Should not raise even if xcfg.each_pair fails.
     find_initializer("recording_studio_terms_and_conditions.load_config").block.call(app)
 
-    assert_equal "ok", RecordingStudioTermsAndConditions.configuration.api_key
+    assert_equal "/ok", RecordingStudioTermsAndConditions.configuration.mount_path
   end
 
   def test_load_config_is_noop_without_config_sources
@@ -109,9 +109,9 @@ class EngineTest < Minitest::Test
 
     find_initializer("recording_studio_terms_and_conditions.load_config").block.call(app)
 
-    assert_nil RecordingStudioTermsAndConditions.configuration.api_key
-    assert_equal 5, RecordingStudioTermsAndConditions.configuration.timeout
-    assert_equal false, RecordingStudioTermsAndConditions.configuration.enable_feature_x
+    assert_equal "/recording_studio_terms_and_conditions", RecordingStudioTermsAndConditions.configuration.mount_path
+    assert_equal false, RecordingStudioTermsAndConditions.configuration.require_scroll_to_end
+    assert_equal false, RecordingStudioTermsAndConditions.configuration.capture_request_provenance
   end
 
   def test_load_config_ignores_non_enumerable_yaml_and_merge_errors
@@ -121,7 +121,7 @@ class EngineTest < Minitest::Test
       end
     end.new
 
-    xcfg = Struct.new(:recording_studio_terms_and_conditions).new({ timeout: 22 })
+    xcfg = Struct.new(:recording_studio_terms_and_conditions).new({ mount_path: "/from-x" })
     app_config = Struct.new(:x).new(xcfg)
     app = Struct.new(:config) do
       attr_accessor :yaml
@@ -134,7 +134,7 @@ class EngineTest < Minitest::Test
 
     find_initializer("recording_studio_terms_and_conditions.load_config").block.call(app)
 
-    assert_equal 22, RecordingStudioTermsAndConditions.configuration.timeout
+    assert_equal "/from-x", RecordingStudioTermsAndConditions.configuration.mount_path
   end
 
   def test_apply_extension_initializers_register_active_support_on_load_callbacks

@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.3.1", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.4.0", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -112,7 +112,21 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes terms_source, 'path: "/terms/:uuid/:slug"'
     refute_includes terms_source, "enable_capability"
     assert_includes acceptance_source, 'self.table_name = "recording_studio_terms_and_conditions_acceptances"'
+    assert_includes acceptance_source, "def receipt_contract"
+    assert_includes acceptance_source, "body_digest"
     refute_includes acceptance_source, "recording_studio_recordable"
+  end
+
+  def test_engine_keeps_product_migrations_and_drops_template_pages
+    migrate_dir = File.expand_path("../db/migrate", __dir__)
+    names = Dir.children(migrate_dir)
+
+    refute_includes names, "20250101000001_create_recording_studio_terms_and_conditions_pages.rb"
+    assert names.grep(/create_recording_studio_terms_and_conditions_terms/).any?
+    assert names.grep(/create_recording_studio_terms_and_conditions_acceptances/).any?
+    assert names.grep(/add_provenance_to_recording_studio_terms_and_conditions_acceptances/).any?
+    assert names.grep(/add_body_digest_to_recording_studio_terms_and_conditions_acceptances/).any?
+    refute File.read(File.join(migrate_dir, names.grep(/body_digest/).first)).include?("UPDATE")
   end
 
   def test_module_exposes_terms_acceptance_helpers
@@ -205,6 +219,11 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes scroll_helper, "def recording_studio_terms_scroll_to_end"
     assert_includes scroll_helper, "def recording_studio_terms_agree_button"
     assert_includes scroll_helper, "require_scroll_to_end"
+    controller_js = engine_source(
+      "app/javascript/recording_studio_terms_and_conditions/controllers/scroll_to_end_controller.js"
+    )
+    assert_includes controller_js, "shouldLockAgree"
+    assert_includes controller_js, "IntersectionObserver"
     assert_includes helper, "class: \"py-5\""
     assert_includes helper, "with_content(\"terms\")"
     refute_includes helper, "Read the full terms"

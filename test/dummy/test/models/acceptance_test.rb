@@ -13,6 +13,7 @@ class AcceptanceTest < ActiveSupport::TestCase
     assert connection.column_exists?(:recording_studio_terms_and_conditions_acceptances, :terms_recording_id)
     assert connection.column_exists?(:recording_studio_terms_and_conditions_acceptances, :terms_id)
     assert connection.column_exists?(:recording_studio_terms_and_conditions_acceptances, :accepted_at)
+    assert connection.column_exists?(:recording_studio_terms_and_conditions_acceptances, :body_digest)
     assert connection.column_exists?(:recording_studio_terms_and_conditions_acceptances, :created_at)
     refute connection.column_exists?(:recording_studio_terms_and_conditions_acceptances, :updated_at)
     refute_includes configured, "RecordingStudioTermsAndConditions::Acceptance"
@@ -35,7 +36,8 @@ class AcceptanceTest < ActiveSupport::TestCase
       actor: user,
       terms_recording_id: event.recording.id,
       terms_id: terms.id,
-      accepted_at: Time.current
+      accepted_at: Time.current,
+      body_digest: RecordingStudioTermsAndConditions::BodyDigest.call(terms.body)
     )
 
     assert_predicate receipt, :persisted?
@@ -43,6 +45,8 @@ class AcceptanceTest < ActiveSupport::TestCase
     assert_equal user, receipt.actor
     assert_equal event.recording.id, receipt.terms_recording_id
     assert_equal terms.id, receipt.terms_id
+    assert_equal RecordingStudioTermsAndConditions::BodyDigest.call(terms.body), receipt.body_digest
+    assert_equal "sha256", receipt.receipt_contract.fetch("body_digest_algorithm")
     assert_raises(ActiveRecord::ReadOnlyRecord) { receipt.update!(accepted_at: 1.day.ago) }
   end
 end

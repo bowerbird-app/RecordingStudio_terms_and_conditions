@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-15
+
+### Removed
+- Template Configuration knobs `api_key`, `enable_feature_x`, and `timeout`. Product config is `mount_path`, `require_scroll_to_end`, and `capture_request_provenance`.
+- Unused example `create_recording_studio_terms_and_conditions_pages` migration. Dummy never applied it; hosts that already copied it locally can leave the unused table.
+
+### Added
+- Append-only Acceptance receipts store a SHA-256 `body_digest` of the live Terms body at `accept!` time. `Acceptance#receipt_contract` returns actor, version ids, timestamp, digest, algorithm, and provenance. Existing receipts keep a null digest and are not rewritten.
+- Optional `config.capture_request_provenance` (default off). When true, the gem Agree screen adds IP and user agent to provenance on new accepts.
+
+### Changed
+- Scroll-to-end no longer deadlocks Agree when `IntersectionObserver` is missing. Already-visible sentinels unlock immediately. The checkbox is still required. Scroll-to-end stays optional (default off).
+
+### Upgrade notes
+- Delete `config.api_key`, `config.enable_feature_x`, `config.timeout`, and `RECORDING_STUDIO_TERMS_AND_CONDITIONS_API_KEY` from host initializers and YAML. Unknown keys are ignored.
+- Run `bin/rails generate recording_studio_terms_and_conditions:migrations` then `bin/rails db:migrate` so `body_digest` exists. Do not backfill old receipts.
+- New `accept!` rows always set `body_digest`. Callers cannot pass a spoofed digest in provenance.
+- Leave `config.capture_request_provenance` off unless you intend to store IP and user agent from the gem Agree screen.
+- If you opt into `require_scroll_to_end`, pin the engine Stimulus controllers. Missing IntersectionObserver leaves Agree enabled.
+
 ## [0.3.1] - 2026-09-15
 
 ### Added
@@ -144,7 +164,8 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.4.0
 [0.3.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.3.1
 [0.3.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.3.0
 [0.2.2]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.2.2

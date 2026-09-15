@@ -42,7 +42,7 @@ module RecordingStudioTermsAndConditions
 
         migration_files.each do |source_path|
           filename = File.basename(source_path)
-          # Extract migration name without timestamp (e.g., "create_recording_studio_terms_and_conditions_pages.rb")
+          # Extract migration name without timestamp (e.g., "create_recording_studio_terms_and_conditions_terms.rb")
           migration_name = filename.sub(/^\d+_/, "")
 
           if options[:skip_existing] && migration_exists?(migration_name)

@@ -73,10 +73,10 @@ mount GemTemplate::Engine, at: "/gem_template"
 Creates `config/initializers/gem_template.rb`:
 
 ```ruby
-GemTemplate.configure do |config|
-  # config.api_key = ENV["GEM_TEMPLATE_API_KEY"]
-  # config.enable_feature_x = false
-  # config.timeout = 5
+RecordingStudioTermsAndConditions.configure do |config|
+  # config.mount_path = "/recording_studio_terms_and_conditions"
+  # config.require_scroll_to_end = false
+  # config.capture_request_provenance = false
 end
 ```
 
@@ -115,10 +115,10 @@ end
 Create `config/initializers/gem_template.rb`:
 
 ```ruby
-GemTemplate.configure do |config|
-  config.api_key = ENV["GEM_TEMPLATE_API_KEY"]
-  config.enable_feature_x = true
-  config.timeout = 10
+RecordingStudioTermsAndConditions.configure do |config|
+  config.mount_path = "/recording_studio_terms_and_conditions"
+  config.require_scroll_to_end = false
+  config.capture_request_provenance = false
 end
 ```
 

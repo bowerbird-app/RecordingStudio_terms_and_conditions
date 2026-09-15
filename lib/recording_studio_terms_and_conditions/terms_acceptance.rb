@@ -33,16 +33,21 @@ module RecordingStudioTermsAndConditions
         recording, terms = resolve_version(version)
         raise ArgumentError, "version must be Terms or a Terms recording" if recording.blank? || terms.blank?
 
+        create_receipt!(actor: actor, recording: recording, terms: terms, provenance: provenance)
+      end
+
+      private
+
+      def create_receipt!(actor:, recording:, terms:, provenance:)
         Acceptance.create!(
           actor: actor,
           terms_recording_id: recording.id,
           terms_id: terms.id,
           accepted_at: Time.current,
+          body_digest: BodyDigest.call(terms.body),
           provenance: normalize_provenance(provenance)
         )
       end
-
-      private
 
       def resolve_root_recording(root)
         return if root.blank?
@@ -99,7 +104,7 @@ module RecordingStudioTermsAndConditions
         return {} if provenance.nil?
         raise ArgumentError, "provenance must be a hash" unless provenance.respond_to?(:to_h)
 
-        provenance.to_h.stringify_keys
+        provenance.to_h.stringify_keys.except("body_digest", "body_digest_algorithm")
       end
     end
   end

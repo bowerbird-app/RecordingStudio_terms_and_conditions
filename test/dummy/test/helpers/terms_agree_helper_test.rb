@@ -27,4 +27,11 @@ class TermsAgreeHelperTest < ActionView::TestCase
     assert_includes html, 'data-controller="recording-studio-terms-and-conditions--scroll-to-end"'
     assert_includes html, "copy"
   end
+
+  test "agree button starts disabled when scroll-to-end is on so JS can unlock" do
+    html = recording_studio_terms_agree_button(require_scroll_to_end: true)
+
+    assert_includes html, "disabled"
+    assert_includes html, "recording-studio-terms-and-conditions--scroll-to-end-target"
+  end
 end

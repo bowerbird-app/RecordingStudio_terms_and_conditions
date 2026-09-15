@@ -201,7 +201,10 @@ class InstallGeneratorTest < Minitest::Test
     assert_includes install_guide, "importmap"
     assert_includes initializer, "config.mount_path"
     assert_includes initializer, "require_scroll_to_end"
+    assert_includes initializer, "capture_request_provenance"
     refute_includes initializer, "enable_feature_x"
+    refute_includes initializer, "api_key"
+    refute_includes initializer, "config.timeout"
     refute_includes install_guide, "RecordingStudio v3"
   end
 

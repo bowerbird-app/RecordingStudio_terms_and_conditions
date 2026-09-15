@@ -10,9 +10,7 @@ module RecordingStudioTermsAndConditions
       if require_scroll_to_end.nil?
         RecordingStudioTermsAndConditions.configuration.require_scroll_to_end
       else
-        require_scroll_to_end == true ||
-          require_scroll_to_end.to_s.casecmp("true").zero? ||
-          require_scroll_to_end.to_s == "1"
+        RecordingStudioTermsAndConditions::Configuration.flag?(require_scroll_to_end)
       end
     end
 

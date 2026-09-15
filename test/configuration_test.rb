@@ -8,19 +8,25 @@ class ConfigurationTest < Minitest::Test
   end
 
   def test_merge_updates_known_attributes
-    @configuration.merge!(api_key: "abc123", timeout: 9, enable_feature_x: true, require_scroll_to_end: "true")
+    @configuration.merge!(
+      mount_path: "/terms",
+      require_scroll_to_end: "true",
+      capture_request_provenance: "1"
+    )
 
-    assert_equal "abc123", @configuration.api_key
-    assert_equal 9, @configuration.timeout
-    assert_equal true, @configuration.enable_feature_x
+    assert_equal "/terms", @configuration.mount_path
     assert_equal true, @configuration.require_scroll_to_end
+    assert_equal true, @configuration.capture_request_provenance
   end
 
   def test_merge_ignores_unknown_keys
-    @configuration.merge!(unknown_key: "ignored", timeout: 7)
+    @configuration.merge!(unknown_key: "ignored", mount_path: "/addons/terms")
 
     refute_respond_to @configuration, :unknown_key
-    assert_equal 7, @configuration.timeout
+    refute_respond_to @configuration, :api_key
+    refute_respond_to @configuration, :enable_feature_x
+    refute_respond_to @configuration, :timeout
+    assert_equal "/addons/terms", @configuration.mount_path
   end
 
   def test_merge_with_non_enumerable_is_noop
@@ -28,33 +34,25 @@ class ConfigurationTest < Minitest::Test
 
     @configuration.merge!(nil)
 
-    assert_nil @configuration.api_key if original[:api_key].nil?
-    assert_equal original[:api_key], @configuration.api_key unless original[:api_key].nil?
-    assert_equal original[:timeout], @configuration.timeout
-    assert_equal original[:enable_feature_x], @configuration.enable_feature_x
+    assert_equal original[:mount_path], @configuration.mount_path
+    assert_equal original[:require_scroll_to_end], @configuration.require_scroll_to_end
+    assert_equal original[:capture_request_provenance], @configuration.capture_request_provenance
   end
 
-  def test_initialize_uses_environment_api_key_and_defaults
-    previous_value = ENV.fetch("RECORDING_STUDIO_TERMS_AND_CONDITIONS_API_KEY", nil)
-    ENV["RECORDING_STUDIO_TERMS_AND_CONDITIONS_API_KEY"] = "env-token"
-
+  def test_initialize_uses_product_defaults
     configuration = RecordingStudioTermsAndConditions::Configuration.new
 
-    assert_equal "env-token", configuration.api_key
-    assert_equal false, configuration.enable_feature_x
-    assert_equal false, configuration.require_scroll_to_end
-    assert_equal 5, configuration.timeout
     assert_equal "/recording_studio_terms_and_conditions", configuration.mount_path
+    assert_equal false, configuration.require_scroll_to_end
+    assert_equal false, configuration.capture_request_provenance
     assert_instance_of RecordingStudio::Hooks, configuration.hooks
-  ensure
-    ENV["RECORDING_STUDIO_TERMS_AND_CONDITIONS_API_KEY"] = previous_value
   end
 
   def test_merge_accepts_string_keys
-    @configuration.merge!("api_key" => "string-key", "timeout" => 12)
+    @configuration.merge!("mount_path" => "/hosted-terms", "require_scroll_to_end" => false)
 
-    assert_equal "string-key", @configuration.api_key
-    assert_equal 12, @configuration.timeout
+    assert_equal "/hosted-terms", @configuration.mount_path
+    assert_equal false, @configuration.require_scroll_to_end
   end
 
   def test_to_h_reports_registered_hook_counts
@@ -66,6 +64,11 @@ class ConfigurationTest < Minitest::Test
 
     assert_equal 2, result.fetch(:hooks_registered).fetch(:before_initialize)
     assert_equal 1, result.fetch(:hooks_registered).fetch(:after_service)
+    assert_equal false, result.fetch(:require_scroll_to_end)
+    assert_equal false, result.fetch(:capture_request_provenance)
+    refute result.key?(:api_key)
+    refute result.key?(:enable_feature_x)
+    refute result.key?(:timeout)
   end
 
   def test_configure_without_block_is_safe
