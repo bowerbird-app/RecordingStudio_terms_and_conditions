@@ -249,6 +249,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes importmap, "@tiptap/core"
     assert_includes importmap, "flat_pack/tiptap"
     assert_includes importmap, "recording_studio_terms_and_conditions/controllers"
+    assert_includes importmap, "File.expand_path"
     accept = engine_source("#{views}/acceptances/show.html.erb")
     assert_includes accept, "recording_studio_terms_scroll_to_end"
     assert_includes accept, "recording_studio_terms_agree_button"
