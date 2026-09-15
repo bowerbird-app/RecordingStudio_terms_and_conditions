@@ -135,7 +135,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     unique = File.read(File.join(migrate_dir, names.grep(/unique_per_actor_and_version/).first))
     assert names.grep(/add_change_note_to_recording_studio_terms_and_conditions_terms/).any?
     assert names.grep(/add_kind_to_recording_studio_terms_and_conditions_terms/).any?
-    create_terms = File.read(File.join(migrate_dir, names.grep(/create_recording_studio_terms_and_conditions_terms/).first))
+    create_terms_name = names.grep(/create_recording_studio_terms_and_conditions_terms/).first
+    create_terms = File.read(File.join(migrate_dir, create_terms_name))
     assert_includes create_terms, 't.string :kind, null: false, default: "terms"'
     assert_includes create, "unique: true"
     assert_includes create, "index_rstac_acceptances_on_actor_and_version"
