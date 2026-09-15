@@ -216,6 +216,10 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     )
     assert_includes pagination_helper, "def terms_table_pagination"
     assert_includes pagination_helper, "FlatPack::Pagination::Component"
+    base_controller = engine_source(
+      "app/controllers/recording_studio_terms_and_conditions/admin/base_controller.rb"
+    )
+    assert_includes base_controller, "include ::Pagy::Backend"
     table_page = engine_source("lib/recording_studio_terms_and_conditions/table_page.rb")
     assert_includes table_page, "SIZE = 25"
     assert_includes table_page, "def paginate_table"
