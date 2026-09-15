@@ -19,6 +19,8 @@ class LoginPageTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "data-recording-studio-default-layout"
     refute_includes response.body, "fixed inset-0"
     refute File.exist?(Rails.root.join("app/views/devise/sessions/new.html.erb"))
+    assert_includes response.body, "@hotwired/turbo-rails"
+    assert_includes response.body, "turbo.min.js"
   end
 
   test "continue with email opens the password screen" do

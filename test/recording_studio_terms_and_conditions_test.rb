@@ -277,6 +277,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes importmap, "flat_pack/tiptap"
     assert_includes importmap, "recording_studio_terms_and_conditions/controllers"
     assert_includes importmap, "File.expand_path"
+    assert_includes importmap, 'pin "@hotwired/turbo-rails", to: "turbo.min.js"'
+    application_js = File.read(File.expand_path("dummy/app/javascript/application.js", __dir__))
+    assert_includes application_js, 'import "@hotwired/turbo-rails"'
     accept = engine_source("#{views}/acceptances/show.html.erb")
     assert_includes accept, "recording_studio_terms_scroll_to_end"
     assert_includes accept, "recording_studio_terms_agree_button"

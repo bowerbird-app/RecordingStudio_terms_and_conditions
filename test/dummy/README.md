@@ -8,6 +8,7 @@ This Rails app exists to validate the Recording Studio Terms and Conditions addo
 - `Current.actor` wiring for Recording Studio events
 - Root workspace plus seeded folder and page recordables
 - Recording Studio default layout with Flatpack TopNav, FlatPack assets, and Tailwind source scanning (including `/usr/local/lib/ruby/gems/**/bundler/gems/flatpack-*`)
+- Dummy importmap imports `@hotwired/turbo-rails` so Admin turbo frames (hub widgets and tables) finish loading instead of staying on skeletons
 - Mounted `RecordingStudio::Engine` route behavior inside a host app
 - Dummy-only `/docs/*` pages for gem-specific onboarding
 - Acceptance gate: a workspace with live published Terms sends signed-in people to Agree until they accept
