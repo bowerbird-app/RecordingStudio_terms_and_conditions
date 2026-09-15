@@ -28,7 +28,8 @@
     name: "kind",
     options: [["Every kind", ""]] + RecordingStudioTermsAndConditions::Terms.kind_select_options,
     value: @kind_filter.to_s,
-    label: "Kind"
+    label: "Kind",
+    placeholder: "Every kind"
   ) %>
   <%= render FlatPack::Button::Component.new(
     text: "Filter",
