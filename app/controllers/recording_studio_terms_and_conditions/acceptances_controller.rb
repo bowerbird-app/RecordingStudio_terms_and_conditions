@@ -33,6 +33,8 @@ module RecordingStudioTermsAndConditions
     def accept_current_terms!
       RecordingStudioTermsAndConditions.accept!(current_actor, @terms, clickwrap_provenance)
       redirect_to next_path_after_acceptance, notice: "You're in. Thanks for reading."
+    rescue RecordingStudioTermsAndConditions::NotLive
+      reject_agreement("Those terms aren't live. Refresh and agree to the current ones.")
     end
 
     def clickwrap_provenance

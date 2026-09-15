@@ -145,9 +145,16 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes source, "def accepted?(actor, root)"
     assert_includes source, "def requires_acceptance?(actor, root)"
     assert_includes source, "def accept!(actor, version, provenance = {})"
+    assert_includes source, "class NotLive < StandardError"
     %i[current_published_for accepted? requires_acceptance? accept!].each do |helper|
       assert_includes RecordingStudioTermsAndConditions.singleton_methods, helper
     end
+    assert_operator RecordingStudioTermsAndConditions::NotLive, :<, StandardError
+    acceptance = File.read(
+      File.expand_path("../lib/recording_studio_terms_and_conditions/terms_acceptance.rb", __dir__)
+    )
+    assert_includes acceptance, "currently_published?"
+    assert_includes acceptance, "raise NotLive"
   end
 
   def test_dummy_app_uses_recording_studio_default_layout

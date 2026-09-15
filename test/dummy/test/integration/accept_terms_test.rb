@@ -123,4 +123,46 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Nothing to agree to yet"
   end
+
+  test "agreeing when the workspace only has a draft does not write a receipt" do
+    draft_workspace = Workspace.create!(name: "Draft #{SecureRandom.hex(4)}")
+    draft_root = RecordingStudio.root_recording_for(draft_workspace)
+    record_terms(draft_root, title: "Draft terms", body: "Not live.")
+    switch_to_workspace(draft_workspace)
+
+    assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
+      post recording_studio_terms_and_conditions.acceptance_path, params: { agreed: "1" }
+    end
+
+    assert_response :unprocessable_entity
+    assert_includes response.body, "There are no live terms to agree to."
+  end
+
+  test "agreeing to a non-live version does not write a receipt" do
+    draft = record_terms(@root, title: "Stale draft", body: "Skip me.")
+    force_current_published_for(draft.recordable) do
+      assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
+        post recording_studio_terms_and_conditions.acceptance_path, params: { agreed: "1" }
+      end
+    end
+
+    assert_response :unprocessable_entity
+    assert_includes CGI.unescapeHTML(response.body), "Those terms aren't live. Refresh and agree to the current ones."
+  end
+
+  private
+
+  def force_current_published_for(terms)
+    mod = RecordingStudioTermsAndConditions.singleton_class
+    mod.class_eval do
+      alias_method :current_published_for_without_a3, :current_published_for
+      define_method(:current_published_for) { |_root| terms }
+    end
+    yield
+  ensure
+    mod.class_eval do
+      alias_method :current_published_for, :current_published_for_without_a3
+      remove_method :current_published_for_without_a3
+    end
+  end
 end

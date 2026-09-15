@@ -32,6 +32,7 @@ module RecordingStudioTermsAndConditions
 
         recording, terms = resolve_version(version)
         raise ArgumentError, "version must be Terms or a Terms recording" if recording.blank? || terms.blank?
+        raise NotLive, "Only live terms can be accepted." unless live_version?(recording)
 
         create_receipt!(actor: actor, recording: recording, terms: terms, provenance: provenance)
       end
@@ -90,6 +91,10 @@ module RecordingStudioTermsAndConditions
 
       def publish_sort_key(recording)
         [recording.current_publishable&.publish_at || recording.created_at, recording.created_at]
+      end
+
+      def live_version?(recording)
+        recording.respond_to?(:currently_published?) && recording.currently_published?
       end
 
       def resolve_version(version)

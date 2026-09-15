@@ -18,6 +18,8 @@ require "recording_studio_terms_and_conditions/admin" if defined?(RecordingStudi
 require "recording_studio_terms_and_conditions/capabilities/example"
 
 module RecordingStudioTermsAndConditions
+  class NotLive < StandardError; end
+
   class << self
     def configuration
       @configuration ||= Configuration.new

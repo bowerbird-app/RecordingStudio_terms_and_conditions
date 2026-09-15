@@ -95,6 +95,27 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     assert_raises(ArgumentError) { RecordingStudioTermsAndConditions.accept!(@actor, recording, "clickwrap") }
   end
 
+  test "accept! refuses drafts, unpublished, and scheduled terms" do
+    draft = record_terms("Draft", "Not live.")
+    soon = record_terms("Soon", "Wait.")
+    publish_terms!(soon, slug: "soon-refuse", publish_at: 1.day.from_now)
+    unpublished = record_terms("Was live", "Gone.")
+    publish_terms!(unpublished, slug: "was-live")
+    publish_terms!(unpublished, slug: "was-live", status: "draft")
+
+    assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
+      assert_raises(RecordingStudioTermsAndConditions::NotLive) do
+        RecordingStudioTermsAndConditions.accept!(@actor, draft, source: "clickwrap")
+      end
+      assert_raises(RecordingStudioTermsAndConditions::NotLive) do
+        RecordingStudioTermsAndConditions.accept!(@actor, soon, source: "clickwrap")
+      end
+      assert_raises(RecordingStudioTermsAndConditions::NotLive) do
+        RecordingStudioTermsAndConditions.accept!(@actor, unpublished, source: "clickwrap")
+      end
+    end
+  end
+
   test "accept! ignores a caller body_digest and never rewrites an older receipt" do
     recording = record_terms("Digest", "Live copy.")
     publish_terms!(recording, slug: "digest-terms")
