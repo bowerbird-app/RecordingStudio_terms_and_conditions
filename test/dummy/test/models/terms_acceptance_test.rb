@@ -193,6 +193,21 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     assert_equal "First.", RecordingStudioTermsAndConditions::Terms.find(first.terms_id).body
   end
 
+  test "reaccepting? is true only after an older snapshot and a new live version" do
+    recording = record_terms("v1", "First.")
+    publish_terms!(recording, slug: "reaccept-#{SecureRandom.hex(4)}")
+
+    refute RecordingStudioTermsAndConditions.reaccepting?(@actor, @workspace)
+    RecordingStudioTermsAndConditions.accept!(@actor, recording, source: "clickwrap")
+    refute RecordingStudioTermsAndConditions.reaccepting?(@actor, @workspace)
+
+    revised = @root.revise(recording) { |terms| terms.body = "Second." }
+    publish_terms!(revised, slug: "reaccept-#{SecureRandom.hex(4)}")
+
+    assert RecordingStudioTermsAndConditions.reaccepting?(@actor, @workspace)
+    refute RecordingStudioTermsAndConditions.accepted?(@actor, @workspace)
+  end
+
   private
 
   def record_terms(title, body)

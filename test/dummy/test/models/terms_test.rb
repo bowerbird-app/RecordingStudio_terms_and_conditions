@@ -19,6 +19,7 @@ class TermsTest < ActiveSupport::TestCase
     assert connection.column_exists?(:recording_studio_terms_and_conditions_terms, :title)
     assert connection.column_exists?(:recording_studio_terms_and_conditions_terms, :body)
     assert connection.column_exists?(:recording_studio_terms_and_conditions_terms, :created_at)
+    assert connection.column_exists?(:recording_studio_terms_and_conditions_terms, :change_note)
     refute connection.column_exists?(:recording_studio_terms_and_conditions_terms, :updated_at)
     refute connection.column_exists?(:recording_studio_terms_and_conditions_terms, :published)
   end

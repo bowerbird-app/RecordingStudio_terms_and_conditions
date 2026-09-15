@@ -22,6 +22,7 @@ module RecordingStudioTermsAndConditions
       @root = acceptance_root
       @terms = RecordingStudioTermsAndConditions.current_published_for(@root)
       @already_accepted = RecordingStudioTermsAndConditions.accepted?(current_actor, @root)
+      @reaccepting = RecordingStudioTermsAndConditions.reaccepting?(current_actor, @root)
     end
 
     def reject_agreement(message)

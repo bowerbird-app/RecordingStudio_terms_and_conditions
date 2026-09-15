@@ -2,12 +2,21 @@
 
 <%= render FlatPack::PageTitle::Component.new(
   title: @terms&.title.presence || "Terms",
-  subtitle: "The live version for this workspace.",
+  subtitle: @reaccepting ? "These terms changed. Agree again to stay in." : "The live version for this workspace.",
   variant: :h1
 ) %>
 <div class="-mt-5 mb-6">
   <%= terms_version_date(@terms) %>
 </div>
+
+<% if @reaccepting && @terms.present? %>
+  <%= render FlatPack::Alert::Component.new(
+    title: "Terms updated",
+    description: terms_reaccept_notice(@terms),
+    style: :info,
+    class: "mb-6"
+  ) %>
+<% end %>
 
 <% if @terms.blank? %>
   <%= render FlatPack::EmptyState::Component.new(
@@ -22,7 +31,10 @@
     <% unless @already_accepted %>
       <%= form_with url: acceptance_path, method: :post do %>
         <%= recording_studio_terms_agree(inside_form: true, actor: current_user, root: @root) %>
-        <%= recording_studio_terms_agree_button(require_scroll_to_end: require_scroll_to_end) %>
+        <%= recording_studio_terms_agree_button(
+          require_scroll_to_end: require_scroll_to_end,
+          text: @reaccepting ? "Agree again" : "Agree"
+        ) %>
       <% end %>
     <% end %>
   <% end %>

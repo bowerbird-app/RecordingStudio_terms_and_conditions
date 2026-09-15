@@ -73,6 +73,8 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "flat-pack--tiptap"
     assert_includes response.body, "terms[body]"
+    assert_includes response.body, "terms[change_note]"
+    assert_includes response.body, "What changed"
     assert_includes response.body, "Save draft"
     assert_select "div.inline-block button[type=submit]", text: "Save draft"
 
@@ -110,7 +112,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_difference -> { RecordingStudioTermsAndConditions::Terms.count }, 1 do
       assert_no_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count } do
         patch recording_studio_terms_and_conditions.admin_term_path(recording), params: {
-          terms: { title: "House rules", body: "Whisper, please." }
+          terms: { title: "House rules", body: "Whisper, please.", change_note: "Quieter booths." }
         }
       end
     end
@@ -118,6 +120,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     recording.reload
     refute_equal original_snapshot_id, recording.recordable_id
     assert_equal "Whisper, please.", recording.recordable.body
+    assert_equal "Quieter booths.", recording.recordable.change_note
     follow_redirect!
     assert_includes response.body, "Terms updated."
     assert_includes response.body, "Recording #{recording.id}"

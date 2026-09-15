@@ -8,7 +8,7 @@
   ) %>
 
   <%= form_with url: admin_term_path(@terms_recording), method: :patch, scope: :terms, class: "flex w-full flex-col gap-6" do %>
-    <%= render "form", title: @terms.title, body: @terms.body %>
+    <%= render "form", title: @terms.title, body: @terms.body, change_note: "" %>
     <div class="inline-block">
       <%= render FlatPack::Button::Component.new(
         text: "Save version",

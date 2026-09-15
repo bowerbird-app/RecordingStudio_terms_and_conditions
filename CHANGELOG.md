@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optional `config.capture_request_provenance` (default off). When true, the gem Agree screen adds IP and user agent to provenance on new accepts.
 - `accept!` is idempotent for the same actor and Terms snapshot. A unique index on actor + recording + snapshot returns the existing receipt on retry. A later published revision still inserts a new row.
 - `accept!` refuses drafts, unpublished, and scheduled-but-not-live versions (`RecordingStudioTermsAndConditions::NotLive`). The Agree screen flashes and does not write a receipt.
+- Re-gate Agree shows a Flatpack Alert when the person already accepted an older snapshot. Copy and the new live calendar date are distinct from first-time Agree. Optional `change_note` on the Terms snapshot appears in that Alert.
 
 ### Changed
 - Scroll-to-end no longer deadlocks Agree when `IntersectionObserver` is missing. Already-visible sentinels unlock immediately. The checkbox is still required. Scroll-to-end stays optional (default off). The Stimulus controller is self-contained (no extra importmap module).
@@ -27,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Run `bin/rails generate recording_studio_terms_and_conditions:migrations` then `bin/rails db:migrate` so `body_digest` exists. Do not backfill old receipts.
 - New `accept!` rows always set `body_digest`. Callers cannot pass a spoofed digest in provenance. Retrying `accept!` for the same actor and live snapshot returns the existing row and does not rewrite provenance or digest.
 - Host `accept!` callers must pass a live published version. Rescue `RecordingStudioTermsAndConditions::NotLive` for drafts and unpublished copy — do not write a receipt.
+- Run the `change_note` migration. It is optional on Terms snapshots. Leave it blank unless you want a short “what changed” line on the re-gate Agree Alert.
 - Run the unique-index migration. It removes `index_rstac_acceptances_on_actor_and_version` only if that index exists, then adds it unique. New installs get the unique index from the create migration. If migrate fails, the table already has duplicate actor+snapshot receipts — do not rewrite those rows; resolve the duplicates first.
 - Leave `config.capture_request_provenance` off unless you intend to store IP and user agent from the gem Agree screen.
 - If you opt into `require_scroll_to_end`, pin the engine Stimulus controllers. Missing IntersectionObserver leaves Agree enabled.

@@ -25,7 +25,16 @@ module RecordingStudioTermsAndConditions
       return unless Gate.required?(self, signed_in_actor)
 
       remember_requested_page
-      redirect_to Gate.acceptance_path(self), notice: "One more thing — agree to the terms."
+      redirect_to Gate.acceptance_path(self), notice: terms_gate_notice
+    end
+
+    def terms_gate_notice
+      root = Gate.root_for(self)
+      if RecordingStudioTermsAndConditions.reaccepting?(signed_in_actor, root)
+        "Terms changed. Agree again."
+      else
+        "One more thing — agree to the terms."
+      end
     end
 
     def signed_in_actor

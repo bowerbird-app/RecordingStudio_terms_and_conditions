@@ -129,6 +129,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     create = File.read(File.join(migrate_dir, names.grep(/create_.*_acceptances/).first))
     provenance = File.read(File.join(migrate_dir, names.grep(/add_provenance_to_.*_acceptances/).first))
     unique = File.read(File.join(migrate_dir, names.grep(/unique_per_actor_and_version/).first))
+    assert names.grep(/add_change_note_to_recording_studio_terms_and_conditions_terms/).any?
     assert_includes create, "unique: true"
     assert_includes create, "index_rstac_acceptances_on_actor_and_version"
     refute_includes provenance, "index_rstac_acceptances_on_actor_and_version"
@@ -144,9 +145,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes source, "def current_published_for(root)"
     assert_includes source, "def accepted?(actor, root)"
     assert_includes source, "def requires_acceptance?(actor, root)"
-    assert_includes source, "def accept!(actor, version, provenance = {})"
+    assert_includes source, "def reaccepting?(actor, root)"
     assert_includes source, "class NotLive < StandardError"
-    %i[current_published_for accepted? requires_acceptance? accept!].each do |helper|
+    %i[current_published_for accepted? requires_acceptance? accept! reaccepting?].each do |helper|
       assert_includes RecordingStudioTermsAndConditions.singleton_methods, helper
     end
     assert_operator RecordingStudioTermsAndConditions::NotLive, :<, StandardError
@@ -269,7 +270,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/gate.rb"), "agree_helpers"
     refute_includes agree, "help_text"
     refute_includes agree, "Read them, tick the box"
-    refute_includes agree, "FlatPack::Alert::Component"
+    assert_includes agree, "FlatPack::Alert::Component"
+    assert_includes agree, "@reaccepting"
+    assert_includes agree, "terms_reaccept_notice"
     refute_includes public_show, "FlatPack::Card::Component"
     refute_includes public_show, "<article>"
     assert_includes public_show, "terms_content"

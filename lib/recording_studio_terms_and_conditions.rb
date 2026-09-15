@@ -44,5 +44,9 @@ module RecordingStudioTermsAndConditions
     def accept!(actor, version, provenance = {})
       TermsAcceptance.accept!(actor, version, provenance)
     end
+
+    def reaccepting?(actor, root)
+      TermsAcceptance.reaccepting?(actor, root)
+    end
   end
 end

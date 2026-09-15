@@ -45,6 +45,32 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     assert_match %r{flat_pack/application}, response.body
     refute_includes response.body, "Read them, tick the box"
     refute_includes response.body, "Tick the box if you agree."
+    refute_includes response.body, "Terms updated"
+    refute_includes CGI.unescapeHTML(response.body), "These terms changed. Agree again to stay in."
+    refute_includes response.body, "Agree again"
+  end
+
+  test "re-gate after a new live version shows the updated notice and date" do
+    RecordingStudioTermsAndConditions.accept!(@user, @recording, { "source" => "clickwrap" })
+    revised = @root.revise(@recording) do |terms|
+      terms.body = "Be kinder."
+      terms.change_note = "We added a kindness clause."
+    end
+    publish_terms!(revised, slug: "studio-terms-#{SecureRandom.hex(4)}")
+
+    get recording_studio_terms_and_conditions.acceptance_path
+
+    assert_response :success
+    assert RecordingStudioTermsAndConditions.reaccepting?(@user, @workspace)
+    refute RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
+    assert_includes CGI.unescapeHTML(response.body), "These terms changed. Agree again to stay in."
+    assert_includes response.body, "Terms updated"
+    published_on = revised.current_publishable.publish_at.in_time_zone.strftime("%e %b %Y").squish
+    assert_includes response.body, published_on
+    assert_includes CGI.unescapeHTML(response.body), "You already agreed. This version is from #{published_on}."
+    assert_includes response.body, "We added a kindness clause."
+    assert_select "button[type=submit]", text: "Agree again"
+    refute_includes CGI.unescapeHTML(response.body), "The live version for this workspace."
   end
 
   test "agree stays gated on the server when the box is not ticked" do

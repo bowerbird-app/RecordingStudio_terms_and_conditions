@@ -2,7 +2,7 @@
 
 module RecordingStudioTermsAndConditions
   # Domain helpers for live published Terms and append-only acceptances.
-  class TermsAcceptance
+  class TermsAcceptance # rubocop:disable Metrics/ClassLength
     class << self
       def current_published_for(root)
         root_recording = resolve_root_recording(root)
@@ -25,6 +25,18 @@ module RecordingStudioTermsAndConditions
 
       def requires_acceptance?(actor, root)
         current_published_for(root).present? && !accepted?(actor, root)
+      end
+
+      def reaccepting?(actor, root)
+        return false unless requires_acceptance?(actor, root)
+
+        terms = current_published_for(root)
+        recording = recording_for_terms(terms)
+        recording.present? && Acceptance.where(
+          actor_type: actor.class.base_class.name,
+          actor_id: actor.id,
+          terms_recording_id: recording.id
+        ).where.not(terms_id: terms.id).exists?
       end
 
       def accept!(actor, version, provenance = {})

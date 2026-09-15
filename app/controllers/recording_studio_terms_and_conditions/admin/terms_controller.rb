@@ -12,6 +12,7 @@ module RecordingStudioTermsAndConditions
       def new
         @title = ""
         @body = ""
+        @change_note = ""
       end
 
       def create
@@ -31,8 +32,7 @@ module RecordingStudioTermsAndConditions
 
       def update
         recording = terms_recording.root_recording.revise(terms_recording, actor: current_admin_actor) do |terms|
-          terms.title = terms_params[:title]
-          terms.body = terms_params[:body]
+          assign_terms_fields(terms)
         end
         redirect_to admin_term_path(recording), notice: "Terms updated."
       end
@@ -47,8 +47,7 @@ module RecordingStudioTermsAndConditions
 
       def draft_terms!(parent)
         parent.record(Terms, actor: current_admin_actor, parent_recording: parent) do |terms|
-          terms.title = terms_params[:title]
-          terms.body = terms_params[:body]
+          assign_terms_fields(terms)
         end
       end
 
@@ -56,11 +55,18 @@ module RecordingStudioTermsAndConditions
         flash.now[:alert] = "Pick a workspace first."
         @title = terms_params[:title]
         @body = terms_params[:body]
+        @change_note = terms_params[:change_note]
         render :new, status: :unprocessable_entity
       end
 
+      def assign_terms_fields(terms)
+        terms.title = terms_params[:title]
+        terms.body = terms_params[:body]
+        terms.change_note = terms_params[:change_note].presence
+      end
+
       def terms_params
-        params.fetch(:terms, {}).permit(:title, :body)
+        params.fetch(:terms, {}).permit(:title, :body, :change_note)
       end
     end
   end

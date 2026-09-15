@@ -46,7 +46,7 @@ RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap"
 RecordingStudioTermsAndConditions.accepted?(user, workspace)
 ```
 
-Live means Publishable `currently_published?`. `accept!` raises `NotLive` for drafts and unpublished versions. Acceptance rows are receipts, not recordings.
+Live means Publishable `currently_published?`. `accept!` raises `NotLive` for drafts and unpublished versions. People who already agreed to an older snapshot see a re-gate Alert (new date, optional `change_note`). Acceptance rows are receipts, not recordings.
 
 The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends Users Auth after sign in / sign up to the same Agree screen.
 

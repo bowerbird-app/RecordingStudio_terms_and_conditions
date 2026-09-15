@@ -29,9 +29,9 @@ module RecordingStudioTermsAndConditions
       )
     end
 
-    def recording_studio_terms_agree_button(require_scroll_to_end: nil)
+    def recording_studio_terms_agree_button(require_scroll_to_end: nil, text: "Agree")
       scroll = recording_studio_terms_require_scroll_to_end?(require_scroll_to_end: require_scroll_to_end)
-      arguments = { text: "Agree", style: :primary, type: "submit" }
+      arguments = { text: text, style: :primary, type: "submit" }
       if scroll
         arguments[:disabled] = true
         arguments[:data] = { recording_studio_terms_and_conditions__scroll_to_end_target: "agree" }
