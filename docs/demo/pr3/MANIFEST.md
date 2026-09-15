@@ -1,4 +1,4 @@
-# PR #3 dummy demos (A6 ∥ A5 ∥ A1)
+# PR #3 dummy demos (A6 ∥ A5 ∥ A1 ∥ A2 ∥ A3 ∥ A4)
 
 Captured 2026-09-15 from the PR branch dummy at `http://127.0.0.1:3000` (Flatpack `rounded`, CSS loaded). Viewport 1280×800.
 
@@ -7,6 +7,7 @@ Captured 2026-09-15 from the PR branch dummy at `http://127.0.0.1:3000` (Flatpac
 | `agree_before_scroll.png` | Agree screen, dummy `require_scroll_to_end` on. Top of live Studio Terms; Agree is below the fold. |
 | `agree_after_scroll.png` | Same screen after the end sentinel is scrolled into view. Agree is enabled (dark primary). Checkbox still required. |
 | `agree_ticked.png` | End of clickwrap: box ticked, Agree enabled. Scroll-to-end does not imply reading. |
+| `agree_regate.png` | Re-gate Agree after an older snapshot was accepted and a new live version published. Flatpack Alert **Terms updated**, calendar date `15 Sep 2026`, optional `change_note` (“We added a kindness clause.”). First-time Agree does not show this Alert. |
 | `dummy_config.png` | Dummy `/docs/config` (A6): product knobs `mount_path`, `require_scroll_to_end`, `capture_request_provenance`. No template `api_key` / `enable_feature_x` / `timeout`. |
 | `admin_terms_index.png` | Engine Admin Terms table after the demo accept (Agrees = 1). |
 | `admin_term_show.png` | Admin term show: live copy, Users / Edit / Publish. Recording and snapshot ids only. |
