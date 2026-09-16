@@ -300,9 +300,11 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes table_page, "SIZE = 25"
     assert_includes table_page, "def paginate_table"
     assert_includes table_page, "overflow: :last_page"
-    assert_includes application_helper, "def terms_calendar_date"
-    assert_includes application_helper, "def terms_heading_date"
-    assert_includes application_helper, "%e %b %Y"
+    date_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/terms_date_helper.rb")
+    assert_includes application_helper, "include TermsDateHelper"
+    assert_includes date_helper, "def terms_calendar_date"
+    assert_includes date_helper, "def terms_heading_date"
+    assert_includes date_helper, "%e %b %Y"
     assert_includes application_helper, "def terms_content"
     assert_includes application_helper, "def terms_admin_hub_path"
     assert_includes application_helper, "flat-pack-content-editor-content"
@@ -557,6 +559,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin, 'text: "New"'
     assert_includes admin, 'text: "Agree stats"'
     assert_includes admin, 'title "Terms and Conditions"'
+    assert_includes admin, 'title "Old versions"'
     assert_includes admin, 'title "Users"'
     assert_includes admin, 'widget "widgets.terms.live", view_variant: :card'
     assert_includes admin, 'widget "widgets.terms.agrees", view_variant: :card'

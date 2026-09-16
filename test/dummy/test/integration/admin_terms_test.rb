@@ -308,6 +308,8 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
     get "/admin/screens/recording_studio_terms"
     assert_response :success
+    assert_includes response.body, "Old versions"
+    refute_includes response.body, "Table data"
     assert_includes response.body, "widget_view_variant=card"
     refute_includes response.body, "widget_view_variant=compact"
 

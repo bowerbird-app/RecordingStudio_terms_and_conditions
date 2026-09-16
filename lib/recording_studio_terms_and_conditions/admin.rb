@@ -40,6 +40,7 @@ module RecordingStudioTermsAndConditions
       end
 
       table do
+        title "Old versions"
         paginate per_page: 25
         column :title,
                title: "Title",
