@@ -140,6 +140,10 @@ module RecordingStudioTermsAndConditions
         unless helper.ancestors.include?(RecordingStudioTermsAndConditions::AdminWidgetCard)
           helper.prepend RecordingStudioTermsAndConditions::AdminWidgetCard
         end
+        button = FlatPack::Button::Component
+        unless button.ancestors.include?(RecordingStudioTermsAndConditions::FlatpackButtonHrefFromUrl)
+          button.prepend RecordingStudioTermsAndConditions::FlatpackButtonHrefFromUrl
+        end
       end
     end
 

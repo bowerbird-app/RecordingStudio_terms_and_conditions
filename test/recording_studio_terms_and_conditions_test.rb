@@ -544,6 +544,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/admin_widget_card.rb"))
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "AdminWidgetCard"
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
+                    "FlatpackButtonHrefFromUrl"
+    assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/flatpack_button_href_from_url.rb"))
     assert_includes admin, 'admin_screen_path("recording_studio_terms")'
     assert_includes admin, "column :published"
     assert_includes admin, "column :category"

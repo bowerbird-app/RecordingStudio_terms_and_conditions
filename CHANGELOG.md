@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Host `ForcesAcceptance` and Users Auth `after_sign_in` / `after_sign_up` follow `pending_published_list`. The HTTP gate stays on until every published category (or `required_categories`) is accepted. Accepting one category still redirects while others remain. Terms-only hosts are unchanged.
 
 ### Changed
+- Admin hub Flatpack buttons (`Write terms`, `Every version`, `Who agreed`, widget `More`) pass `href` so they navigate. Recording Studio Admin still sends `url:`, which Flatpack ignores as a dead `<button>`.
 - Scroll-to-end no longer deadlocks Agree when `IntersectionObserver` is missing. Already-visible sentinels unlock immediately. The checkbox is still required. Scroll-to-end stays optional (default off). The Stimulus controller is self-contained (no extra importmap module).
 - `requires_acceptance?` with no `category:` / `required_categories:` follows every currently published category, not only `terms`. `accepted?` and `current_published_for` still default to `category: "terms"`.
 

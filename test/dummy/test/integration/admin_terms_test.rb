@@ -357,7 +357,12 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Write terms"
     assert_includes response.body, "Every version"
     assert_includes response.body, "Terms"
-    assert_includes response.body, RecordingStudioTermsAndConditions.admin_write_path
+    write_path = RecordingStudioTermsAndConditions.admin_write_path
+    assert_includes response.body, write_path
+    assert_select "a[href=?]", write_path, text: "Write terms"
+    assert_select "a[href*='/admin/screens/recording_studio_terms']", text: "Every version"
+    assert_select "a[href*='/admin/screens/recording_studio_terms_acceptances']", text: "Who agreed"
+    refute_select "button", text: "Write terms"
     assert_includes response.body, "widget_view_variant=card"
     refute_includes response.body, "widget_view_variant=compact"
   end
