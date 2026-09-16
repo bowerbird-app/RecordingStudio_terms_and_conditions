@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 module RecordingStudioTermsAndConditions
-  # Domain helpers for live published Terms and append-only acceptances.
-  class TermsAcceptance
+  class TermsAcceptance # rubocop:disable Metrics/ClassLength
     class << self
       def current_published_for(root)
         root_recording = resolve_root_recording(root)
@@ -150,5 +149,5 @@ module RecordingStudioTermsAndConditions
         provenance.to_h.stringify_keys.except("body_digest", "body_digest_algorithm")
       end
     end
-  end
+  end # rubocop:enable Metrics/ClassLength
 end

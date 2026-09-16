@@ -22,7 +22,9 @@ module RecordingStudioTermsAndConditions
     def force_terms_acceptance
       return unless signed_in_actor
       return if Gate.exempt?(self)
-      return unless Gate.required?(self, signed_in_actor)
+
+      pending = Gate.pending_for(self, signed_in_actor)
+      return if pending.empty?
 
       remember_requested_page
       redirect_to Gate.acceptance_path(self), notice: terms_gate_notice
