@@ -71,6 +71,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
     get recording_studio_terms_and_conditions.new_admin_term_path
     assert_response :success
+    assert_includes response.body, "New Terms and Conditions"
     assert_includes response.body, "flat-pack--tiptap"
     assert_includes response.body, "terms[body]"
     refute_includes response.body, "terms[change_note]"
@@ -79,6 +80,11 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Category"
     assert_includes response.body, "Save draft"
     assert_select "div.inline-block button[type=submit]", text: "Save draft"
+    assert_select "body[data-recording-studio-default-layout='true']", count: 1
+    assert_select "nav[aria-label='Page navigation']", count: 1
+    refute_select "header.fp-top-nav"
+    refute_includes response.body, "Terms demo"
+    refute_includes response.body, "Write terms"
 
     assert_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count }, 1 do
       post recording_studio_terms_and_conditions.admin_terms_path, params: {

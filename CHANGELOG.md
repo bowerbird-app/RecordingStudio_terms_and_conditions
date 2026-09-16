@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Admin hub Flatpack buttons (`Write terms`, `Every version`, `Who agreed`, widget `More`) pass `href` so they navigate. Recording Studio Admin still sends `url:`, which Flatpack ignores as a dead `<button>`.
+- Admin new Terms page title is **New Terms and Conditions**. It still uses the default layout (back/close), and sets `skip_top_nav` so the host TopNav (demo title and workspace switcher) stays off that screen.
 - Scroll-to-end no longer deadlocks Agree when `IntersectionObserver` is missing. Already-visible sentinels unlock immediately. The checkbox is still required. Scroll-to-end stays optional (default off). The Stimulus controller is self-contained (no extra importmap module).
 
 ### Upgrade notes (0.3.x → 0.4.0)
