@@ -11,7 +11,7 @@ module RecordingStudioTermsAndConditions
     def create
       load_acceptance_context
       return reject_agreement("Tick the box if you agree.") unless agreed?
-      return reject_agreement("There are no live terms to agree to.") if documents_to_accept.blank?
+      return reject_agreement("There are no live terms to agree to.") if @terms.blank?
 
       accept_current_terms!
     end
@@ -23,10 +23,7 @@ module RecordingStudioTermsAndConditions
       @pending_terms = RecordingStudioTermsAndConditions.pending_published_list(current_actor, @root)
       @terms = @pending_terms.first || RecordingStudioTermsAndConditions.current_published_for(@root)
       @already_accepted = @pending_terms.empty? && @terms.present?
-      @reaccepting_terms = @pending_terms.select do |terms|
-        RecordingStudioTermsAndConditions.reaccepting?(current_actor, @root, category: terms.category)
-      end
-      @reaccepting = @reaccepting_terms.any?
+      @reaccepting = RecordingStudioTermsAndConditions.reaccepting?(current_actor, @root)
     end
 
     def reject_agreement(message)
@@ -36,16 +33,10 @@ module RecordingStudioTermsAndConditions
     end
 
     def accept_current_terms!
-      documents_to_accept.each do |terms|
-        RecordingStudioTermsAndConditions.accept!(current_actor, terms, clickwrap_provenance)
-      end
+      RecordingStudioTermsAndConditions.accept!(current_actor, @terms, clickwrap_provenance)
       redirect_to next_path_after_acceptance, notice: "You're in. Thanks for reading."
     rescue RecordingStudioTermsAndConditions::NotLive
       reject_agreement("Those terms aren't live. Refresh and agree to the current ones.")
-    end
-
-    def documents_to_accept
-      @pending_terms.presence || Array(@terms).compact
     end
 
     def clickwrap_provenance

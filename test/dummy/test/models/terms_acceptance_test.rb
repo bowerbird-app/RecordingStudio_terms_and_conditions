@@ -23,19 +23,13 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
   test "current_published_for returns live published Terms for a host root" do
     recording = record_terms("Live terms", "Be kind.")
     publish_terms!(recording, slug: "live-terms")
-    privacy = record_terms("Privacy", "Cookies stay in the booth.", category: "privacy")
-    publish_terms!(privacy, slug: "privacy-policy")
 
     published = RecordingStudioTermsAndConditions.current_published_for(@workspace)
 
     assert_equal recording.recordable, published
     assert_equal "Live terms", published.title
-    assert_equal "terms", published.category
-    assert_equal privacy.recordable,
-                 RecordingStudioTermsAndConditions.current_published_for(@workspace, category: "privacy")
     assert_nil RecordingStudioTermsAndConditions.current_published_for(@other_workspace)
     assert_equal published, RecordingStudioTermsAndConditions.current_published_for(@root)
-    refute RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace, category: "usage")
   end
 
   test "current_published_for ignores a draft terms recording" do
@@ -107,9 +101,9 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
 
   test "accept! refuses drafts, unpublished, and scheduled terms" do
     draft = record_terms("Draft", "Not live.")
-    soon = record_terms("Soon", "Wait.", category: "privacy")
+    soon = record_terms("Soon", "Wait.")
     publish_terms!(soon, slug: "soon-refuse", publish_at: 1.day.from_now)
-    unpublished = record_terms("Was live", "Gone.", category: "usage")
+    unpublished = record_terms("Was live", "Gone.")
     publish_terms!(unpublished, slug: "was-live")
     publish_terms!(unpublished, slug: "was-live", status: "draft")
 
@@ -218,79 +212,24 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     refute RecordingStudioTermsAndConditions.accepted?(@actor, @workspace)
   end
 
-  test "current_published_by_category maps live categories and requires_acceptance? covers any of them" do
-    terms = record_terms("Live terms", "Be kind.")
-    publish_terms!(terms, slug: "live-terms-map")
-    privacy = record_terms("Privacy", "Keep the tape.", category: "privacy")
-    publish_terms!(privacy, slug: "privacy-map")
-
-    by_category = RecordingStudioTermsAndConditions.current_published_by_category(@workspace)
-
-    assert_equal %w[terms privacy], by_category.keys
-    assert_equal terms.recordable, by_category.fetch("terms")
-    assert_equal privacy.recordable, by_category.fetch("privacy")
-    assert_empty RecordingStudioTermsAndConditions.current_published_by_category(@other_workspace)
-    assert RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace)
-    assert RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace, category: "privacy")
-
-    RecordingStudioTermsAndConditions.accept!(@actor, terms, source: "clickwrap")
-    refute RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace, category: "terms")
-    refute RecordingStudioTermsAndConditions.requires_acceptance?(
-      @actor, @workspace, required_categories: ["terms"]
-    )
-    assert RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace)
-    refute RecordingStudioTermsAndConditions.accepted?(@actor, @workspace, category: "privacy")
-    assert RecordingStudioTermsAndConditions.accepted?(@actor, @workspace)
-
-    RecordingStudioTermsAndConditions.accept!(@actor, privacy, source: "clickwrap")
-    refute RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace)
-    assert RecordingStudioTermsAndConditions.accepted?(@actor, @workspace, category: "privacy")
-  end
-
-  test "pending_published_list returns live categories the actor still needs" do
+  test "pending_published_list returns live Terms the actor still needs" do
     terms = record_terms("Live terms", "Be kind.")
     publish_terms!(terms, slug: "pending-list-terms")
-    privacy = record_terms("Privacy", "Keep the tape.", category: "privacy")
-    publish_terms!(privacy, slug: "pending-list-privacy")
 
     pending = RecordingStudioTermsAndConditions.pending_published_list(@actor, @workspace)
 
-    assert_equal [terms.recordable, privacy.recordable], pending
+    assert_equal [terms.recordable], pending
     RecordingStudioTermsAndConditions.accept!(@actor, terms, source: "clickwrap")
-    assert_equal [privacy.recordable],
-                 RecordingStudioTermsAndConditions.pending_published_list(@actor, @workspace)
-    assert_equal privacy.recordable,
-                 RecordingStudioTermsAndConditions.pending_published_for(@actor, @workspace)
-  end
-
-  test "required_categories and config.required_categories narrow the gate" do
-    previous = RecordingStudioTermsAndConditions.configuration.required_categories
-    terms = record_terms("Live terms", "Be kind.")
-    publish_terms!(terms, slug: "live-terms-narrow")
-    privacy = record_terms("Privacy", "Keep the tape.", category: "privacy")
-    publish_terms!(privacy, slug: "privacy-narrow")
-    RecordingStudioTermsAndConditions.accept!(@actor, terms, source: "clickwrap")
-
-    assert RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace)
-    refute RecordingStudioTermsAndConditions.requires_acceptance?(
-      @actor, @workspace, required_categories: %w[terms]
-    )
-    assert RecordingStudioTermsAndConditions.requires_acceptance?(
-      @actor, @workspace, required_categories: %w[privacy]
-    )
-
-    RecordingStudioTermsAndConditions.configuration.required_categories = %w[terms]
-    refute RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace)
-  ensure
-    RecordingStudioTermsAndConditions.configuration.required_categories = previous
+    assert_empty RecordingStudioTermsAndConditions.pending_published_list(@actor, @workspace)
+    assert_nil RecordingStudioTermsAndConditions.pending_published_for(@actor, @workspace)
   end
 
   private
 
-  def record_terms(title, body, category: RecordingStudioTermsAndConditions::Terms::DEFAULT_CATEGORY)
+  def record_terms(title, body)
     RecordingStudio.record!(
       action: "created",
-      recordable: RecordingStudioTermsAndConditions::Terms.new(title: title, body: body, category: category),
+      recordable: RecordingStudioTermsAndConditions::Terms.new(title: title, body: body),
       root_recording: @root,
       parent_recording: @root
     ).recording

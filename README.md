@@ -13,14 +13,14 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, an em
 - **Recording Studio** 4.x gem pinned and configured
 - **Recording Studio Users Auth** (email, then password) with a pre-seeded admin user
 - **Workspace**, **Folder**, and **Page** recordables seeded into the dummy host app
-- **Terms** recordable (`RecordingStudioTermsAndConditions::Terms`, product label `"Terms"`) with Publishable opted in on the type. Snapshots carry a stable `category` (`terms`, `privacy`, `usage`). Existing rows default to `terms`. A workspace keeps at most one Terms recording per category.
+- **Terms** recordable (`RecordingStudioTermsAndConditions::Terms`, product label `"Terms"`) with Publishable opted in on the type
 - **Acceptance** append-only table for clickwrap receipts (not a recordable). New rows store a SHA-256 body digest of the live copy at accept time
-- **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for` / `current_published_by_category`, `pending_published_list` / `pending_published_for`, `accepted?`, `accept!`, `requires_acceptance?`, `reaccepting?`. `current_published_for` and `accepted?` still default to `category: "terms"`. `requires_acceptance?` is true if any published category still needs a tick, unless you pass `category:` or `required_categories:`
-- **Agree screen** lists every pending live category (bodies and public links) behind one checkbox, then `accept!` each. Optional `require_scroll_to_end` keeps Agree disabled until a sentinel after the last body is visible (default off). If IntersectionObserver is missing, Agree stays enabled. The live body sits on the page with a calendar date, not a relative “hours ago”
-- **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`. Pass `link_terms: true` to turn the word terms into a link to the public URL. On submit, call `accept!` for each item in `pending_published_list`
-- **Gate** on the host `ApplicationController`: redirects to Agree until `pending_published_list` is empty (every published category, or `config.required_categories`), and again after a new publish
-- **Users hook** on `RecordingStudioUser::Auth::BaseController` so after sign in / sign up land on Agree while any required category is still pending
-- **Admin** create/edit Terms (including category), Publishable publish, category filter and coverage on the Terms index, and a Users page of receipts for each term. Engine tables use `TablePage` (Pagy, 25 rows) and Flatpack infinite pagination. Admin hub Terms and Who agreed tables set `paginate per_page: 25`. Live terms and Agrees widgets stack the title above the count (`view_variant: :card`)
+- **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for`, `pending_published_list` / `pending_published_for`, `accepted?`, `accept!`, `requires_acceptance?`, `reaccepting?`
+- **Agree screen** for the current published Terms (unchecked checkbox, gated Agree, `accept!`). Optional `require_scroll_to_end` keeps Agree disabled until a sentinel after the live body is visible (default off). If IntersectionObserver is missing, Agree stays enabled. The live body sits on the page with a calendar date, not a relative “hours ago”
+- **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`. Pass `link_terms: true` to turn the word terms into a link to the public URL. On submit, call `accept!` for the pending live version
+- **Gate** on the host `ApplicationController`: redirects to Agree until the live version is accepted, and again after a new publish
+- **Users hook** on `RecordingStudioUser::Auth::BaseController` so after sign in / sign up land on Agree when acceptance is still required
+- **Admin** create/edit Terms, Publishable publish, and a Users page of receipts for each term. Engine tables use `TablePage` (Pagy, 25 rows) and Flatpack infinite pagination. Admin hub Terms and Who agreed tables set `paginate per_page: 25`. Live terms and Agrees widgets stack the title above the count (`view_variant: :card`)
 - **Public Terms URL** at `/terms/:uuid/:slug` via Publishable
 - **FlatPack** UI component library for all views
 - **Dummy app** (`test/dummy/`) with a FlatPack sign-in screen, a home page on Recording Studio's default layout, mounted Recording Studio routes, and FlatPack's built-in rounded theme
@@ -96,7 +96,7 @@ This is the kit gem for published Terms and clickwrap. Add it to the approved li
 
 ## Upgrading from 0.3.x
 
-Bump to **0.4.0**, copy migrations, migrate. Run `body_digest`, unique actor+snapshot, `change_note`, and `category`. Do not backfill old receipts. Drop template knobs `api_key`, `enable_feature_x`, `timeout`. Publishing privacy or usage now gates that category unless you set `required_categories`. Host `accept!` must be a live version (`NotLive` otherwise). Full notes: `CHANGELOG.md` (0.4.0) and `MIGRATION_NOTES.md`.
+Bump to **0.4.0**, copy migrations, migrate. Run `body_digest` and unique actor+snapshot. Do not backfill old receipts. Drop template knobs `api_key`, `enable_feature_x`, `timeout`. Host `accept!` must be a live version (`NotLive` otherwise). Full notes: `CHANGELOG.md` (0.4.0) and `MIGRATION_NOTES.md`.
 
 ## Architecture
 
@@ -106,24 +106,21 @@ The dummy host follows Recording Studio's root recording pattern:
 
 - **Workspace** is the dummy content root. Users also registers shared **People**.
 - **Folder** and **Page** demonstrate nested host recordables under the workspace root
-- **Terms** is this gem's nested recordable under Workspace. Enable Publishable on the class with `RecordingStudio::Capabilities::Publishable.to` — installing the gem does not publish anything by itself. `category` is `terms`, `privacy`, or `usage` on the same `::Terms` class — not separate recordable types. One recording per category per workspace. Clickwrap helpers default to `category: "terms"`. Admin drafts pick category, the Terms index filters by category, and coverage (live/draft/agrees) is per category.
+- **Terms** is this gem's nested recordable under Workspace. Enable Publishable on the class with `RecordingStudio::Capabilities::Publishable.to` — installing the gem does not publish anything by itself
 - **Acceptance** rows are receipts, not tree nodes: actor, terms recording id, terms snapshot id, timestamps, SHA-256 `body_digest`, provenance. Old receipts stay untouched. `Acceptance#receipt_contract` is the readable shape
 - Hosts ask the module for the live published version and whether an actor still needs to accept:
   ```ruby
   terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
-  RecordingStudioTermsAndConditions.current_published_by_category(workspace)
   RecordingStudioTermsAndConditions.pending_published_list(user, workspace)
   RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace)
-  RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace, required_categories: %w[terms])
   RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap" })
   RecordingStudioTermsAndConditions.accepted?(user, workspace)
-  RecordingStudioTermsAndConditions.current_published_for(workspace, category: "privacy")
   ```
-  Live means Publishable `currently_published?` (scheduled-in-the-future is not current). `accept!` raises `RecordingStudioTermsAndConditions::NotLive` for drafts and unpublished versions and does not write a receipt. `indexable` is SEO and is not used for clickwrap. Retrying `accept!` for the same actor and snapshot returns the existing receipt. A new published revision still needs a new tick. The “You already agreed” Alert shows only when Agree lists a live snapshot the person has not accepted yet and they already have a receipt for an older snapshot of that same Terms recording. First-time Agree never shows it. `change_note` is extra copy on that Alert, not the trigger. The gem Agree screen lists every pending live category. One checkbox covers that set. The POST calls `accept!` for each pending live version.
-- The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends `UsersAuthRedirect` on Users Auth. Both reuse `pending_published_list` / `requires_acceptance?` and the mounted Agree screen. Accepting one category does not clear the gate while others remain. Auth, Agree, Admin, public Terms, and root switch stay reachable so people can sign in, accept, publish, or switch workspace.
-- Hosts can render `recording_studio_terms_agree` or `recording_studio_terms_agree(inside_form: true)` inside signup or similar. The helper is the `required` `agreed` checkbox only. On the host POST, call `accept!` for each item in `pending_published_list` — do not invent a second receipt.
+  Live means Publishable `currently_published?` (scheduled-in-the-future is not current). `accept!` raises `RecordingStudioTermsAndConditions::NotLive` for drafts and unpublished versions and does not write a receipt. `indexable` is SEO and is not used for clickwrap. Retrying `accept!` for the same actor and snapshot returns the existing receipt. A new published revision still needs a new tick. The “You already agreed” Alert shows only when Agree lists a live snapshot the person has not accepted yet and they already have a receipt for an older snapshot of that same Terms recording. First-time Agree never shows it.
+- The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends `UsersAuthRedirect` on Users Auth. Both reuse `pending_published_list` / `requires_acceptance?` and the mounted Agree screen. Auth, Agree, Admin, public Terms, and root switch stay reachable so people can sign in, accept, publish, or switch workspace.
+- Hosts can render `recording_studio_terms_agree` or `recording_studio_terms_agree(inside_form: true)` inside signup or similar. The helper is the `required` `agreed` checkbox only. On the host POST, call `accept!` for the pending live version — do not invent a second receipt.
 - Scroll-to-end before Agree is optional. Set `config.require_scroll_to_end = true`, or wrap the live copy and Agree button with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` and `recording_studio_terms_agree_button(require_scroll_to_end: true)`. Pin the engine Stimulus controller in the host importmap. The checkbox stays required either way. Missing IntersectionObserver leaves Agree enabled. An already-visible sentinel unlocks immediately.
-- Product configuration is `mount_path`, `require_scroll_to_end`, `capture_request_provenance` (IP/UA on gem UI accepts, default off), and optional `required_categories` (nil means every published category). There is no API key.
+- Product configuration is `mount_path`, `require_scroll_to_end`, and `capture_request_provenance` (IP/UA on gem UI accepts, default off). There is no API key.
 - Each configured recordable declares `recording_studio_recordable(...)`; strict declaration validation stays enabled
 - A root `RecordingStudio::Recording` wraps the Workspace
 - `Current.actor` is set from `current_user` (Devise) in `ApplicationController`

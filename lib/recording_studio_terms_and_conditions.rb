@@ -8,8 +8,6 @@ require "recording_studio_terms_and_conditions/configuration"
 require "recording_studio_terms_and_conditions/body_digest"
 require "recording_studio_terms_and_conditions/engine"
 require "recording_studio_terms_and_conditions/terms_acceptance"
-require "recording_studio_terms_and_conditions/category_uniqueness"
-require "recording_studio_terms_and_conditions/category_coverage"
 require "recording_studio_terms_and_conditions/table_page"
 require "recording_studio_terms_and_conditions/gate"
 require "recording_studio_terms_and_conditions/forces_acceptance"
@@ -32,36 +30,32 @@ module RecordingStudioTermsAndConditions
       yield(configuration) if block_given?
     end
 
-    def current_published_for(root, category: Terms::DEFAULT_CATEGORY)
-      TermsAcceptance.current_published_for(root, category: category)
+    def current_published_for(root)
+      TermsAcceptance.current_published_for(root)
     end
 
-    def current_published_by_category(root)
-      TermsAcceptance.current_published_by_category(root)
+    def pending_published_for(actor, root)
+      TermsAcceptance.pending_published_for(actor, root)
     end
 
-    def pending_published_for(actor, root, required_categories: nil)
-      TermsAcceptance.pending_published_for(actor, root, required_categories: required_categories)
+    def pending_published_list(actor, root)
+      TermsAcceptance.pending_published_list(actor, root)
     end
 
-    def pending_published_list(actor, root, required_categories: nil)
-      TermsAcceptance.pending_published_list(actor, root, required_categories: required_categories)
+    def accepted?(actor, root)
+      TermsAcceptance.accepted?(actor, root)
     end
 
-    def accepted?(actor, root, category: Terms::DEFAULT_CATEGORY)
-      TermsAcceptance.accepted?(actor, root, category: category)
-    end
-
-    def requires_acceptance?(actor, root, category: nil, required_categories: nil)
-      TermsAcceptance.requires_acceptance?(actor, root, category: category, required_categories: required_categories)
+    def requires_acceptance?(actor, root)
+      TermsAcceptance.requires_acceptance?(actor, root)
     end
 
     def accept!(actor, version, provenance = {})
       TermsAcceptance.accept!(actor, version, provenance)
     end
 
-    def reaccepting?(actor, root, category: nil, required_categories: nil)
-      TermsAcceptance.reaccepting?(actor, root, category: category, required_categories: required_categories)
+    def reaccepting?(actor, root)
+      TermsAcceptance.reaccepting?(actor, root)
     end
   end
 end

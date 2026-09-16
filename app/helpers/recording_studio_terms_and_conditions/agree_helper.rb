@@ -56,11 +56,8 @@ module RecordingStudioTermsAndConditions
       )
     end
 
-    def recording_studio_terms_agree_label(terms_list)
-      labels = Array(terms_list).map { |terms| terms.try(:category_label).presence || "Terms" }
-      return "I agree to these terms" if labels.size <= 1 && labels.first == "Terms"
-
-      "I agree to #{labels.to_sentence}."
+    def recording_studio_terms_agree_label(_terms_list)
+      "I agree to these terms"
     end
 
     def recording_studio_terms_agree_checkbox

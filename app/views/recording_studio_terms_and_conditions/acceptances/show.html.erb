@@ -1,27 +1,24 @@
-<% agree_documents = @pending_terms.presence || Array(@terms).compact %>
 <% terms_page_nav(title: "Agree", back_url: main_app.root_path) %>
 
 <%= render FlatPack::PageTitle::Component.new(
-  title: terms_agree_heading(agree_documents),
-  subtitle: terms_agree_subtitle(agree_documents, @reaccepting),
+  title: terms_agree_heading(@terms),
+  subtitle: terms_agree_subtitle(@reaccepting),
   variant: :h1
 ) %>
-<% if agree_documents.size == 1 %>
-  <div class="-mt-5 mb-6">
-    <%= terms_version_date(@terms) %>
-  </div>
-<% end %>
+<div class="-mt-5 mb-6">
+  <%= terms_version_date(@terms) %>
+</div>
 
-<% if @reaccepting && @reaccepting_terms.present? %>
+<% if @reaccepting %>
   <%= render FlatPack::Alert::Component.new(
-    title: terms_reaccept_alert_title(@reaccepting_terms),
-    description: @reaccepting_terms.map { |terms| terms_reaccept_notice(terms) }.join(" "),
+    title: terms_reaccept_alert_title,
+    description: terms_reaccept_notice(@terms),
     style: :info,
     class: "mb-6"
   ) %>
 <% end %>
 
-<% if agree_documents.blank? %>
+<% if @terms.blank? %>
   <%= render FlatPack::EmptyState::Component.new(
     title: "Nothing to agree to yet",
     description: "Someone still needs to publish terms for this workspace."
@@ -29,24 +26,13 @@
 <% else %>
   <% require_scroll_to_end = recording_studio_terms_require_scroll_to_end? %>
   <%= recording_studio_terms_scroll_to_end(require_scroll_to_end: require_scroll_to_end) do %>
-    <% agree_documents.each do |document| %>
-      <% if agree_documents.size > 1 %>
-        <%= render FlatPack::SectionTitle::Component.new(
-          title: document.title,
-          subtitle: document.category_label
-        ) %>
-        <div class="-mt-3 mb-4">
-          <%= terms_version_date(document) %>
-        </div>
-      <% end %>
-      <% url = terms_public_url(document) %>
-      <% if url.present? %>
-        <div class="mb-4">
-          <%= render FlatPack::Link::Component.new(href: url).with_content("Open the public page") %>
-        </div>
-      <% end %>
-      <%= terms_content(document.body) %>
+    <% url = terms_public_url(@terms) %>
+    <% if url.present? %>
+      <div class="mb-4">
+        <%= render FlatPack::Link::Component.new(href: url).with_content("Open the public page") %>
+      </div>
     <% end %>
+    <%= terms_content(@terms.body) %>
     <%= recording_studio_terms_scroll_to_end_sentinel if require_scroll_to_end %>
     <% unless @already_accepted %>
       <%= form_with url: acceptance_path, method: :post do %>

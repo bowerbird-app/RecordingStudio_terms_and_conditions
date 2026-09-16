@@ -3,7 +3,7 @@
 <div class="flex w-full flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
     title: "Config",
-    subtitle: "Product knobs for Terms: mount path, optional scroll-to-end, optional request provenance, optional required categories.",
+    subtitle: "Product knobs for Terms: mount path, optional scroll-to-end, optional request provenance.",
     variant: :h1
   ) %>
 
@@ -14,7 +14,6 @@
         config.mount_path = "/recording_studio_terms_and_conditions"
         config.require_scroll_to_end = false
         config.capture_request_provenance = false
-        config.required_categories = nil
       end
     CODE
   ) %>

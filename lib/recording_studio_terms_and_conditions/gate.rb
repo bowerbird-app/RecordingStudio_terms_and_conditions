@@ -2,7 +2,7 @@
 
 module RecordingStudioTermsAndConditions
   # Shared skip list and path helpers for the clickwrap gate.
-  # required? follows pending_published_list (every published category, or config.required_categories).
+  # required? follows pending_published_list (live Terms the actor has not accepted).
   module Gate
     EXEMPT_PREFIXES = %w[
       recording_studio_terms_and_conditions/acceptances

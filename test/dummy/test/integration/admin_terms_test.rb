@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "cgi"
 require "devise/test/integration_helpers"
 
 class AdminTermsTest < ActionDispatch::IntegrationTest
@@ -74,10 +73,10 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "flat-pack--tiptap"
     assert_includes response.body, "terms[body]"
-    assert_includes response.body, "terms[change_note]"
-    assert_includes response.body, "What changed"
-    assert_includes response.body, "terms[category]"
-    assert_includes response.body, "Category"
+    refute_includes response.body, "terms[change_note]"
+    refute_includes response.body, "What changed"
+    refute_includes response.body, "terms[category]"
+    refute_includes response.body, "Category"
     assert_includes response.body, "Save draft"
     assert_select "div.inline-block button[type=submit]", text: "Save draft"
 
@@ -93,7 +92,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_includes response.body, "Terms drafted. Publish when they are ready."
     assert_includes response.body, "House rules"
-    assert_includes response.body, "Terms · Recording"
+    assert_includes response.body, "Recording"
     assert_includes response.body, "flat-pack-content-editor-content"
     assert_includes response.body, "Publish"
     assert_select "a", text: "Users"
@@ -117,7 +116,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_difference -> { RecordingStudioTermsAndConditions::Terms.count }, 1 do
       assert_no_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count } do
         patch recording_studio_terms_and_conditions.admin_term_path(recording), params: {
-          terms: { title: "House rules", body: "Whisper, please.", change_note: "Quieter booths." }
+          terms: { title: "House rules", body: "Whisper, please." }
         }
       end
     end
@@ -125,8 +124,6 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     recording.reload
     refute_equal original_snapshot_id, recording.recordable_id
     assert_equal "Whisper, please.", recording.recordable.body
-    assert_equal "Quieter booths.", recording.recordable.change_note
-    assert_equal "terms", recording.recordable.category
     follow_redirect!
     assert_includes response.body, "Terms updated."
     assert_includes response.body, "Recording #{recording.id}"
@@ -136,8 +133,8 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "House rules"
     assert_select "table thead th", text: "Title"
-    assert_select "table thead th", text: "Category"
-    assert_select "table thead th", text: "Coverage"
+    refute_select "table thead th", text: "Category"
+    refute_select "table thead th", text: "Coverage"
     assert_select "table thead th", text: "Status"
     assert_select "table thead th", text: "Published"
     assert_select "table thead th", text: "Agrees"
@@ -145,78 +142,6 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_select "table tbody td a", text: "House rules"
     assert_select "table tbody td", text: (recording.currently_published? ? "Live" : "Draft")
     assert_select "table tbody td a", text: "Open"
-  end
-
-  test "admin can draft privacy beside terms but not a second terms category" do
-    sign_in @admin
-    switch_to_workspace(@workspace)
-
-    post recording_studio_terms_and_conditions.admin_terms_path, params: {
-      terms: { title: "House rules", body: "No yelling in the booth.", category: "terms" }
-    }
-    assert_response :redirect
-
-    assert_no_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count } do
-      post recording_studio_terms_and_conditions.admin_terms_path, params: {
-        terms: { title: "More rules", body: "Also no yelling.", category: "terms" }
-      }
-    end
-    assert_response :unprocessable_entity
-    assert_includes CGI.unescapeHTML(response.body), "This workspace already has Terms."
-
-    assert_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count }, 1 do
-      post recording_studio_terms_and_conditions.admin_terms_path, params: {
-        terms: { title: "Privacy", body: "We keep notes in the booth.", category: "privacy" }
-      }
-    end
-    privacy = RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name)
-                                        .order(:created_at).last
-    assert_equal "privacy", privacy.recordable.category
-    follow_redirect!
-    assert_includes response.body, "Privacy · Recording"
-  end
-
-  test "admin index filters by category and shows coverage per category" do
-    sign_in @admin
-    switch_to_workspace(@workspace)
-    root = RecordingStudio.root_recording_for(@workspace)
-    terms = root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |recordable|
-      recordable.title = "House rules"
-      recordable.body = "No yelling."
-      recordable.category = "terms"
-    end
-    privacy = root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |recordable|
-      recordable.title = "Booth privacy"
-      recordable.body = "Keep the tape."
-      recordable.category = "privacy"
-    end
-    publish_terms!(terms, slug: "house-#{SecureRandom.hex(4)}")
-    RecordingStudioTermsAndConditions.accept!(@member, terms, { "source" => "clickwrap" })
-
-    get recording_studio_terms_and_conditions.admin_terms_path
-    assert_response :success
-    assert_includes response.body, "House rules"
-    assert_includes response.body, "Booth privacy"
-    assert_select "select[name=category]"
-    assert_select "table thead th", text: "Coverage"
-    coverage = css_select("table").find { |table| table.css("thead th").map(&:text).include?("Coverage") }
-    refute_nil coverage
-    assert_includes coverage.text, "Terms"
-    assert_includes coverage.text, "Privacy"
-    assert_includes coverage.text, "Usage"
-    assert_includes coverage.text, "Live"
-    assert_includes coverage.text, "Draft"
-
-    get recording_studio_terms_and_conditions.admin_terms_path, params: { category: "privacy" }
-    assert_response :success
-    list = css_select("table").find { |table| table.css("thead th").map(&:text).include?("Open") }
-    refute_nil list
-    assert_includes list.text, "Booth privacy"
-    refute_includes list.text, "House rules"
-
-    get recording_studio_terms_and_conditions.admin_term_users_path(privacy)
-    assert_response :success
-    assert_includes response.body, "People who ticked the box for this privacy."
   end
 
   test "admin section registers terms coverage widgets" do

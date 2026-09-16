@@ -66,9 +66,7 @@ module RecordingStudioTermsAndConditions
 
     def terms_reaccept_notice(terms, recording: nil)
       date = terms_calendar_date(terms_version_time(terms, recording))
-      note = terms&.change_note.to_s.strip
-      notice = "You already agreed. This version is from #{date}."
-      note.present? ? "#{notice} #{note}" : notice
+      "You already agreed. This version is from #{date}."
     end
 
     def terms_body(text)

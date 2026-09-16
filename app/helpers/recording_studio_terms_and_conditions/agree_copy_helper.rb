@@ -1,47 +1,25 @@
 # frozen_string_literal: true
 
 module RecordingStudioTermsAndConditions
-  # Category-aware Agree and Admin Users copy.
   module AgreeCopyHelper
-    def terms_agree_heading(documents)
-      list = Array(documents).compact
-      return list.first.title if list.size == 1
-
-      list.many? ? "Agree" : "Terms"
+    def terms_agree_heading(terms)
+      terms&.title.presence || "Terms"
     end
 
-    def terms_agree_subtitle(documents, reaccepting)
-      list = Array(documents).compact
-      return terms_agree_reaccept_subtitle(list) if reaccepting
-      return "The live version for this workspace." if list.size <= 1
-
-      "Read every document. One tick covers the lot."
-    end
-
-    def terms_reaccept_alert_title(terms_list)
-      list = Array(terms_list).compact
-      return "Terms updated" if list.size <= 1 && list.first&.category.to_s == Terms::DEFAULT_CATEGORY
-      return "#{list.first.category_label} updated" if list.size == 1
-
-      "Documents updated"
-    end
-
-    def terms_users_subtitle(terms)
-      return "People who ticked the box for these terms." if terms&.category.to_s == Terms::DEFAULT_CATEGORY
-
-      "People who ticked the box for this #{terms.category_label.downcase}."
-    end
-
-    private
-
-    def terms_agree_reaccept_subtitle(list)
-      category = list.first&.category.to_s
-      if list.size <= 1 && (category.blank? || category == Terms::DEFAULT_CATEGORY)
-        return "These terms changed. Agree again to stay in."
+    def terms_agree_subtitle(reaccepting)
+      if reaccepting
+        "These terms changed. Agree again to stay in."
+      else
+        "The live version for this workspace."
       end
-      return "#{list.first.category_label} changed. Agree again to stay in." if list.size == 1
+    end
 
-      "Some of these changed. Read them, then tick once."
+    def terms_reaccept_alert_title
+      "Terms updated"
+    end
+
+    def terms_users_subtitle(_terms = nil)
+      "People who ticked the box for these terms."
     end
   end
 end

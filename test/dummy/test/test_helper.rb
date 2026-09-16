@@ -29,11 +29,10 @@ module TermsDemoTestHelper
     result.error.to_s.include?("Access already exists")
   end
 
-  def record_terms(root_recording, title:, body:, category: RecordingStudioTermsAndConditions::Terms::DEFAULT_CATEGORY)
+  def record_terms(root_recording, title:, body:)
     root_recording.record(RecordingStudioTermsAndConditions::Terms) do |terms|
       terms.title = title
       terms.body = body
-      terms.category = category
     end
   end
 

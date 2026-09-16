@@ -1,12 +1,4 @@
 <div class="flex w-full flex-col gap-6">
-  <%= render FlatPack::Select::Component.new(
-    name: "terms[category]",
-    options: RecordingStudioTermsAndConditions::Terms.category_select_options,
-    value: category,
-    label: "Category",
-    required: true,
-    placeholder: nil
-  ) %>
   <%= render FlatPack::TextInput::Component.new(
     name: "terms[title]",
     value: title,
@@ -16,9 +8,4 @@
   <div class="[&_.flat-pack-input-wrapper]:border-0 [&_.flat-pack-input-wrapper]:bg-transparent [&_.flat-pack-input-wrapper]:p-0 [&_.flat-pack-input-wrapper]:shadow-none [&_.flat-pack-richtext-wrapper]:rounded-none">
     <%= terms_body_editor(value: body) %>
   </div>
-  <%= render FlatPack::TextInput::Component.new(
-    name: "terms[change_note]",
-    value: change_note,
-    label: "What changed"
-  ) %>
 </div>

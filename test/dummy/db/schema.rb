@@ -152,11 +152,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_010001) do
 
   create_table "recording_studio_terms_and_conditions_terms", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.text "body", null: false
-    t.string "category", default: "terms", null: false
-    t.text "change_note"
     t.datetime "created_at", null: false
     t.string "title", null: false
-    t.index ["category"], name: "index_rstac_terms_on_category"
   end
 
   create_table "recording_studio_user_identities", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

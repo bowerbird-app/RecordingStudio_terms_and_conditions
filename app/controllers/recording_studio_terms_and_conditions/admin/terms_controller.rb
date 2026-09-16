@@ -6,18 +6,11 @@ module RecordingStudioTermsAndConditions
       before_action :require_admin_write_access!, only: %i[create update]
 
       def index
-        @category_filter = filtered_category
-        @category_coverage = CategoryCoverage.rows(terms_scope.to_a)
-        @pagy, @terms_recordings = paginate_table(filtered_terms_scope)
+        @pagy, @terms_recordings = paginate_table(terms_scope)
       end
 
       def new
-        assign_form_fields(
-          title: "",
-          body: "",
-          change_note: "",
-          category: Terms::DEFAULT_CATEGORY
-        )
+        assign_form_fields(title: "", body: "")
       end
 
       def create
@@ -36,7 +29,6 @@ module RecordingStudioTermsAndConditions
       def edit
         @terms = terms_recording.recordable
         assign_form_fields_from(@terms)
-        @change_note = ""
       end
 
       def update
@@ -55,18 +47,6 @@ module RecordingStudioTermsAndConditions
         RecordingStudio::Recording.where(recordable_type: Terms.name, trashed_at: nil)
                                   .preload(:recordable)
                                   .order(updated_at: :desc)
-      end
-
-      def filtered_terms_scope
-        category = filtered_category
-        return terms_scope if category.blank?
-
-        terms_scope.where(recordable_id: Terms.where(category: category).select(:id))
-      end
-
-      def filtered_category
-        category = Terms.normalize_category(params[:category])
-        category if params[:category].present? && Terms::CATEGORIES.include?(category)
       end
 
       def draft_terms!(parent)
@@ -90,37 +70,23 @@ module RecordingStudioTermsAndConditions
       def assign_terms_fields(terms)
         terms.title = terms_params[:title]
         terms.body = terms_params[:body]
-        terms.change_note = terms_params[:change_note].presence
-        terms.category = terms_params[:category].presence || Terms::DEFAULT_CATEGORY
       end
 
       def assign_form_fields_from(terms)
-        assign_form_fields(
-          title: terms.title,
-          body: terms.body,
-          change_note: terms.change_note,
-          category: terms.category.presence || Terms::DEFAULT_CATEGORY
-        )
+        assign_form_fields(title: terms.title, body: terms.body)
       end
 
       def assign_form_fields_from_params
-        assign_form_fields(
-          title: terms_params[:title],
-          body: terms_params[:body],
-          change_note: terms_params[:change_note],
-          category: terms_params[:category].presence || Terms::DEFAULT_CATEGORY
-        )
+        assign_form_fields(title: terms_params[:title], body: terms_params[:body])
       end
 
-      def assign_form_fields(title:, body:, change_note:, category:)
+      def assign_form_fields(title:, body:)
         @title = title
         @body = body
-        @change_note = change_note
-        @category = category
       end
 
       def terms_params
-        params.fetch(:terms, {}).permit(:title, :body, :change_note, :category)
+        params.fetch(:terms, {}).permit(:title, :body)
       end
     end
   end

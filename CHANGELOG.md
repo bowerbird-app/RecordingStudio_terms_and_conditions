@@ -7,28 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.4.0] - 2026-09-15
+## [0.4.0] - 2026-09-16
 
 ### Removed
-- Template Configuration knobs `api_key`, `enable_feature_x`, and `timeout`. Product config is `mount_path`, `require_scroll_to_end`, `capture_request_provenance`, and optional `required_categories`.
+- Template Configuration knobs `api_key`, `enable_feature_x`, and `timeout`. Product config is `mount_path`, `require_scroll_to_end`, and `capture_request_provenance`.
 - Unused example `create_recording_studio_terms_and_conditions_pages` migration. Dummy never applied it; hosts that already copied it locally can leave the unused table.
+- Terms `category` / `kind` (`terms`, `privacy`, `usage`) and `change_note`. Clickwrap is one live Terms document per workspace, not a set of document types. Re-gate still uses the existing receipt, not a changelog field.
 
 ### Added
 - Append-only Acceptance receipts store a SHA-256 `body_digest` of the live Terms body at `accept!` time. `Acceptance#receipt_contract` returns actor, version ids, timestamp, digest, algorithm, and provenance. Existing receipts keep a null digest and are not rewritten.
 - Optional `config.capture_request_provenance` (default off). When true, the gem Agree screen adds IP and user agent to provenance on new accepts.
 - `accept!` is idempotent for the same actor and Terms snapshot. A unique index on actor + recording + snapshot returns the existing receipt on retry. A later published revision still inserts a new row.
 - `accept!` refuses drafts, unpublished, and scheduled-but-not-live versions (`RecordingStudioTermsAndConditions::NotLive`). The Agree screen flashes and does not write a receipt.
-- Re-gate Agree shows a Flatpack Alert (“You already agreed”) when the person has a receipt for an older snapshot of that Terms recording and the live snapshot is a different row. First-time Agree does not show it. Optional `change_note` is extra copy on that Alert.
-- Terms snapshots have a stable `category` (`terms`, `privacy`, `usage`). Existing rows default to `terms`. A workspace may have at most one Terms recording per category. Clickwrap helpers default to `category: "terms"`. Admin create/edit sets category with a Flatpack Select.
-- Domain helpers: `current_published_for(root, category:)` (default `"terms"`), `current_published_by_category(root)`, `pending_published_for` / `pending_published_list`, `accepted?(actor, root, category:)`, `requires_acceptance?(actor, root, category:, required_categories:)`, and `reaccepting?`. With no narrowing, `requires_acceptance?` is true if any published category still needs a tick. Pass `required_categories` or `config.required_categories` to constrain the host gate. `accept!` still takes a live version of that category and raises `NotLive` otherwise.
-- Agree lists every pending live category on one screen. One checkbox covers the listed set. The Agree POST calls `accept!` for each pending live version (idempotent, `NotLive`, digests unchanged). Scroll-to-end still uses one sentinel after the last document.
-- Admin Terms index filters by category (`category=`), shows coverage (live/draft/agrees) per category, and Users receipts copy names the category. The Admin Who agreed screen has a Category column.
-- Host `ForcesAcceptance` and Users Auth `after_sign_in` / `after_sign_up` follow `pending_published_list`. The HTTP gate stays on until every published category (or `required_categories`) is accepted. Accepting one category still redirects while others remain. Terms-only hosts are unchanged.
+- Re-gate Agree shows a Flatpack Alert (“You already agreed”) when the person has a receipt for an older snapshot of that Terms recording and the live snapshot is a different row. First-time Agree does not show it.
+- Domain helpers: `pending_published_for` / `pending_published_list` (the live Terms the actor still needs) and `reaccepting?`.
 
 ### Changed
 - Admin hub Flatpack buttons (`Write terms`, `Every version`, `Who agreed`, widget `More`) pass `href` so they navigate. Recording Studio Admin still sends `url:`, which Flatpack ignores as a dead `<button>`.
 - Scroll-to-end no longer deadlocks Agree when `IntersectionObserver` is missing. Already-visible sentinels unlock immediately. The checkbox is still required. Scroll-to-end stays optional (default off). The Stimulus controller is self-contained (no extra importmap module).
-- `requires_acceptance?` with no `category:` / `required_categories:` follows every currently published category, not only `terms`. `accepted?` and `current_published_for` still default to `category: "terms"`.
 
 ### Upgrade notes (0.3.x → 0.4.0)
 
@@ -36,18 +32,14 @@ Copy this gem's migrations, then `bin/rails db:migrate`:
 
 - `body_digest` on acceptances. Do not backfill old receipts.
 - Unique index on actor + recording + snapshot. The migration drops `index_rstac_acceptances_on_actor_and_version` only if that name exists, then adds it unique. If migrate fails, resolve duplicate actor+snapshot rows first. Do not rewrite those rows.
-- Optional `change_note` on Terms (re-gate Alert).
-- `category` on Terms (default `"terms"`).
+- If a 0.4.0 preview added `category`, `kind`, or `change_note` on Terms, the follow-up migration drops those columns.
 
-Delete `config.api_key`, `config.enable_feature_x`, `config.timeout`, and `RECORDING_STUDIO_TERMS_AND_CONDITIONS_API_KEY`. Unknown keys are ignored.
+Delete `config.api_key`, `config.enable_feature_x`, `config.timeout`, and `RECORDING_STUDIO_TERMS_AND_CONDITIONS_API_KEY`. Unknown keys are ignored. Drop `config.required_categories` if you copied a preview initializer.
 
 Behavior hosts must account for:
 
-- Publishing privacy or usage now gates that category unless you pass `category:`, `required_categories:`, or `config.required_categories`. A terms-only workspace behaves as in 0.3.
-- Do not add a second Terms recording of the same category in a workspace. Privacy and usage stay `::Terms`.
-- `current_published_for` still means `category: "terms"` unless you pass `category:`.
 - Host `accept!` callers must pass a live published version. Rescue `NotLive`. Retrying the same actor and snapshot returns the existing receipt and does not rewrite provenance or digest. Callers cannot spoof `body_digest` in provenance.
-- The gem Agree screen lists every pending category; one tick calls `accept!` for each. Host forms that use the checkbox helper should do the same with `pending_published_list`.
+- The gem Agree screen and host checkbox helper still use `pending_published_list` (zero or one live Terms).
 - The host gate and Users post-auth hook stay on until that pending set is empty.
 - Leave `capture_request_provenance` off unless the gem Agree screen should store IP and user agent.
 - If you opt into `require_scroll_to_end`, pin the engine Stimulus controllers. Missing IntersectionObserver leaves Agree enabled.
