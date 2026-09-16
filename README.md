@@ -25,7 +25,7 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, an em
 - **FlatPack** UI component library for all views
 - **Dummy app** (`test/dummy/`) with a FlatPack sign-in screen, a home page on Recording Studio's default layout, mounted Recording Studio routes, and FlatPack's built-in rounded theme
 
-Authenticated dummy pages use Recording Studio's shared default layout (`RecordingStudio::UsesDefaultLayout`) plus FlatPack CSS and JS. The dummy override adds Flatpack `TopNav` (workspace switch and Sign out) above PageNav. Sign-in uses Users Auth (`recording_studio_user/auth`). Dummy `/docs/*` pages stay in the dummy app as a host-app sandbox; they are not the product README.
+Authenticated dummy pages use Recording Studio's shared default layout (`RecordingStudio::UsesDefaultLayout`) plus FlatPack CSS and JS. They do not add a host TopNav (no demo bar or workspace switcher). Sign-in uses Users Auth (`recording_studio_user/auth`). Dummy `/docs/*` pages stay in the dummy app as a host-app sandbox; they are not the product README.
 
 ## Quick start
 
@@ -68,7 +68,7 @@ Sign in at `/users/sign_in`: email first (**Continue with email**), then passwor
 - `/users/sign_in` — Users Auth sign-in (email, then password)
 - `/recording_studio_terms_and_conditions` — Agree (clickwrap) screen on the Recording Studio default layout
 - `/admin` — Recording Studio Admin Terms hub (Write terms parks here)
-- `/recording_studio_terms_and_conditions/admin/terms` — engine write/edit form (opened from Admin). New Terms is titled **New Terms and Conditions** and skips the host TopNav.
+- `/recording_studio_terms_and_conditions/admin/terms` — engine write/edit form (opened from Admin). New Terms is titled **New Terms and Conditions**.
 - `/terms/:uuid/:slug` — public published Terms
 - `/recording_studio` — redirect to `/` while the mounted Recording Studio engine remains data/API-focused
 - `/agree_helper` — dummy demo of the embeddable Agree helper (code example + checkbox)
@@ -202,7 +202,6 @@ All views use FlatPack ViewComponents. Available components include:
 - `FlatPack::Table::Component` — Data tables
 - `FlatPack::TextInput::Component`, `EmailInput`, `PasswordInput` — Form inputs
 - `FlatPack::PageNav::Component` — Default-layout page navigation
-- `FlatPack::TopNav::Component` — Dummy host chrome (workspace switch and Sign out)
 - `FlatPack::PageTitle::Component` — Page titles
 
 Use the live FlatPack demo app at [flatpack.bowerbird.io](https://flatpack.bowerbird.io/) as the approved UI reference for current shared patterns. Its component table is the fastest way to discover available FlatPack components before introducing new custom UI.

@@ -63,10 +63,9 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
       "expected an empty state or the Terms table"
     )
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
-    assert_select "header.fp-top-nav", count: 1
+    refute_select "header.fp-top-nav"
+    refute_includes response.body, "Terms demo"
     assert_select "nav[aria-label='Page navigation']", count: 1
-    assert_select "a", text: "Sign out"
-    assert_select "a[href='/users/sign_out']"
     assert_match %r{flat_pack/application}, response.body
 
     get recording_studio_terms_and_conditions.new_admin_term_path
@@ -97,6 +96,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_redirected_to recording_studio_terms_and_conditions.admin_term_path(recording)
     follow_redirect!
     assert_includes response.body, "Terms drafted. Publish when they are ready."
+    refute_select "header.fp-top-nav"
     assert_includes response.body, "House rules"
     assert_includes response.body, "Recording"
     assert_includes response.body, "flat-pack-content-editor-content"
@@ -285,6 +285,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
     get "/admin"
     assert_response :success
+    refute_select "header.fp-top-nav"
     assert_includes response.body, "Write terms"
     assert_includes response.body, "Every version"
     assert_includes response.body, "Terms"

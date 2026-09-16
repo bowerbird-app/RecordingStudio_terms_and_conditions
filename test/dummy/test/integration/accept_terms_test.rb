@@ -25,6 +25,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     get recording_studio_terms_and_conditions.acceptance_path
 
     assert_response :success
+    refute_select "header.fp-top-nav"
     assert_includes response.body, "Studio Terms"
     assert_includes response.body, "Be kind"
     assert_includes response.body, "I agree to these terms"

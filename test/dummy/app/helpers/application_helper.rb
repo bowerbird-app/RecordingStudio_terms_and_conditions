@@ -7,10 +7,6 @@ module ApplicationHelper
     )
   end
 
-  def dummy_top_nav
-    render "layouts/flat_pack/top_nav"
-  end
-
   def dummy_admin_hub_switch_href
     recording = dummy_admin_root_recording
     return "/admin" unless recording
