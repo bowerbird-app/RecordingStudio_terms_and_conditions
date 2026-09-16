@@ -64,6 +64,10 @@ module RecordingStudioTermsAndConditions
       time.in_time_zone.strftime(TERMS_DATE_FORMAT).squish
     end
 
+    def terms_heading_date(terms, recording: nil)
+      terms_calendar_date(terms_version_time(terms, recording))
+    end
+
     def terms_reaccept_notice(terms, recording: nil)
       date = terms_calendar_date(terms_version_time(terms, recording))
       "You already agreed. This version is from #{date}."

@@ -2,12 +2,9 @@
 
 <%= render FlatPack::PageTitle::Component.new(
   title: terms_agree_heading(@terms),
-  subtitle: terms_agree_subtitle(@reaccepting),
+  subtitle: terms_heading_date(@terms),
   variant: :h1
 ) %>
-<div class="-mt-5 mb-6">
-  <%= terms_version_date(@terms) %>
-</div>
 
 <% if @reaccepting %>
   <%= render FlatPack::Alert::Component.new(

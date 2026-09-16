@@ -57,7 +57,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
     get recording_studio_terms_and_conditions.admin_terms_path
     assert_response :success
-    assert_includes response.body, "Write terms"
+    assert_includes response.body, "New"
     assert(
       response.body.include?("No terms yet") || response.body.include?("Title"),
       "expected an empty state or the Terms table"
@@ -286,15 +286,18 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     get "/admin"
     assert_response :success
     refute_select "header.fp-top-nav"
-    assert_includes response.body, "Write terms"
-    assert_includes response.body, "Every version"
-    assert_includes response.body, "Terms"
+    assert_includes response.body, "Terms and Conditions"
+    assert_includes response.body, "Old versions"
+    assert_includes response.body, "Agree stats"
     write_path = RecordingStudioTermsAndConditions.admin_write_path
     assert_includes response.body, write_path
-    assert_select "a[href=?]", write_path, text: "Write terms"
-    assert_select "a[href*='/admin/screens/recording_studio_terms']", text: "Every version"
-    assert_select "a[href*='/admin/screens/recording_studio_terms_acceptances']", text: "Who agreed"
-    refute_select "button", text: "Write terms"
+    assert_select "a[href=?]", write_path, text: "New"
+    assert_select "a[href*='/admin/screens/recording_studio_terms']", text: "Old versions"
+    assert_select "a[href*='/admin/screens/recording_studio_terms_acceptances']", text: "Agree stats"
+    refute_select "button", text: "New"
+    refute_includes response.body, "Write terms"
+    refute_includes response.body, "Every version"
+    refute_includes response.body, "Who agreed"
     assert_includes response.body, "widget_view_variant=card"
     refute_includes response.body, "widget_view_variant=compact"
   end
@@ -318,6 +321,9 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
     get "/admin/screens/recording_studio_terms_acceptances"
     assert_response :success
+    assert_includes response.body, "Agree stats"
+    assert_includes response.body, "Users"
+    refute_includes response.body, "Table data"
     assert_includes response.body, "widget_view_variant=card"
     refute_includes response.body, "widget_view_variant=compact"
 

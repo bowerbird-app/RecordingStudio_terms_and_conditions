@@ -2,7 +2,7 @@
 
 module RecordingStudioTermsAndConditions
   module SampleTerms
-    TITLE = "Studio Terms"
+    TITLE = "Terms and Conditions"
 
     BODY = <<~HTML
       <h2>Welcome</h2>

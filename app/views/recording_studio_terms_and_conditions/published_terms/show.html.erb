@@ -3,12 +3,9 @@
 <% end %>
 
 <%= render FlatPack::PageTitle::Component.new(
-  title: @terms&.title.presence || "Terms",
-  subtitle: "The public copy. No checkbox here.",
+  title: @terms&.title.presence || "Terms and Conditions",
+  subtitle: terms_heading_date(@terms),
   variant: :h1
 ) %>
-<div class="-mt-5 mb-6">
-  <%= terms_version_date(@terms) %>
-</div>
 
 <%= terms_content(@terms&.body) %>

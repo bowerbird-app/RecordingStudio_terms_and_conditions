@@ -3,15 +3,7 @@
 module RecordingStudioTermsAndConditions
   module AgreeCopyHelper
     def terms_agree_heading(terms)
-      terms&.title.presence || "Terms"
-    end
-
-    def terms_agree_subtitle(reaccepting)
-      if reaccepting
-        "These terms changed. Agree again to stay in."
-      else
-        "The live version for this workspace."
-      end
+      terms&.title.presence || "Terms and Conditions"
     end
 
     def terms_reaccept_alert_title

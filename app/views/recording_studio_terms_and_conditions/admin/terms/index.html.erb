@@ -1,13 +1,13 @@
-<% terms_page_nav(title: "Terms", back_url: terms_admin_hub_path, back_label: "Admin") %>
+<% terms_page_nav(title: "Terms and Conditions", back_url: terms_admin_hub_path, back_label: "Admin") %>
 
 <%= render FlatPack::PageTitle::Component.new(
-  title: "Terms",
+  title: "Terms and Conditions",
   subtitle: "Draft here. Publish next door.",
   variant: :h1
 ) do |page_title| %>
   <% page_title.slot do %>
     <%= render FlatPack::Button::Component.new(
-      text: "Write terms",
+      text: "New",
       style: :primary,
       href: new_admin_term_path
     ) %>

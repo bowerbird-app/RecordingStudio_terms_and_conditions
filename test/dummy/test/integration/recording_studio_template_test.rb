@@ -56,7 +56,7 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     assert_equal folder_recording, page_recording.parent_recording
     assert_equal root_recording, page_recording.root_recording
     assert_equal 3, Workspace.count
-    assert_equal "Studio Terms", terms.title
+    assert_equal "Terms and Conditions", terms.title
     assert_includes RecordingStudioTermsAndConditions::SampleTerms::BODY, "Using the booth"
     seeds_source = File.read(Rails.root.join("db/seeds.rb"))
     assert_includes seeds_source, "SampleTerms::BODY"

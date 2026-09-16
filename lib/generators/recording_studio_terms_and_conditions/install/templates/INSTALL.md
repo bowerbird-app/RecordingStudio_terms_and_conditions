@@ -14,6 +14,6 @@ Next steps:
 Useful routes after mount:
 
 - Agree: `/recording_studio_terms_and_conditions` (or your `--mount-path`)
-- Admin hub: `/admin` (Write terms parks on the Terms section)
+- Admin hub: `/admin` (`New` parks on the Terms and Conditions section)
 - Engine write form: `/recording_studio_terms_and_conditions/admin/terms`
 - Public Terms: `/terms/:uuid/:slug`
