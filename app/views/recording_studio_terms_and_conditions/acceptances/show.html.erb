@@ -33,7 +33,7 @@
       <% if agree_documents.size > 1 %>
         <%= render FlatPack::SectionTitle::Component.new(
           title: document.title,
-          subtitle: document.kind_label
+          subtitle: document.category_label
         ) %>
         <div class="-mt-3 mb-4">
           <%= terms_version_date(document) %>

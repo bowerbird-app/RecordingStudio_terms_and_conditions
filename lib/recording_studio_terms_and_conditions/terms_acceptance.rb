@@ -4,24 +4,24 @@ module RecordingStudioTermsAndConditions
   # Domain helpers for live published Terms and append-only acceptances.
   class TermsAcceptance # rubocop:disable Metrics/ClassLength
     class << self
-      def current_published_for(root, kind: Terms::DEFAULT_KIND)
-        wanted = Terms.normalize_kind(kind)
-        return if Terms::KINDS.exclude?(wanted)
+      def current_published_for(root, category: Terms::DEFAULT_CATEGORY)
+        wanted = Terms.normalize_category(category)
+        return if Terms::CATEGORIES.exclude?(wanted)
 
-        current_published_by_kind(root)[wanted]
+        current_published_by_category(root)[wanted]
       end
 
-      def current_published_by_kind(root)
+      def current_published_by_category(root)
         root_recording = resolve_root_recording(root)
         return {} if root_recording.blank?
 
-        published_recordables_by_kind(root_recording)
+        published_recordables_by_category(root_recording)
       end
 
-      def accepted?(actor, root, kind: Terms::DEFAULT_KIND)
+      def accepted?(actor, root, category: Terms::DEFAULT_CATEGORY)
         return false if actor.blank?
 
-        terms = current_published_for(root, kind: kind)
+        terms = current_published_for(root, category: category)
         return false if terms.blank?
 
         recording = recording_for_terms(terms)
@@ -30,23 +30,24 @@ module RecordingStudioTermsAndConditions
         acceptance_exists?(actor: actor, terms_recording_id: recording.id, terms_id: terms.id)
       end
 
-      def requires_acceptance?(actor, root, kind: nil, required_kinds: nil)
-        pending_kinds_for(actor, root, kind: kind, required_kinds: required_kinds).any?
+      def requires_acceptance?(actor, root, category: nil, required_categories: nil)
+        pending_categories_for(actor, root, category: category, required_categories: required_categories).any?
       end
 
-      def reaccepting?(actor, root, kind: nil, required_kinds: nil)
-        pending_kinds_for(actor, root, kind: kind, required_kinds: required_kinds).any? do |pending_kind|
-          reaccepting_kind?(actor, root, pending_kind)
-        end
+      def reaccepting?(actor, root, category: nil, required_categories: nil)
+        pending = pending_categories_for(
+          actor, root, category: category, required_categories: required_categories
+        )
+        pending.any? { |pending_category| reaccepting_category?(actor, root, pending_category) }
       end
 
-      def pending_published_for(actor, root, required_kinds: nil)
-        pending_published_list(actor, root, required_kinds: required_kinds).first
+      def pending_published_for(actor, root, required_categories: nil)
+        pending_published_list(actor, root, required_categories: required_categories).first
       end
 
-      def pending_published_list(actor, root, required_kinds: nil)
-        pending_kinds_for(actor, root, required_kinds: required_kinds).filter_map do |kind|
-          current_published_for(root, kind: kind)
+      def pending_published_list(actor, root, required_categories: nil)
+        pending_categories_for(actor, root, required_categories: required_categories).filter_map do |category|
+          current_published_for(root, category: category)
         end
       end
 
@@ -62,26 +63,33 @@ module RecordingStudioTermsAndConditions
 
       private
 
-      def pending_kinds_for(actor, root, kind: nil, required_kinds: nil)
-        gated_kinds(root, kind: kind, required_kinds: required_kinds).select do |pending_kind|
-          current_published_for(root, kind: pending_kind).present? &&
-            !accepted?(actor, root, kind: pending_kind)
+      def pending_categories_for(actor, root, category: nil, required_categories: nil)
+        gated = gated_categories(root, category: category, required_categories: required_categories)
+        gated.select do |pending_category|
+          current_published_for(root, category: pending_category).present? &&
+            !accepted?(actor, root, category: pending_category)
         end
       end
 
-      def gated_kinds(root, kind:, required_kinds:)
-        return normalized_kind_list(kind) if kind.present?
+      def gated_categories(root, category:, required_categories:)
+        return normalized_category_list(category) if category.present?
 
-        listed = required_kinds.nil? ? RecordingStudioTermsAndConditions.configuration.required_kinds : required_kinds
-        listed.nil? ? current_published_by_kind(root).keys : normalized_kind_list(listed)
+        listed = if required_categories.nil?
+                   RecordingStudioTermsAndConditions.configuration.required_categories
+                 else
+                   required_categories
+                 end
+        listed.nil? ? current_published_by_category(root).keys : normalized_category_list(listed)
       end
 
-      def normalized_kind_list(value)
-        Array(value).map { |item| Terms.normalize_kind(item) }.uniq.select { |item| Terms::KINDS.include?(item) }
+      def normalized_category_list(value)
+        Array(value).map { |item| Terms.normalize_category(item) }.uniq.select do |item|
+          Terms::CATEGORIES.include?(item)
+        end
       end
 
-      def reaccepting_kind?(actor, root, kind)
-        terms = current_published_for(root, kind: kind)
+      def reaccepting_category?(actor, root, category)
+        terms = current_published_for(root, category: category)
         recording = recording_for_terms(terms)
         recording.present? && Acceptance.where(
           actor_type: actor.class.base_class.name,
@@ -135,28 +143,28 @@ module RecordingStudioTermsAndConditions
         root.respond_to?(:id) && root.id.present? && RecordingStudio.root_allowed?(root.class.name)
       end
 
-      def published_recordables_by_kind(root_recording)
-        chosen = latest_live_recordings_by_kind(root_recording)
-        Terms::KINDS.each_with_object({}) do |kind, map|
-          map[kind] = chosen[kind].recordable if chosen[kind]
+      def published_recordables_by_category(root_recording)
+        chosen = latest_live_recordings_by_category(root_recording)
+        Terms::CATEGORIES.each_with_object({}) do |category, map|
+          map[category] = chosen[category].recordable if chosen[category]
         end
       end
 
-      def latest_live_recordings_by_kind(root_recording)
+      def latest_live_recordings_by_category(root_recording)
         recordings = root_recording.recordings_query(include_children: true, type: Terms.name)
         recordings.each_with_object({}) do |recording, chosen|
-          kind = live_terms_kind(recording)
-          next if kind.blank? || keep_existing_recording?(chosen[kind], recording)
+          category = live_terms_category(recording)
+          next if category.blank? || keep_existing_recording?(chosen[category], recording)
 
-          chosen[kind] = recording
+          chosen[category] = recording
         end
       end
 
-      def live_terms_kind(recording)
+      def live_terms_category(recording)
         return unless recording.currently_published?
 
-        kind = recording.recordable&.kind.to_s
-        kind if Terms::KINDS.include?(kind)
+        category = recording.recordable&.category.to_s
+        category if Terms::CATEGORIES.include?(category)
       end
 
       def keep_existing_recording?(winner, recording)

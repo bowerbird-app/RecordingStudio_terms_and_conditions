@@ -50,8 +50,8 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Agree again"
   end
 
-  test "agree lists every pending kind behind one checkbox and accepts the set" do
-    privacy = record_terms(@root, title: "Booth privacy", body: "Keep the tape.", kind: "privacy")
+  test "agree lists every pending category behind one checkbox and accepts the set" do
+    privacy = record_terms(@root, title: "Booth privacy", body: "Keep the tape.", category: "privacy")
     publish_terms!(privacy, slug: "privacy-#{SecureRandom.hex(4)}")
 
     get recording_studio_terms_and_conditions.acceptance_path
@@ -71,8 +71,8 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     end
 
     assert_redirected_to "/"
-    assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace, kind: "terms")
-    assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace, kind: "privacy")
+    assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace, category: "terms")
+    assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace, category: "privacy")
     refute RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace)
     terms_receipt = RecordingStudioTermsAndConditions::Acceptance.find_by(
       actor: @user, terms_id: @recording.recordable_id
@@ -87,7 +87,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
   end
 
   test "re-gate with mixed pending still uses one alert and one checkbox" do
-    privacy = record_terms(@root, title: "Booth privacy", body: "Keep the tape.", kind: "privacy")
+    privacy = record_terms(@root, title: "Booth privacy", body: "Keep the tape.", category: "privacy")
     publish_terms!(privacy, slug: "privacy-#{SecureRandom.hex(4)}")
     RecordingStudioTermsAndConditions.accept!(@user, @recording, { "source" => "clickwrap" })
     RecordingStudioTermsAndConditions.accept!(@user, privacy, { "source" => "clickwrap" })
@@ -237,7 +237,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
   end
 
   test "agreeing to a non-live version does not write a receipt" do
-    draft = record_terms(@root, title: "Stale draft", body: "Skip me.", kind: "privacy")
+    draft = record_terms(@root, title: "Stale draft", body: "Skip me.", category: "privacy")
     force_current_published_for(draft.recordable) do
       assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
         post recording_studio_terms_and_conditions.acceptance_path, params: { agreed: "1" }

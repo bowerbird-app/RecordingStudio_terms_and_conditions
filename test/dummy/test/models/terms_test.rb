@@ -20,7 +20,7 @@ class TermsTest < ActiveSupport::TestCase
     assert connection.column_exists?(:recording_studio_terms_and_conditions_terms, :body)
     assert connection.column_exists?(:recording_studio_terms_and_conditions_terms, :created_at)
     assert connection.column_exists?(:recording_studio_terms_and_conditions_terms, :change_note)
-    assert connection.column_exists?(:recording_studio_terms_and_conditions_terms, :kind)
+    assert connection.column_exists?(:recording_studio_terms_and_conditions_terms, :category)
     refute connection.column_exists?(:recording_studio_terms_and_conditions_terms, :updated_at)
     refute connection.column_exists?(:recording_studio_terms_and_conditions_terms, :published)
   end
@@ -47,12 +47,12 @@ class TermsTest < ActiveSupport::TestCase
     assert_equal "Be kind.", revised.recordable.body
   end
 
-  test "kind defaults to terms for new and existing rows" do
+  test "category defaults to terms for new and existing rows" do
     terms = RecordingStudioTermsAndConditions::Terms.create!(title: "Studio terms", body: "Be kind.")
 
-    assert_equal "terms", RecordingStudioTermsAndConditions::Terms.new.kind
-    assert_equal "terms", terms.kind
-    assert_equal "terms", RecordingStudioTermsAndConditions::Terms.find(terms.id).kind
+    assert_equal "terms", RecordingStudioTermsAndConditions::Terms.new.category
+    assert_equal "terms", terms.category
+    assert_equal "terms", RecordingStudioTermsAndConditions::Terms.find(terms.id).category
 
     table = RecordingStudioTermsAndConditions::Terms.table_name
     id = SecureRandom.uuid
@@ -61,12 +61,12 @@ class TermsTest < ActiveSupport::TestCase
       VALUES ('#{id}', 'Legacy terms', 'Old row.', NOW())
     SQL
 
-    assert_equal "terms", RecordingStudioTermsAndConditions::Terms.find(id).kind
+    assert_equal "terms", RecordingStudioTermsAndConditions::Terms.find(id).category
   end
 
-  test "one Terms recording per kind per workspace" do
-    first_root = RecordingStudio.root_recording_for(Workspace.create!(name: unique_name("Kind Workspace")))
-    other_root = RecordingStudio.root_recording_for(Workspace.create!(name: unique_name("Other kind")))
+  test "one Terms recording per category per workspace" do
+    first_root = RecordingStudio.root_recording_for(Workspace.create!(name: unique_name("Category Workspace")))
+    other_root = RecordingStudio.root_recording_for(Workspace.create!(name: unique_name("Other category")))
 
     first = first_root.record(RecordingStudioTermsAndConditions::Terms) do |terms|
       terms.title = "Studio terms"
@@ -75,16 +75,16 @@ class TermsTest < ActiveSupport::TestCase
     privacy = first_root.record(RecordingStudioTermsAndConditions::Terms) do |terms|
       terms.title = "Privacy"
       terms.body = "Keep the tape."
-      terms.kind = "privacy"
+      terms.category = "privacy"
     end
     other = other_root.record(RecordingStudioTermsAndConditions::Terms) do |terms|
       terms.title = "Other studio"
       terms.body = "Also kind."
     end
 
-    assert_equal "terms", first.recordable.kind
-    assert_equal "privacy", privacy.recordable.kind
-    assert_equal "terms", other.recordable.kind
+    assert_equal "terms", first.recordable.category
+    assert_equal "privacy", privacy.recordable.category
+    assert_equal "terms", other.recordable.category
 
     error = assert_raises(ActiveRecord::RecordInvalid) do
       first_root.record(RecordingStudioTermsAndConditions::Terms) do |terms|
@@ -95,7 +95,7 @@ class TermsTest < ActiveSupport::TestCase
     assert_includes error.message, "This workspace already has Terms."
 
     revised = first_root.revise(first) { |terms| terms.body = "Be kinder." }
-    assert_equal "terms", revised.recordable.kind
+    assert_equal "terms", revised.recordable.category
     assert_equal first.id, revised.id
   end
 

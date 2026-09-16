@@ -24,7 +24,7 @@ module RecordingStudioTermsAndConditions
       @terms = @pending_terms.first || RecordingStudioTermsAndConditions.current_published_for(@root)
       @already_accepted = @pending_terms.empty? && @terms.present?
       @reaccepting_terms = @pending_terms.select do |terms|
-        RecordingStudioTermsAndConditions.reaccepting?(current_actor, @root, kind: terms.kind)
+        RecordingStudioTermsAndConditions.reaccepting?(current_actor, @root, category: terms.category)
       end
       @reaccepting = @reaccepting_terms.any?
     end

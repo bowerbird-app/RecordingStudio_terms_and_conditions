@@ -12,13 +12,13 @@ class ConfigurationTest < Minitest::Test
       mount_path: "/terms",
       require_scroll_to_end: "true",
       capture_request_provenance: "1",
-      required_kinds: %w[terms privacy]
+      required_categories: %w[terms privacy]
     )
 
     assert_equal "/terms", @configuration.mount_path
     assert_equal true, @configuration.require_scroll_to_end
     assert_equal true, @configuration.capture_request_provenance
-    assert_equal %w[terms privacy], @configuration.required_kinds
+    assert_equal %w[terms privacy], @configuration.required_categories
   end
 
   def test_merge_ignores_unknown_keys
@@ -47,7 +47,7 @@ class ConfigurationTest < Minitest::Test
     assert_equal "/recording_studio_terms_and_conditions", configuration.mount_path
     assert_equal false, configuration.require_scroll_to_end
     assert_equal false, configuration.capture_request_provenance
-    assert_nil configuration.required_kinds
+    assert_nil configuration.required_categories
     assert_instance_of RecordingStudio::Hooks, configuration.hooks
   end
 
@@ -69,7 +69,7 @@ class ConfigurationTest < Minitest::Test
     assert_equal 1, result.fetch(:hooks_registered).fetch(:after_service)
     assert_equal false, result.fetch(:require_scroll_to_end)
     assert_equal false, result.fetch(:capture_request_provenance)
-    assert_nil result.fetch(:required_kinds)
+    assert_nil result.fetch(:required_categories)
     refute result.key?(:api_key)
     refute result.key?(:enable_feature_x)
     refute result.key?(:timeout)

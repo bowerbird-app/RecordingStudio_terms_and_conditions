@@ -76,8 +76,8 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "terms[body]"
     assert_includes response.body, "terms[change_note]"
     assert_includes response.body, "What changed"
-    assert_includes response.body, "terms[kind]"
-    assert_includes response.body, "Kind"
+    assert_includes response.body, "terms[category]"
+    assert_includes response.body, "Category"
     assert_includes response.body, "Save draft"
     assert_select "div.inline-block button[type=submit]", text: "Save draft"
 
@@ -126,7 +126,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     refute_equal original_snapshot_id, recording.recordable_id
     assert_equal "Whisper, please.", recording.recordable.body
     assert_equal "Quieter booths.", recording.recordable.change_note
-    assert_equal "terms", recording.recordable.kind
+    assert_equal "terms", recording.recordable.category
     follow_redirect!
     assert_includes response.body, "Terms updated."
     assert_includes response.body, "Recording #{recording.id}"
@@ -136,7 +136,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "House rules"
     assert_select "table thead th", text: "Title"
-    assert_select "table thead th", text: "Kind"
+    assert_select "table thead th", text: "Category"
     assert_select "table thead th", text: "Coverage"
     assert_select "table thead th", text: "Status"
     assert_select "table thead th", text: "Published"
@@ -147,18 +147,18 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_select "table tbody td a", text: "Open"
   end
 
-  test "admin can draft privacy beside terms but not a second terms kind" do
+  test "admin can draft privacy beside terms but not a second terms category" do
     sign_in @admin
     switch_to_workspace(@workspace)
 
     post recording_studio_terms_and_conditions.admin_terms_path, params: {
-      terms: { title: "House rules", body: "No yelling in the booth.", kind: "terms" }
+      terms: { title: "House rules", body: "No yelling in the booth.", category: "terms" }
     }
     assert_response :redirect
 
     assert_no_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count } do
       post recording_studio_terms_and_conditions.admin_terms_path, params: {
-        terms: { title: "More rules", body: "Also no yelling.", kind: "terms" }
+        terms: { title: "More rules", body: "Also no yelling.", category: "terms" }
       }
     end
     assert_response :unprocessable_entity
@@ -166,29 +166,29 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
     assert_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count }, 1 do
       post recording_studio_terms_and_conditions.admin_terms_path, params: {
-        terms: { title: "Privacy", body: "We keep notes in the booth.", kind: "privacy" }
+        terms: { title: "Privacy", body: "We keep notes in the booth.", category: "privacy" }
       }
     end
     privacy = RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name)
                                         .order(:created_at).last
-    assert_equal "privacy", privacy.recordable.kind
+    assert_equal "privacy", privacy.recordable.category
     follow_redirect!
     assert_includes response.body, "Privacy · Recording"
   end
 
-  test "admin index filters by kind and shows coverage per kind" do
+  test "admin index filters by category and shows coverage per category" do
     sign_in @admin
     switch_to_workspace(@workspace)
     root = RecordingStudio.root_recording_for(@workspace)
     terms = root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |recordable|
       recordable.title = "House rules"
       recordable.body = "No yelling."
-      recordable.kind = "terms"
+      recordable.category = "terms"
     end
     privacy = root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |recordable|
       recordable.title = "Booth privacy"
       recordable.body = "Keep the tape."
-      recordable.kind = "privacy"
+      recordable.category = "privacy"
     end
     publish_terms!(terms, slug: "house-#{SecureRandom.hex(4)}")
     RecordingStudioTermsAndConditions.accept!(@member, terms, { "source" => "clickwrap" })
@@ -197,7 +197,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "House rules"
     assert_includes response.body, "Booth privacy"
-    assert_select "select[name=kind]"
+    assert_select "select[name=category]"
     assert_select "table thead th", text: "Coverage"
     coverage = css_select("table").find { |table| table.css("thead th").map(&:text).include?("Coverage") }
     refute_nil coverage
@@ -207,7 +207,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes coverage.text, "Live"
     assert_includes coverage.text, "Draft"
 
-    get recording_studio_terms_and_conditions.admin_terms_path, params: { kind: "privacy" }
+    get recording_studio_terms_and_conditions.admin_terms_path, params: { category: "privacy" }
     assert_response :success
     list = css_select("table").find { |table| table.css("thead th").map(&:text).include?("Open") }
     refute_nil list

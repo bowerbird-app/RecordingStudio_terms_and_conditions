@@ -14,7 +14,7 @@ RecordingStudioTermsAndConditions.configure do |config|
   # Default stays off. Direct accept! callers pass their own provenance hash.
   # config.capture_request_provenance = false
 
-  # Optional. Which published kinds the host gate checks. Default (nil) is every
-  # currently published kind. Pass %w[terms] to keep clickwrap on Terms only.
-  # config.required_kinds = nil
+  # Optional. Which published categories the host gate checks. Default (nil) is every
+  # currently published category. Pass %w[terms] to keep clickwrap on Terms only.
+  # config.required_categories = nil
 end

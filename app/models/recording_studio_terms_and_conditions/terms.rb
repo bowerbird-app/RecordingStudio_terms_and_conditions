@@ -4,9 +4,9 @@ module RecordingStudioTermsAndConditions
   class Terms < ApplicationRecord
     self.table_name = "recording_studio_terms_and_conditions_terms"
 
-    DEFAULT_KIND = "terms"
-    KINDS = %w[terms privacy usage].freeze
-    KIND_LABELS = {
+    DEFAULT_CATEGORY = "terms"
+    CATEGORIES = %w[terms privacy usage].freeze
+    CATEGORY_LABELS = {
       "terms" => "Terms",
       "privacy" => "Privacy",
       "usage" => "Usage"
@@ -16,14 +16,14 @@ module RecordingStudioTermsAndConditions
                                 root: false,
                                 allowed_parent_types: ["Workspace"]
 
-    attr_accessor :kind_scope_root_recording, :kind_scope_recording
+    attr_accessor :category_scope_root_recording, :category_scope_recording
 
-    attribute :kind, :string, default: DEFAULT_KIND
+    attribute :category, :string, default: DEFAULT_CATEGORY
 
-    before_validation :normalize_kind
+    before_validation :normalize_category
     validates :title, :body, presence: true
-    validates :kind, inclusion: { in: KINDS }
-    validate :kind_unique_in_workspace, if: :kind_scope_root_recording
+    validates :category, inclusion: { in: CATEGORIES }
+    validate :category_unique_in_workspace, if: :category_scope_root_recording
 
     if defined?(RecordingStudio::Capabilities::Publishable)
       include RecordingStudio::Capabilities::Publishable.to(
@@ -36,16 +36,16 @@ module RecordingStudioTermsAndConditions
       )
     end
 
-    def self.kind_select_options
-      KIND_LABELS.map { |value, label| [label, value] }
+    def self.category_select_options
+      CATEGORY_LABELS.map { |value, label| [label, value] }
     end
 
-    def self.normalize_kind(value)
-      value.to_s.presence || DEFAULT_KIND
+    def self.normalize_category(value)
+      value.to_s.presence || DEFAULT_CATEGORY
     end
 
-    def kind_label
-      KIND_LABELS.fetch(kind, kind)
+    def category_label
+      CATEGORY_LABELS.fetch(category, category)
     end
 
     def initialize_dup(other)
@@ -55,29 +55,29 @@ module RecordingStudioTermsAndConditions
         recordable_id: other.id,
         trashed_at: nil
       )
-      self.kind_scope_recording = recording
-      self.kind_scope_root_recording = recording&.root_recording || recording
+      self.category_scope_recording = recording
+      self.category_scope_root_recording = recording&.root_recording || recording
     end
 
     private
 
-    def normalize_kind
-      self.kind = self.class.normalize_kind(kind)
+    def normalize_category
+      self.category = self.class.normalize_category(category)
     end
 
-    def kind_unique_in_workspace
+    def category_unique_in_workspace
       conflict = sibling_terms_recordings.find do |recording|
-        next if kind_scope_recording && recording.id == kind_scope_recording.id
+        next if category_scope_recording && recording.id == category_scope_recording.id
 
-        recording.recordable&.kind == kind
+        recording.recordable&.category == category
       end
       return if conflict.blank?
 
-      errors.add(:kind, "This workspace already has #{kind_label}.")
+      errors.add(:category, "This workspace already has #{category_label}.")
     end
 
     def sibling_terms_recordings
-      root = kind_scope_root_recording
+      root = category_scope_root_recording
       root_id = root.parent_recording_id.blank? ? root.id : root.root_recording_id
       RecordingStudio::Recording.where(
         recordable_type: self.class.name,

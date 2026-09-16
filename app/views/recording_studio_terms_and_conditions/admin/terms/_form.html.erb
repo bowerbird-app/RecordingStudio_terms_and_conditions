@@ -1,9 +1,9 @@
 <div class="flex w-full flex-col gap-6">
   <%= render FlatPack::Select::Component.new(
-    name: "terms[kind]",
-    options: RecordingStudioTermsAndConditions::Terms.kind_select_options,
-    value: kind,
-    label: "Kind",
+    name: "terms[category]",
+    options: RecordingStudioTermsAndConditions::Terms.category_select_options,
+    value: category,
+    label: "Category",
     required: true,
     placeholder: nil
   ) %>

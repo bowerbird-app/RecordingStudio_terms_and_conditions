@@ -11,8 +11,8 @@ Captured 2026-09-15 from the PR branch dummy at `http://127.0.0.1:3000` (Flatpac
 | `agree_pending_kinds.png` | B3: Agree lists pending **Studio Terms** and **Booth privacy**. One checkbox (“I agree to Terms and Privacy.”). One scroll sentinel still sits after the last body. Mixed re-gate Alert stays on the kinds that changed. |
 | `dummy_config.png` | Dummy `/docs/config` (A6): product knobs `mount_path`, `require_scroll_to_end`, `capture_request_provenance`. No template `api_key` / `enable_feature_x` / `timeout`. |
 | `admin_terms_index.png` | Engine Admin Terms table after the demo accept (Agrees = 1). |
-| `admin_terms_coverage.png` | B5: Coverage per kind (Terms live / Privacy live / Usage —) plus the unfiltered list with Kind column. |
-| `admin_terms_filter_privacy.png` | B5: Kind filter `privacy` — list shows Booth privacy only. Coverage table still lists every kind. |
+| `admin_terms_coverage.png` | B5: Coverage per category (Terms live / Privacy live / Usage —) plus the unfiltered list with Category column. |
+| `admin_terms_filter_privacy.png` | B5: Category filter `privacy` — list shows Booth privacy only. Coverage table still lists every category. |
 | `admin_term_show.png` | Admin term show: live copy, Users / Edit / Publish. Recording and snapshot ids only. |
 | `admin_term_users.png` | Users receipts for this term. Person + agreed time. **`body_digest` is backend-only** (Acceptance column + `receipt_contract`); not drawn on this table. |
 

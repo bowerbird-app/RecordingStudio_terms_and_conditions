@@ -111,7 +111,7 @@ module RecordingStudioTermsAndConditions
     initializer "recording_studio_terms_and_conditions.after_initialize",
                 after: "recording_studio_terms_and_conditions.load_config" do |_app|
       RecordingStudioTermsAndConditions.configuration.hooks.run(:after_initialize, self)
-      RecordingStudioTermsAndConditions::KindUniqueness.install!
+      RecordingStudioTermsAndConditions::CategoryUniqueness.install!
       RecordingStudioTermsAndConditions::AcceptanceGateInstaller.call
     end
 
@@ -151,7 +151,7 @@ module RecordingStudioTermsAndConditions
         ActionController::Base.descendants.each do |controller|
           RecordingStudioTermsAndConditions::Engine.apply_controller_extensions(controller)
         end
-        RecordingStudioTermsAndConditions::KindUniqueness.install!
+        RecordingStudioTermsAndConditions::CategoryUniqueness.install!
         RecordingStudioTermsAndConditions::AcceptanceGateInstaller.call
       end
     end

@@ -6,8 +6,8 @@ module RecordingStudioTermsAndConditions
       before_action :require_admin_write_access!, only: %i[create update]
 
       def index
-        @kind_filter = filtered_kind
-        @kind_coverage = KindCoverage.rows(terms_scope.to_a)
+        @category_filter = filtered_category
+        @category_coverage = CategoryCoverage.rows(terms_scope.to_a)
         @pagy, @terms_recordings = paginate_table(filtered_terms_scope)
       end
 
@@ -16,7 +16,7 @@ module RecordingStudioTermsAndConditions
           title: "",
           body: "",
           change_note: "",
-          kind: Terms::DEFAULT_KIND
+          category: Terms::DEFAULT_CATEGORY
         )
       end
 
@@ -58,15 +58,15 @@ module RecordingStudioTermsAndConditions
       end
 
       def filtered_terms_scope
-        kind = filtered_kind
-        return terms_scope if kind.blank?
+        category = filtered_category
+        return terms_scope if category.blank?
 
-        terms_scope.where(recordable_id: Terms.where(kind: kind).select(:id))
+        terms_scope.where(recordable_id: Terms.where(category: category).select(:id))
       end
 
-      def filtered_kind
-        kind = Terms.normalize_kind(params[:kind])
-        kind if params[:kind].present? && Terms::KINDS.include?(kind)
+      def filtered_category
+        category = Terms.normalize_category(params[:category])
+        category if params[:category].present? && Terms::CATEGORIES.include?(category)
       end
 
       def draft_terms!(parent)
@@ -91,7 +91,7 @@ module RecordingStudioTermsAndConditions
         terms.title = terms_params[:title]
         terms.body = terms_params[:body]
         terms.change_note = terms_params[:change_note].presence
-        terms.kind = terms_params[:kind].presence || Terms::DEFAULT_KIND
+        terms.category = terms_params[:category].presence || Terms::DEFAULT_CATEGORY
       end
 
       def assign_form_fields_from(terms)
@@ -99,7 +99,7 @@ module RecordingStudioTermsAndConditions
           title: terms.title,
           body: terms.body,
           change_note: terms.change_note,
-          kind: terms.kind.presence || Terms::DEFAULT_KIND
+          category: terms.category.presence || Terms::DEFAULT_CATEGORY
         )
       end
 
@@ -108,19 +108,19 @@ module RecordingStudioTermsAndConditions
           title: terms_params[:title],
           body: terms_params[:body],
           change_note: terms_params[:change_note],
-          kind: terms_params[:kind].presence || Terms::DEFAULT_KIND
+          category: terms_params[:category].presence || Terms::DEFAULT_CATEGORY
         )
       end
 
-      def assign_form_fields(title:, body:, change_note:, kind:)
+      def assign_form_fields(title:, body:, change_note:, category:)
         @title = title
         @body = body
         @change_note = change_note
-        @kind = kind
+        @category = category
       end
 
       def terms_params
-        params.fetch(:terms, {}).permit(:title, :body, :change_note, :kind)
+        params.fetch(:terms, {}).permit(:title, :body, :change_note, :category)
       end
     end
   end

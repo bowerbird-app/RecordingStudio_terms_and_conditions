@@ -41,18 +41,18 @@ The install generator mounts the engine, copies migrations, and writes the initi
 
 ```ruby
 terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
-RecordingStudioTermsAndConditions.current_published_by_kind(workspace)
+RecordingStudioTermsAndConditions.current_published_by_category(workspace)
 RecordingStudioTermsAndConditions.pending_published_list(user, workspace)
 RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace)
-RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace, required_kinds: %w[terms])
+RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace, required_categories: %w[terms])
 RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap" })
 RecordingStudioTermsAndConditions.accepted?(user, workspace)
-RecordingStudioTermsAndConditions.current_published_for(workspace, kind: "privacy")
+RecordingStudioTermsAndConditions.current_published_for(workspace, category: "privacy")
 ```
 
-Live means Publishable `currently_published?`. `accept!` raises `NotLive` for drafts and unpublished versions. Retrying the same actor and live snapshot returns the existing receipt. A later published revision still inserts a new row. People who already agreed to an older snapshot see a re-gate Alert (new date, optional `change_note`). Acceptance rows are receipts, not recordings. New receipts store `body_digest` (read via `receipt_contract`).
+Live means Publishable `currently_published?`. `accept!` raises `NotLive` for drafts and unpublished versions. Retrying the same actor and live snapshot returns the existing receipt. A later published revision still inserts a new row. The “You already agreed” Alert shows when the person has a receipt for an older snapshot of that Terms recording and the live snapshot is a different row. First-time Agree does not show it. Optional `change_note` is extra copy, not the trigger. Acceptance rows are receipts, not recordings. New receipts store `body_digest` (read via `receipt_contract`).
 
-`kind` on Terms is `terms`, `privacy`, or `usage` — one recording per kind per workspace, still `::Terms`. `current_published_for` and `accepted?` default to `terms`. `requires_acceptance?` covers every published kind unless you pass `kind:` or `required_kinds:` (or `config.required_kinds`). `pending_published_list` is the pending live set the Agree screen shows. One checkbox covers that set; the Agree POST calls `accept!` for each. The host gate (`ForcesAcceptance`) and Users Auth post-auth stay on until that set is empty. Admin Terms filter with `kind=` and show coverage per kind.
+`category` on Terms is `terms`, `privacy`, or `usage` — one recording per category per workspace, still `::Terms`. `current_published_for` and `accepted?` default to `terms`. `requires_acceptance?` covers every published category unless you pass `category:` or `required_categories:` (or `config.required_categories`). `pending_published_list` is the pending live set the Agree screen shows. One checkbox covers that set; the Agree POST calls `accept!` for each. The host gate (`ForcesAcceptance`) and Users Auth post-auth stay on until that set is empty. Admin Terms filter with `category=` and show coverage per category.
 
 Drop the host helper onto a form:
 
@@ -74,7 +74,7 @@ end
 
 Or wrap a host clickwrap with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` and `recording_studio_terms_agree_button(require_scroll_to_end: true)`. Pin `recording_studio_terms_and_conditions/controllers` in the host importmap. The checkbox is still required. Missing IntersectionObserver leaves Agree enabled.
 
-Set `config.capture_request_provenance = true` only if the gem Agree screen should store IP and user agent (default off). Product config is `mount_path`, `require_scroll_to_end`, `capture_request_provenance`, and optional `required_kinds`. There is no API key.
+Set `config.capture_request_provenance = true` only if the gem Agree screen should store IP and user agent (default off). Product config is `mount_path`, `require_scroll_to_end`, `capture_request_provenance`, and optional `required_categories`. There is no API key.
 
 ## Upgrade (0.3.x → 0.4.0)
 
@@ -83,6 +83,6 @@ bin/rails generate recording_studio_terms_and_conditions:migrations
 bin/rails db:migrate
 ```
 
-Run `body_digest`, unique actor+snapshot, `change_note`, and `kind`. Do not backfill old receipts. Delete `config.api_key`, `config.enable_feature_x`, `config.timeout`, and `RECORDING_STUDIO_TERMS_AND_CONDITIONS_API_KEY`.
+Run `body_digest`, unique actor+snapshot, `change_note`, and `category`. Do not backfill old receipts. Delete `config.api_key`, `config.enable_feature_x`, `config.timeout`, and `RECORDING_STUDIO_TERMS_AND_CONDITIONS_API_KEY`.
 
-Publishing privacy or usage now gates that kind unless you narrow with `required_kinds`. `accept!` must be a live version (`NotLive` otherwise). Host forms that ticked one document should call `accept!` for each item in `pending_published_list`. Details: repo `CHANGELOG.md` and `MIGRATION_NOTES.md`.
+Publishing privacy or usage now gates that category unless you narrow with `required_categories`. `accept!` must be a live version (`NotLive` otherwise). Host forms that ticked one document should call `accept!` for each item in `pending_published_list`. Details: repo `CHANGELOG.md` and `MIGRATION_NOTES.md`.

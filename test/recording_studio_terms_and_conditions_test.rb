@@ -74,8 +74,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
 
     assert_includes schema, 't.uuid "depends_on_recording_id"'
     assert_includes schema, "index_recording_studio_accesses_on_depends_on_recording_id"
-    assert_includes schema, 't.string "kind", default: "terms", null: false'
-    assert_includes schema, "index_rstac_terms_on_kind"
+    assert_includes schema, 't.string "category", default: "terms", null: false'
+    assert_includes schema, "index_rstac_terms_on_category"
     assert_includes migration, "add_column :recording_studio_accesses, :depends_on_recording_id, :uuid"
   end
 
@@ -109,8 +109,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
 
     assert_includes terms_source, 'label: "Terms"'
     assert_includes terms_source, 'self.table_name = "recording_studio_terms_and_conditions_terms"'
-    assert_includes terms_source, 'DEFAULT_KIND = "terms"'
-    assert_includes terms_source, "kind_unique_in_workspace"
+    assert_includes terms_source, 'DEFAULT_CATEGORY = "terms"'
+    assert_includes terms_source, "category_unique_in_workspace"
     assert_includes terms_source, "RecordingStudio::Capabilities::Publishable.to"
     assert_includes terms_source, 'public_controller: "recording_studio_terms_and_conditions/published_terms"'
     assert_includes terms_source, 'path: "/terms/:uuid/:slug"'
@@ -134,10 +134,11 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     provenance = File.read(File.join(migrate_dir, names.grep(/add_provenance_to_.*_acceptances/).first))
     unique = File.read(File.join(migrate_dir, names.grep(/unique_per_actor_and_version/).first))
     assert names.grep(/add_change_note_to_recording_studio_terms_and_conditions_terms/).any?
-    assert names.grep(/add_kind_to_recording_studio_terms_and_conditions_terms/).any?
+    assert names.grep(/add_category_to_recording_studio_terms_and_conditions_terms/).any?
+    assert names.grep(/rename_kind_to_category_on_recording_studio_terms/).any?
     create_terms_name = names.grep(/create_recording_studio_terms_and_conditions_terms/).first
     create_terms = File.read(File.join(migrate_dir, create_terms_name))
-    assert_includes create_terms, 't.string :kind, null: false, default: "terms"'
+    assert_includes create_terms, 't.string :category, null: false, default: "terms"'
     assert_includes create, "unique: true"
     assert_includes create, "index_rstac_acceptances_on_actor_and_version"
     refute_includes provenance, "index_rstac_acceptances_on_actor_and_version"
@@ -150,17 +151,17 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_module_exposes_terms_acceptance_helpers
     source = File.read(File.expand_path("../lib/recording_studio_terms_and_conditions.rb", __dir__))
 
-    assert_includes source, "def current_published_for(root, kind: Terms::DEFAULT_KIND)"
-    assert_includes source, "def current_published_by_kind(root)"
-    assert_includes source, "def pending_published_for(actor, root, required_kinds: nil)"
-    assert_includes source, "def pending_published_list(actor, root, required_kinds: nil)"
-    assert_includes source, "def accepted?(actor, root, kind: Terms::DEFAULT_KIND)"
-    assert_includes source, "def requires_acceptance?(actor, root, kind: nil, required_kinds: nil)"
-    assert_includes source, "def reaccepting?(actor, root, kind: nil, required_kinds: nil)"
+    assert_includes source, "def current_published_for(root, category: Terms::DEFAULT_CATEGORY)"
+    assert_includes source, "def current_published_by_category(root)"
+    assert_includes source, "def pending_published_for(actor, root, required_categories: nil)"
+    assert_includes source, "def pending_published_list(actor, root, required_categories: nil)"
+    assert_includes source, "def accepted?(actor, root, category: Terms::DEFAULT_CATEGORY)"
+    assert_includes source, "def requires_acceptance?(actor, root, category: nil, required_categories: nil)"
+    assert_includes source, "def reaccepting?(actor, root, category: nil, required_categories: nil)"
     assert_includes source, "class NotLive < StandardError"
     helpers = %i[
       current_published_for
-      current_published_by_kind
+      current_published_by_category
       pending_published_for
       pending_published_list
       accepted?
@@ -177,11 +178,11 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     )
     assert_includes acceptance, "currently_published?"
     assert_includes acceptance, "raise NotLive"
-    assert_includes acceptance, "kind:"
-    assert_includes acceptance, "def current_published_by_kind"
-    assert_includes acceptance, "required_kinds"
-    assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/kind_uniqueness.rb"))
-    assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/kind_coverage.rb"))
+    assert_includes acceptance, "category:"
+    assert_includes acceptance, "def current_published_by_category"
+    assert_includes acceptance, "required_categories"
+    assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/category_uniqueness.rb"))
+    assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/category_coverage.rb"))
   end
 
   def test_dummy_app_uses_recording_studio_default_layout
@@ -303,7 +304,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "helper RecordingStudioTermsAndConditions::ApplicationHelper"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
-                    "KindUniqueness.install!"
+                    "CategoryUniqueness.install!"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/gate.rb"), "agree_helpers"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/gate.rb"), "pending_published_list"
     refute_includes agree, "help_text"
@@ -318,10 +319,10 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes public_show, "-mt-5 mb-6"
     assert_includes admin_index, "page_title.slot"
     assert_includes admin_index, 'title: "Published"'
-    assert_includes admin_index, 'title: "Kind"'
+    assert_includes admin_index, 'title: "Category"'
     assert_includes admin_index, 'title: "Coverage"'
-    assert_includes admin_index, 'name: "kind"'
-    assert_includes admin_index, "kind_select_options"
+    assert_includes admin_index, 'name: "category"'
+    assert_includes admin_index, "category_select_options"
     assert_includes admin_index, "terms_admin_hub_path"
     assert_includes admin_show, "page_title.slot"
     assert_includes admin_show, "terms_content"
@@ -351,8 +352,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     form = engine_source("#{views}/admin/terms/_form.html.erb")
     assert_includes form, "terms_body_editor"
     assert_includes form, "FlatPack::Select::Component"
-    assert_includes form, "terms[kind]"
-    assert_includes form, "kind_select_options"
+    assert_includes form, "terms[category]"
+    assert_includes form, "category_select_options"
     assert_includes form, "gap-6"
     assert_includes form, "flat-pack-input-wrapper]:border-0"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/sample_terms.rb"), "Using the booth"
@@ -545,8 +546,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
                     "AdminWidgetCard"
     assert_includes admin, 'admin_screen_path("recording_studio_terms")'
     assert_includes admin, "column :published"
-    assert_includes admin, "column :kind"
-    assert_includes admin, "kind_label"
+    assert_includes admin, "column :category"
+    assert_includes admin, "category_label"
     assert_includes admin, "admin_write_path"
     assert_includes admin, "admin_hub_path"
     dummy_routes = File.read(File.join(engine_root, "test/dummy/config/routes.rb"))
@@ -573,7 +574,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "body_digest"
     assert_includes changelog, "NotLive"
     assert_includes changelog, "terms`, `privacy`, `usage"
-    assert_includes changelog, "required_kinds"
+    assert_includes changelog, "required_categories"
     assert_includes changelog, "api_key"
     assert_includes notes, "Upgrade from 0.3.x to 0.4.0"
     assert_includes notes, "change_note"

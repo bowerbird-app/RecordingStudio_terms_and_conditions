@@ -31,8 +31,8 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "published privacy gates until that kind is accepted" do
-    recording = record_terms(@root, title: "Privacy", body: "Keep the tape.", kind: "privacy")
+  test "published privacy gates until that category is accepted" do
+    recording = record_terms(@root, title: "Privacy", body: "Keep the tape.", category: "privacy")
     publish_terms!(recording, slug: "privacy-#{SecureRandom.hex(4)}")
 
     get "/"
@@ -40,17 +40,17 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_includes response.body, "Privacy"
     assert RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace)
-    refute RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace, kind: "terms")
-    assert RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace, kind: "privacy")
+    refute RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace, category: "terms")
+    assert RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace, category: "privacy")
   end
 
-  test "required_kinds can keep the gate on terms only" do
+  test "required_categories can keep the gate on terms only" do
     recording = publish_live_terms!
-    privacy = record_terms(@root, title: "Privacy", body: "Keep the tape.", kind: "privacy")
+    privacy = record_terms(@root, title: "Privacy", body: "Keep the tape.", category: "privacy")
     publish_terms!(privacy, slug: "privacy-narrow-#{SecureRandom.hex(4)}")
     RecordingStudioTermsAndConditions.accept!(@user, recording, { "source" => "clickwrap" })
 
-    refute RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace, required_kinds: ["terms"])
+    refute RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace, required_categories: ["terms"])
     assert RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace)
 
     get "/"
@@ -59,24 +59,24 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Privacy"
   end
 
-  test "config.required_kinds can leave the HTTP gate on terms only" do
-    previous = RecordingStudioTermsAndConditions.configuration.required_kinds
+  test "config.required_categories can leave the HTTP gate on terms only" do
+    previous = RecordingStudioTermsAndConditions.configuration.required_categories
     recording = publish_live_terms!
-    privacy = record_terms(@root, title: "Privacy", body: "Keep the tape.", kind: "privacy")
+    privacy = record_terms(@root, title: "Privacy", body: "Keep the tape.", category: "privacy")
     publish_terms!(privacy, slug: "privacy-config-#{SecureRandom.hex(4)}")
     RecordingStudioTermsAndConditions.accept!(@user, recording, { "source" => "clickwrap" })
-    RecordingStudioTermsAndConditions.configuration.required_kinds = %w[terms]
+    RecordingStudioTermsAndConditions.configuration.required_categories = %w[terms]
 
     get "/"
     assert_response :success
     refute_redirected_to_acceptance
   ensure
-    RecordingStudioTermsAndConditions.configuration.required_kinds = previous
+    RecordingStudioTermsAndConditions.configuration.required_categories = previous
   end
 
-  test "gate stays until every published kind is accepted" do
+  test "gate stays until every published category is accepted" do
     terms = publish_live_terms!
-    privacy = record_terms(@root, title: "Booth privacy", body: "Keep the tape.", kind: "privacy")
+    privacy = record_terms(@root, title: "Booth privacy", body: "Keep the tape.", category: "privacy")
     publish_terms!(privacy, slug: "privacy-all-#{SecureRandom.hex(4)}")
 
     get "/"
@@ -93,8 +93,8 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
     follow_redirect!
     assert_includes response.body, "Booth privacy"
-    refute RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace, kind: "terms")
-    assert RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace, kind: "privacy")
+    refute RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace, category: "terms")
+    assert RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace, category: "privacy")
     assert RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace)
 
     RecordingStudioTermsAndConditions.accept!(@user, privacy, { "source" => "clickwrap" })
@@ -105,9 +105,9 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     refute RecordingStudioTermsAndConditions.requires_acceptance?(@user, @workspace)
   end
 
-  test "users auth stays on agree until every published kind is accepted" do
+  test "users auth stays on agree until every published category is accepted" do
     terms = publish_live_terms!
-    privacy = record_terms(@root, title: "Booth privacy", body: "Keep the tape.", kind: "privacy")
+    privacy = record_terms(@root, title: "Booth privacy", body: "Keep the tape.", category: "privacy")
     publish_terms!(privacy, slug: "privacy-auth-#{SecureRandom.hex(4)}")
     controller = users_auth_controller_for(@workspace)
 
