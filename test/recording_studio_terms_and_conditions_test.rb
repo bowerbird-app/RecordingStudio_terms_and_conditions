@@ -375,6 +375,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/sample_terms.rb"), "Using the booth"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/sample_terms.rb"),
                     'TITLE = "Terms and Conditions"'
+    dummy_seeds = File.read(File.expand_path("dummy/db/seeds.rb", __dir__))
+    assert_includes dummy_seeds, 'sample_slug = "terms-and-conditions"'
+    refute_includes dummy_seeds, "studio-terms"
     importmap = File.read(File.expand_path("dummy/config/importmap.rb", __dir__))
     assert_includes importmap, "@tiptap/core"
     assert_includes importmap, "flat_pack/tiptap"

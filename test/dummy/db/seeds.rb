@@ -65,6 +65,8 @@ begin
   )
   sample_title = RecordingStudioTermsAndConditions::SampleTerms::TITLE
   sample_body = RecordingStudioTermsAndConditions::SampleTerms::BODY
+  sample_slug = "terms-and-conditions"
+  current_slug = terms_recording&.try(:current_publishable)&.try(:slug)
   if terms_recording.blank?
     terms_recording = root_recording.record(
       RecordingStudioTermsAndConditions::Terms,
@@ -75,7 +77,7 @@ begin
     end
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: terms_recording,
-      attributes: { slug: "studio-terms", status: "published" }
+      attributes: { slug: sample_slug, status: "published" }
     ).value!
   elsif terms_recording.recordable.title != sample_title
     terms_recording = root_recording.revise(terms_recording, actor: user) do |terms|
@@ -84,7 +86,12 @@ begin
     end
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: terms_recording,
-      attributes: { slug: "studio-terms", status: "published" }
+      attributes: { slug: sample_slug, status: "published" }
+    ).value!
+  elsif current_slug != sample_slug
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: terms_recording,
+      attributes: { slug: sample_slug, status: "published" }
     ).value!
   end
 ensure
