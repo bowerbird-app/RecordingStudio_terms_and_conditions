@@ -347,7 +347,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes admin_new, "card.footer"
     assert_includes admin_new, 'class="inline-block"'
     assert_includes admin_new, "terms_admin_hub_path"
-    assert_includes admin_new, 'content_for :skip_top_nav'
+    assert_includes admin_new, "content_for :skip_top_nav"
     assert_includes admin_new, "New Terms and Conditions"
     refute_includes admin_new, "Write terms"
     refute_includes engine_source("#{views}/admin/terms/edit.html.erb"), "FlatPack::Card::Component"
