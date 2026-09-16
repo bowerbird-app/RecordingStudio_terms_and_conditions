@@ -4,6 +4,7 @@ module RecordingStudioTermsAndConditions
   class ApplicationController < (defined?(::ApplicationController) ? ::ApplicationController : ActionController::Base)
     include RecordingStudio::UsesDefaultLayout if defined?(RecordingStudio::UsesDefaultLayout)
     helper RecordingStudioTermsAndConditions::ApplicationHelper
+    helper RecordingStudioTermsAndConditions::TermsDateHelper
     helper RecordingStudio::LayoutHelper if defined?(RecordingStudio::LayoutHelper)
 
     # Isolated engines look up layouts in their own namespace first. Prepend the

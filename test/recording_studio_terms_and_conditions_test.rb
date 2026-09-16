@@ -310,6 +310,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes application_helper, "flat-pack-content-editor-content"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "helper RecordingStudioTermsAndConditions::ApplicationHelper"
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
+                    "helper RecordingStudioTermsAndConditions::TermsDateHelper"
     refute_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "CategoryUniqueness.install!"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/gate.rb"), "agree_helpers"

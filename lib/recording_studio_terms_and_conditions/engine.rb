@@ -7,6 +7,7 @@ module RecordingStudioTermsAndConditions
     initializer "recording_studio_terms_and_conditions.helpers" do
       ActiveSupport.on_load(:action_controller_base) do
         helper RecordingStudioTermsAndConditions::ApplicationHelper
+        helper RecordingStudioTermsAndConditions::TermsDateHelper
       end
     end
 
