@@ -287,16 +287,17 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_response :success
     refute_select "header.fp-top-nav"
     assert_includes response.body, "Terms and Conditions"
-    assert_includes response.body, "Old versions"
+    assert_includes response.body, "All versions"
     assert_includes response.body, "Agree stats"
     write_path = RecordingStudioTermsAndConditions.admin_write_path
     assert_includes response.body, write_path
     assert_select "a[href=?]", write_path, text: "New"
-    assert_select "a[href*='/admin/screens/recording_studio_terms']", text: "Old versions"
+    assert_select "a[href*='/admin/screens/recording_studio_terms']", text: "All versions"
     assert_select "a[href*='/admin/screens/recording_studio_terms_acceptances']", text: "Agree stats"
     refute_select "button", text: "New"
     refute_includes response.body, "Write terms"
     refute_includes response.body, "Every version"
+    refute_includes response.body, "Old versions"
     refute_includes response.body, "Who agreed"
     assert_includes response.body, "widget_view_variant=card"
     refute_includes response.body, "widget_view_variant=compact"
@@ -308,7 +309,8 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
     get "/admin/screens/recording_studio_terms"
     assert_response :success
-    assert_includes response.body, "Old versions"
+    assert_includes response.body, "All versions"
+    refute_includes response.body, "Old versions"
     refute_includes response.body, "Table data"
     assert_includes response.body, "widget_view_variant=card"
     refute_includes response.body, "widget_view_variant=compact"

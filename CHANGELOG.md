@@ -23,8 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Domain helpers: `pending_published_for` / `pending_published_list` (the live Terms the actor still needs) and `reaccepting?`.
 
 ### Changed
-- Admin hub Flatpack buttons (`New`, `Old versions`, `Agree stats`, widget `More`) pass `href` so they navigate. Recording Studio Admin still sends `url:`, which Flatpack ignores as a dead `<button>`.
-- Admin hub title is **Terms and Conditions**. The versions screen is **Old versions** (table heading matches). Receipts are **Agree stats**, with the table headed **Users**.
+- Admin hub Flatpack buttons (`New`, `All versions`, `Agree stats`, widget `More`) pass `href` so they navigate. Recording Studio Admin still sends `url:`, which Flatpack ignores as a dead `<button>`.
+- Admin hub title is **Terms and Conditions**. The versions screen is **All versions** (live and drafts; table heading matches). Receipts are **Agree stats**, with the table headed **Users**.
 - Dummy sample Terms title is **Terms and Conditions**. The public slug is `terms-and-conditions`. Agree, public, and admin show use the version date as the subtitle.
 - Admin edit title is **Edit**. Engine Terms index primary action is **New**.
 - Admin new Terms page title is **New Terms and Conditions**.

@@ -16,7 +16,7 @@ module RecordingStudioTermsAndConditions
            url: ->(_context) { RecordingStudioTermsAndConditions.admin_write_path },
            style: :primary
       link :versions,
-           text: "Old versions",
+           text: "All versions",
            url: ->(context) { context.admin_screen_path("recording_studio_terms") },
            style: :secondary
       link :agrees,
@@ -30,7 +30,7 @@ module RecordingStudioTermsAndConditions
     class TermsScreen < RecordingStudioAdmin::Screen
       key "recording_studio_terms"
       icon :document_text
-      title "Old versions"
+      title "All versions"
       subtitle "Drafts and live copies"
       blast_radius :site
       query do |_context|
@@ -40,7 +40,7 @@ module RecordingStudioTermsAndConditions
       end
 
       table do
-        title "Old versions"
+        title "All versions"
         paginate per_page: 25
         column :title,
                title: "Title",

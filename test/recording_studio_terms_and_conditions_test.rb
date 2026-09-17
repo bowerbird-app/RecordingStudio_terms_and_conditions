@@ -560,11 +560,12 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     admin = File.read(File.join(engine_root, "lib/recording_studio_terms_and_conditions/admin.rb"))
     assert_includes admin, 'key "terms"'
     assert_includes admin, "paginate per_page: 25"
-    assert_includes admin, 'text: "Old versions"'
+    assert_includes admin, 'text: "All versions"'
     assert_includes admin, 'text: "New"'
     assert_includes admin, 'text: "Agree stats"'
     assert_includes admin, 'title "Terms and Conditions"'
-    assert_includes admin, 'title "Old versions"'
+    assert_includes admin, 'title "All versions"'
+    refute_includes admin, "Old versions"
     assert_includes admin, 'title "Users"'
     assert_includes admin, 'widget "widgets.terms.live", view_variant: :card'
     assert_includes admin, 'widget "widgets.terms.agrees", view_variant: :card'
