@@ -20,7 +20,7 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, an em
 - **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`. Pass `link_terms: true` to turn the word terms into a link to the public URL. On submit, call `accept!` for the pending live version
 - **Gate** on the host `ApplicationController`: redirects to Agree until the live version is accepted, and again after a new publish
 - **Users hook** on `RecordingStudioUser::Auth::BaseController` so after sign in / sign up land on Agree when acceptance is still required
-- **Admin** create/edit Terms, Publishable publish, and a Users page of receipts for each term. Engine tables use `TablePage` (Pagy, 25 rows) and Flatpack infinite pagination. Admin hub Terms and Conditions and Agree stats tables set `paginate per_page: 25`. Live and Agrees widgets stack the title above the count (`view_variant: :card`). The hub does not show Accessible **+ Access**. Writes go through a registered Admin `terms` resource (`authorize_resource!` / `perform_recording_studio_admin_action!`)
+- **Admin** create/edit Terms, Publishable `QuickActions` (Draft / Publish now / Preview), and a Users page of receipts for each term. Engine tables use `TablePage` (Pagy, 25 rows) and Flatpack infinite pagination. Admin hub Terms and Conditions and Agree stats tables set `paginate per_page: 25`. Live and Agrees widgets stack the title above the count (`view_variant: :card`). The hub does not show Accessible **+ Access**. Writes go through a registered Admin `terms` resource (`authorize_resource!` / `perform_recording_studio_admin_action!`)
 - **Public Terms URL** at `/terms/:uuid/:slug` via Publishable
 - **FlatPack** UI component library for all views
 - **Dummy app** (`test/dummy/`) with a FlatPack sign-in screen, a home page on Recording Studio's default layout, mounted Recording Studio routes, and FlatPack's built-in rounded theme
@@ -102,6 +102,10 @@ Bump to **0.4.0**, copy migrations, migrate. Run `body_digest` and unique actor+
 
 Bump to **0.4.1**. No schema change. The Admin Terms hub no longer shows Accessible **+ Access**. Grant access from the Accessible mount.
 
+## Upgrading from 0.4.x
+
+Bump to **0.5.0** and pin Publishable `v0.3.1`. No Terms schema change. Term show uses the Publishable status dropdown instead of a **Publish** button to the old edit form. Preview is its own route. Full notes: `CHANGELOG.md` (0.5.0).
+
 ## Architecture
 
 ### Root recording pattern
@@ -110,7 +114,7 @@ The dummy host follows Recording Studio's root recording pattern:
 
 - **Workspace** is the dummy content root. Users also registers shared **People**.
 - **Folder** and **Page** demonstrate nested host recordables under the workspace root
-- **Terms** is this gem's nested recordable under Workspace. Enable Publishable on the class with `RecordingStudio::Capabilities::Publishable.to` — installing the gem does not publish anything by itself
+- **Terms** is this gem's nested recordable under Workspace. Enable Publishable on the class with `RecordingStudio::Capabilities::Publishable.to` — installing the gem does not publish anything by itself. Staff publish from term show with `QuickActions` (or the Publish settings hub)
 - **Acceptance** rows are receipts, not tree nodes: actor, terms recording id, terms snapshot id, timestamps, SHA-256 `body_digest`, provenance. Old receipts stay untouched. `Acceptance#receipt_contract` is the readable shape
 - Hosts ask the module for the live published version and whether an actor still needs to accept:
   ```ruby
@@ -224,7 +228,7 @@ See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full do
 | Accessible      | gemspec `~> 0.8`; dummy GitHub tag `v0.9.1` |
 | Admin           | gemspec `~> 2.0`; dummy GitHub tag `v2.0.2` |
 | Users           | gemspec `recording_studio_user ~> 0.11`; dummy GitHub tag `v0.11.0` |
-| Publishable     | gemspec `~> 0.2`; dummy GitHub tag `v0.2.1` |
+| Publishable     | gemspec `~> 0.3`; dummy GitHub tag `v0.3.1` |
 | Attachable      | dummy GitHub tag `v0.5.1` (Users Profile needs it) |
 | Root Switchable | dummy GitHub tag `v0.5.0` |
 | FlatPack        | gemspec `>= 0.1.186`; dummy GitHub tag `v0.1.186` |

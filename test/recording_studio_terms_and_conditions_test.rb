@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.4.1", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.5.0", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -18,7 +18,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.186"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", "~> 0.8"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_admin", "~> 2.0"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_publishable", "~> 0.2"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_publishable", "~> 0.3"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_user", "~> 0.11"'
   end
 
@@ -52,7 +52,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v4.2.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.9.1"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.5.1"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_publishable", tag: "v0.2.1"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_publishable", tag: "v0.3.1"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.0.2"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.11.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.5.0"'
@@ -229,7 +229,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes layout, "url: back_url"
     refute_includes layout, "url: anchor_url"
     refute_includes layout, "max-w-3xl"
-    assert layout.index('stylesheet_link_tag "flat_pack/application"') < layout.index('stylesheet_link_tag "tailwind"')
+    assert_includes layout, "publishable_head_tags"
+    assert_includes layout, "publishable_document_title"
 
     helper = File.read(File.expand_path("dummy/app/helpers/application_helper.rb", __dir__))
     refute_includes helper, "def dummy_top_nav"
@@ -340,6 +341,13 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin_show, "terms_heading_date"
     assert_includes admin_show, "terms_content"
     assert_includes admin_show, 'text: "Users"'
+    assert_includes admin_show, "terms_publishable_quick_actions"
+    refute_includes admin_show, 'text: "Publish"'
+    refute_includes admin_show, "Public page"
+    assert_includes public_show, "publishable_preview_badge"
+    assert_includes public_show, "publishable_document_title"
+    assert_includes application_helper, "def terms_publishable_quick_actions"
+    assert_includes controller, "RecordingStudioPublishable::ApplicationHelper"
     assert_includes admin_show, "admin_term_users_path"
     refute_includes admin_show, "Who agreed"
     assert_includes admin_show, "Recording"
@@ -465,6 +473,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes readme, "#{internals_docs}/"
     assert_includes readme, "v4.2.0"
     assert_includes readme, "v0.1.186"
+    assert_includes readme, "v0.3.1"
     assert_includes readme, "v0.9.1"
     refute_includes readme, "Internal template"
     refute_includes readme, old_module
@@ -613,7 +622,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     skill = File.join(engine_root, ".github/skills/recording-studio-terms-and-conditions/SKILL.md")
     assert File.exist?(skill)
     assert_includes File.read(skill), "recording-studio-gems"
-    assert_includes File.read(skill), "Upgrade (0.4.0 → 0.4.1)"
+    assert_includes File.read(skill), "Upgrade (0.4.x → 0.5.0)"
   end
 
   def test_zero_four_upgrade_docs_match_shipped_behavior
@@ -621,11 +630,16 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.5.0]"
     assert_includes changelog, "## [0.4.1]"
-    assert_includes changelog, "## [0.4.0]"
+    assert_includes changelog, "Upgrade notes (0.4.x → 0.5.0)"
+    assert_includes changelog, "QuickActions"
+    assert_includes changelog, "v0.3.1"
     assert_includes changelog, "Upgrade notes (0.4.0 → 0.4.1)"
     assert_includes changelog, "+ Access"
+    assert_includes notes, "Upgrade from 0.4.x to 0.5.0"
     assert_includes notes, "Upgrade from 0.4.0 to 0.4.1"
+    assert_includes readme, "Upgrading from 0.4.x"
     assert_includes readme, "Upgrading from 0.4.0"
     assert_includes changelog, "body_digest"
     assert_includes changelog, "NotLive"

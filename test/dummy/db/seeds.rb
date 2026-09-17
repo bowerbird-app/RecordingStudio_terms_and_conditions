@@ -56,6 +56,13 @@ begin
       )
       raise result.error if result.respond_to?(:failure?) && result.failure?
     end
+    unless RecordingStudioAccessible.authorized?(actor: user, recording: root_recording, role: :edit)
+      result = RecordingStudioAccessible.bootstrap_owner_access!(
+        recording: root_recording,
+        actor: user
+      )
+      raise result.error if result.respond_to?(:failure?) && result.failure?
+    end
   end
 
   terms_recording = RecordingStudio::Recording.find_by(

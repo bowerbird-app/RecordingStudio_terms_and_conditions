@@ -28,6 +28,13 @@ module RecordingStudioTermsAndConditions
       recording_studio_publishable.edit_recording_publishable_path(recording_id: recording.id)
     end
 
+    def terms_publishable_quick_actions(recording)
+      return unless recording
+      return unless defined?(RecordingStudioPublishable::QuickActions::Component)
+
+      render RecordingStudioPublishable::QuickActions::Component.new(recording: recording)
+    end
+
     def terms_public_url(terms)
       terms.try(:published_url)
     end

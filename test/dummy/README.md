@@ -38,6 +38,7 @@ Then open `/users/sign_in`, continue with email, and sign in with:
 - `/admin` - Recording Studio Admin Terms and Conditions hub (New parks here)
 - `/recording_studio_terms_and_conditions/admin/terms` - engine write/edit form (opened from Admin). Switch to the Admin root first. New Terms is titled New Terms and Conditions.
 - `/terms/:uuid/:slug` - public published Terms
+- `/recordings/:id/publishable/preview` - signed-in Preview of draft or scheduled Terms
 - `/recording_studio` - redirects to `/` while the mounted Recording Studio engine stays available under that prefix for non-root routes
 - `/users/sign_in` - Users Auth sign-in (email, then password)
 - `/agree_helper` - embeddable Agree helper demo (code example + checkbox)
