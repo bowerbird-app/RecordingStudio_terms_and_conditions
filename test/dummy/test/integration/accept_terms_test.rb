@@ -26,6 +26,8 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     refute_select "header.fp-top-nav"
+    refute_includes response.body, "Terms demo"
+    refute_select "a", text: "Sign out"
     assert_includes response.body, "Studio Terms"
     assert_includes response.body, "Be kind"
     assert_includes response.body, "I agree to these terms"

@@ -27,6 +27,9 @@ class PublishedTermsTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "The public copy. No checkbox here."
     refute_includes response.body, "I agree to these terms"
     refute_includes response.body, "max-w-3xl"
+    refute_select "header.fp-top-nav"
+    refute_includes response.body, "Terms demo"
+    refute_select "a", text: "Sign out"
   end
 
   test "draft terms are not on the public path" do

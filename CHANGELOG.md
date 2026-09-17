@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-09-17
+
+### Changed
+- Admin Terms hub no longer renders Accessible avatars or **+ Access** in PageNav. Hub actions stay New / All versions / Agree stats. Manage grants on Accessible’s own screens.
+- Dummy and gem-mounted Terms screens stay on default-layout PageNav only (no Terms demo TopNav, workspace switcher, or Sign out). That TopNav drop shipped in 0.4.0; this release keeps it off those pages and hides **+ Access**.
+
+### Upgrade notes (0.4.0 → 0.4.1)
+- No schema change. The Admin hub shortcut to Accessible is gone. Open the Accessible mount (dummy: `/admin/access`) to grant or edit access.
+
 ## [0.4.0] - 2026-09-16
 
 ### Removed
@@ -186,7 +195,8 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.4.1
 [0.4.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.4.0
 [0.3.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.3.1
 [0.3.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.3.0

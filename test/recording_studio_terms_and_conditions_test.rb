@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.4.0", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.4.1", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -577,7 +577,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
                     "AdminWidgetCard"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "FlatpackButtonHrefFromUrl"
-    assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/flatpack_button_href_from_url.rb"))
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
+                    "HideAdminAccessAvatars"
+    assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/hide_admin_access_avatars.rb"))
     assert_includes admin, 'admin_screen_path("recording_studio_terms")'
     assert_includes admin, "column :published"
     refute_includes admin, "column :category"
@@ -595,7 +597,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     skill = File.join(engine_root, ".github/skills/recording-studio-terms-and-conditions/SKILL.md")
     assert File.exist?(skill)
     assert_includes File.read(skill), "recording-studio-gems"
-    assert_includes File.read(skill), "Upgrade (0.3.x → 0.4.0)"
+    assert_includes File.read(skill), "Upgrade (0.4.0 → 0.4.1)"
   end
 
   def test_zero_four_upgrade_docs_match_shipped_behavior
@@ -603,8 +605,12 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.4.1]"
     assert_includes changelog, "## [0.4.0]"
-    assert_includes changelog, "Upgrade notes (0.3.x → 0.4.0)"
+    assert_includes changelog, "Upgrade notes (0.4.0 → 0.4.1)"
+    assert_includes changelog, "+ Access"
+    assert_includes notes, "Upgrade from 0.4.0 to 0.4.1"
+    assert_includes readme, "Upgrading from 0.4.0"
     assert_includes changelog, "body_digest"
     assert_includes changelog, "NotLive"
     assert_includes changelog, "required_categories"

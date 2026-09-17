@@ -144,6 +144,13 @@ module RecordingStudioTermsAndConditions
         unless button.ancestors.include?(RecordingStudioTermsAndConditions::FlatpackButtonHrefFromUrl)
           button.prepend RecordingStudioTermsAndConditions::FlatpackButtonHrefFromUrl
         end
+        hide_access = RecordingStudioTermsAndConditions::HideAdminAccessAvatars
+        if defined?(RecordingStudioAdmin::ApplicationController)
+          admin_helpers = RecordingStudioAdmin::ApplicationController._helpers
+          unless admin_helpers.ancestors.include?(hide_access)
+            admin_helpers.prepend hide_access
+          end
+        end
       end
     end
 

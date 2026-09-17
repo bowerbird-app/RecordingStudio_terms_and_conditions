@@ -7,7 +7,7 @@ description: Published Terms, clickwrap acceptance, and the host gate for Record
 
 This is the kit gem for **published Terms** and **clickwrap acceptance**. Do not invent a second acceptance table, accept screen, or post-auth redirect.
 
-Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.4.0**.
+Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.4.1**.
 
 ## Need
 
@@ -34,7 +34,7 @@ The install generator mounts the engine, copies migrations, and writes the initi
 
 - Register `RecordingStudioTermsAndConditions::Terms` in `recordable_types`.
 - Mount Publishable at `/` for `/terms/:uuid/:slug`.
-- Mount Admin, add an `AdminRoot`, enable `section :terms`, grant Accessible on that root.
+- Mount Admin, add an `AdminRoot`, enable `section :terms`, grant Accessible on that root. The Terms hub does not show **+ Access**.
 - Publish through Publishable's edit UI.
 
 ## Domain
@@ -83,3 +83,7 @@ bin/rails db:migrate
 Run `body_digest` and unique actor+snapshot. Do not backfill old receipts. Delete `config.api_key`, `config.enable_feature_x`, `config.timeout`, and `RECORDING_STUDIO_TERMS_AND_CONDITIONS_API_KEY`. Drop preview `category` / `kind` / `change_note` columns if they exist.
 
 `accept!` must be a live version (`NotLive` otherwise). Details: repo `CHANGELOG.md` and `MIGRATION_NOTES.md`.
+
+## Upgrade (0.4.0 → 0.4.1)
+
+No migrations. The Admin Terms hub no longer shows Accessible **+ Access**. Use the Accessible mount to grant access.

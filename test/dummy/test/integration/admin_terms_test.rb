@@ -301,6 +301,9 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Who agreed"
     assert_includes response.body, "widget_view_variant=card"
     refute_includes response.body, "widget_view_variant=compact"
+    refute_includes response.body, "+ Access"
+    refute_includes response.body, "Terms demo"
+    refute_select "a", text: "Sign out"
   end
 
   test "admin terms and who agreed screens stack widget title above the count" do

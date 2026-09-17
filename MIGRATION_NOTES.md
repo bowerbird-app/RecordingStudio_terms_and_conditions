@@ -17,6 +17,10 @@ Then:
 
 The host gate and Users post-auth hook attach automatically.
 
+## Upgrade from 0.4.0 to 0.4.1
+
+No schema change. The Admin Terms hub no longer renders Accessible **+ Access**. Open the Accessible mount to grant or edit access.
+
 ## Upgrade from 0.3.x to 0.4.0
 
 ```bash

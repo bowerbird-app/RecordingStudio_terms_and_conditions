@@ -20,12 +20,12 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, an em
 - **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`. Pass `link_terms: true` to turn the word terms into a link to the public URL. On submit, call `accept!` for the pending live version
 - **Gate** on the host `ApplicationController`: redirects to Agree until the live version is accepted, and again after a new publish
 - **Users hook** on `RecordingStudioUser::Auth::BaseController` so after sign in / sign up land on Agree when acceptance is still required
-- **Admin** create/edit Terms, Publishable publish, and a Users page of receipts for each term. Engine tables use `TablePage` (Pagy, 25 rows) and Flatpack infinite pagination. Admin hub Terms and Conditions and Agree stats tables set `paginate per_page: 25`. Live and Agrees widgets stack the title above the count (`view_variant: :card`)
+- **Admin** create/edit Terms, Publishable publish, and a Users page of receipts for each term. Engine tables use `TablePage` (Pagy, 25 rows) and Flatpack infinite pagination. Admin hub Terms and Conditions and Agree stats tables set `paginate per_page: 25`. Live and Agrees widgets stack the title above the count (`view_variant: :card`). The hub does not show Accessible **+ Access**
 - **Public Terms URL** at `/terms/:uuid/:slug` via Publishable
 - **FlatPack** UI component library for all views
 - **Dummy app** (`test/dummy/`) with a FlatPack sign-in screen, a home page on Recording Studio's default layout, mounted Recording Studio routes, and FlatPack's built-in rounded theme
 
-Authenticated dummy pages use Recording Studio's shared default layout (`RecordingStudio::UsesDefaultLayout`) plus FlatPack CSS and JS. They do not add a host TopNav (no demo bar or workspace switcher). Sign-in uses Users Auth (`recording_studio_user/auth`). Dummy `/docs/*` pages stay in the dummy app as a host-app sandbox; they are not the product README.
+Authenticated dummy pages use Recording Studio's shared default layout (`RecordingStudio::UsesDefaultLayout`) plus FlatPack CSS and JS. They do not add a host TopNav (no demo bar, workspace switcher, or Sign out). The Admin hub also omits Accessible **+ Access**. Sign-in uses Users Auth (`recording_studio_user/auth`). Dummy `/docs/*` pages stay in the dummy app as a host-app sandbox; they are not the product README.
 
 ## Quick start
 
@@ -97,6 +97,10 @@ This is the kit gem for published Terms and clickwrap. Add it to the approved li
 ## Upgrading from 0.3.x
 
 Bump to **0.4.0**, copy migrations, migrate. Run `body_digest` and unique actor+snapshot. Do not backfill old receipts. Drop template knobs `api_key`, `enable_feature_x`, `timeout`. Host `accept!` must be a live version (`NotLive` otherwise). Full notes: `CHANGELOG.md` (0.4.0) and `MIGRATION_NOTES.md`.
+
+## Upgrading from 0.4.0
+
+Bump to **0.4.1**. No schema change. The Admin Terms hub no longer shows Accessible **+ Access**. Grant access from the Accessible mount.
 
 ## Architecture
 
