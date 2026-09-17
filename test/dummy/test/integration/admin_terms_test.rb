@@ -181,13 +181,19 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
   end
 
   test "admin widget register survives a code reload" do
+    admin = RecordingStudioTermsAndConditions::Admin
     2.times do
+      admin.reset_definition_constants!
       load RecordingStudioTermsAndConditions::Engine.root.join("lib/recording_studio_terms_and_conditions/admin.rb")
-      RecordingStudioTermsAndConditions::Admin.register!
+      admin.register!
     end
 
     assert RecordingStudioAdmin.widget_for("widgets.terms.live")
     assert RecordingStudioAdmin.resource_for("terms")
+    assert_equal %w[widgets.terms.live widgets.terms.agrees],
+                 admin::TermsSection.widget_usages.map(&:key)
+    assert_equal %w[widgets.terms.live widgets.terms.agrees],
+                 admin::TermsScreen.widget_usages.map(&:key)
   end
 
   test "admin terms index paginates like other kit tables" do

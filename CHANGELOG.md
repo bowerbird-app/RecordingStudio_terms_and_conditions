@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Upgrade notes (0.4.0 → 0.4.1)
 - No schema change. The Admin hub shortcut to Accessible is gone. Open the Accessible mount (dummy: `/admin/access`) to grant or edit access.
 - Pin FlatPack `>= 0.1.186` and rebuild host Tailwind so `fp-content` is in the CSS.
-- Engine admin URLs (`/recording_studio_terms_and_conditions/admin/...`) go through the Admin Terms resource. With Root Switchable, switch to the Admin root first; a workspace root is forbidden. New and Edit need `:edit`, not only `:view`.
+- Engine Admin definition reload drops Terms section/screen/widget constants before `load`, so development reload does not duplicate hub widgets.
 
 ## [0.4.0] - 2026-09-16
 

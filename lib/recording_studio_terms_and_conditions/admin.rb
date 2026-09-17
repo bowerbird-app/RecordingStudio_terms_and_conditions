@@ -164,7 +164,24 @@ module RecordingStudioTermsAndConditions
       hide_period
     end
 
+    unless const_defined?(:DEFINITION_CONSTANTS, false)
+      DEFINITION_CONSTANTS = %i[
+        TermsSection
+        TermsScreen
+        AcceptancesScreen
+        TermsResource
+        LiveTermsWidget
+        AgreesWidget
+      ].freeze
+    end
+
     class << self
+      def reset_definition_constants!
+        DEFINITION_CONSTANTS.each do |name|
+          remove_const(name) if const_defined?(name, false)
+        end
+      end
+
       def register!
         RecordingStudioAdmin.register_section(TermsSection)
         RecordingStudioAdmin.register_screen(TermsScreen)

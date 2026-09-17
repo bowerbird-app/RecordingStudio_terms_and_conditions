@@ -133,7 +133,10 @@ module RecordingStudioTermsAndConditions
         next unless defined?(RecordingStudioAdmin)
 
         # Reload so `register!` survives Zeitwerk resetting Admin to the
-        # controllers namespace in development.
+        # controllers namespace in development. Drop definition constants
+        # first so `class TermsSection` does not reopen and duplicate widgets.
+        admin = RecordingStudioTermsAndConditions::Admin
+        admin.reset_definition_constants! if admin.respond_to?(:reset_definition_constants!)
         load File.expand_path("admin.rb", __dir__)
         RecordingStudioTermsAndConditions::Admin.register!
         helper = RecordingStudioAdmin::WidgetRenderingHelper
