@@ -28,9 +28,6 @@ class LiveTermsEditKeepsAgreementTest < ActionDispatch::IntegrationTest
     unless RecordingStudioAccessible.authorized?(actor: @admin, recording: @root, role: :edit)
       bootstrap_owner_access!(@admin, @root)
     end
-    unless RecordingStudioAccessible.authorized?(actor: @member, recording: @root, role: :view)
-      bootstrap_owner_access!(@member, @root)
-    end
   end
 
   test "agreed member stays on ABC until admin publishes ABCDE" do

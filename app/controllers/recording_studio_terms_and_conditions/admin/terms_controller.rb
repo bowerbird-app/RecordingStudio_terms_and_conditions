@@ -2,7 +2,7 @@
 
 module RecordingStudioTermsAndConditions
   module Admin
-    class TermsController < BaseController
+    class TermsController < BaseController # rubocop:disable Metrics/ClassLength
       before_action :authorize_terms_index!, only: :index
       before_action :authorize_terms_write!, only: %i[new create edit update]
       before_action :authorize_terms_show!, only: :show
@@ -36,14 +36,7 @@ module RecordingStudioTermsAndConditions
       end
 
       def update
-        recording = write_terms_resource!(:edit, terms_recording, audit_action: :update) do
-          TermsWrite.call(
-            recording: terms_recording,
-            actor: current_admin_actor,
-            title: terms_params[:title],
-            body: terms_params[:body]
-          )
-        end
+        recording = persist_terms_update!
         redirect_to admin_term_path(recording), notice: terms_write_notice(recording)
       rescue ActiveRecord::RecordInvalid => e
         @terms = terms_recording.recordable
@@ -103,11 +96,22 @@ module RecordingStudioTermsAndConditions
         render template, status: :unprocessable_entity
       end
 
+      def persist_terms_update!
+        write_terms_resource!(:edit, terms_recording, audit_action: :update) do
+          TermsWrite.call(
+            recording: terms_recording,
+            actor: current_admin_actor,
+            title: terms_params[:title],
+            body: terms_params[:body]
+          )
+        end
+      end
+
       def terms_write_notice(recording)
-        if recording.id != terms_recording.id
-          "Draft saved. The live copy stays until you publish."
-        else
+        if recording.id == terms_recording.id
           "Terms updated."
+        else
+          "Draft saved. The live copy stays until you publish."
         end
       end
 
