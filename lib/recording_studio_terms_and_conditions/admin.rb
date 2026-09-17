@@ -95,7 +95,7 @@ module RecordingStudioTermsAndConditions
 
     LiveTermsWidget = RecordingStudioAdmin::Widget.new("widgets.terms.live", blast_radius: :site) do
       type :number
-      title "Live terms"
+      title "Live"
       info "Published terms people can agree to right now."
       value do |_context|
         RecordingStudio::Recording.where(recordable_type: Terms.name, trashed_at: nil).to_a.count do |recording|

@@ -319,7 +319,8 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
         params: { widget_usage_index: 0, widget_view_variant: "card" },
         headers: { "Sec-Fetch-Dest" => "empty", "Turbo-Frame" => "widget" }
     assert_response :success
-    assert_includes response.body, "Live terms"
+    assert_includes response.body, "Live"
+    refute_includes response.body, "Live terms"
     assert_includes response.body, "text-5xl"
     refute_includes response.body, "min-h-28"
 

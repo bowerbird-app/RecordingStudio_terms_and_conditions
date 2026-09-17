@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Admin hub Flatpack buttons (`New`, `All versions`, `Agree stats`, widget `More`) pass `href` so they navigate. Recording Studio Admin still sends `url:`, which Flatpack ignores as a dead `<button>`.
-- Admin hub title is **Terms and Conditions**. The versions screen is **All versions** (live and drafts; table heading matches). Receipts are **Agree stats**, with the table headed **Users**.
+- Admin hub title is **Terms and Conditions**. The versions screen is **All versions** (live and drafts; table heading matches). Receipts are **Agree stats**, with the table headed **Users**. The live count widget is **Live**.
 - Dummy sample Terms title is **Terms and Conditions**. The public slug is `terms-and-conditions`. Agree, public, and admin show use the version date as the subtitle.
 - Admin edit title is **Edit**. Engine Terms index primary action is **New**.
 - Admin new Terms page title is **New Terms and Conditions**.

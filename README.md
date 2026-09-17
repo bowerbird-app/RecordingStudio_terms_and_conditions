@@ -20,7 +20,7 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, an em
 - **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`. Pass `link_terms: true` to turn the word terms into a link to the public URL. On submit, call `accept!` for the pending live version
 - **Gate** on the host `ApplicationController`: redirects to Agree until the live version is accepted, and again after a new publish
 - **Users hook** on `RecordingStudioUser::Auth::BaseController` so after sign in / sign up land on Agree when acceptance is still required
-- **Admin** create/edit Terms, Publishable publish, and a Users page of receipts for each term. Engine tables use `TablePage` (Pagy, 25 rows) and Flatpack infinite pagination. Admin hub Terms and Conditions and Agree stats tables set `paginate per_page: 25`. Live terms and Agrees widgets stack the title above the count (`view_variant: :card`)
+- **Admin** create/edit Terms, Publishable publish, and a Users page of receipts for each term. Engine tables use `TablePage` (Pagy, 25 rows) and Flatpack infinite pagination. Admin hub Terms and Conditions and Agree stats tables set `paginate per_page: 25`. Live and Agrees widgets stack the title above the count (`view_variant: :card`)
 - **Public Terms URL** at `/terms/:uuid/:slug` via Publishable
 - **FlatPack** UI component library for all views
 - **Dummy app** (`test/dummy/`) with a FlatPack sign-in screen, a home page on Recording Studio's default layout, mounted Recording Studio routes, and FlatPack's built-in rounded theme
