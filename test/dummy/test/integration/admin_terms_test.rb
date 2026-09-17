@@ -180,6 +180,16 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes keys, "terms"
   end
 
+  test "admin widget register survives a code reload" do
+    2.times do
+      load RecordingStudioTermsAndConditions::Engine.root.join("lib/recording_studio_terms_and_conditions/admin.rb")
+      RecordingStudioTermsAndConditions::Admin.register!
+    end
+
+    assert RecordingStudioAdmin.widget_for("widgets.terms.live")
+    assert RecordingStudioAdmin.resource_for("terms")
+  end
+
   test "admin terms index paginates like other kit tables" do
     sign_in @admin
     switch_to_workspace(@admin_root)

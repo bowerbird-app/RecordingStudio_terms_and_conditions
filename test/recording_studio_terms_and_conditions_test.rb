@@ -580,6 +580,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin, 'admin_action "terms.edit"'
     assert_includes admin, 'admin_action "terms.users"'
     assert_includes admin, "register_resource(TermsResource)"
+    assert_includes admin, "register_widget!"
     assert_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/base_controller.rb"),
                     "AdminActionAuditing"
     assert_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/terms_controller.rb"),

@@ -170,8 +170,14 @@ module RecordingStudioTermsAndConditions
         RecordingStudioAdmin.register_screen(TermsScreen)
         RecordingStudioAdmin.register_screen(AcceptancesScreen)
         RecordingStudioAdmin.register_resource(TermsResource)
-        RecordingStudioAdmin.register_widget(LiveTermsWidget)
-        RecordingStudioAdmin.register_widget(AgreesWidget)
+        register_widget!(LiveTermsWidget)
+        register_widget!(AgreesWidget)
+      end
+
+      def register_widget!(widget)
+        RecordingStudioAdmin.register_widget(widget)
+      rescue RecordingStudioAdmin::RegistryConflict
+        RecordingStudioAdmin.registry.widgets[widget.key.to_s] = widget
       end
     end
   end
