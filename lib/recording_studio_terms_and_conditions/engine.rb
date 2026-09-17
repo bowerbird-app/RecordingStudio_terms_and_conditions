@@ -133,7 +133,10 @@ module RecordingStudioTermsAndConditions
         next unless defined?(RecordingStudioAdmin)
 
         # Reload so `register!` survives Zeitwerk resetting Admin to the
-        # controllers namespace in development.
+        # controllers namespace in development. Drop definition constants
+        # first so `class TermsSection` does not reopen and duplicate widgets.
+        admin = RecordingStudioTermsAndConditions::Admin
+        admin.reset_definition_constants! if admin.respond_to?(:reset_definition_constants!)
         load File.expand_path("admin.rb", __dir__)
         RecordingStudioTermsAndConditions::Admin.register!
         helper = RecordingStudioAdmin::WidgetRenderingHelper
@@ -143,6 +146,11 @@ module RecordingStudioTermsAndConditions
         button = FlatPack::Button::Component
         unless button.ancestors.include?(RecordingStudioTermsAndConditions::FlatpackButtonHrefFromUrl)
           button.prepend RecordingStudioTermsAndConditions::FlatpackButtonHrefFromUrl
+        end
+        hide_access = RecordingStudioTermsAndConditions::HideAdminAccessAvatars
+        if defined?(RecordingStudioAdmin::ApplicationController)
+          admin_helpers = RecordingStudioAdmin::ApplicationController._helpers
+          admin_helpers.prepend hide_access unless admin_helpers.ancestors.include?(hide_access)
         end
       end
     end

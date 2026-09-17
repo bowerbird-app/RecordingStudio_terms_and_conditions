@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-09-17
+
+### Changed
+- Admin Terms hub no longer renders Accessible avatars or **+ Access** in PageNav. Hub actions stay New / All versions / Agree stats. Manage grants on Accessible’s own screens.
+- Dummy and gem-mounted Terms screens stay on default-layout PageNav only (no Terms demo TopNav, workspace switcher, or Sign out). That TopNav drop shipped in 0.4.0; this release keeps it off those pages and hides **+ Access**.
+- FlatPack pin is **v0.1.186** (gemspec `>= 0.1.186`). Agree, public, and admin Terms copy wrap in `FlatPack::Content` (`fp-content`).
+- Dummy sample Terms title is **Terms and Conditions v1.0**, with a longer body. The public slug stays `terms-and-conditions`.
+- Admin Terms is a registered Recording Studio Admin resource. The All versions table uses `admin_action` for Open / Edit / Users. Engine write screens authorize with `authorize_resource!` and wrap saves in `perform_recording_studio_admin_action!`. New and Edit need Accessible `:edit` on the Admin root.
+
+### Upgrade notes (0.4.0 → 0.4.1)
+- No schema change. The Admin hub shortcut to Accessible is gone. Open the Accessible mount (dummy: `/admin/access`) to grant or edit access.
+- Pin FlatPack `>= 0.1.186` and rebuild host Tailwind so `fp-content` is in the CSS.
+- Engine Admin definition reload drops Terms section/screen/widget constants before `load`, so development reload does not duplicate hub widgets.
+
 ## [0.4.0] - 2026-09-16
 
 ### Removed
@@ -186,7 +200,8 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.4.1
 [0.4.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.4.0
 [0.3.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.3.1
 [0.3.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.3.0

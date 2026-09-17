@@ -56,10 +56,12 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     assert_equal folder_recording, page_recording.parent_recording
     assert_equal root_recording, page_recording.root_recording
     assert_equal 3, Workspace.count
-    assert_equal "Terms and Conditions", terms.title
+    assert_equal "Terms and Conditions v1.0", terms.title
     terms_recording = RecordingStudio::Recording.find_by!(recordable: terms)
     assert_equal "terms-and-conditions", terms_recording.try(:current_publishable)&.try(:slug)
     assert_includes RecordingStudioTermsAndConditions::SampleTerms::BODY, "Using the booth"
+    assert_includes RecordingStudioTermsAndConditions::SampleTerms::BODY, "When something breaks"
+    assert_equal "Terms and Conditions v1.0", RecordingStudioTermsAndConditions::SampleTerms::TITLE
     seeds_source = File.read(Rails.root.join("db/seeds.rb"))
     assert_includes seeds_source, "SampleTerms::BODY"
     assert_includes seeds_source, 'sample_slug = "terms-and-conditions"'

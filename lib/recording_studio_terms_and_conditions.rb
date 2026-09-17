@@ -15,6 +15,7 @@ require "recording_studio_terms_and_conditions/users_auth_redirect"
 require "recording_studio_terms_and_conditions/acceptance_gate_installer"
 require "recording_studio_terms_and_conditions/admin_widget_card"
 require "recording_studio_terms_and_conditions/flatpack_button_href_from_url"
+require "recording_studio_terms_and_conditions/hide_admin_access_avatars"
 require "recording_studio_terms_and_conditions/admin" if defined?(RecordingStudioAdmin)
 require "recording_studio_terms_and_conditions/capabilities/example"
 

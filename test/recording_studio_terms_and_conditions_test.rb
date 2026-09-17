@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.4.0", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.4.1", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -15,7 +15,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     gemspec = File.read(File.expand_path("../recording_studio_terms_and_conditions.gemspec", __dir__))
 
     assert_includes gemspec, 'spec.add_dependency "recording_studio", "~> 4.2"'
-    assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.183"'
+    assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.186"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", "~> 0.8"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_admin", "~> 2.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_publishable", "~> 0.2"'
@@ -56,7 +56,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.0.2"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.11.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.5.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.183"'
+    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.186"'
     refute_includes gemfile, "recording_studio/v3.0.0"
     refute_includes gemfile, 'tag: "v0.1.133"'
     refute_includes gemfile, 'tag: "v0.6.0"'
@@ -307,7 +307,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes date_helper, "%e %b %Y"
     assert_includes application_helper, "def terms_content"
     assert_includes application_helper, "def terms_admin_hub_path"
-    assert_includes application_helper, "flat-pack-content-editor-content"
+    assert_includes application_helper, "FlatPack::Content::Component"
+    refute_includes application_helper, "flat-pack-content-editor-content"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "helper RecordingStudioTermsAndConditions::ApplicationHelper"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
@@ -376,7 +377,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes form, "flat-pack-input-wrapper]:border-0"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/sample_terms.rb"), "Using the booth"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/sample_terms.rb"),
-                    'TITLE = "Terms and Conditions"'
+                    'TITLE = "Terms and Conditions v1.0"'
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/sample_terms.rb"),
+                    "When something breaks"
     dummy_seeds = File.read(File.expand_path("dummy/db/seeds.rb", __dir__))
     assert_includes dummy_seeds, 'sample_slug = "terms-and-conditions"'
     refute_includes dummy_seeds, "studio-terms"
@@ -461,7 +464,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes readme, "come later"
     assert_includes readme, "#{internals_docs}/"
     assert_includes readme, "v4.2.0"
-    assert_includes readme, "v0.1.183"
+    assert_includes readme, "v0.1.186"
     assert_includes readme, "v0.9.1"
     refute_includes readme, "Internal template"
     refute_includes readme, old_module
@@ -572,12 +575,27 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin, 'widget "widgets.terms.live", view_variant: :card'
     assert_includes admin, 'widget "widgets.terms.agrees", view_variant: :card'
     refute_includes admin, "view_variant: :compact"
+    assert_includes admin, "class TermsResource"
+    assert_includes admin, 'admin_action "terms.show"'
+    assert_includes admin, 'admin_action "terms.edit"'
+    assert_includes admin, 'admin_action "terms.users"'
+    assert_includes admin, "register_resource(TermsResource)"
+    assert_includes admin, "register_widget!"
+    assert_includes admin, "reset_definition_constants!"
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
+                    "reset_definition_constants!"
+    assert_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/base_controller.rb"),
+                    "AdminActionAuditing"
+    assert_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/terms_controller.rb"),
+                    "perform_recording_studio_admin_action!"
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/admin_widget_card.rb"))
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "AdminWidgetCard"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "FlatpackButtonHrefFromUrl"
-    assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/flatpack_button_href_from_url.rb"))
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
+                    "HideAdminAccessAvatars"
+    assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/hide_admin_access_avatars.rb"))
     assert_includes admin, 'admin_screen_path("recording_studio_terms")'
     assert_includes admin, "column :published"
     refute_includes admin, "column :category"
@@ -595,7 +613,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     skill = File.join(engine_root, ".github/skills/recording-studio-terms-and-conditions/SKILL.md")
     assert File.exist?(skill)
     assert_includes File.read(skill), "recording-studio-gems"
-    assert_includes File.read(skill), "Upgrade (0.3.x → 0.4.0)"
+    assert_includes File.read(skill), "Upgrade (0.4.0 → 0.4.1)"
   end
 
   def test_zero_four_upgrade_docs_match_shipped_behavior
@@ -603,8 +621,12 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.4.1]"
     assert_includes changelog, "## [0.4.0]"
-    assert_includes changelog, "Upgrade notes (0.3.x → 0.4.0)"
+    assert_includes changelog, "Upgrade notes (0.4.0 → 0.4.1)"
+    assert_includes changelog, "+ Access"
+    assert_includes notes, "Upgrade from 0.4.0 to 0.4.1"
+    assert_includes readme, "Upgrading from 0.4.0"
     assert_includes changelog, "body_digest"
     assert_includes changelog, "NotLive"
     assert_includes changelog, "required_categories"

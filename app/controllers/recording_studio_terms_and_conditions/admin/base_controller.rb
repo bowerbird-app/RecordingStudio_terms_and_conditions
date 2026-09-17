@@ -5,6 +5,7 @@ module RecordingStudioTermsAndConditions
     class BaseController < RecordingStudioTermsAndConditions::ApplicationController
       include ::Pagy::Backend
       include TablePage
+      include RecordingStudioAdmin::AdminActionAuditing if defined?(RecordingStudioAdmin::AdminActionAuditing)
 
       before_action :authenticate_user!, raise: false
       before_action :require_admin_access!
@@ -26,7 +27,7 @@ module RecordingStudioTermsAndConditions
       def admin_authorized?(role)
         return true unless defined?(RecordingStudioAccessible) && defined?(RecordingStudioAdmin)
 
-        access_recording = RecordingStudioAdmin.configuration.access_recording_resolver&.call(admin_context)
+        access_recording = recording_studio_admin_context&.access_recording
         return false unless access_recording
 
         RecordingStudioAccessible.authorized?(
@@ -36,8 +37,44 @@ module RecordingStudioTermsAndConditions
         )
       end
 
-      def admin_context
-        RecordingStudioAdmin::Context.new(controller: self) if defined?(RecordingStudioAdmin::Context)
+      def recording_studio_admin_context
+        return unless defined?(RecordingStudioAdmin::Context)
+
+        @recording_studio_admin_context ||= RecordingStudioAdmin::Context.new(
+          params: params.to_unsafe_h,
+          current_actor: current_admin_actor,
+          controller: self,
+          routes: self,
+          view_context: view_context
+        )
+      end
+      alias admin_context recording_studio_admin_context
+
+      def authorize_terms_resource!(action = nil, record: nil)
+        return require_admin_write_access! unless defined?(RecordingStudioAdmin)
+
+        authorize_registered_terms_resource!(action || terms_resource_action, record)
+      end
+
+      def authorize_registered_terms_resource!(action, record)
+        RecordingStudioAdmin.authorize_resource!(
+          key: "terms",
+          action: action,
+          context: recording_studio_admin_context,
+          record: record,
+          audit: true,
+          audit_action: action_name
+        )
+      rescue RecordingStudioAdmin::AuthorizationFailed, RecordingStudioAdmin::DefinitionNotFound
+        head :forbidden
+      end
+
+      def terms_resource_action
+        case action_name
+        when "create" then :new
+        when "update" then :edit
+        else action_name.to_sym
+        end
       end
 
       def current_admin_actor

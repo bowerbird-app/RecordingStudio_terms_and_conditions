@@ -34,4 +34,12 @@ class TermsAgreeHelperTest < ActionView::TestCase
     assert_includes html, "disabled"
     assert_includes html, "recording-studio-terms-and-conditions--scroll-to-end-target"
   end
+
+  test "terms copy wraps in Flatpack Content" do
+    html = terms_content("<p>Be kind in the booth.</p>")
+
+    assert_includes html, "fp-content"
+    assert_includes html, "Be kind in the booth."
+    refute_includes html, "flat-pack-content-editor-content"
+  end
 end

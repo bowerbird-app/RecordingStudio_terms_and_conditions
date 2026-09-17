@@ -53,7 +53,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
   test "admin can draft and revise terms" do
     sign_in @admin
-    switch_to_workspace(@workspace)
+    switch_to_workspace(@admin_root)
 
     get recording_studio_terms_and_conditions.admin_terms_path
     assert_response :success
@@ -99,7 +99,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     refute_select "header.fp-top-nav"
     assert_includes response.body, "House rules"
     assert_includes response.body, "Recording"
-    assert_includes response.body, "flat-pack-content-editor-content"
+    assert_includes response.body, "fp-content"
     assert_includes response.body, "Publish"
     assert_select "a", text: "Users"
     refute_includes response.body, "Who agreed"
@@ -153,6 +153,15 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
   test "admin section registers terms coverage widgets" do
     assert RecordingStudioAdmin.section_for("terms")
     assert RecordingStudioAdmin.screen_for("recording_studio_terms_acceptances")
+    assert RecordingStudioAdmin.resource_for("terms")
+    resource = RecordingStudioAdmin.resource_for("terms")
+    assert resource.action_for(:index)
+    assert resource.action_for(:show)
+    assert resource.action_for(:edit)
+    assert resource.action_for(:users)
+    assert resource.action_for(:new)
+    assert_equal :edit, resource.action_for(:edit).required_access_role
+    assert_equal :edit, resource.action_for(:new).required_access_role
     assert RecordingStudioAdmin.widget_for("widgets.terms.live")
     assert RecordingStudioAdmin.widget_for("widgets.terms.agrees")
     usages = RecordingStudioTermsAndConditions::Admin::TermsSection.widget_usages
@@ -171,9 +180,25 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes keys, "terms"
   end
 
+  test "admin widget register survives a code reload" do
+    admin = RecordingStudioTermsAndConditions::Admin
+    2.times do
+      admin.reset_definition_constants!
+      load RecordingStudioTermsAndConditions::Engine.root.join("lib/recording_studio_terms_and_conditions/admin.rb")
+      admin.register!
+    end
+
+    assert RecordingStudioAdmin.widget_for("widgets.terms.live")
+    assert RecordingStudioAdmin.resource_for("terms")
+    assert_equal %w[widgets.terms.live widgets.terms.agrees],
+                 admin::TermsSection.widget_usages.map(&:key)
+    assert_equal %w[widgets.terms.live widgets.terms.agrees],
+                 admin::TermsScreen.widget_usages.map(&:key)
+  end
+
   test "admin terms index paginates like other kit tables" do
     sign_in @admin
-    switch_to_workspace(@workspace)
+    switch_to_workspace(@admin_root)
     26.times do |index|
       workspace = Workspace.create!(name: "Page #{index} #{SecureRandom.hex(3)}")
       root = RecordingStudio.root_recording_for(workspace)
@@ -196,7 +221,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
   test "term users paginates receipts" do
     sign_in @admin
-    switch_to_workspace(@workspace)
+    switch_to_workspace(@admin_root)
     recording = RecordingStudio.root_recording_for(@workspace).record(
       RecordingStudioTermsAndConditions::Terms,
       actor: @admin
@@ -301,6 +326,20 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Who agreed"
     assert_includes response.body, "widget_view_variant=card"
     refute_includes response.body, "widget_view_variant=compact"
+    refute_includes response.body, "+ Access"
+    refute_includes response.body, "Terms demo"
+    refute_select "a", text: "Sign out"
+  end
+
+  test "engine admin pages require the Admin root, not a workspace" do
+    sign_in @admin
+    switch_to_workspace(@workspace)
+
+    get recording_studio_terms_and_conditions.admin_terms_path
+    assert_response :forbidden
+
+    get recording_studio_terms_and_conditions.new_admin_term_path
+    assert_response :forbidden
   end
 
   test "admin terms and who agreed screens stack widget title above the count" do

@@ -36,7 +36,7 @@ Then open `/users/sign_in`, continue with email, and sign in with:
 - `/` - dummy app home page and addon guidance
 - `/recording_studio_terms_and_conditions` - Agree screen
 - `/admin` - Recording Studio Admin Terms and Conditions hub (New parks here)
-- `/recording_studio_terms_and_conditions/admin/terms` - engine write/edit form (opened from Admin). New Terms is titled New Terms and Conditions.
+- `/recording_studio_terms_and_conditions/admin/terms` - engine write/edit form (opened from Admin). Switch to the Admin root first. New Terms is titled New Terms and Conditions.
 - `/terms/:uuid/:slug` - public published Terms
 - `/recording_studio` - redirects to `/` while the mounted Recording Studio engine stays available under that prefix for non-root routes
 - `/users/sign_in` - Users Auth sign-in (email, then password)

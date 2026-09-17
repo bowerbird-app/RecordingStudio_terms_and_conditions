@@ -16,7 +16,7 @@ class PublishedTermsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Studio Terms"
     assert_includes response.body, "Be kind"
-    assert_includes response.body, "flat-pack-content-editor-content"
+    assert_includes response.body, "fp-content"
     published_on = recording.current_publishable.publish_at.in_time_zone.strftime("%e %b %Y").squish
     assert_includes response.body, published_on
     refute_includes response.body, "ago"
@@ -27,6 +27,9 @@ class PublishedTermsTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "The public copy. No checkbox here."
     refute_includes response.body, "I agree to these terms"
     refute_includes response.body, "max-w-3xl"
+    refute_select "header.fp-top-nav"
+    refute_includes response.body, "Terms demo"
+    refute_select "a", text: "Sign out"
   end
 
   test "draft terms are not on the public path" do
