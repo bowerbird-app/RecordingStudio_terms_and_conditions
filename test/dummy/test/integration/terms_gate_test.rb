@@ -113,6 +113,7 @@ class TermsGateTest < ActionDispatch::IntegrationTest
       bootstrap_owner_access!(@user, admin_recording)
     end
 
+    switch_to_workspace(admin_root)
     get recording_studio_terms_and_conditions.admin_terms_path
     assert_response :success
 

@@ -196,10 +196,10 @@ module RecordingStudioTermsAndConditions
     engine_admin_path(:admin_term_users_path, recording)
   end
 
-  def self.engine_admin_path(helper, *args)
+  def self.engine_admin_path(helper, *)
     Engine.routes.url_helpers.public_send(
       helper,
-      *args,
+      *,
       script_name: configuration.mount_path
     )
   end

@@ -53,9 +53,13 @@ module RecordingStudioTermsAndConditions
       def authorize_terms_resource!(action = nil, record: nil)
         return require_admin_write_access! unless defined?(RecordingStudioAdmin)
 
+        authorize_registered_terms_resource!(action || terms_resource_action, record)
+      end
+
+      def authorize_registered_terms_resource!(action, record)
         RecordingStudioAdmin.authorize_resource!(
           key: "terms",
-          action: action || terms_resource_action,
+          action: action,
           context: recording_studio_admin_context,
           record: record,
           audit: true,
