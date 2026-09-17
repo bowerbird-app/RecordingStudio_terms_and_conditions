@@ -14,18 +14,27 @@ class PublishableQuickActionsTest < ActionDispatch::IntegrationTest
     )
     @workspace = Workspace.create!(name: "Publish #{SecureRandom.hex(4)}")
     @root = RecordingStudio.root_recording_for(@workspace)
-    bootstrap_owner_access!(@admin, @root)
     @admin_root = AdminRoot.find_or_create_by!(name: "Admin")
     @admin_recording = RecordingStudio.root_recording_for(@admin_root)
     unless RecordingStudioAccessible.authorized?(actor: @admin, recording: @admin_recording, role: :edit)
       bootstrap_owner_access!(@admin, @admin_recording)
+    end
+    unless RecordingStudioAccessible.authorized?(actor: @admin, recording: @root, role: :edit)
+      bootstrap_owner_access!(@admin, @root)
     end
   end
 
   test "term show publishes inline from QuickActions" do
     sign_in @admin
     switch_to_workspace(@workspace)
-    recording = record_terms(@root, title: "Booth rules", body: "Keep the door shut.")
+    recording = @root.record(
+      RecordingStudioTermsAndConditions::Terms,
+      actor: @admin
+    ) do |terms|
+      terms.title = "Booth rules"
+      terms.body = "Keep the door shut."
+    end
+    switch_to_workspace(@admin_root)
 
     get recording_studio_terms_and_conditions.admin_term_path(recording)
     assert_response :success
@@ -35,12 +44,9 @@ class PublishableQuickActionsTest < ActionDispatch::IntegrationTest
     assert_match %r{/recordings/#{recording.id}/publishable/preview}, response.body
     refute_select "a", text: "Publish"
 
-    patch recording_studio_publishable.transition_recording_publishable_path(
-      recording_id: recording.id,
-      transition: "publish",
-      inline: 1,
-      button_size: "md"
-    ), headers: { "Accept" => "text/vnd.turbo-stream.html" }
+    patch "/recordings/#{recording.id}/publishable/publish",
+          params: { inline: 1, button_size: "md" },
+          headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
     assert_response :success
     assert_includes response.body, "Published"
