@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Requires `recording_studio_publishable` `~> 0.3` (dummy GitHub tag `v0.3.1`).
-- Admin term show uses Publishable `QuickActions` (Draft / scheduled date / Published). The old primary **Publish** button that opened the stuffed edit form is gone. Preview and View live in that menu. Publish settings is still the hub at `/recordings/:id/publishable/edit`.
+- Admin term show uses Publishable `QuickActions` (Draft / scheduled date / Published). The old primary **Publish** button that opened the stuffed edit form is gone. Preview and View live in that menu. Opening term show ensures a Publishable child so Preview is not 404 on a brand-new draft. Publish settings is still the hub at `/recordings/:id/publishable/edit`.
 - Public Terms templates render `publishable_preview_badge` on Preview. Preview is `/recordings/:id/publishable/preview`, not a query param on `/terms/:uuid/:slug`.
 
 ### Upgrade notes (0.4.x → 0.5.0)

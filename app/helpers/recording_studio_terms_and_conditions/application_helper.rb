@@ -32,7 +32,19 @@ module RecordingStudioTermsAndConditions
       return unless recording
       return unless defined?(RecordingStudioPublishable::QuickActions::Component)
 
+      ensure_terms_publishable_child(recording)
       render RecordingStudioPublishable::QuickActions::Component.new(recording: recording)
+    end
+
+    def ensure_terms_publishable_child(recording)
+      return unless defined?(RecordingStudioPublishable::Services::Publishables::EnsureChild)
+
+      actor = (current_user if respond_to?(:current_user))
+      actor ||= Current.actor if defined?(Current)
+      RecordingStudioPublishable::Services::Publishables::EnsureChild.call(
+        parent_recording: recording,
+        actor: actor
+      )
     end
 
     def terms_public_url(terms)

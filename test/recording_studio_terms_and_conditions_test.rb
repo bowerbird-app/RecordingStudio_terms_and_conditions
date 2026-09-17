@@ -347,6 +347,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes public_show, "publishable_preview_badge"
     assert_includes public_show, "publishable_document_title"
     assert_includes application_helper, "def terms_publishable_quick_actions"
+    assert_includes application_helper, "EnsureChild"
     assert_includes controller, "RecordingStudioPublishable::ApplicationHelper"
     assert_includes admin_show, "admin_term_users_path"
     refute_includes admin_show, "Who agreed"

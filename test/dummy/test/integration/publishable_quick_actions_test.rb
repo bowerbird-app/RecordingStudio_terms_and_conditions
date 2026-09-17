@@ -43,6 +43,12 @@ class PublishableQuickActionsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Preview"
     assert_match %r{/recordings/#{recording.id}/publishable/preview}, response.body
     refute_select "a", text: "Publish"
+    assert recording.reload.publishable_child_recording
+
+    get "/recordings/#{recording.id}/publishable/preview"
+    assert_response :success
+    assert_includes response.body, "Booth rules"
+    assert_includes response.body, "Preview"
 
     patch "/recordings/#{recording.id}/publishable/publish",
           params: { inline: 1, button_size: "md" },
