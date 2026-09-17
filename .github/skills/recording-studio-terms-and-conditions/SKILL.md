@@ -7,7 +7,7 @@ description: Published Terms, clickwrap acceptance, and the host gate for Record
 
 This is the kit gem for **published Terms** and **clickwrap acceptance**. Do not invent a second acceptance table, accept screen, or post-auth redirect.
 
-Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.4.1**.
+Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.5.0**.
 
 ## Need
 
@@ -35,7 +35,7 @@ The install generator mounts the engine, copies migrations, and writes the initi
 - Register `RecordingStudioTermsAndConditions::Terms` in `recordable_types`.
 - Mount Publishable at `/` for `/terms/:uuid/:slug`.
 - Mount Admin, add an `AdminRoot`, enable `section :terms`, grant Accessible on that root. The Terms hub does not show **+ Access**. Writes use the registered Admin `terms` resource; switch to the Admin root before opening engine write URLs.
-- Publish through Publishable's edit UI.
+- Publish with Publishable `QuickActions` on term show, or the Publish settings hub. Preview is `/recordings/:id/publishable/preview`.
 
 ## Domain
 
@@ -47,7 +47,7 @@ RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap"
 RecordingStudioTermsAndConditions.accepted?(user, workspace)
 ```
 
-Live means Publishable `currently_published?`. `accept!` raises `NotLive` for drafts and unpublished versions. Retrying the same actor and live snapshot returns the existing receipt. A later published revision still inserts a new row. The “You already agreed” Alert shows when the person has a receipt for an older snapshot of that Terms recording and the live snapshot is a different row. First-time Agree does not show it. Acceptance rows are receipts, not recordings. New receipts store `body_digest` (read via `receipt_contract`).
+Live means Publishable `currently_published?`. `accept!` raises `NotLive` for drafts and unpublished versions. Retrying the same actor and live snapshot returns the existing receipt. Saving live Terms forks a draft; the published copy stays live. Publishing the draft drafts the previous live version. A later published version still inserts a new receipt. The “You already agreed” Alert shows when the person has a receipt for older Terms in that workspace and the live snapshot is a different row. First-time Agree does not show it. Acceptance rows are receipts, not recordings. New receipts store `body_digest` (read via `receipt_contract`).
 
 `pending_published_list` is the live Terms the actor still needs. The host gate (`ForcesAcceptance`) and Users Auth post-auth stay on until that set is empty.
 
@@ -87,3 +87,7 @@ Run `body_digest` and unique actor+snapshot. Do not backfill old receipts. Delet
 ## Upgrade (0.4.0 → 0.4.1)
 
 No migrations. The Admin Terms hub no longer shows Accessible **+ Access**. Use the Accessible mount to grant access. Pin FlatPack `>= 0.1.186`. Engine admin writes go through the Admin `terms` resource and need the Admin root.
+
+## Upgrade (0.4.x → 0.5.0)
+
+Pin `recording_studio_publishable` `v0.3.1`. No Terms migrations. Term show uses `QuickActions` instead of a **Publish** button to the old edit form. Preview is not a query param on the public URL. Edit of live Terms forks a draft; publish when the new copy should go live.

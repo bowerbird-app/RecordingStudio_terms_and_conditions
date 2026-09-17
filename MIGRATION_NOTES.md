@@ -14,8 +14,17 @@ Then:
 - Register `RecordingStudioTermsAndConditions::Terms` in `recordable_types`.
 - Mount Publishable at `/`.
 - Enable Admin `section :terms` on an Admin root and grant Accessible access.
+- Publish with Publishable `QuickActions` on term show, or the Publish settings hub. Do not add a custom publish action.
 
 The host gate and Users post-auth hook attach automatically.
+
+## Upgrade from 0.4.x to 0.5.0
+
+Pin `recording_studio_publishable` `v0.3.1`. No Terms or Acceptance schema change.
+
+Term show uses Publishable `QuickActions` instead of a **Publish** button to the old edit form. Preview is `/recordings/:id/publishable/preview`. Public templates can render `publishable_preview_badge`. Hosts that overrode the Publishable edit form should switch to the hub plus Schedule / SEO / Social.
+
+Editing live Terms forks a draft. The published copy stays live until that draft is published. Do not `revise` a live Terms recording to change the public wording.
 
 ## Upgrade from 0.4.0 to 0.4.1
 
@@ -58,6 +67,7 @@ Product config after 0.4.0 is `mount_path`, `require_scroll_to_end` (default off
 - Recording Studio 4.x (`~> 4.2` in the gemspec; dummy GitHub tag `v4.2.0`)
 - Accessible dummy tag `v0.9.1` and Root Switchable dummy tag `v0.5.0`
 - FlatPack dummy tag `v0.1.186`
+- Publishable dummy tag `v0.3.1` (gemspec `~> 0.3`)
 - Public RubyGems and GitHub access for dependency installation
 
 ## Verification

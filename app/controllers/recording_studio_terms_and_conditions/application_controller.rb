@@ -6,6 +6,7 @@ module RecordingStudioTermsAndConditions
     helper RecordingStudioTermsAndConditions::ApplicationHelper
     helper RecordingStudioTermsAndConditions::TermsDateHelper
     helper RecordingStudio::LayoutHelper if defined?(RecordingStudio::LayoutHelper)
+    helper RecordingStudioPublishable::ApplicationHelper if defined?(RecordingStudioPublishable::ApplicationHelper)
 
     # Isolated engines look up layouts in their own namespace first. Prepend the
     # host and Recording Studio view paths so `recording_studio/default_layout` resolves.

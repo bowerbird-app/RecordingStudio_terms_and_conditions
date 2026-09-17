@@ -3,7 +3,7 @@
 <div class="mx-auto flex w-full flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
     title: "Edit",
-    subtitle: "This writes a new version. People must agree again after you publish.",
+    subtitle: "Live wording stays put. This save is a draft until you publish.",
     variant: :h1
   ) %>
 
@@ -11,7 +11,7 @@
     <%= render "form", title: @title, body: @body %>
     <div class="inline-block">
       <%= render FlatPack::Button::Component.new(
-        text: "Save version",
+        text: "Save draft",
         style: :primary,
         type: "submit"
       ) %>
