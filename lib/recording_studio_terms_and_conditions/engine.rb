@@ -155,6 +155,12 @@ module RecordingStudioTermsAndConditions
       end
     end
 
+    initializer "recording_studio_terms_and_conditions.sole_live" do
+      config.after_initialize do
+        RecordingStudioTermsAndConditions::SoleLive.install!
+      end
+    end
+
     # Apply controller extensions
     initializer "recording_studio_terms_and_conditions.apply_controller_extensions" do
       config.to_prepare do
@@ -164,6 +170,7 @@ module RecordingStudioTermsAndConditions
           RecordingStudioTermsAndConditions::Engine.apply_controller_extensions(controller)
         end
         RecordingStudioTermsAndConditions::AcceptanceGateInstaller.call
+        RecordingStudioTermsAndConditions::SoleLive.install!
       end
     end
   end

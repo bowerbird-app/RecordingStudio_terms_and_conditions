@@ -367,6 +367,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin_new, "New Terms and Conditions"
     refute_includes admin_new, "Write terms"
     assert_includes engine_source("#{views}/admin/terms/edit.html.erb"), 'title: "Edit"'
+    assert_includes engine_source("#{views}/admin/terms/edit.html.erb"), "Save draft"
+    refute_includes engine_source("#{views}/admin/terms/edit.html.erb"), "Save version"
     refute_includes engine_source("#{views}/admin/terms/edit.html.erb"), "Edit terms"
     refute_includes engine_source("#{views}/admin/terms/edit.html.erb"), "FlatPack::Card::Component"
     assert_includes engine_source("#{views}/admin/terms/edit.html.erb"), 'class="inline-block"'
@@ -598,6 +600,14 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
                     "AdminActionAuditing"
     assert_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/terms_controller.rb"),
                     "perform_recording_studio_admin_action!"
+    assert_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/terms_controller.rb"),
+                    "TermsWrite.call"
+    assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/terms_write.rb"))
+    assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/sole_live.rb"))
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/terms_write.rb"), "fork_draft"
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/sole_live.rb"), "status: \"draft\""
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/terms_acceptance.rb"),
+                    "sibling_terms_recording_ids"
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/admin_widget_card.rb"))
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "AdminWidgetCard"
@@ -636,6 +646,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "Upgrade notes (0.4.x → 0.5.0)"
     assert_includes changelog, "QuickActions"
     assert_includes changelog, "v0.3.1"
+    assert_includes changelog, "forks a new draft"
     assert_includes changelog, "Upgrade notes (0.4.0 → 0.4.1)"
     assert_includes changelog, "+ Access"
     assert_includes notes, "Upgrade from 0.4.x to 0.5.0"

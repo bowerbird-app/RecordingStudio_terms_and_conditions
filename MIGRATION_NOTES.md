@@ -24,6 +24,8 @@ Pin `recording_studio_publishable` `v0.3.1`. No Terms or Acceptance schema chang
 
 Term show uses Publishable `QuickActions` instead of a **Publish** button to the old edit form. Preview is `/recordings/:id/publishable/preview`. Public templates can render `publishable_preview_badge`. Hosts that overrode the Publishable edit form should switch to the hub plus Schedule / SEO / Social.
 
+Editing live Terms forks a draft. The published copy stays live until that draft is published. Do not `revise` a live Terms recording to change the public wording.
+
 ## Upgrade from 0.4.0 to 0.4.1
 
 No schema change. The Admin Terms hub no longer renders Accessible **+ Access**. Open the Accessible mount to grant or edit access.

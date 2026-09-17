@@ -37,11 +37,14 @@ module RecordingStudioTermsAndConditions
 
       def update
         recording = write_terms_resource!(:edit, terms_recording, audit_action: :update) do
-          terms_recording.root_recording.revise(terms_recording, actor: current_admin_actor) do |terms|
-            assign_terms_fields(terms)
-          end
+          TermsWrite.call(
+            recording: terms_recording,
+            actor: current_admin_actor,
+            title: terms_params[:title],
+            body: terms_params[:body]
+          )
         end
-        redirect_to admin_term_path(recording), notice: "Terms updated."
+        redirect_to admin_term_path(recording), notice: terms_write_notice(recording)
       rescue ActiveRecord::RecordInvalid => e
         @terms = terms_recording.recordable
         render_invalid_terms(:edit, e, "Could not save that version.")
@@ -98,6 +101,14 @@ module RecordingStudioTermsAndConditions
         flash.now[:alert] = error.record.errors.full_messages.to_sentence.presence || fallback
         assign_form_fields_from_params
         render template, status: :unprocessable_entity
+      end
+
+      def terms_write_notice(recording)
+        if recording.id != terms_recording.id
+          "Draft saved. The live copy stays until you publish."
+        else
+          "Terms updated."
+        end
       end
 
       def assign_terms_fields(terms)

@@ -121,21 +121,26 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Nobody yet"
 
     original_snapshot_id = recording.recordable_id
-    assert_difference -> { RecordingStudioTermsAndConditions::Terms.count }, 1 do
-      assert_no_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count } do
-        patch recording_studio_terms_and_conditions.admin_term_path(recording), params: {
-          terms: { title: "House rules", body: "Whisper, please." }
-        }
-      end
+    original_body = recording.recordable.body
+    assert_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count }, 1 do
+      patch recording_studio_terms_and_conditions.admin_term_path(recording), params: {
+        terms: { title: "House rules", body: "Whisper, please." }
+      }
     end
 
-    recording.reload
-    refute_equal original_snapshot_id, recording.recordable_id
-    assert_equal "Whisper, please.", recording.recordable.body
+    live = recording.reload
+    draft = RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name)
+                                      .order(:created_at).last
+    assert_equal original_snapshot_id, live.recordable_id
+    assert_equal original_body, live.recordable.body
+    assert live.currently_published?
+    refute_equal live.id, draft.id
+    assert_equal "Whisper, please.", draft.recordable.body
+    refute draft.currently_published?
+    assert_redirected_to recording_studio_terms_and_conditions.admin_term_path(draft)
     follow_redirect!
-    assert_includes response.body, "Terms updated."
-    assert_includes response.body, "Recording #{recording.id}"
-    assert_includes response.body, "snapshot #{recording.recordable_id}"
+    assert_includes response.body, "Draft saved. The live copy stays until you publish."
+    assert_includes response.body, "Whisper, please."
 
     get recording_studio_terms_and_conditions.admin_terms_path
     assert_response :success

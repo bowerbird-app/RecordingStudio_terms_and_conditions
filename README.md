@@ -104,7 +104,7 @@ Bump to **0.4.1**. No schema change. The Admin Terms hub no longer shows Accessi
 
 ## Upgrading from 0.4.x
 
-Bump to **0.5.0** and pin Publishable `v0.3.1`. No Terms schema change. Term show uses the Publishable status dropdown instead of a **Publish** button to the old edit form. Preview is its own route. Full notes: `CHANGELOG.md` (0.5.0).
+Bump to **0.5.0** and pin Publishable `v0.3.1`. No Terms schema change. Term show uses the Publishable status dropdown instead of a **Publish** button to the old edit form. Preview is its own route. Saving live Terms forks a draft; the public copy stays until you publish. Full notes: `CHANGELOG.md` (0.5.0).
 
 ## Architecture
 
@@ -124,7 +124,7 @@ The dummy host follows Recording Studio's root recording pattern:
   RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap" })
   RecordingStudioTermsAndConditions.accepted?(user, workspace)
   ```
-  Live means Publishable `currently_published?` (scheduled-in-the-future is not current). `accept!` raises `RecordingStudioTermsAndConditions::NotLive` for drafts and unpublished versions and does not write a receipt. `indexable` is SEO and is not used for clickwrap. Retrying `accept!` for the same actor and snapshot returns the existing receipt. A new published revision still needs a new tick. The “You already agreed” Alert shows only when Agree lists a live snapshot the person has not accepted yet and they already have a receipt for an older snapshot of that same Terms recording. First-time Agree never shows it.
+  Live means Publishable `currently_published?` (scheduled-in-the-future is not current). `accept!` raises `RecordingStudioTermsAndConditions::NotLive` for drafts and unpublished versions and does not write a receipt. `indexable` is SEO and is not used for clickwrap. Retrying `accept!` for the same actor and snapshot returns the existing receipt. Saving live Terms forks a draft; people who already agreed stay agreed until that draft is published. A new published version still needs a new tick. The “You already agreed” Alert shows when Agree lists live Terms the person has not accepted yet and they already have a receipt for an older Terms version in that workspace. First-time Agree never shows it.
 - The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends `UsersAuthRedirect` on Users Auth. Both reuse `pending_published_list` / `requires_acceptance?` and the mounted Agree screen. Auth, Agree, Admin, public Terms, and root switch stay reachable so people can sign in, accept, publish, or switch workspace.
 - Hosts can render `recording_studio_terms_agree` or `recording_studio_terms_agree(inside_form: true)` inside signup or similar. The helper is the `required` `agreed` checkbox only. On the host POST, call `accept!` for the pending live version — do not invent a second receipt.
 - Scroll-to-end before Agree is optional. Set `config.require_scroll_to_end = true`, or wrap the live copy and Agree button with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` and `recording_studio_terms_agree_button(require_scroll_to_end: true)`. Pin the engine Stimulus controller in the host importmap. The checkbox stays required either way. Missing IntersectionObserver leaves Agree enabled. An already-visible sentinel unlocks immediately.

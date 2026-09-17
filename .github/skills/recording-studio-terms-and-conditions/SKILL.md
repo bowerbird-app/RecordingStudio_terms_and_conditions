@@ -47,7 +47,7 @@ RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap"
 RecordingStudioTermsAndConditions.accepted?(user, workspace)
 ```
 
-Live means Publishable `currently_published?`. `accept!` raises `NotLive` for drafts and unpublished versions. Retrying the same actor and live snapshot returns the existing receipt. A later published revision still inserts a new row. The “You already agreed” Alert shows when the person has a receipt for an older snapshot of that Terms recording and the live snapshot is a different row. First-time Agree does not show it. Acceptance rows are receipts, not recordings. New receipts store `body_digest` (read via `receipt_contract`).
+Live means Publishable `currently_published?`. `accept!` raises `NotLive` for drafts and unpublished versions. Retrying the same actor and live snapshot returns the existing receipt. Saving live Terms forks a draft; the published copy stays live. Publishing the draft drafts the previous live version. A later published version still inserts a new receipt. The “You already agreed” Alert shows when the person has a receipt for older Terms in that workspace and the live snapshot is a different row. First-time Agree does not show it. Acceptance rows are receipts, not recordings. New receipts store `body_digest` (read via `receipt_contract`).
 
 `pending_published_list` is the live Terms the actor still needs. The host gate (`ForcesAcceptance`) and Users Auth post-auth stay on until that set is empty.
 
@@ -90,4 +90,4 @@ No migrations. The Admin Terms hub no longer shows Accessible **+ Access**. Use 
 
 ## Upgrade (0.4.x → 0.5.0)
 
-Pin `recording_studio_publishable` `v0.3.1`. No Terms migrations. Term show uses `QuickActions` instead of a **Publish** button to the old edit form. Preview is not a query param on the public URL.
+Pin `recording_studio_publishable` `v0.3.1`. No Terms migrations. Term show uses `QuickActions` instead of a **Publish** button to the old edit form. Preview is not a query param on the public URL. Edit of live Terms forks a draft; publish when the new copy should go live.

@@ -34,7 +34,7 @@ module RecordingStudioTermsAndConditions
         Acceptance.where(
           actor_type: actor.class.base_class.name,
           actor_id: actor.id,
-          terms_recording_id: recording.id
+          terms_recording_id: sibling_terms_recording_ids(recording)
         ).where.not(terms_id: terms.id).exists?
       end
 
@@ -104,6 +104,10 @@ module RecordingStudioTermsAndConditions
 
       def persisted_root_recordable?(root)
         root.respond_to?(:id) && root.id.present? && RecordingStudio.root_allowed?(root.class.name)
+      end
+
+      def sibling_terms_recording_ids(recording)
+        SoleLive.terms_recordings_for(recording).map(&:id)
       end
 
       def published_terms_recording_for(root_recording)
