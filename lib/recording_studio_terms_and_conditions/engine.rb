@@ -147,9 +147,7 @@ module RecordingStudioTermsAndConditions
         hide_access = RecordingStudioTermsAndConditions::HideAdminAccessAvatars
         if defined?(RecordingStudioAdmin::ApplicationController)
           admin_helpers = RecordingStudioAdmin::ApplicationController._helpers
-          unless admin_helpers.ancestors.include?(hide_access)
-            admin_helpers.prepend hide_access
-          end
+          admin_helpers.prepend hide_access unless admin_helpers.ancestors.include?(hide_access)
         end
       end
     end
