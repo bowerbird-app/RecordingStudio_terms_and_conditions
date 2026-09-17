@@ -12,9 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Admin Terms hub no longer renders Accessible avatars or **+ Access** in PageNav. Hub actions stay New / All versions / Agree stats. Manage grants on Accessible’s own screens.
 - Dummy and gem-mounted Terms screens stay on default-layout PageNav only (no Terms demo TopNav, workspace switcher, or Sign out). That TopNav drop shipped in 0.4.0; this release keeps it off those pages and hides **+ Access**.
+- FlatPack pin is **v0.1.186** (gemspec `>= 0.1.186`). Agree, public, and admin Terms copy wrap in `FlatPack::Content` (`fp-content`).
+- Dummy sample Terms title is **Terms and Conditions v1.0**, with a longer body. The public slug stays `terms-and-conditions`.
+- Admin Terms is a registered Recording Studio Admin resource. The All versions table uses `admin_action` for Open / Edit / Users. Engine write screens authorize with `authorize_resource!` and wrap saves in `perform_recording_studio_admin_action!`. New and Edit need Accessible `:edit` on the Admin root.
 
 ### Upgrade notes (0.4.0 → 0.4.1)
 - No schema change. The Admin hub shortcut to Accessible is gone. Open the Accessible mount (dummy: `/admin/access`) to grant or edit access.
+- Pin FlatPack `>= 0.1.186` and rebuild host Tailwind so `fp-content` is in the CSS.
+- Engine admin URLs (`/recording_studio_terms_and_conditions/admin/...`) go through the Admin Terms resource. With Root Switchable, switch to the Admin root first; a workspace root is forbidden. New and Edit need `:edit`, not only `:view`.
 
 ## [0.4.0] - 2026-09-16
 

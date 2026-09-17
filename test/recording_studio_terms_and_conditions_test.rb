@@ -15,7 +15,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     gemspec = File.read(File.expand_path("../recording_studio_terms_and_conditions.gemspec", __dir__))
 
     assert_includes gemspec, 'spec.add_dependency "recording_studio", "~> 4.2"'
-    assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.183"'
+    assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.186"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", "~> 0.8"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_admin", "~> 2.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_publishable", "~> 0.2"'
@@ -56,7 +56,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.0.2"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.11.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.5.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.183"'
+    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.186"'
     refute_includes gemfile, "recording_studio/v3.0.0"
     refute_includes gemfile, 'tag: "v0.1.133"'
     refute_includes gemfile, 'tag: "v0.6.0"'
@@ -307,7 +307,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes date_helper, "%e %b %Y"
     assert_includes application_helper, "def terms_content"
     assert_includes application_helper, "def terms_admin_hub_path"
-    assert_includes application_helper, "flat-pack-content-editor-content"
+    assert_includes application_helper, "FlatPack::Content::Component"
+    refute_includes application_helper, "flat-pack-content-editor-content"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "helper RecordingStudioTermsAndConditions::ApplicationHelper"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
@@ -376,7 +377,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes form, "flat-pack-input-wrapper]:border-0"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/sample_terms.rb"), "Using the booth"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/sample_terms.rb"),
-                    'TITLE = "Terms and Conditions"'
+                    'TITLE = "Terms and Conditions v1.0"'
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/sample_terms.rb"),
+                    "When something breaks"
     dummy_seeds = File.read(File.expand_path("dummy/db/seeds.rb", __dir__))
     assert_includes dummy_seeds, 'sample_slug = "terms-and-conditions"'
     refute_includes dummy_seeds, "studio-terms"
@@ -461,7 +464,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes readme, "come later"
     assert_includes readme, "#{internals_docs}/"
     assert_includes readme, "v4.2.0"
-    assert_includes readme, "v0.1.183"
+    assert_includes readme, "v0.1.186"
     assert_includes readme, "v0.9.1"
     refute_includes readme, "Internal template"
     refute_includes readme, old_module
@@ -572,6 +575,15 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin, 'widget "widgets.terms.live", view_variant: :card'
     assert_includes admin, 'widget "widgets.terms.agrees", view_variant: :card'
     refute_includes admin, "view_variant: :compact"
+    assert_includes admin, "class TermsResource"
+    assert_includes admin, 'admin_action "terms.show"'
+    assert_includes admin, 'admin_action "terms.edit"'
+    assert_includes admin, 'admin_action "terms.users"'
+    assert_includes admin, "register_resource(TermsResource)"
+    assert_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/base_controller.rb"),
+                    "AdminActionAuditing"
+    assert_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/terms_controller.rb"),
+                    "perform_recording_studio_admin_action!"
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/admin_widget_card.rb"))
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "AdminWidgetCard"

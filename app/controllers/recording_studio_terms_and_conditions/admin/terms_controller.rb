@@ -3,7 +3,9 @@
 module RecordingStudioTermsAndConditions
   module Admin
     class TermsController < BaseController
-      before_action :require_admin_write_access!, only: %i[create update]
+      before_action :authorize_terms_index!, only: :index
+      before_action :authorize_terms_write!, only: %i[new create edit update]
+      before_action :authorize_terms_show!, only: :show
 
       def index
         @pagy, @terms_recordings = paginate_table(terms_scope)
@@ -16,7 +18,9 @@ module RecordingStudioTermsAndConditions
       def create
         return render_missing_workspace if terms_parent_root.blank?
 
-        recording = draft_terms!(terms_parent_root)
+        recording = write_terms_resource!(:new, terms_parent_root, audit_action: :create) do
+          draft_terms!(terms_parent_root)
+        end
         redirect_to admin_term_path(recording), notice: "Terms drafted. Publish when they are ready."
       rescue ActiveRecord::RecordInvalid => e
         render_invalid_terms(:new, e, "Could not save that draft.")
@@ -32,8 +36,10 @@ module RecordingStudioTermsAndConditions
       end
 
       def update
-        recording = terms_recording.root_recording.revise(terms_recording, actor: current_admin_actor) do |terms|
-          assign_terms_fields(terms)
+        recording = write_terms_resource!(:edit, terms_recording, audit_action: :update) do
+          terms_recording.root_recording.revise(terms_recording, actor: current_admin_actor) do |terms|
+            assign_terms_fields(terms)
+          end
         end
         redirect_to admin_term_path(recording), notice: "Terms updated."
       rescue ActiveRecord::RecordInvalid => e
@@ -42,6 +48,33 @@ module RecordingStudioTermsAndConditions
       end
 
       private
+
+      def authorize_terms_index!
+        authorize_terms_resource!(:index)
+      end
+
+      def authorize_terms_write!
+        authorize_terms_resource!(terms_resource_action, record: write_terms_record)
+      end
+
+      def authorize_terms_show!
+        authorize_terms_resource!(:show, record: terms_recording)
+      end
+
+      def write_terms_record
+        %w[new create].include?(action_name) ? nil : terms_recording
+      end
+
+      def write_terms_resource!(action, record, audit_action:)
+        return yield unless defined?(RecordingStudioAdmin::AdminActionAuditing)
+
+        result = nil
+        perform_recording_studio_admin_action!("terms", action, record, audit_action: audit_action) do
+          result = yield
+          true
+        end
+        result
+      end
 
       def terms_scope
         RecordingStudio::Recording.where(recordable_type: Terms.name, trashed_at: nil)

@@ -34,7 +34,7 @@ The install generator mounts the engine, copies migrations, and writes the initi
 
 - Register `RecordingStudioTermsAndConditions::Terms` in `recordable_types`.
 - Mount Publishable at `/` for `/terms/:uuid/:slug`.
-- Mount Admin, add an `AdminRoot`, enable `section :terms`, grant Accessible on that root. The Terms hub does not show **+ Access**.
+- Mount Admin, add an `AdminRoot`, enable `section :terms`, grant Accessible on that root. The Terms hub does not show **+ Access**. Writes use the registered Admin `terms` resource; switch to the Admin root before opening engine write URLs.
 - Publish through Publishable's edit UI.
 
 ## Domain
@@ -86,4 +86,4 @@ Run `body_digest` and unique actor+snapshot. Do not backfill old receipts. Delet
 
 ## Upgrade (0.4.0 → 0.4.1)
 
-No migrations. The Admin Terms hub no longer shows Accessible **+ Access**. Use the Accessible mount to grant access.
+No migrations. The Admin Terms hub no longer shows Accessible **+ Access**. Use the Accessible mount to grant access. Pin FlatPack `>= 0.1.186`. Engine admin writes go through the Admin `terms` resource and need the Admin root.

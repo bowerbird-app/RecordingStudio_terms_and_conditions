@@ -21,6 +21,10 @@ The host gate and Users post-auth hook attach automatically.
 
 No schema change. The Admin Terms hub no longer renders Accessible **+ Access**. Open the Accessible mount to grant or edit access.
 
+Pin FlatPack `>= 0.1.186` and rebuild Tailwind. Live Terms copy uses `FlatPack::Content` (`fp-content`). Dummy sample title is **Terms and Conditions v1.0**.
+
+Engine admin screens authorize through the Admin `terms` resource. With Root Switchable, use the Admin root; a workspace root is forbidden. New and Edit need Accessible `:edit`.
+
 ## Upgrade from 0.3.x to 0.4.0
 
 ```bash
@@ -53,7 +57,7 @@ Product config after 0.4.0 is `mount_path`, `require_scroll_to_end` (default off
 - Rails 8.1 or newer
 - Recording Studio 4.x (`~> 4.2` in the gemspec; dummy GitHub tag `v4.2.0`)
 - Accessible dummy tag `v0.9.1` and Root Switchable dummy tag `v0.5.0`
-- FlatPack dummy tag `v0.1.183`
+- FlatPack dummy tag `v0.1.186`
 - Public RubyGems and GitHub access for dependency installation
 
 ## Verification

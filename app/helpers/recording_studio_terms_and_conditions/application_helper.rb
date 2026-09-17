@@ -57,11 +57,7 @@ module RecordingStudioTermsAndConditions
       body = terms_body(text)
       return if body.blank?
 
-      if defined?(FlatPack::Content::Component)
-        render(FlatPack::Content::Component.new) { body }
-      else
-        content_tag(:div, body, class: "flat-pack-content-editor-content prose max-w-none")
-      end
+      render(FlatPack::Content::Component.new) { body }
     end
 
     def terms_body_editor(value:)
