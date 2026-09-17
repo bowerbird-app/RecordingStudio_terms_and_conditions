@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-16
+
+### Removed
+- Template Configuration knobs `api_key`, `enable_feature_x`, and `timeout`. Product config is `mount_path`, `require_scroll_to_end`, and `capture_request_provenance`.
+- Unused example `create_recording_studio_terms_and_conditions_pages` migration. Dummy never applied it; hosts that already copied it locally can leave the unused table.
+- Terms `category` / `kind` (`terms`, `privacy`, `usage`) and `change_note`. Clickwrap is one live Terms document per workspace, not a set of document types. Re-gate still uses the existing receipt, not a changelog field.
+
+### Added
+- Append-only Acceptance receipts store a SHA-256 `body_digest` of the live Terms body at `accept!` time. `Acceptance#receipt_contract` returns actor, version ids, timestamp, digest, algorithm, and provenance. Existing receipts keep a null digest and are not rewritten.
+- Optional `config.capture_request_provenance` (default off). When true, the gem Agree screen adds IP and user agent to provenance on new accepts.
+- `accept!` is idempotent for the same actor and Terms snapshot. A unique index on actor + recording + snapshot returns the existing receipt on retry. A later published revision still inserts a new row.
+- `accept!` refuses drafts, unpublished, and scheduled-but-not-live versions (`RecordingStudioTermsAndConditions::NotLive`). The Agree screen flashes and does not write a receipt.
+- Re-gate Agree shows a Flatpack Alert (“You already agreed”) when the person has a receipt for an older snapshot of that Terms recording and the live snapshot is a different row. First-time Agree does not show it.
+- Domain helpers: `pending_published_for` / `pending_published_list` (the live Terms the actor still needs) and `reaccepting?`.
+
+### Changed
+- Admin hub Flatpack buttons (`New`, `All versions`, `Agree stats`, widget `More`) pass `href` so they navigate. Recording Studio Admin still sends `url:`, which Flatpack ignores as a dead `<button>`.
+- Admin hub title is **Terms and Conditions**. The versions screen is **All versions** (live and drafts; table heading matches). Receipts are **Agree stats**, with the table headed **Users**. The live count widget is **Live**.
+- Dummy sample Terms title is **Terms and Conditions**. The public slug is `terms-and-conditions`. Agree, public, and admin show use the version date as the subtitle.
+- Admin edit title is **Edit**. Engine Terms index primary action is **New**.
+- Admin new Terms page title is **New Terms and Conditions**.
+- Dummy default layout no longer renders Flatpack TopNav (Terms demo bar and workspace switcher). Pages stay on default-layout PageNav (back/close).
+- Scroll-to-end no longer deadlocks Agree when `IntersectionObserver` is missing. Already-visible sentinels unlock immediately. The checkbox is still required. Scroll-to-end stays optional (default off). The Stimulus controller is self-contained (no extra importmap module).
+
+### Upgrade notes (0.3.x → 0.4.0)
+
+Copy this gem's migrations, then `bin/rails db:migrate`:
+
+- `body_digest` on acceptances. Do not backfill old receipts.
+- Unique index on actor + recording + snapshot. The migration drops `index_rstac_acceptances_on_actor_and_version` only if that name exists, then adds it unique. If migrate fails, resolve duplicate actor+snapshot rows first. Do not rewrite those rows.
+- If a 0.4.0 preview added `category`, `kind`, or `change_note` on Terms, the follow-up migration drops those columns.
+
+Delete `config.api_key`, `config.enable_feature_x`, `config.timeout`, and `RECORDING_STUDIO_TERMS_AND_CONDITIONS_API_KEY`. Unknown keys are ignored. Drop `config.required_categories` if you copied a preview initializer.
+
+Behavior hosts must account for:
+
+- Host `accept!` callers must pass a live published version. Rescue `NotLive`. Retrying the same actor and snapshot returns the existing receipt and does not rewrite provenance or digest. Callers cannot spoof `body_digest` in provenance.
+- The gem Agree screen and host checkbox helper still use `pending_published_list` (zero or one live Terms).
+- The host gate and Users post-auth hook stay on until that pending set is empty.
+- Leave `capture_request_provenance` off unless the gem Agree screen should store IP and user agent.
+- If you opt into `require_scroll_to_end`, pin the engine Stimulus controllers. Missing IntersectionObserver leaves Agree enabled.
+
 ## [0.3.1] - 2026-09-15
 
 ### Added
@@ -144,7 +186,8 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.4.0
 [0.3.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.3.1
 [0.3.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.3.0
 [0.2.2]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.2.2

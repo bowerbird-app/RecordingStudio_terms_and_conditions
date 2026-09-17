@@ -201,7 +201,11 @@ class InstallGeneratorTest < Minitest::Test
     assert_includes install_guide, "importmap"
     assert_includes initializer, "config.mount_path"
     assert_includes initializer, "require_scroll_to_end"
+    assert_includes initializer, "capture_request_provenance"
+    refute_includes initializer, "required_categories"
     refute_includes initializer, "enable_feature_x"
+    refute_includes initializer, "api_key"
+    refute_includes initializer, "config.timeout"
     refute_includes install_guide, "RecordingStudio v3"
   end
 
@@ -252,6 +256,9 @@ class InstallGeneratorTest < Minitest::Test
     assert_includes skill, "recording_studio_terms_and_conditions"
     assert_includes skill, "recording-studio-gems"
     assert_includes skill, "ForcesAcceptance"
+    assert_includes skill, "Upgrade (0.3.x → 0.4.0)"
+    assert_includes skill, "pending_published_list"
+    refute_includes skill, "required_categories"
   end
 
   private

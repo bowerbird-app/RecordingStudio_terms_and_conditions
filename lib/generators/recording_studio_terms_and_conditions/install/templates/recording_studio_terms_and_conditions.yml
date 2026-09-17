@@ -1,5 +1,9 @@
 development:
   mount_path: "/recording_studio_terms_and_conditions"
+  require_scroll_to_end: false
+  capture_request_provenance: false
 
 production:
   mount_path: "/recording_studio_terms_and_conditions"
+  require_scroll_to_end: false
+  capture_request_provenance: false

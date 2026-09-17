@@ -17,6 +17,8 @@
     code: <<~CODE
       terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
       RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap" })
+      RecordingStudioTermsAndConditions.pending_published_list(user, workspace)
+      RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace)
     CODE
   ) %>
 

@@ -7,20 +7,20 @@ module RecordingStudioTermsAndConditions
     class TermsSection < RecordingStudioAdmin::Section
       key "terms"
       icon :document_text
-      title "Terms"
+      title "Terms and Conditions"
       subtitle "Write them, publish them, see who agreed"
       blast_radius :site
 
       link :write,
-           text: "Write terms",
+           text: "New",
            url: ->(_context) { RecordingStudioTermsAndConditions.admin_write_path },
            style: :primary
       link :versions,
-           text: "Every version",
+           text: "All versions",
            url: ->(context) { context.admin_screen_path("recording_studio_terms") },
            style: :secondary
       link :agrees,
-           text: "Who agreed",
+           text: "Agree stats",
            url: ->(context) { context.admin_screen_path("recording_studio_terms_acceptances") },
            style: :secondary
       widget "widgets.terms.live", view_variant: :card
@@ -30,8 +30,8 @@ module RecordingStudioTermsAndConditions
     class TermsScreen < RecordingStudioAdmin::Screen
       key "recording_studio_terms"
       icon :document_text
-      title "Terms"
-      subtitle "Every draft and live version"
+      title "All versions"
+      subtitle "Drafts and live copies"
       blast_radius :site
       query do |_context|
         RecordingStudio::Recording.where(recordable_type: Terms.name, trashed_at: nil)
@@ -40,6 +40,7 @@ module RecordingStudioTermsAndConditions
       end
 
       table do
+        title "All versions"
         paginate per_page: 25
         column :title,
                title: "Title",
@@ -69,12 +70,13 @@ module RecordingStudioTermsAndConditions
     class AcceptancesScreen < RecordingStudioAdmin::Screen
       key "recording_studio_terms_acceptances"
       icon :check_circle
-      title "Who agreed"
+      title "Agree stats"
       subtitle "Receipts for the live clickwrap"
       blast_radius :site
       query { |_context| Acceptance.order(accepted_at: :desc) }
 
       table do
+        title "Users"
         paginate per_page: 25
         column :actor,
                title: "Person",
@@ -93,7 +95,7 @@ module RecordingStudioTermsAndConditions
 
     LiveTermsWidget = RecordingStudioAdmin::Widget.new("widgets.terms.live", blast_radius: :site) do
       type :number
-      title "Live terms"
+      title "Live"
       info "Published terms people can agree to right now."
       value do |_context|
         RecordingStudio::Recording.where(recordable_type: Terms.name, trashed_at: nil).to_a.count do |recording|

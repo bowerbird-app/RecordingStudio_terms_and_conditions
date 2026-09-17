@@ -23,5 +23,9 @@ class CreateRecordingStudioTermsAndConditionsAcceptances < ActiveRecord::Migrati
               name: "index_rstac_acceptances_on_terms_recording_id"
     add_index :recording_studio_terms_and_conditions_acceptances, :terms_id,
               name: "index_rstac_acceptances_on_terms_id"
+    add_index :recording_studio_terms_and_conditions_acceptances,
+              %i[actor_type actor_id terms_recording_id terms_id],
+              unique: true,
+              name: "index_rstac_acceptances_on_actor_and_version"
   end
 end

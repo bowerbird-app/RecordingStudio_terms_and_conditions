@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 module RecordingStudioTermsAndConditions
-  # Domain helpers for live published Terms and append-only acceptances.
-  class TermsAcceptance
+  class TermsAcceptance # rubocop:disable Metrics/ClassLength
     class << self
       def current_published_for(root)
         root_recording = resolve_root_recording(root)
@@ -24,7 +23,30 @@ module RecordingStudioTermsAndConditions
       end
 
       def requires_acceptance?(actor, root)
-        current_published_for(root).present? && !accepted?(actor, root)
+        pending_published_list(actor, root).any?
+      end
+
+      def reaccepting?(actor, root)
+        terms = pending_published_for(actor, root)
+        recording = recording_for_terms(terms)
+        return false if actor.blank? || recording.blank?
+
+        Acceptance.where(
+          actor_type: actor.class.base_class.name,
+          actor_id: actor.id,
+          terms_recording_id: recording.id
+        ).where.not(terms_id: terms.id).exists?
+      end
+
+      def pending_published_for(actor, root)
+        pending_published_list(actor, root).first
+      end
+
+      def pending_published_list(actor, root)
+        terms = current_published_for(root)
+        return [] if terms.blank? || accepted?(actor, root)
+
+        [terms]
       end
 
       def accept!(actor, version, provenance = {})
@@ -32,17 +54,41 @@ module RecordingStudioTermsAndConditions
 
         recording, terms = resolve_version(version)
         raise ArgumentError, "version must be Terms or a Terms recording" if recording.blank? || terms.blank?
+        raise NotLive, "Only live terms can be accepted." unless live_version?(recording)
 
+        create_receipt!(actor: actor, recording: recording, terms: terms, provenance: provenance)
+      end
+
+      private
+
+      def create_receipt!(actor:, recording:, terms:, provenance:)
+        existing = receipt_for(actor: actor, terms_recording_id: recording.id, terms_id: terms.id)
+        return existing if existing
+
+        insert_receipt!(actor: actor, recording: recording, terms: terms, provenance: provenance)
+      rescue ActiveRecord::RecordNotUnique
+        receipt_for(actor: actor, terms_recording_id: recording.id, terms_id: terms.id) || raise
+      end
+
+      def insert_receipt!(actor:, recording:, terms:, provenance:)
         Acceptance.create!(
           actor: actor,
           terms_recording_id: recording.id,
           terms_id: terms.id,
           accepted_at: Time.current,
+          body_digest: BodyDigest.call(terms.body),
           provenance: normalize_provenance(provenance)
         )
       end
 
-      private
+      def receipt_for(actor:, terms_recording_id:, terms_id:)
+        Acceptance.find_by(
+          actor_type: actor.class.base_class.name,
+          actor_id: actor.id,
+          terms_recording_id: terms_recording_id,
+          terms_id: terms_id
+        )
+      end
 
       def resolve_root_recording(root)
         return if root.blank?
@@ -69,6 +115,10 @@ module RecordingStudioTermsAndConditions
         [recording.current_publishable&.publish_at || recording.created_at, recording.created_at]
       end
 
+      def live_version?(recording)
+        recording.respond_to?(:currently_published?) && recording.currently_published?
+      end
+
       def resolve_version(version)
         if version.is_a?(RecordingStudio::Recording)
           terms = version.recordable
@@ -82,25 +132,22 @@ module RecordingStudioTermsAndConditions
       end
 
       def recording_for_terms(terms)
+        return if terms.blank?
+
         RecordingStudio::Recording.find_by(recordable_type: Terms.name, recordable_id: terms.id) ||
           RecordingStudio::Event.find_by(recordable_type: Terms.name, recordable_id: terms.id)&.recording
       end
 
       def acceptance_exists?(actor:, terms_recording_id:, terms_id:)
-        Acceptance.where(
-          actor_type: actor.class.base_class.name,
-          actor_id: actor.id,
-          terms_recording_id: terms_recording_id,
-          terms_id: terms_id
-        ).exists?
+        receipt_for(actor: actor, terms_recording_id: terms_recording_id, terms_id: terms_id).present?
       end
 
       def normalize_provenance(provenance)
         return {} if provenance.nil?
         raise ArgumentError, "provenance must be a hash" unless provenance.respond_to?(:to_h)
 
-        provenance.to_h.stringify_keys
+        provenance.to_h.stringify_keys.except("body_digest", "body_digest_algorithm")
       end
     end
-  end
+  end # rubocop:enable Metrics/ClassLength
 end

@@ -14,18 +14,18 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, an em
 - **Recording Studio Users Auth** (email, then password) with a pre-seeded admin user
 - **Workspace**, **Folder**, and **Page** recordables seeded into the dummy host app
 - **Terms** recordable (`RecordingStudioTermsAndConditions::Terms`, product label `"Terms"`) with Publishable opted in on the type
-- **Acceptance** append-only table for clickwrap receipts (not a recordable)
-- **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for`, `accepted?`, `accept!`, `requires_acceptance?`
-- **Agree screen** for the current published Terms (unchecked checkbox, gated Agree, `accept!`). Optional `require_scroll_to_end` keeps Agree disabled until the live copy is scrolled to the end (default off). The live body sits on the page with a calendar date (`13 Aug 2026`), not a relative “hours ago”
-- **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`, same `accept!` path. Pass `link_terms: true` to turn the word terms into a link to the public URL. The helper does not add a “Read the full terms” line; the Agree screen already shows the copy
-- **Gate** on the host `ApplicationController`: `requires_acceptance?` redirects to Agree until the live version is accepted, and again after a new publish
+- **Acceptance** append-only table for clickwrap receipts (not a recordable). New rows store a SHA-256 body digest of the live copy at accept time
+- **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for`, `pending_published_list` / `pending_published_for`, `accepted?`, `accept!`, `requires_acceptance?`, `reaccepting?`
+- **Agree screen** for the current published Terms (unchecked checkbox, gated Agree, `accept!`). Optional `require_scroll_to_end` keeps Agree disabled until a sentinel after the live body is visible (default off). If IntersectionObserver is missing, Agree stays enabled. The live body sits on the page with a calendar date, not a relative “hours ago”
+- **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`. Pass `link_terms: true` to turn the word terms into a link to the public URL. On submit, call `accept!` for the pending live version
+- **Gate** on the host `ApplicationController`: redirects to Agree until the live version is accepted, and again after a new publish
 - **Users hook** on `RecordingStudioUser::Auth::BaseController` so after sign in / sign up land on Agree when acceptance is still required
-- **Admin** create/edit Terms, Publishable publish, and a Users page of receipts for each term. Engine tables use `TablePage` (Pagy, 25 rows) and Flatpack infinite pagination. Admin hub Terms and Who agreed tables set `paginate per_page: 25` the same way Recording Studio Admin dummy tables do. Dummy `/docs/gem_views` is the other table page and uses the same page size. Live terms and Agrees widgets stack the title above the count (`view_variant: :card`) on the hub and on Admin screens.
+- **Admin** create/edit Terms, Publishable publish, and a Users page of receipts for each term. Engine tables use `TablePage` (Pagy, 25 rows) and Flatpack infinite pagination. Admin hub Terms and Conditions and Agree stats tables set `paginate per_page: 25`. Live and Agrees widgets stack the title above the count (`view_variant: :card`)
 - **Public Terms URL** at `/terms/:uuid/:slug` via Publishable
 - **FlatPack** UI component library for all views
 - **Dummy app** (`test/dummy/`) with a FlatPack sign-in screen, a home page on Recording Studio's default layout, mounted Recording Studio routes, and FlatPack's built-in rounded theme
 
-Authenticated dummy pages use Recording Studio's shared default layout (`RecordingStudio::UsesDefaultLayout`) plus FlatPack CSS and JS. The dummy override adds Flatpack `TopNav` (workspace switch and Sign out) above PageNav. Sign-in uses Users Auth (`recording_studio_user/auth`). Dummy `/docs/*` pages stay in the dummy app as a host-app sandbox; they are not the product README.
+Authenticated dummy pages use Recording Studio's shared default layout (`RecordingStudio::UsesDefaultLayout`) plus FlatPack CSS and JS. They do not add a host TopNav (no demo bar or workspace switcher). Sign-in uses Users Auth (`recording_studio_user/auth`). Dummy `/docs/*` pages stay in the dummy app as a host-app sandbox; they are not the product README.
 
 ## Quick start
 
@@ -67,8 +67,8 @@ Sign in at `/users/sign_in`: email first (**Continue with email**), then passwor
 - `/` — dummy app home page
 - `/users/sign_in` — Users Auth sign-in (email, then password)
 - `/recording_studio_terms_and_conditions` — Agree (clickwrap) screen on the Recording Studio default layout
-- `/admin` — Recording Studio Admin Terms hub (Write terms parks here)
-- `/recording_studio_terms_and_conditions/admin/terms` — engine write/edit form (opened from Admin)
+- `/admin` — Recording Studio Admin Terms and Conditions hub (`New` parks here)
+- `/recording_studio_terms_and_conditions/admin/terms` — engine write/edit form (opened from Admin). New Terms is titled **New Terms and Conditions**.
 - `/terms/:uuid/:slug` — public published Terms
 - `/recording_studio` — redirect to `/` while the mounted Recording Studio engine remains data/API-focused
 - `/agree_helper` — dummy demo of the embeddable Agree helper (code example + checkbox)
@@ -94,6 +94,10 @@ bin/rails tailwindcss:build
 
 This is the kit gem for published Terms and clickwrap. Add it to the approved list in `recording-studio-gems`. Do not hand-roll acceptances.
 
+## Upgrading from 0.3.x
+
+Bump to **0.4.0**, copy migrations, migrate. Run `body_digest` and unique actor+snapshot. Do not backfill old receipts. Drop template knobs `api_key`, `enable_feature_x`, `timeout`. Host `accept!` must be a live version (`NotLive` otherwise). Full notes: `CHANGELOG.md` (0.4.0) and `MIGRATION_NOTES.md`.
+
 ## Architecture
 
 ### Root recording pattern
@@ -103,18 +107,20 @@ The dummy host follows Recording Studio's root recording pattern:
 - **Workspace** is the dummy content root. Users also registers shared **People**.
 - **Folder** and **Page** demonstrate nested host recordables under the workspace root
 - **Terms** is this gem's nested recordable under Workspace. Enable Publishable on the class with `RecordingStudio::Capabilities::Publishable.to` — installing the gem does not publish anything by itself
-- **Acceptance** rows are receipts, not tree nodes: actor, terms recording id, terms snapshot id, timestamps, provenance
+- **Acceptance** rows are receipts, not tree nodes: actor, terms recording id, terms snapshot id, timestamps, SHA-256 `body_digest`, provenance. Old receipts stay untouched. `Acceptance#receipt_contract` is the readable shape
 - Hosts ask the module for the live published version and whether an actor still needs to accept:
   ```ruby
   terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
+  RecordingStudioTermsAndConditions.pending_published_list(user, workspace)
   RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace)
   RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap" })
   RecordingStudioTermsAndConditions.accepted?(user, workspace)
   ```
-  Live means Publishable `currently_published?` (scheduled-in-the-future is not current). `indexable` is SEO and is not used for clickwrap.
-- The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends `UsersAuthRedirect` on Users Auth. Both reuse `requires_acceptance?` and the mounted Agree screen. Auth, Agree, Admin, public Terms, and root switch stay reachable so people can sign in, accept, publish, or switch workspace.
-- Hosts can render `recording_studio_terms_agree` or `recording_studio_terms_agree(inside_form: true)` inside signup or similar. The helper is the `required` `agreed` checkbox only. On the host POST, call `accept!` — do not invent a second receipt.
-- Scroll-to-end before Agree is optional. Set `config.require_scroll_to_end = true`, or wrap the live copy and Agree button with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` and `recording_studio_terms_agree_button(require_scroll_to_end: true)`. Pin the engine Stimulus controller in the host importmap. The checkbox stays required either way.
+  Live means Publishable `currently_published?` (scheduled-in-the-future is not current). `accept!` raises `RecordingStudioTermsAndConditions::NotLive` for drafts and unpublished versions and does not write a receipt. `indexable` is SEO and is not used for clickwrap. Retrying `accept!` for the same actor and snapshot returns the existing receipt. A new published revision still needs a new tick. The “You already agreed” Alert shows only when Agree lists a live snapshot the person has not accepted yet and they already have a receipt for an older snapshot of that same Terms recording. First-time Agree never shows it.
+- The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends `UsersAuthRedirect` on Users Auth. Both reuse `pending_published_list` / `requires_acceptance?` and the mounted Agree screen. Auth, Agree, Admin, public Terms, and root switch stay reachable so people can sign in, accept, publish, or switch workspace.
+- Hosts can render `recording_studio_terms_agree` or `recording_studio_terms_agree(inside_form: true)` inside signup or similar. The helper is the `required` `agreed` checkbox only. On the host POST, call `accept!` for the pending live version — do not invent a second receipt.
+- Scroll-to-end before Agree is optional. Set `config.require_scroll_to_end = true`, or wrap the live copy and Agree button with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` and `recording_studio_terms_agree_button(require_scroll_to_end: true)`. Pin the engine Stimulus controller in the host importmap. The checkbox stays required either way. Missing IntersectionObserver leaves Agree enabled. An already-visible sentinel unlocks immediately.
+- Product configuration is `mount_path`, `require_scroll_to_end`, and `capture_request_provenance` (IP/UA on gem UI accepts, default off). There is no API key.
 - Each configured recordable declares `recording_studio_recordable(...)`; strict declaration validation stays enabled
 - A root `RecordingStudio::Recording` wraps the Workspace
 - `Current.actor` is set from `current_user` (Devise) in `ApplicationController`
@@ -196,7 +202,6 @@ All views use FlatPack ViewComponents. Available components include:
 - `FlatPack::Table::Component` — Data tables
 - `FlatPack::TextInput::Component`, `EmailInput`, `PasswordInput` — Form inputs
 - `FlatPack::PageNav::Component` — Default-layout page navigation
-- `FlatPack::TopNav::Component` — Dummy host chrome (workspace switch and Sign out)
 - `FlatPack::PageTitle::Component` — Page titles
 
 Use the live FlatPack demo app at [flatpack.bowerbird.io](https://flatpack.bowerbird.io/) as the approved UI reference for current shared patterns. Its component table is the fastest way to discover available FlatPack components before introducing new custom UI.
@@ -225,4 +230,4 @@ The dummy Gemfile keeps `github:` sources so Bundler can fetch those gems. Hosts
 
 ## Documentation
 
-Engine internals from the original gem template stay in `docs/gem_template/` as architectural reference. This README and the dummy app are the source of truth for the addon.
+Engine internals from the original gem template stay in `docs/gem_template/` as architectural reference. This README, `CHANGELOG.md`, `MIGRATION_NOTES.md`, and the dummy app are the source of truth for the addon.

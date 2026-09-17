@@ -63,17 +63,35 @@ begin
     root_recording: root_recording,
     trashed_at: nil
   )
+  sample_title = RecordingStudioTermsAndConditions::SampleTerms::TITLE
+  sample_body = RecordingStudioTermsAndConditions::SampleTerms::BODY
+  sample_slug = "terms-and-conditions"
+  current_slug = terms_recording&.try(:current_publishable)&.try(:slug)
   if terms_recording.blank?
     terms_recording = root_recording.record(
       RecordingStudioTermsAndConditions::Terms,
       actor: user
     ) do |terms|
-      terms.title = RecordingStudioTermsAndConditions::SampleTerms::TITLE
-      terms.body = RecordingStudioTermsAndConditions::SampleTerms::BODY
+      terms.title = sample_title
+      terms.body = sample_body
     end
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: terms_recording,
-      attributes: { slug: "studio-terms", status: "published" }
+      attributes: { slug: sample_slug, status: "published" }
+    ).value!
+  elsif terms_recording.recordable.title != sample_title
+    terms_recording = root_recording.revise(terms_recording, actor: user) do |terms|
+      terms.title = sample_title
+      terms.body = sample_body
+    end
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: terms_recording,
+      attributes: { slug: sample_slug, status: "published" }
+    ).value!
+  elsif current_slug != sample_slug
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: terms_recording,
+      attributes: { slug: sample_slug, status: "published" }
     ).value!
   end
 ensure
@@ -86,4 +104,4 @@ puts "Seeded: Workspace '#{accessible_workspace.name}' with root recording ##{ac
 puts "Seeded: Workspace '#{private_workspace.name}' with root recording ##{private_root_recording.id}"
 puts "Seeded: Folder '#{folder.name}' and page '#{page.title}'"
 puts "Seeded: AdminRoot '#{admin_root.name}' with root recording ##{admin_root_recording.id}"
-puts "Seeded: published Studio Terms under '#{workspace.name}'"
+puts "Seeded: published Terms and Conditions under '#{workspace.name}'"

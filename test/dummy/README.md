@@ -7,12 +7,12 @@ This Rails app exists to validate the Recording Studio Terms and Conditions addo
 - Recording Studio Users Auth (email, then password) with a seeded admin user
 - `Current.actor` wiring for Recording Studio events
 - Root workspace plus seeded folder and page recordables
-- Recording Studio default layout with Flatpack TopNav, FlatPack assets, and Tailwind source scanning (including `/usr/local/lib/ruby/gems/**/bundler/gems/flatpack-*`)
+- Recording Studio default layout with PageNav, FlatPack assets, and Tailwind source scanning (including `/usr/local/lib/ruby/gems/**/bundler/gems/flatpack-*`)
 - Dummy importmap imports `@hotwired/turbo-rails` so Admin turbo frames (hub widgets and tables) finish loading instead of staying on skeletons
 - Mounted `RecordingStudio::Engine` route behavior inside a host app
 - Dummy-only `/docs/*` pages for gem-specific onboarding
 - Acceptance gate: a workspace with live published Terms sends signed-in people to Agree until they accept
-- Dummy opts in to `require_scroll_to_end` so Agree stays disabled until the live copy is scrolled to the end
+- Dummy opts in to `require_scroll_to_end` so Agree stays disabled until the live copy is scrolled to the end. Missing IntersectionObserver still leaves Agree enabled
 - Hosts install with `recording_studio_terms_and_conditions:install` (mount, migrations, initializer, importmap pin)
 
 ## Quick Start
@@ -35,8 +35,8 @@ Then open `/users/sign_in`, continue with email, and sign in with:
 
 - `/` - dummy app home page and addon guidance
 - `/recording_studio_terms_and_conditions` - Agree screen
-- `/admin` - Recording Studio Admin Terms hub (Write terms parks here)
-- `/recording_studio_terms_and_conditions/admin/terms` - engine write/edit form (opened from Admin)
+- `/admin` - Recording Studio Admin Terms and Conditions hub (New parks here)
+- `/recording_studio_terms_and_conditions/admin/terms` - engine write/edit form (opened from Admin). New Terms is titled New Terms and Conditions.
 - `/terms/:uuid/:slug` - public published Terms
 - `/recording_studio` - redirects to `/` while the mounted Recording Studio engine stays available under that prefix for non-root routes
 - `/users/sign_in` - Users Auth sign-in (email, then password)

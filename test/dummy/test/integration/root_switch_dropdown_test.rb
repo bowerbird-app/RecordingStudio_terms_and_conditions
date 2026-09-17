@@ -19,7 +19,7 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Default: admin@admin.com / Password"
   end
 
-  test "home page renders the root switch dropdown trigger" do
+  test "home page uses the default layout without TopNav" do
     user = User.find_or_create_by!(email: "root-switch-test@example.com") do |record|
       record.password = "Password123!"
       record.password_confirmation = "Password123!"
@@ -34,11 +34,10 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
     get root_path
 
     assert_response :success
-    assert_includes response.body, workspace.name
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
-    assert_select "header.fp-top-nav", count: 1
-    assert_select "a", text: "Sign out"
-    assert_select "a[href='/users/sign_out']"
+    refute_select "header.fp-top-nav"
+    refute_includes response.body, "Terms demo</a>"
+    refute_includes response.body, "recording_studio_root_switch_dropdown"
   end
 
   test "root switch page renders with the host default layout" do
@@ -56,6 +55,7 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
+    refute_select "header.fp-top-nav"
     refute_includes response.body, "flat-pack-sidebar-layout"
   end
 

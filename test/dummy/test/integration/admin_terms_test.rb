@@ -57,24 +57,33 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
     get recording_studio_terms_and_conditions.admin_terms_path
     assert_response :success
-    assert_includes response.body, "Write terms"
+    assert_includes response.body, "New"
     assert(
       response.body.include?("No terms yet") || response.body.include?("Title"),
       "expected an empty state or the Terms table"
     )
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
-    assert_select "header.fp-top-nav", count: 1
+    refute_select "header.fp-top-nav"
+    refute_includes response.body, "Terms demo"
     assert_select "nav[aria-label='Page navigation']", count: 1
-    assert_select "a", text: "Sign out"
-    assert_select "a[href='/users/sign_out']"
     assert_match %r{flat_pack/application}, response.body
 
     get recording_studio_terms_and_conditions.new_admin_term_path
     assert_response :success
+    assert_includes response.body, "New Terms and Conditions"
     assert_includes response.body, "flat-pack--tiptap"
     assert_includes response.body, "terms[body]"
+    refute_includes response.body, "terms[change_note]"
+    refute_includes response.body, "What changed"
+    refute_includes response.body, "terms[category]"
+    refute_includes response.body, "Category"
     assert_includes response.body, "Save draft"
     assert_select "div.inline-block button[type=submit]", text: "Save draft"
+    assert_select "body[data-recording-studio-default-layout='true']", count: 1
+    assert_select "nav[aria-label='Page navigation']", count: 1
+    refute_select "header.fp-top-nav"
+    refute_includes response.body, "Terms demo"
+    refute_includes response.body, "Write terms"
 
     assert_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count }, 1 do
       post recording_studio_terms_and_conditions.admin_terms_path, params: {
@@ -87,7 +96,9 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_redirected_to recording_studio_terms_and_conditions.admin_term_path(recording)
     follow_redirect!
     assert_includes response.body, "Terms drafted. Publish when they are ready."
+    refute_select "header.fp-top-nav"
     assert_includes response.body, "House rules"
+    assert_includes response.body, "Recording"
     assert_includes response.body, "flat-pack-content-editor-content"
     assert_includes response.body, "Publish"
     assert_select "a", text: "Users"
@@ -98,7 +109,9 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Users"
     assert_includes response.body, "Nobody yet"
+    assert_includes response.body, "People who ticked the box for these terms."
 
+    publish_terms!(recording, slug: "house-rules-#{SecureRandom.hex(4)}")
     RecordingStudioTermsAndConditions.accept!(@member, recording, { "source" => "clickwrap" })
     get recording_studio_terms_and_conditions.admin_term_users_path(recording)
     assert_response :success
@@ -126,12 +139,14 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "House rules"
     assert_select "table thead th", text: "Title"
+    refute_select "table thead th", text: "Category"
+    refute_select "table thead th", text: "Coverage"
     assert_select "table thead th", text: "Status"
     assert_select "table thead th", text: "Published"
     assert_select "table thead th", text: "Agrees"
     assert_select "table thead th", text: "Open"
     assert_select "table tbody td a", text: "House rules"
-    assert_select "table tbody td", text: "Draft"
+    assert_select "table tbody td", text: (recording.currently_published? ? "Live" : "Draft")
     assert_select "table tbody td a", text: "Open"
   end
 
@@ -159,8 +174,9 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
   test "admin terms index paginates like other kit tables" do
     sign_in @admin
     switch_to_workspace(@workspace)
-    root = RecordingStudio.root_recording_for(@workspace)
     26.times do |index|
+      workspace = Workspace.create!(name: "Page #{index} #{SecureRandom.hex(3)}")
+      root = RecordingStudio.root_recording_for(workspace)
       root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
         terms.title = "Page #{index} #{SecureRandom.hex(3)}"
         terms.body = "Body #{index}."
@@ -188,6 +204,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
       terms.title = "Crowd"
       terms.body = "Many people tick this."
     end
+    publish_terms!(recording, slug: "crowd-#{SecureRandom.hex(4)}")
     26.times do |index|
       person = User.create!(
         email: "agree-#{index}-#{SecureRandom.hex(3)}@example.com",
@@ -211,8 +228,9 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
   test "admin terms screen table paginates" do
     sign_in @admin
     switch_to_workspace(@admin_root)
-    root = RecordingStudio.root_recording_for(@workspace)
     26.times do |index|
+      workspace = Workspace.create!(name: "Hub #{index} #{SecureRandom.hex(3)}")
+      root = RecordingStudio.root_recording_for(workspace)
       root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
         terms.title = "Hub #{index} #{SecureRandom.hex(3)}"
         terms.body = "Hub body #{index}."
@@ -240,6 +258,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
       terms.title = "Crowd hub"
       terms.body = "Many people tick this."
     end
+    publish_terms!(recording, slug: "crowd-hub-#{SecureRandom.hex(4)}")
     26.times do |index|
       person = User.create!(
         email: "hub-agree-#{index}-#{SecureRandom.hex(3)}@example.com",
@@ -266,10 +285,20 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
     get "/admin"
     assert_response :success
-    assert_includes response.body, "Write terms"
-    assert_includes response.body, "Every version"
-    assert_includes response.body, "Terms"
-    assert_includes response.body, RecordingStudioTermsAndConditions.admin_write_path
+    refute_select "header.fp-top-nav"
+    assert_includes response.body, "Terms and Conditions"
+    assert_includes response.body, "All versions"
+    assert_includes response.body, "Agree stats"
+    write_path = RecordingStudioTermsAndConditions.admin_write_path
+    assert_includes response.body, write_path
+    assert_select "a[href=?]", write_path, text: "New"
+    assert_select "a[href*='/admin/screens/recording_studio_terms']", text: "All versions"
+    assert_select "a[href*='/admin/screens/recording_studio_terms_acceptances']", text: "Agree stats"
+    refute_select "button", text: "New"
+    refute_includes response.body, "Write terms"
+    refute_includes response.body, "Every version"
+    refute_includes response.body, "Old versions"
+    refute_includes response.body, "Who agreed"
     assert_includes response.body, "widget_view_variant=card"
     refute_includes response.body, "widget_view_variant=compact"
   end
@@ -280,6 +309,9 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
     get "/admin/screens/recording_studio_terms"
     assert_response :success
+    assert_includes response.body, "All versions"
+    refute_includes response.body, "Old versions"
+    refute_includes response.body, "Table data"
     assert_includes response.body, "widget_view_variant=card"
     refute_includes response.body, "widget_view_variant=compact"
 
@@ -287,12 +319,16 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
         params: { widget_usage_index: 0, widget_view_variant: "card" },
         headers: { "Sec-Fetch-Dest" => "empty", "Turbo-Frame" => "widget" }
     assert_response :success
-    assert_includes response.body, "Live terms"
+    assert_includes response.body, "Live"
+    refute_includes response.body, "Live terms"
     assert_includes response.body, "text-5xl"
     refute_includes response.body, "min-h-28"
 
     get "/admin/screens/recording_studio_terms_acceptances"
     assert_response :success
+    assert_includes response.body, "Agree stats"
+    assert_includes response.body, "Users"
+    refute_includes response.body, "Table data"
     assert_includes response.body, "widget_view_variant=card"
     refute_includes response.body, "widget_view_variant=compact"
 
@@ -308,7 +344,10 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
   private
 
   def first_table_row_count
-    table = css_select("table").first
+    table = css_select("table").find do |candidate|
+      headers = candidate.css("thead th").map(&:text)
+      headers.include?("Open") || headers.include?("Person")
+    end
     return 0 unless table
 
     table.css("tbody tr").size

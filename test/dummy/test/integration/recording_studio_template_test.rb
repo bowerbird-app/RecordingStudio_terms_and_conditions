@@ -56,10 +56,14 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     assert_equal folder_recording, page_recording.parent_recording
     assert_equal root_recording, page_recording.root_recording
     assert_equal 3, Workspace.count
-    assert_equal "Studio Terms", terms.title
+    assert_equal "Terms and Conditions", terms.title
+    terms_recording = RecordingStudio::Recording.find_by!(recordable: terms)
+    assert_equal "terms-and-conditions", terms_recording.try(:current_publishable)&.try(:slug)
     assert_includes RecordingStudioTermsAndConditions::SampleTerms::BODY, "Using the booth"
     seeds_source = File.read(Rails.root.join("db/seeds.rb"))
     assert_includes seeds_source, "SampleTerms::BODY"
+    assert_includes seeds_source, 'sample_slug = "terms-and-conditions"'
+    refute_includes seeds_source, "studio-terms"
     assert RecordingStudio::Recording.find_by!(recordable: admin_root)
 
     assert_no_difference -> { User.count } do

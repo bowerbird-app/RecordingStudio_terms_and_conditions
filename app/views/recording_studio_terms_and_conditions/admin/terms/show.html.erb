@@ -2,7 +2,7 @@
 
 <%= render FlatPack::PageTitle::Component.new(
   title: @terms.title,
-  subtitle: @terms_recording.respond_to?(:currently_published?) && @terms_recording.currently_published? ? "Live for clickwrap." : "Still a draft.",
+  subtitle: terms_heading_date(@terms, recording: @terms_recording),
   variant: :h1
 ) do |page_title| %>
   <% page_title.slot do %>
@@ -30,7 +30,6 @@
 <% end %>
 
 <div class="mb-6">
-  <%= terms_version_date(@terms, recording: @terms_recording) %>
   <p class="mt-1 text-sm text-[var(--surface-muted-content-color)]">
     Recording <%= @terms_recording.id %> · snapshot <%= @terms.id %>
   </p>

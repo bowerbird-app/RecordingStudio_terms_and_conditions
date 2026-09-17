@@ -7,7 +7,41 @@ bin/rails generate recording_studio_terms_and_conditions:install
 bin/rails db:migrate
 ```
 
-That copies Terms and Acceptance migrations, mounts the engine, writes `config/initializers/recording_studio_terms_and_conditions.rb`, and pins the scroll-to-end Stimulus controller when `config/importmap.rb` exists. Register `RecordingStudioTermsAndConditions::Terms` in `recordable_types`. Mount Publishable at `/`. Enable Admin `section :terms` on an Admin root and grant Accessible access. The host gate and Users post-auth hook attach automatically. Scroll-to-end before Agree stays off until `config.require_scroll_to_end = true` (or the helper option).
+That copies Terms and Acceptance migrations, mounts the engine, writes `config/initializers/recording_studio_terms_and_conditions.rb`, and pins the scroll-to-end Stimulus controller when `config/importmap.rb` exists.
+
+Then:
+
+- Register `RecordingStudioTermsAndConditions::Terms` in `recordable_types`.
+- Mount Publishable at `/`.
+- Enable Admin `section :terms` on an Admin root and grant Accessible access.
+
+The host gate and Users post-auth hook attach automatically.
+
+## Upgrade from 0.3.x to 0.4.0
+
+```bash
+bin/rails generate recording_studio_terms_and_conditions:migrations
+bin/rails db:migrate
+```
+
+Hosts already on 0.3 pick up:
+
+| Migration | What it does |
+| --- | --- |
+| `body_digest` on acceptances | SHA-256 of the live body at `accept!`. Do not backfill old rows. |
+| Unique actor + recording + snapshot | Idempotent `accept!`. Drops `index_rstac_acceptances_on_actor_and_version` only if that name exists, then adds it unique. Resolve duplicate actor+snapshot rows before migrating. Do not rewrite those rows. New installs get the unique index from create. |
+| Drop `category` / `kind` / `change_note` on Terms | Only if a 0.4.0 preview added them. Hosts coming from 0.3 skip those columns. |
+
+Delete `config.api_key`, `config.enable_feature_x`, `config.timeout`, and `RECORDING_STUDIO_TERMS_AND_CONDITIONS_API_KEY`. Unknown keys are ignored. Drop `config.required_categories` if you copied a preview initializer.
+
+Product config after 0.4.0 is `mount_path`, `require_scroll_to_end` (default off), and `capture_request_provenance` (default off).
+
+## Behavior in 0.4.0
+
+- Live means Publishable `currently_published?`. `accept!` raises `RecordingStudioTermsAndConditions::NotLive` for drafts, unpublished, and scheduled-but-not-live versions and does not write a receipt.
+- Retrying `accept!` for the same actor and snapshot returns the existing receipt. A later published revision still needs a new tick. Callers cannot pass a spoofed digest in provenance.
+- `pending_published_list` is the live Terms the actor still needs (zero or one). The gem Agree screen and host gate stay on until that set is empty.
+- Scroll-to-end stays off until `config.require_scroll_to_end = true` (or the helper option). Missing IntersectionObserver leaves Agree enabled. An already-visible sentinel unlocks immediately.
 
 ## Current Requirements
 

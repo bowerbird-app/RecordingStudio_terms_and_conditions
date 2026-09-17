@@ -2,6 +2,7 @@
 
 module RecordingStudioTermsAndConditions
   # Shared skip list and path helpers for the clickwrap gate.
+  # required? follows pending_published_list (live Terms the actor has not accepted).
   module Gate
     EXEMPT_PREFIXES = %w[
       recording_studio_terms_and_conditions/acceptances
@@ -28,10 +29,14 @@ module RecordingStudioTermsAndConditions
     end
 
     def required?(controller, actor)
-      root = root_for(controller)
-      return false if actor.blank? || root.blank?
+      pending_for(controller, actor).any?
+    end
 
-      RecordingStudioTermsAndConditions.requires_acceptance?(actor, root)
+    def pending_for(controller, actor)
+      root = root_for(controller)
+      return [] if actor.blank? || root.blank?
+
+      RecordingStudioTermsAndConditions.pending_published_list(actor, root)
     end
 
     def after_auth_path(controller, actor)

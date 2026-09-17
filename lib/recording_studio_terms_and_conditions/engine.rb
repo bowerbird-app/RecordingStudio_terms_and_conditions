@@ -7,6 +7,7 @@ module RecordingStudioTermsAndConditions
     initializer "recording_studio_terms_and_conditions.helpers" do
       ActiveSupport.on_load(:action_controller_base) do
         helper RecordingStudioTermsAndConditions::ApplicationHelper
+        helper RecordingStudioTermsAndConditions::TermsDateHelper
       end
     end
 
@@ -138,6 +139,10 @@ module RecordingStudioTermsAndConditions
         helper = RecordingStudioAdmin::WidgetRenderingHelper
         unless helper.ancestors.include?(RecordingStudioTermsAndConditions::AdminWidgetCard)
           helper.prepend RecordingStudioTermsAndConditions::AdminWidgetCard
+        end
+        button = FlatPack::Button::Component
+        unless button.ancestors.include?(RecordingStudioTermsAndConditions::FlatpackButtonHrefFromUrl)
+          button.prepend RecordingStudioTermsAndConditions::FlatpackButtonHrefFromUrl
         end
       end
     end

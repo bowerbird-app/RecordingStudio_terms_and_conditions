@@ -21,17 +21,21 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
   end
 
   test "current_published_for returns live published Terms for a host root" do
-    draft_recording = record_terms("Draft", "Not live.")
-    live_recording = record_terms("Live terms", "Be kind.")
-    publish_terms!(live_recording, slug: "live-terms")
-    publish_terms!(draft_recording, slug: "draft-terms", status: "draft")
+    recording = record_terms("Live terms", "Be kind.")
+    publish_terms!(recording, slug: "live-terms")
 
     published = RecordingStudioTermsAndConditions.current_published_for(@workspace)
 
-    assert_equal live_recording.recordable, published
+    assert_equal recording.recordable, published
     assert_equal "Live terms", published.title
     assert_nil RecordingStudioTermsAndConditions.current_published_for(@other_workspace)
     assert_equal published, RecordingStudioTermsAndConditions.current_published_for(@root)
+  end
+
+  test "current_published_for ignores a draft terms recording" do
+    record_terms("Draft", "Not live.")
+
+    assert_nil RecordingStudioTermsAndConditions.current_published_for(@workspace)
   end
 
   test "current_published_for ignores scheduled Terms that are not live yet" do
@@ -49,6 +53,8 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     refute RecordingStudioTermsAndConditions.accepted?(@actor, @workspace)
     refute RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @other_workspace)
 
+    live = recording.recordable
+    expected_digest = RecordingStudioTermsAndConditions::BodyDigest.call(live.body)
     receipt = RecordingStudioTermsAndConditions.accept!(
       @actor,
       recording,
@@ -57,6 +63,11 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
 
     assert_predicate receipt, :readonly?
     assert_equal({ "source" => "clickwrap", "ip" => "203.0.113.10" }, receipt.provenance)
+    assert_equal expected_digest, receipt.body_digest
+    assert_equal expected_digest, receipt.receipt_contract.fetch("body_digest")
+    assert_equal "sha256", receipt.receipt_contract.fetch("body_digest_algorithm")
+    assert_equal live.id.to_s, receipt.receipt_contract.fetch("terms_id")
+    refute receipt.provenance.key?("body_digest")
     assert RecordingStudioTermsAndConditions.accepted?(@actor, @workspace)
     refute RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace)
     refute RecordingStudioTermsAndConditions.accepted?(@other_actor, @workspace)
@@ -86,6 +97,131 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     assert_raises(ArgumentError) { RecordingStudioTermsAndConditions.accept!(nil, recording, {}) }
     assert_raises(ArgumentError) { RecordingStudioTermsAndConditions.accept!(@actor, @workspace, {}) }
     assert_raises(ArgumentError) { RecordingStudioTermsAndConditions.accept!(@actor, recording, "clickwrap") }
+  end
+
+  test "accept! refuses drafts, unpublished, and scheduled terms" do
+    draft = record_terms("Draft", "Not live.")
+    soon = record_terms("Soon", "Wait.")
+    publish_terms!(soon, slug: "soon-refuse", publish_at: 1.day.from_now)
+    unpublished = record_terms("Was live", "Gone.")
+    publish_terms!(unpublished, slug: "was-live")
+    publish_terms!(unpublished, slug: "was-live", status: "draft")
+
+    assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
+      assert_raises(RecordingStudioTermsAndConditions::NotLive) do
+        RecordingStudioTermsAndConditions.accept!(@actor, draft, source: "clickwrap")
+      end
+      assert_raises(RecordingStudioTermsAndConditions::NotLive) do
+        RecordingStudioTermsAndConditions.accept!(@actor, soon, source: "clickwrap")
+      end
+      assert_raises(RecordingStudioTermsAndConditions::NotLive) do
+        RecordingStudioTermsAndConditions.accept!(@actor, unpublished, source: "clickwrap")
+      end
+    end
+  end
+
+  test "accept! ignores a caller body_digest and never rewrites an older receipt" do
+    recording = record_terms("Digest", "Live copy.")
+    publish_terms!(recording, slug: "digest-terms")
+    terms = recording.recordable
+    older = RecordingStudioTermsAndConditions::Acceptance.create!(
+      actor: @other_actor,
+      terms_recording_id: recording.id,
+      terms_id: terms.id,
+      accepted_at: Time.current,
+      body_digest: nil,
+      provenance: { "source" => "legacy" }
+    )
+
+    receipt = RecordingStudioTermsAndConditions.accept!(
+      @actor,
+      terms,
+      { "source" => "clickwrap", "body_digest" => "sha256:spoofed" }
+    )
+
+    older.reload
+    assert_nil older.body_digest
+    assert_equal({ "source" => "legacy" }, older.provenance)
+    assert_equal RecordingStudioTermsAndConditions::BodyDigest.call("Live copy."), receipt.body_digest
+    refute receipt.provenance.key?("body_digest")
+    assert_raises(ActiveRecord::ReadOnlyRecord) { older.update!(body_digest: receipt.body_digest) }
+  end
+
+  test "accept! returns the existing receipt for the same actor and snapshot" do
+    recording = record_terms("Once", "One tick.")
+    publish_terms!(recording, slug: "once-terms")
+    first = RecordingStudioTermsAndConditions.accept!(
+      @actor,
+      recording,
+      { "source" => "clickwrap", "attempt" => "1" }
+    )
+
+    second = nil
+    assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
+      second = RecordingStudioTermsAndConditions.accept!(
+        @actor,
+        recording,
+        { "source" => "retry", "attempt" => "2" }
+      )
+    end
+
+    assert_equal first.id, second.id
+    assert_equal first.body_digest, second.body_digest
+    assert_equal({ "source" => "clickwrap", "attempt" => "1" }, second.provenance)
+    assert_equal first.receipt_contract, second.receipt_contract
+    assert_raises(ActiveRecord::RecordNotUnique) do
+      RecordingStudioTermsAndConditions::Acceptance.create!(
+        actor: @actor,
+        terms_recording_id: recording.id,
+        terms_id: recording.recordable.id,
+        accepted_at: Time.current,
+        body_digest: first.body_digest
+      )
+    end
+  end
+
+  test "accept! inserts a new receipt after a later published revision" do
+    recording = record_terms("v1", "First.")
+    publish_terms!(recording, slug: "retry-versioned")
+    first = RecordingStudioTermsAndConditions.accept!(@actor, recording, source: "clickwrap")
+
+    revised = @root.revise(recording) { |terms| terms.body = "Second." }
+    publish_terms!(revised, slug: "retry-versioned")
+    second = RecordingStudioTermsAndConditions.accept!(@actor, revised, source: "clickwrap")
+
+    assert_not_equal first.id, second.id
+    assert_not_equal first.terms_id, second.terms_id
+    assert_equal RecordingStudioTermsAndConditions::BodyDigest.call("First."), first.body_digest
+    assert_equal RecordingStudioTermsAndConditions::BodyDigest.call("Second."), second.body_digest
+    first.reload
+    assert_equal "First.", RecordingStudioTermsAndConditions::Terms.find(first.terms_id).body
+  end
+
+  test "reaccepting? is true only after an older snapshot and a new live version" do
+    recording = record_terms("v1", "First.")
+    publish_terms!(recording, slug: "reaccept-#{SecureRandom.hex(4)}")
+
+    refute RecordingStudioTermsAndConditions.reaccepting?(@actor, @workspace)
+    RecordingStudioTermsAndConditions.accept!(@actor, recording, source: "clickwrap")
+    refute RecordingStudioTermsAndConditions.reaccepting?(@actor, @workspace)
+
+    revised = @root.revise(recording) { |terms| terms.body = "Second." }
+    publish_terms!(revised, slug: "reaccept-#{SecureRandom.hex(4)}")
+
+    assert RecordingStudioTermsAndConditions.reaccepting?(@actor, @workspace)
+    refute RecordingStudioTermsAndConditions.accepted?(@actor, @workspace)
+  end
+
+  test "pending_published_list returns live Terms the actor still needs" do
+    terms = record_terms("Live terms", "Be kind.")
+    publish_terms!(terms, slug: "pending-list-terms")
+
+    pending = RecordingStudioTermsAndConditions.pending_published_list(@actor, @workspace)
+
+    assert_equal [terms.recordable], pending
+    RecordingStudioTermsAndConditions.accept!(@actor, terms, source: "clickwrap")
+    assert_empty RecordingStudioTermsAndConditions.pending_published_list(@actor, @workspace)
+    assert_nil RecordingStudioTermsAndConditions.pending_published_for(@actor, @workspace)
   end
 
   private

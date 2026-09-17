@@ -7,7 +7,7 @@ description: Published Terms, clickwrap acceptance, and the host gate for Record
 
 This is the kit gem for **published Terms** and **clickwrap acceptance**. Do not invent a second acceptance table, accept screen, or post-auth redirect.
 
-Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`.
+Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.4.0**.
 
 ## Need
 
@@ -41,14 +41,15 @@ The install generator mounts the engine, copies migrations, and writes the initi
 
 ```ruby
 terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
+RecordingStudioTermsAndConditions.pending_published_list(user, workspace)
 RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace)
 RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap" })
 RecordingStudioTermsAndConditions.accepted?(user, workspace)
 ```
 
-Live means Publishable `currently_published?`. Acceptance rows are receipts, not recordings.
+Live means Publishable `currently_published?`. `accept!` raises `NotLive` for drafts and unpublished versions. Retrying the same actor and live snapshot returns the existing receipt. A later published revision still inserts a new row. The “You already agreed” Alert shows when the person has a receipt for an older snapshot of that Terms recording and the live snapshot is a different row. First-time Agree does not show it. Acceptance rows are receipts, not recordings. New receipts store `body_digest` (read via `receipt_contract`).
 
-The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends Users Auth after sign in / sign up to the same Agree screen.
+`pending_published_list` is the live Terms the actor still needs. The host gate (`ForcesAcceptance`) and Users Auth post-auth stay on until that set is empty.
 
 Drop the host helper onto a form:
 
@@ -58,7 +59,7 @@ Drop the host helper onto a form:
 <%= recording_studio_terms_agree(link_terms: true) %>
 ```
 
-The helper is the checkbox only — HTML `required`, named `agreed`. Put it in a form. On submit call `accept!` with `params[:agreed]`. Do not add a second receipt table.
+The helper is the checkbox only — HTML `required`, named `agreed`. Put it in a form. On submit call `accept!` for the pending live version. Do not add a second receipt table.
 
 Optional scroll-to-end before Agree (default off):
 
@@ -68,4 +69,17 @@ RecordingStudioTermsAndConditions.configure do |config|
 end
 ```
 
-Or wrap a host clickwrap with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` and `recording_studio_terms_agree_button(require_scroll_to_end: true)`. Pin `recording_studio_terms_and_conditions/controllers` in the host importmap. The checkbox is still required.
+Or wrap a host clickwrap with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` and `recording_studio_terms_agree_button(require_scroll_to_end: true)`. Pin `recording_studio_terms_and_conditions/controllers` in the host importmap. The checkbox is still required. Missing IntersectionObserver leaves Agree enabled.
+
+Set `config.capture_request_provenance = true` only if the gem Agree screen should store IP and user agent (default off). Product config is `mount_path`, `require_scroll_to_end`, and `capture_request_provenance`. There is no API key.
+
+## Upgrade (0.3.x → 0.4.0)
+
+```bash
+bin/rails generate recording_studio_terms_and_conditions:migrations
+bin/rails db:migrate
+```
+
+Run `body_digest` and unique actor+snapshot. Do not backfill old receipts. Delete `config.api_key`, `config.enable_feature_x`, `config.timeout`, and `RECORDING_STUDIO_TERMS_AND_CONDITIONS_API_KEY`. Drop preview `category` / `kind` / `change_note` columns if they exist.
+
+`accept!` must be a live version (`NotLive` otherwise). Details: repo `CHANGELOG.md` and `MIGRATION_NOTES.md`.
