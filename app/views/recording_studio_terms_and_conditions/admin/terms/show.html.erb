@@ -16,16 +16,7 @@
       style: :secondary,
       href: edit_admin_term_path(@terms_recording)
     ) %>
-    <% if (publish_path = terms_publishable_edit_path(@terms_recording)) %>
-      <%= render FlatPack::Button::Component.new(
-        text: "Publish",
-        style: :primary,
-        href: publish_path
-      ) %>
-    <% end %>
-    <% if (public_url = terms_public_url(@terms)) %>
-      <%= render FlatPack::Link::Component.new(href: public_url) { "Public page" } %>
-    <% end %>
+    <%= terms_publishable_quick_actions(@terms_recording) %>
   <% end %>
 <% end %>
 

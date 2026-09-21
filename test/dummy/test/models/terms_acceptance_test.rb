@@ -205,11 +205,59 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     RecordingStudioTermsAndConditions.accept!(@actor, recording, source: "clickwrap")
     refute RecordingStudioTermsAndConditions.reaccepting?(@actor, @workspace)
 
-    revised = @root.revise(recording) { |terms| terms.body = "Second." }
-    publish_terms!(revised, slug: "reaccept-#{SecureRandom.hex(4)}")
+    draft = RecordingStudioTermsAndConditions::TermsWrite.call(
+      recording: recording,
+      actor: @actor,
+      title: "v2",
+      body: "Second."
+    )
+    publish_terms!(draft, slug: "reaccept-#{SecureRandom.hex(4)}")
 
     assert RecordingStudioTermsAndConditions.reaccepting?(@actor, @workspace)
     refute RecordingStudioTermsAndConditions.accepted?(@actor, @workspace)
+  end
+
+  test "editing live Terms leaves agreed people on the old copy until the draft is published" do
+    recording = record_terms("Booth rules", "ABC")
+    publish_terms!(recording, slug: "booth-rules-#{SecureRandom.hex(4)}")
+    receipt = RecordingStudioTermsAndConditions.accept!(@actor, recording, source: "clickwrap")
+
+    draft = RecordingStudioTermsAndConditions::TermsWrite.call(
+      recording: recording,
+      actor: @actor,
+      title: "Booth rules",
+      body: "ABCDE"
+    )
+
+    recording.reload
+    assert_not_equal recording.id, draft.id
+    assert recording.currently_published?
+    refute draft.currently_published?
+    assert_equal "ABC", recording.recordable.body
+    assert_equal "ABCDE", draft.recordable.body
+    assert_equal "ABC", RecordingStudioTermsAndConditions.current_published_for(@workspace).body
+    assert RecordingStudioTermsAndConditions.accepted?(@actor, @workspace)
+    refute RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace)
+    refute RecordingStudioTermsAndConditions.reaccepting?(@actor, @workspace)
+    assert_equal receipt.id, RecordingStudioTermsAndConditions::Acceptance.find(receipt.id).id
+
+    publish_terms!(draft, slug: "booth-rules-v2-#{SecureRandom.hex(4)}")
+
+    recording.reload
+    draft.reload
+    refute recording.currently_published?
+    assert draft.currently_published?
+    assert_equal "ABCDE", RecordingStudioTermsAndConditions.current_published_for(@workspace).body
+    refute RecordingStudioTermsAndConditions.accepted?(@actor, @workspace)
+    assert RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace)
+    assert RecordingStudioTermsAndConditions.reaccepting?(@actor, @workspace)
+    assert_equal receipt.body_digest, receipt.reload.body_digest
+    assert_equal recording.id, receipt.terms_recording_id
+    assert_nil RecordingStudioTermsAndConditions::Acceptance.find_by(
+      actor: @actor,
+      terms_recording_id: draft.id,
+      terms_id: draft.recordable.id
+    )
   end
 
   test "pending_published_list returns live Terms the actor still needs" do

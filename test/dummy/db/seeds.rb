@@ -56,6 +56,13 @@ begin
       )
       raise result.error if result.respond_to?(:failure?) && result.failure?
     end
+    unless RecordingStudioAccessible.authorized?(actor: user, recording: root_recording, role: :edit)
+      result = RecordingStudioAccessible.bootstrap_owner_access!(
+        recording: root_recording,
+        actor: user
+      )
+      raise result.error if result.respond_to?(:failure?) && result.failure?
+    end
   end
 
   terms_recording = RecordingStudio::Recording.find_by(
@@ -80,10 +87,12 @@ begin
       attributes: { slug: sample_slug, status: "published" }
     ).value!
   elsif terms_recording.recordable.title != sample_title || terms_recording.recordable.body != sample_body
-    terms_recording = root_recording.revise(terms_recording, actor: user) do |terms|
-      terms.title = sample_title
-      terms.body = sample_body
-    end
+    terms_recording = RecordingStudioTermsAndConditions::TermsWrite.call(
+      recording: terms_recording,
+      actor: user,
+      title: sample_title,
+      body: sample_body
+    )
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: terms_recording,
       attributes: { slug: sample_slug, status: "published" }

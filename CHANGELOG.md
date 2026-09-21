@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-17
+
+### Changed
+- Requires `recording_studio_publishable` `~> 0.3` (dummy GitHub tag `v0.3.1`).
+- Admin term show uses Publishable `QuickActions` (Draft / scheduled date / Published). The old primary **Publish** button that opened the stuffed edit form is gone. Preview and View live in that menu. Opening term show ensures a Publishable child so Preview is not 404 on a brand-new draft. Publish settings is still the hub at `/recordings/:id/publishable/edit`.
+- Public Terms templates render `publishable_preview_badge` on Preview. Preview is `/recordings/:id/publishable/preview`, not a query param on `/terms/:uuid/:slug`.
+- Saving a **live** Terms recording forks a new draft. The published copy stays live until someone publishes the draft. Publishing that draft drafts the previous live version in the workspace. People who agreed to the old copy stay agreed until the new copy is live; they are not auto-ticked for the new one.
+
+### Upgrade notes (0.4.x → 0.5.0)
+
+Pin `recording_studio_publishable` `v0.3.1` (`~> 0.3` in the gemspec). No Terms or Acceptance schema change.
+
+Replace a custom **Publish** button that linked to the old edit form with `RecordingStudioPublishable::QuickActions::Component` (or `terms_publishable_quick_actions`). Inline publish stays on the host page. Hosts that overrode `edit.html.erb` as one form should switch to the hub plus Schedule / SEO / Social screens. Public templates can render `publishable_preview_badge`.
+
+Do not `revise` a live Terms recording to change wording. Use admin Edit (or `TermsWrite`) so the live copy stays frozen. Publish the draft when the new wording should gate people again.
+
 ## [0.4.1] - 2026-09-17
 
 ### Changed
@@ -200,7 +216,8 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.5.0
 [0.4.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.4.1
 [0.4.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.4.0
 [0.3.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.3.1
