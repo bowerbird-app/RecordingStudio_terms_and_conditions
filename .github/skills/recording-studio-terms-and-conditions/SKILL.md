@@ -65,7 +65,7 @@ Drop the host helper onto a form:
 
 The checkbox helper is HTML `required`, named `agreed`. Put it in a form. On submit call `accept!` for the pending live version. Do not add a second receipt table.
 
-`recording_studio_terms_continue_notice` is a second helper. Copy uses `config.app_name`. Default is `text-xs` plus muted Flatpack copy (`text-[var(--surface-muted-content-color)]`). `size:` is `:xs` (default) or `:sm`. Unknown sizes use `:xs`. The Terms & Conditions link opens a Flatpack Modal with `FlatPack::Content` inside. On that host POST, call `accept!` with `{ "source" => "continue_notice" }`. Do not remove the checkbox helper. Dummy `/agree_helper` posts both helpers and then lets home load.
+`recording_studio_terms_continue_notice` is a second helper. Copy uses `config.app_name`. Default is `text-xs` plus muted Flatpack copy (`text-[var(--surface-muted-content-color)]`). `size:` is `:xs` (default) or `:sm`. Unknown sizes use `:xs`. The Terms & Conditions words are a Flatpack Link (primary + underline). They open a Flatpack Modal whose body is the standalone terms document (`published_terms/_document`: PageTitle, date, Flatpack Content). On that host POST, call `accept!` with `{ "source" => "continue_notice" }`. Do not remove the checkbox helper. Dummy `/agree_helper` posts both helpers and then lets home load.
 
 Optional scroll-to-end before Agree (default off):
 
@@ -83,7 +83,7 @@ Agree is still the post-auth destination. It has no PageNav. Live copy sits in a
 
 ## Upgrade (0.6.0 → 0.6.1)
 
-No migrations. Pin `recording_studio_user` `>= 0.12.1`. Signup extra_fields is the continue-notice helper, not the checkbox. Receipts from that POST use provenance `continue_notice`. Continue-notice is xs and muted by default; pass `size: :sm` for the larger size.
+No migrations. Pin `recording_studio_user` `>= 0.12.1`. Signup extra_fields is the continue-notice helper, not the checkbox. Receipts from that POST use provenance `continue_notice`. Continue-notice is xs and muted by default; pass `size: :sm` for the larger size. The Terms link opens a modal with the standalone terms document.
 
 ## Upgrade (0.3.x → 0.4.0)
 

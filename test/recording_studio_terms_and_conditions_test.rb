@@ -290,7 +290,14 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes continue_helper, "surface-muted-content-color"
     assert_includes continue_helper, "continue_notice"
     assert_includes continue_helper, "FlatPack::Modal::Component"
-    assert_includes continue_helper, "terms_content(terms.body)"
+    assert_includes continue_helper, "terms_standalone_document"
+    assert_includes continue_helper, "color-primary"
+    assert_includes continue_helper, "underline"
+    refute_includes continue_helper, "terms_content(terms.body)"
+    document = engine_source("#{views}/published_terms/_document.html.erb")
+    assert_includes document, "FlatPack::PageTitle::Component"
+    assert_includes document, "terms_heading_date"
+    assert_includes document, "terms_content"
     assert_includes helper, "pending: nil"
     assert_includes helper, "recording_studio_terms_agree_label"
     copy_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/agree_copy_helper.rb")
@@ -353,8 +360,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes agree, "terms_reaccept_notice"
     refute_includes public_show, "FlatPack::Card::Component"
     refute_includes public_show, "<article>"
-    assert_includes public_show, "terms_content"
-    assert_includes public_show, "terms_heading_date"
+    assert_includes public_show, "published_terms/document"
     refute_includes public_show, "-mt-5 mb-6"
     assert_includes admin_index, "page_title.slot"
     assert_includes admin_index, 'title: "Published"'
@@ -597,6 +603,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert File.exist?(File.join(engine_root, views, "admin/terms/index.html.erb"))
     assert File.exist?(File.join(engine_root, views, "admin/term_users/index.html.erb"))
     assert File.exist?(File.join(engine_root, views, "published_terms/show.html.erb"))
+    assert File.exist?(File.join(engine_root, views, "published_terms/_document.html.erb"))
     routes = File.read(File.join(engine_root, "config/routes.rb"))
     assert_includes routes, "resource :acceptance"
     assert_includes routes, "resources :terms"

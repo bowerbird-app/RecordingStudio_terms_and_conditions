@@ -53,6 +53,7 @@ module RecordingStudioTermsAndConditions
       render(
         FlatPack::Link::Component.new(
           href: "##{modal_id}",
+          class: "text-[var(--color-primary)] underline underline-offset-[0.15em]",
           data: { modal_id: modal_id }
         ).with_content("Terms & Conditions")
       )
@@ -60,8 +61,16 @@ module RecordingStudioTermsAndConditions
 
     def continue_notice_modal(terms, modal_id)
       render(FlatPack::Modal::Component.new(id: modal_id, title: terms_agree_heading(terms), size: :lg)) do |modal|
-        modal.body { terms_content(terms.body) }
+        modal.body { terms_standalone_document(terms) }
       end
+    end
+
+    def terms_standalone_document(terms)
+      render(
+        "recording_studio_terms_and_conditions/published_terms/document",
+        terms: terms,
+        preview_badge: nil
+      )
     end
   end
 end

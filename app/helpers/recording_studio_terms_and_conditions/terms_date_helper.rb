@@ -48,12 +48,12 @@ module RecordingStudioTermsAndConditions
     def terms_version_time(terms, recording)
       recording ||= RecordingStudio::Recording.find_by(
         recordable_type: Terms.name,
-        recordable_id: terms&.id
+        recordable_id: terms.try(:id)
       )
       terms_published_at(recording) ||
         recording&.updated_at ||
         recording&.created_at ||
-        terms&.created_at
+        terms.try(:created_at)
     end
   end
 end

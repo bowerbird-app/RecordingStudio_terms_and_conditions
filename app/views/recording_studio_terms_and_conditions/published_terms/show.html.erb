@@ -6,16 +6,6 @@
 <% end %>
 
 <% preview_badge = respond_to?(:publishable_preview_badge) ? publishable_preview_badge : nil %>
-<%= render FlatPack::PageTitle::Component.new(
-  title: @terms&.title.presence || "Terms and Conditions",
-  subtitle: terms_heading_date(@terms),
-  variant: :h1
-) do |page_title| %>
-  <% if preview_badge.present? %>
-    <% page_title.slot do %>
-      <%= preview_badge %>
-    <% end %>
-  <% end %>
-<% end %>
-
-<%= terms_content(@terms&.body) %>
+<%= render "recording_studio_terms_and_conditions/published_terms/document",
+           terms: @terms,
+           preview_badge: preview_badge %>

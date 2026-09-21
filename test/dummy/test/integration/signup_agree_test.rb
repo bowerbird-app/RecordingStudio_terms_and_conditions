@@ -24,6 +24,14 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
     assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
     assert_includes response.body, "Terms &amp; Conditions"
     assert_includes response.body, '<p class="text-xs text-[var(--surface-muted-content-color)]">'
+    assert_select "a.flat-pack-link[data-modal-id]", text: "Terms & Conditions"
+    assert_includes response.body, "text-[var(--color-primary)]"
+    assert_includes response.body, "underline"
+    assert_includes response.body, "page-title"
+    assert_includes response.body, "fp-content"
+    live = RecordingStudioTermsAndConditions.current_published_for(@workspace)
+    assert_includes response.body, live.title
+    assert_includes CGI.unescapeHTML(response.body), live.body.to_s
   end
 
   test "create-password writes a continue_notice receipt and clears the gate" do
