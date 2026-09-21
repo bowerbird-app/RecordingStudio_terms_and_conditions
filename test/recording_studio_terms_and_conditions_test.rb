@@ -664,7 +664,10 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes File.read(skill), "Upgrade (0.4.x → 0.5.0)"
     assert_includes File.read(skill), "Upgrade (0.5.0 → 0.6.0)"
     assert_includes File.read(skill), "Upgrade (0.6.0 → 0.6.1)"
-    assert_includes File.read(skill), '{ "source" => "signup" }'
+    extra_fields_source = File.read(File.join(engine_root, extra_fields))
+    assert_includes extra_fields_source, "recording_studio_terms_continue_notice"
+    refute_includes extra_fields_source, "recording_studio_terms_agree("
+    assert_includes File.read(skill), '{ "source" => "continue_notice" }'
   end
 
   def test_zero_four_upgrade_docs_match_shipped_behavior
@@ -675,7 +678,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "## [0.6.1]"
     assert_includes changelog, "## [0.6.0]"
     assert_includes changelog, "Upgrade notes (0.6.0 → 0.6.1)"
-    assert_includes changelog, '"source" => "signup"'
+    assert_includes changelog, '"source" => "continue_notice"'
     assert_includes changelog, "## [0.5.0]"
     assert_includes changelog, "## [0.4.1]"
     assert_includes changelog, "Upgrade notes (0.5.0 → 0.6.0)"

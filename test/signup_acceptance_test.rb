@@ -8,7 +8,7 @@ class SignupAcceptanceTest < Minitest::Test
 
     attr_accessor :params, :finished_user, :root
 
-    def initialize(params:, actor:, root: :workspace)
+    def initialize(params: {}, actor:, root: :workspace)
       @params = params
       @actor = actor
       @root = root
@@ -23,10 +23,10 @@ class SignupAcceptanceTest < Minitest::Test
     end
   end
 
-  def test_agreed_create_password_accepts_pending_terms_with_signup_source
+  def test_create_password_accepts_pending_terms_with_continue_notice_source
     actor = Object.new
     calls = []
-    controller = FakeRegistrationsController.new(params: { agreed: "1" }, actor: actor)
+    controller = FakeRegistrationsController.new(actor: actor)
 
     RecordingStudioTermsAndConditions.stub(:pending_published_list, ->(*) { [:terms] }) do
       RecordingStudioTermsAndConditions.stub(:accept!, ->(*args) { calls << args }) do
@@ -37,13 +37,13 @@ class SignupAcceptanceTest < Minitest::Test
     end
 
     assert_equal actor, controller.finished_user
-    assert_equal [[actor, :terms, { "source" => "signup" }]], calls
+    assert_equal [[actor, :terms, { "source" => "continue_notice" }]], calls
   end
 
-  def test_unticked_create_password_does_not_accept
+  def test_create_password_accepts_without_agreed_param
     actor = Object.new
     calls = []
-    controller = FakeRegistrationsController.new(params: { agreed: "0" }, actor: actor)
+    controller = FakeRegistrationsController.new(params: {}, actor: actor)
 
     RecordingStudioTermsAndConditions.stub(:pending_published_list, ->(*) { [:terms] }) do
       RecordingStudioTermsAndConditions.stub(:accept!, ->(*args) { calls << args }) do
@@ -54,12 +54,12 @@ class SignupAcceptanceTest < Minitest::Test
     end
 
     assert_equal actor, controller.finished_user
-    assert_empty calls
+    assert_equal [[actor, :terms, { "source" => "continue_notice" }]], calls
   end
 
   def test_not_live_does_not_raise_on_signup
     actor = Object.new
-    controller = FakeRegistrationsController.new(params: { agreed: "1" }, actor: actor)
+    controller = FakeRegistrationsController.new(actor: actor)
 
     RecordingStudioTermsAndConditions.stub(:pending_published_list, ->(*) { [:terms] }) do
       RecordingStudioTermsAndConditions.stub(:accept!, ->(*) { raise RecordingStudioTermsAndConditions::NotLive }) do
@@ -75,7 +75,7 @@ class SignupAcceptanceTest < Minitest::Test
   def test_finish_sign_up_from_other_paths_does_not_accept
     actor = Object.new
     calls = []
-    controller = FakeRegistrationsController.new(params: { agreed: "1" }, actor: actor)
+    controller = FakeRegistrationsController.new(actor: actor)
 
     RecordingStudioTermsAndConditions.stub(:pending_published_list, ->(*) { [:terms] }) do
       RecordingStudioTermsAndConditions.stub(:accept!, ->(*args) { calls << args }) do

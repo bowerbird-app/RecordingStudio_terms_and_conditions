@@ -51,7 +51,7 @@ Live means Publishable `currently_published?`. `accept!` raises `NotLive` for dr
 
 `pending_published_list` is the live Terms the actor still needs. The host gate (`ForcesAcceptance`) and Users Auth post-auth stay on until that set is empty.
 
-When Users `>= 0.12.1` is loaded, this gem overrides `recording_studio_user/auth/registrations/_extra_fields` on create-password. Pending live Terms render `recording_studio_terms_agree(inside_form: true)`. After a successful `create_password`, a truthy `params[:agreed]` calls `accept!` with `{ "source" => "signup" }`. An unticked box leaves the Agree gate in place. The gem still boots if Users Auth is absent.
+When Users `>= 0.12.1` is loaded, this gem overrides `recording_studio_user/auth/registrations/_extra_fields` on create-password signup. Pending live Terms render `recording_studio_terms_continue_notice`. After a successful `create_password`, `accept!` runs with `{ "source" => "continue_notice" }`. Continuing the form is the agreement. The gem still boots if Users Auth is absent.
 
 Drop the host helper onto a form:
 
@@ -82,7 +82,7 @@ Agree is still the post-auth destination. It has no PageNav. Live copy sits in a
 
 ## Upgrade (0.6.0 → 0.6.1)
 
-No migrations. Pin `recording_studio_user` `>= 0.12.1`. Signup extra_fields is the checkbox helper, not continue-notice. Receipts from that POST use provenance `signup`.
+No migrations. Pin `recording_studio_user` `>= 0.12.1`. Signup extra_fields is the continue-notice helper, not the checkbox. Receipts from that POST use provenance `continue_notice`.
 
 ## Upgrade (0.3.x → 0.4.0)
 
