@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.6.0", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.6.1", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -19,7 +19,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", "~> 0.8"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_admin", "~> 2.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_publishable", "~> 0.3"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_user", "~> 0.11"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_user", ">= 0.12.1"'
   end
 
   def test_gemspec_excludes_cursor_config
@@ -48,13 +48,15 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
 
   def test_dummy_gemfile_pins_verified_4x_github_tags
     gemfile = File.read(File.expand_path("dummy/Gemfile", __dir__))
+    root_gemfile = File.read(File.expand_path("../Gemfile", __dir__))
 
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v4.2.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.9.1"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.5.1"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_publishable", tag: "v0.3.1"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.0.2"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.11.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_users", ref: "0b1d229693041093200420b318154ff07acca33e"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_users", ref: "0b1d229693041093200420b318154ff07acca33e"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.5.0"'
     assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.186"'
     refute_includes gemfile, "recording_studio/v3.0.0"
@@ -651,11 +653,17 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/forces_acceptance.rb"))
     assert File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/users_auth_redirect.rb"))
     assert File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/acceptance_gate_installer.rb"))
+    assert File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/signup_acceptance.rb"))
+    assert File.exist?(
+      File.join(engine_root, "app/views/recording_studio_user/auth/registrations/_extra_fields.html.erb")
+    )
     skill = File.join(engine_root, ".github/skills/recording-studio-terms-and-conditions/SKILL.md")
     assert File.exist?(skill)
     assert_includes File.read(skill), "recording-studio-gems"
     assert_includes File.read(skill), "Upgrade (0.4.x → 0.5.0)"
     assert_includes File.read(skill), "Upgrade (0.5.0 → 0.6.0)"
+    assert_includes File.read(skill), "Upgrade (0.6.0 → 0.6.1)"
+    assert_includes File.read(skill), '{ "source" => "signup" }'
   end
 
   def test_zero_four_upgrade_docs_match_shipped_behavior
@@ -663,7 +671,10 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.6.1]"
     assert_includes changelog, "## [0.6.0]"
+    assert_includes changelog, "Upgrade notes (0.6.0 → 0.6.1)"
+    assert_includes changelog, '"source" => "signup"'
     assert_includes changelog, "## [0.5.0]"
     assert_includes changelog, "## [0.4.1]"
     assert_includes changelog, "Upgrade notes (0.5.0 → 0.6.0)"
@@ -678,7 +689,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "forks a new draft"
     assert_includes changelog, "Upgrade notes (0.4.0 → 0.4.1)"
     assert_includes changelog, "+ Access"
+    assert_includes notes, "Upgrade from 0.6.0 to 0.6.1"
     assert_includes notes, "Upgrade from 0.5.0 to 0.6.0"
+    assert_includes readme, "Upgrading from 0.6.0"
     assert_includes notes, "Upgrade from 0.4.x to 0.5.0"
     assert_includes notes, "Upgrade from 0.4.0 to 0.4.1"
     assert_includes readme, "Upgrading from 0.5.0"

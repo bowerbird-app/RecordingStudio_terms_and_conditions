@@ -248,12 +248,14 @@ class EngineTest < Minitest::Test
     end
     created_users = false
     auth = Class.new
+    registrations = Class.new
     unless defined?(RecordingStudioUser)
       users = Module.new
       users_auth = Module.new
       Object.const_set(:RecordingStudioUser, users)
       users.const_set(:Auth, users_auth)
       users_auth.const_set(:BaseController, auth)
+      users_auth.const_set(:RegistrationsController, registrations)
       created_users = true
     end
 
@@ -261,6 +263,7 @@ class EngineTest < Minitest::Test
 
     assert_includes host.ancestors, RecordingStudioTermsAndConditions::ForcesAcceptance if created_host
     assert_includes auth.ancestors, RecordingStudioTermsAndConditions::UsersAuthRedirect if created_users
+    assert_includes registrations.ancestors, RecordingStudioTermsAndConditions::SignupAcceptance if created_users
   ensure
     Object.send(:remove_const, :ApplicationController) if created_host
     Object.send(:remove_const, :RecordingStudioUser) if created_users

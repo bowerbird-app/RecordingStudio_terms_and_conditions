@@ -7,7 +7,7 @@ description: Published Terms, clickwrap acceptance, and the host gate for Record
 
 This is the kit gem for **published Terms** and **clickwrap acceptance**. Do not invent a second acceptance table, accept screen, or post-auth redirect.
 
-Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.6.0**.
+Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.6.1**.
 
 ## Need
 
@@ -51,6 +51,8 @@ Live means Publishable `currently_published?`. `accept!` raises `NotLive` for dr
 
 `pending_published_list` is the live Terms the actor still needs. The host gate (`ForcesAcceptance`) and Users Auth post-auth stay on until that set is empty.
 
+When Users `>= 0.12.1` is loaded, this gem overrides `recording_studio_user/auth/registrations/_extra_fields` on create-password. Pending live Terms render `recording_studio_terms_agree(inside_form: true)`. After a successful `create_password`, a truthy `params[:agreed]` calls `accept!` with `{ "source" => "signup" }`. An unticked box leaves the Agree gate in place. The gem still boots if Users Auth is absent.
+
 Drop the host helper onto a form:
 
 ```erb
@@ -77,6 +79,10 @@ Or wrap a host clickwrap with `recording_studio_terms_scroll_to_end(require_scro
 Set `config.capture_request_provenance = true` only if the gem Agree screen should store IP and user agent (default off). Product config is `mount_path`, `app_name`, `require_scroll_to_end`, and `capture_request_provenance`. There is no API key.
 
 Agree is still the post-auth destination. It has no PageNav. Live copy sits in a closed Flatpack Collapse wrapping Content. The Collapse title is the live Terms heading (`terms_agree_heading`). Re-accept Alert stays above. Checkbox and Agree stay at the bottom.
+
+## Upgrade (0.6.0 → 0.6.1)
+
+No migrations. Pin `recording_studio_user` `>= 0.12.1`. Signup extra_fields is the checkbox helper, not continue-notice. Receipts from that POST use provenance `signup`.
 
 ## Upgrade (0.3.x → 0.4.0)
 

@@ -58,10 +58,10 @@ GIT
 
 GIT
   remote: https://github.com/bowerbird-app/RecordingStudio_users.git
-  revision: 62401500d19ae43d91c591d8071de7105952abf8
-  tag: v0.11.0
+  revision: 0b1d229693041093200420b318154ff07acca33e
+  ref: 0b1d229693041093200420b318154ff07acca33e
   specs:
-    recording_studio_user (0.11.0)
+    recording_studio_user (0.12.1)
       devise (~> 5.0)
       flat_pack (>= 0.1.144)
       omniauth (~> 2.1)
@@ -91,14 +91,14 @@ GIT
 PATH
   remote: ../..
   specs:
-    recording_studio_terms_and_conditions (0.6.0)
+    recording_studio_terms_and_conditions (0.6.1)
       flat_pack (>= 0.1.186)
       rails (~> 8.1.0)
       recording_studio (~> 4.2)
       recording_studio_accessible (~> 0.8)
       recording_studio_admin (~> 2.0)
       recording_studio_publishable (~> 0.3)
-      recording_studio_user (~> 0.11)
+      recording_studio_user (>= 0.12.1)
 
 GEM
   remote: https://rubygems.org/
@@ -758,8 +758,8 @@ CHECKSUMS
   recording_studio_attachable (0.5.1)
   recording_studio_publishable (0.3.1)
   recording_studio_root_switchable (0.5.0)
-  recording_studio_terms_and_conditions (0.6.0)
-  recording_studio_user (0.11.0)
+  recording_studio_terms_and_conditions (0.6.1)
+  recording_studio_user (0.12.1)
   regexp_parser (2.11.3) sha256=ca13f381a173b7a93450e53459075c9b76a10433caadcb2f1180f2c741fc55a4
   reline (0.6.3) sha256=1198b04973565b36ec0f11542ab3f5cfeeec34823f4e54cebde90968092b1835
   responders (3.2.0) sha256=89c2d6ac0ae16f6458a11524cae4a8efdceba1a3baea164d28ee9046bd3df55a

@@ -78,6 +78,7 @@ class GateTest < Minitest::Test
 
     assert_equal :workspace, RecordingStudioTermsAndConditions::Gate.root_for(both)
     assert_equal :recording, RecordingStudioTermsAndConditions::Gate.root_for(recording_only)
+    assert_equal :workspace, RecordingStudioTermsAndConditions::Gate.root_for_signup(both)
   end
 
   def test_users_auth_redirect_falls_through_when_acceptance_is_not_required

@@ -74,5 +74,19 @@ module RecordingStudioTermsAndConditions
 
       controller.send(:current_root_recording)
     end
+
+    def root_for_signup(controller)
+      root_for(controller).presence || first_root_with_live_terms
+    end
+
+    def first_root_with_live_terms
+      return unless defined?(RecordingStudio::Recording)
+
+      RecordingStudio::Recording.where(parent_recording_id: nil).find_each do |root|
+        return root.recordable if TermsAcceptance.current_published_for(root)
+      end
+
+      nil
+    end
   end
 end
