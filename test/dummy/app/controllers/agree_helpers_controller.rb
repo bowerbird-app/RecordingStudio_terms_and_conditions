@@ -11,7 +11,26 @@ class AgreeHelpersController < ApplicationController
       return
     end
 
-    RecordingStudioTermsAndConditions.accept!(current_user, terms, { "source" => "continue_notice" })
+    source = acceptance_source
+    if source == "clickwrap" && !agreed?
+      redirect_to agree_helper_path, alert: "Tick the box if you agree."
+      return
+    end
+
+    RecordingStudioTermsAndConditions.accept!(current_user, terms, { "source" => source })
     redirect_to root_path, notice: "You're in. Thanks for reading."
+  end
+
+  private
+
+  def acceptance_source
+    source = params[:source].to_s
+    return source if %w[clickwrap continue_notice].include?(source)
+
+    "continue_notice"
+  end
+
+  def agreed?
+    ActiveModel::Type::Boolean.new.cast(params[:agreed])
   end
 end

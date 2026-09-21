@@ -213,6 +213,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes agree_helper_page, "Join"
     assert_includes agree_helper_page, "FlatPack::Button::Component"
     assert_includes agree_helper_page, 'text: "Continue"'
+    assert_includes agree_helper_page, 'text: "Accept"'
+    assert_includes agree_helper_page, 'source, "clickwrap"'
+    assert_includes agree_helper_page, 'source, "continue_notice"'
   end
 
   def test_dummy_default_layout_head_loads_flatpack_application

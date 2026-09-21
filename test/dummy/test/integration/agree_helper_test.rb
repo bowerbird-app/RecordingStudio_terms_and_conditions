@@ -43,18 +43,53 @@ class AgreeHelperTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "On a page"
     refute_includes response.body, "Inside a form"
     assert_select "input[type=checkbox][name=agreed][required]", count: 1
+    assert_select "input[type=hidden][name=source][value=clickwrap]", count: 1
+    assert_select "input[type=hidden][name=source][value=continue_notice]", count: 1
     assert_select "button", text: "Agree", count: 0
+    assert_select "button", text: "Accept", count: 1
+    assert_select "button", text: "Continue", count: 1
     assert_select "button", text: "Join", count: 0
     assert_select "form[action=?]", recording_studio_terms_and_conditions.acceptance_path, count: 0
-    assert_select "form[action=?]", "/agree_helper", count: 1
+    assert_select "form[action=?]", "/agree_helper", count: 2
   end
 
-  test "continue notice POST writes a continue_notice receipt" do
-    post "/agree_helper"
+  test "continue notice POST writes a continue_notice receipt and clears the gate" do
+    post "/agree_helper", params: { source: "continue_notice" }
 
     assert_redirected_to "/"
+    follow_redirect!
+    assert_response :success
     assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
     receipt = RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last
     assert_equal({ "source" => "continue_notice" }, receipt.provenance)
+
+    get "/"
+    assert_response :success
+  end
+
+  test "checkbox POST writes a clickwrap receipt and clears the gate" do
+    post "/agree_helper", params: { source: "clickwrap", agreed: "1" }
+
+    assert_redirected_to "/"
+    follow_redirect!
+    assert_response :success
+    assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
+    receipt = RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last
+    assert_equal({ "source" => "clickwrap" }, receipt.provenance)
+
+    get "/"
+    assert_response :success
+  end
+
+  test "checkbox POST without a tick does not write a receipt" do
+    assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
+      post "/agree_helper", params: { source: "clickwrap", agreed: "0" }
+    end
+
+    assert_redirected_to "/agree_helper"
+    refute RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
+
+    get "/"
+    assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
   end
 end

@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Optional `config.app_name` (string, default blank). When blank, `app_name` uses `RecordingStudioSiteSettings.name_for` if that constant and method exist. Site Settings is not a gem dependency.
-- Host helper `recording_studio_terms_continue_notice` next to the checkbox helper. Copy is “By continuing, you agree to [app name]'s Terms & Conditions”. The linked words open a Flatpack Modal whose body is still `FlatPack::Content`. Host POST calls `accept!` with provenance `source` `continue_notice`.
+- Host helper `recording_studio_terms_continue_notice` next to the checkbox helper. Copy is “By continuing, you agree to [app name]'s Terms & Conditions”. The linked words open a Flatpack Modal whose body is still `FlatPack::Content`. Host POST calls `accept!` with provenance `source` `continue_notice`. Dummy `/agree_helper` posts both helpers and clears the gate.
 
 ### Changed
 - Agree keeps the post-auth gate. It no longer sets PageNav. Live copy sits in a Flatpack Collapse (closed by default) wrapping `FlatPack::Content`. Re-accept Alert stays above. Checkbox and Agree stay at the bottom. Optional scroll-to-end is unchanged.
