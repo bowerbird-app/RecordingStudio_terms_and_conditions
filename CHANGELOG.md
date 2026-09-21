@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.6.1] - 2026-09-21
 
 ### Added
-- Users create-password override of `recording_studio_user/auth/registrations/_extra_fields` renders `recording_studio_terms_continue_notice` when live Terms are still pending. Signup does not render the checkbox helper.
+- Users create-password override of `recording_studio_user/auth/registrations/_extra_fields` renders `recording_studio_terms_continue_notice(..., size: :xs)` when live Terms are still pending. Signup does not render the checkbox helper.
+- `recording_studio_terms_continue_notice` accepts `size:` `:xs` (`text-xs`) or `:sm` (`text-sm`, default). Unknown sizes fall back to `:sm`.
 - Soft `SignupAcceptance` on Users `RegistrationsController`: after a successful `create_password`, pending live Terms are `accept!`ed with provenance `source` `continue_notice`. Continuing the form is the agreement. `ForcesAcceptance` and `UsersAuthRedirect` still gate. `NotLive` does not fail signup.
 
 ### Changed
@@ -19,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Upgrade notes (0.6.0 → 0.6.1)
 - Pin `recording_studio_user` to `0.12.1` or later. No Terms or Acceptance schema change. No user-table timestamp.
 - Signup writes receipts with `{ "source" => "continue_notice" }` when create-password succeeds. Hosts that already call `accept!` on that POST stay idempotent. Leave the Agree screen and post-auth redirect in place.
+- Continue-notice `size:` is `:xs` or `:sm` (default `:sm`). Signup extra_fields uses `:xs`.
 
 ## [0.6.0] - 2026-09-21
 

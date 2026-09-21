@@ -56,6 +56,24 @@ class TermsAgreeHelperTest < ActionView::TestCase
     assert_includes html, "fp-content"
     assert_includes html, "Be kind in the booth."
     assert_includes html, "Studio Terms"
+    assert_includes html, '<p class="text-sm">'
+    refute_includes html, '<p class="text-xs">'
+  end
+
+  test "continue notice size xs uses text-xs" do
+    terms = Struct.new(:body, :title).new("<p>Be kind.</p>", "Studio Terms")
+
+    html = recording_studio_terms_continue_notice(pending: [terms], size: :xs)
+
+    assert_includes html, '<p class="text-xs">'
+    refute_includes html, '<p class="text-sm">'
+  end
+
+  test "continue notice size sm and unknown sizes use text-sm" do
+    terms = Struct.new(:body, :title).new("<p>Be kind.</p>", "Studio Terms")
+
+    assert_includes recording_studio_terms_continue_notice(pending: [terms], size: :sm), '<p class="text-sm">'
+    assert_includes recording_studio_terms_continue_notice(pending: [terms], size: :lg), '<p class="text-sm">'
   end
 
   test "continue notice drops the possessive when app_name is blank" do

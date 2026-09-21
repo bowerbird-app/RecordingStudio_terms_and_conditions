@@ -5,12 +5,14 @@ module RecordingStudioTermsAndConditions
     include TermsContextHelper
     include AgreeCopyHelper
 
-    def recording_studio_terms_continue_notice(actor: nil, root: nil, pending: nil)
+    CONTINUE_NOTICE_SIZES = { xs: "text-xs", sm: "text-sm" }.freeze
+
+    def recording_studio_terms_continue_notice(actor: nil, root: nil, pending: nil, size: :sm)
       terms = continue_notice_terms(actor, root, pending)
       return if terms.blank?
 
       modal_id = "terms-continue-notice-#{SecureRandom.hex(4)}"
-      safe_join([continue_notice_copy(modal_id), continue_notice_modal(terms, modal_id)])
+      safe_join([continue_notice_copy(modal_id, size), continue_notice_modal(terms, modal_id)])
     end
 
     private
@@ -24,8 +26,12 @@ module RecordingStudioTermsAndConditions
       recording_studio_terms_pending_list(actor, root, pending).first
     end
 
-    def continue_notice_copy(modal_id)
-      content_tag(:p, continue_notice_sentence(modal_id), class: "text-sm")
+    def continue_notice_copy(modal_id, size = :sm)
+      content_tag(:p, continue_notice_sentence(modal_id), class: continue_notice_size_class(size))
+    end
+
+    def continue_notice_size_class(size)
+      CONTINUE_NOTICE_SIZES.fetch(size.to_s.to_sym, CONTINUE_NOTICE_SIZES[:sm])
     end
 
     def continue_notice_sentence(modal_id)

@@ -51,7 +51,7 @@ Live means Publishable `currently_published?`. `accept!` raises `NotLive` for dr
 
 `pending_published_list` is the live Terms the actor still needs. The host gate (`ForcesAcceptance`) and Users Auth post-auth stay on until that set is empty.
 
-When Users `>= 0.12.1` is loaded, this gem overrides `recording_studio_user/auth/registrations/_extra_fields` on create-password signup. Pending live Terms render `recording_studio_terms_continue_notice`. After a successful `create_password`, `accept!` runs with `{ "source" => "continue_notice" }`. Continuing the form is the agreement. The gem still boots if Users Auth is absent.
+When Users `>= 0.12.1` is loaded, this gem overrides `recording_studio_user/auth/registrations/_extra_fields` on create-password signup. Pending live Terms render `recording_studio_terms_continue_notice(..., size: :xs)`. After a successful `create_password`, `accept!` runs with `{ "source" => "continue_notice" }`. Continuing the form is the agreement. The gem still boots if Users Auth is absent.
 
 Drop the host helper onto a form:
 
@@ -60,11 +60,12 @@ Drop the host helper onto a form:
 <%= recording_studio_terms_agree(inside_form: true) %>
 <%= recording_studio_terms_agree(link_terms: true) %>
 <%= recording_studio_terms_continue_notice %>
+<%= recording_studio_terms_continue_notice(size: :xs) %>
 ```
 
 The checkbox helper is HTML `required`, named `agreed`. Put it in a form. On submit call `accept!` for the pending live version. Do not add a second receipt table.
 
-`recording_studio_terms_continue_notice` is a second helper. Copy uses `config.app_name`. The Terms & Conditions link opens a Flatpack Modal with `FlatPack::Content` inside. On that host POST, call `accept!` with `{ "source" => "continue_notice" }`. Do not remove the checkbox helper. Dummy `/agree_helper` posts both helpers and then lets home load.
+`recording_studio_terms_continue_notice` is a second helper. Copy uses `config.app_name`. `size:` is `:xs` (`text-xs`) or `:sm` (`text-sm`, default). Unknown sizes use `:sm`. The Terms & Conditions link opens a Flatpack Modal with `FlatPack::Content` inside. On that host POST, call `accept!` with `{ "source" => "continue_notice" }`. Do not remove the checkbox helper. Dummy `/agree_helper` posts both helpers and then lets home load.
 
 Optional scroll-to-end before Agree (default off):
 
@@ -82,7 +83,7 @@ Agree is still the post-auth destination. It has no PageNav. Live copy sits in a
 
 ## Upgrade (0.6.0 → 0.6.1)
 
-No migrations. Pin `recording_studio_user` `>= 0.12.1`. Signup extra_fields is the continue-notice helper, not the checkbox. Receipts from that POST use provenance `continue_notice`.
+No migrations. Pin `recording_studio_user` `>= 0.12.1`. Signup extra_fields is the continue-notice helper at `size: :xs`, not the checkbox. Receipts from that POST use provenance `continue_notice`. `size:` is `:xs` or `:sm` (default `:sm`).
 
 ## Upgrade (0.3.x → 0.4.0)
 
