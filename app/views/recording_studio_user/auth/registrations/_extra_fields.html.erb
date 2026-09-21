@@ -1,0 +1,6 @@
+<% actor = recording_studio_terms_agree_actor
+   root = recording_studio_terms_signup_root
+   pending = RecordingStudioTermsAndConditions.pending_published_list(actor, root) %>
+<% if pending.any? %>
+  <%= recording_studio_terms_continue_notice(actor: actor, root: root, pending: pending) %>
+<% end %>

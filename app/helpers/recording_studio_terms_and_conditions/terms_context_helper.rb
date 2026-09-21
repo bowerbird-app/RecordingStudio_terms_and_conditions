@@ -15,6 +15,10 @@ module RecordingStudioTermsAndConditions
       Gate.root_for(controller)
     end
 
+    def recording_studio_terms_signup_root
+      Gate.root_for_signup(controller)
+    end
+
     def recording_studio_terms_agree_actor
       return current_user if respond_to?(:current_user) && current_user
 

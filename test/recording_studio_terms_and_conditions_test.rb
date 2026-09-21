@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.6.0", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.6.1", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -19,7 +19,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", "~> 0.8"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_admin", "~> 2.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_publishable", "~> 0.3"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_user", "~> 0.11"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_user", ">= 0.12.1"'
   end
 
   def test_gemspec_excludes_cursor_config
@@ -48,13 +48,17 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
 
   def test_dummy_gemfile_pins_verified_4x_github_tags
     gemfile = File.read(File.expand_path("dummy/Gemfile", __dir__))
+    root_gemfile = File.read(File.expand_path("../Gemfile", __dir__))
 
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v4.2.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.9.1"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.5.1"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_publishable", tag: "v0.3.1"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.0.2"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.11.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_users"'
+    assert_includes gemfile, 'ref: "0b1d229693041093200420b318154ff07acca33e"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_users"'
+    assert_includes root_gemfile, 'ref: "0b1d229693041093200420b318154ff07acca33e"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.5.0"'
     assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.186"'
     refute_includes gemfile, "recording_studio/v3.0.0"
@@ -281,9 +285,20 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes helper, "def recording_studio_terms_agree"
     refute_includes helper, "def recording_studio_terms_continue_notice"
     assert_includes continue_helper, "def recording_studio_terms_continue_notice"
+    assert_includes continue_helper, "size: :xs"
+    assert_includes continue_helper, "text-xs"
+    assert_includes continue_helper, "surface-muted-content-color"
     assert_includes continue_helper, "continue_notice"
     assert_includes continue_helper, "FlatPack::Modal::Component"
-    assert_includes continue_helper, "terms_content(terms.body)"
+    assert_includes continue_helper, "terms_standalone_document"
+    assert_includes continue_helper, "color-primary"
+    assert_includes continue_helper, "underline"
+    refute_includes continue_helper, "title: terms_agree_heading"
+    refute_includes continue_helper, "terms_content(terms.body)"
+    document = engine_source("#{views}/published_terms/_document.html.erb")
+    assert_includes document, "FlatPack::PageTitle::Component"
+    assert_includes document, "terms_heading_date"
+    assert_includes document, "terms_content"
     assert_includes helper, "pending: nil"
     assert_includes helper, "recording_studio_terms_agree_label"
     copy_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/agree_copy_helper.rb")
@@ -346,8 +361,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes agree, "terms_reaccept_notice"
     refute_includes public_show, "FlatPack::Card::Component"
     refute_includes public_show, "<article>"
-    assert_includes public_show, "terms_content"
-    assert_includes public_show, "terms_heading_date"
+    assert_includes public_show, "published_terms/document"
     refute_includes public_show, "-mt-5 mb-6"
     assert_includes admin_index, "page_title.slot"
     assert_includes admin_index, 'title: "Published"'
@@ -590,6 +604,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert File.exist?(File.join(engine_root, views, "admin/terms/index.html.erb"))
     assert File.exist?(File.join(engine_root, views, "admin/term_users/index.html.erb"))
     assert File.exist?(File.join(engine_root, views, "published_terms/show.html.erb"))
+    assert File.exist?(File.join(engine_root, views, "published_terms/_document.html.erb"))
     routes = File.read(File.join(engine_root, "config/routes.rb"))
     assert_includes routes, "resource :acceptance"
     assert_includes routes, "resources :terms"
@@ -651,11 +666,20 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/forces_acceptance.rb"))
     assert File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/users_auth_redirect.rb"))
     assert File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/acceptance_gate_installer.rb"))
+    assert File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/signup_acceptance.rb"))
+    extra_fields = "app/views/recording_studio_user/auth/registrations/_extra_fields.html.erb"
+    assert File.exist?(File.join(engine_root, extra_fields))
     skill = File.join(engine_root, ".github/skills/recording-studio-terms-and-conditions/SKILL.md")
     assert File.exist?(skill)
     assert_includes File.read(skill), "recording-studio-gems"
     assert_includes File.read(skill), "Upgrade (0.4.x → 0.5.0)"
     assert_includes File.read(skill), "Upgrade (0.5.0 → 0.6.0)"
+    assert_includes File.read(skill), "Upgrade (0.6.0 → 0.6.1)"
+    extra_fields_source = File.read(File.join(engine_root, extra_fields))
+    assert_includes extra_fields_source, "recording_studio_terms_continue_notice"
+    refute_includes extra_fields_source, "size: :xs"
+    refute_includes extra_fields_source, "recording_studio_terms_agree("
+    assert_includes File.read(skill), '{ "source" => "continue_notice" }'
   end
 
   def test_zero_four_upgrade_docs_match_shipped_behavior
@@ -663,7 +687,10 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.6.1]"
     assert_includes changelog, "## [0.6.0]"
+    assert_includes changelog, "Upgrade notes (0.6.0 → 0.6.1)"
+    assert_includes changelog, '"source" => "continue_notice"'
     assert_includes changelog, "## [0.5.0]"
     assert_includes changelog, "## [0.4.1]"
     assert_includes changelog, "Upgrade notes (0.5.0 → 0.6.0)"
@@ -678,7 +705,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "forks a new draft"
     assert_includes changelog, "Upgrade notes (0.4.0 → 0.4.1)"
     assert_includes changelog, "+ Access"
+    assert_includes notes, "Upgrade from 0.6.0 to 0.6.1"
     assert_includes notes, "Upgrade from 0.5.0 to 0.6.0"
+    assert_includes readme, "Upgrading from 0.6.0"
     assert_includes notes, "Upgrade from 0.4.x to 0.5.0"
     assert_includes notes, "Upgrade from 0.4.0 to 0.4.1"
     assert_includes readme, "Upgrading from 0.5.0"

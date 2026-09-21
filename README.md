@@ -18,9 +18,10 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, embed
 - **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for`, `pending_published_list` / `pending_published_for`, `accepted?`, `accept!`, `requires_acceptance?`, `reaccepting?`
 - **Agree screen** for the current published Terms (pre-checked checkbox, gated Agree, `accept!`). No PageNav. Live copy sits in a Flatpack Collapse (closed by default) wrapping `FlatPack::Content`. Optional `require_scroll_to_end` keeps Agree disabled until a sentinel after the live body is visible (default off). If IntersectionObserver is missing, Agree stays enabled. The calendar date stays in the heading, not a relative “hours ago”
 - **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`. Pass `link_terms: true` to turn the word terms into a link to the public URL. On submit, call `accept!` for the pending live version
-- **Host helper** `recording_studio_terms_continue_notice` — “By continuing, you agree to [app name]'s Terms & Conditions”. The linked words open a Flatpack Modal with `FlatPack::Content` inside. On the host POST, call `accept!` with `{ "source" => "continue_notice" }`. Do not replace the checkbox helper
+- **Host helper** `recording_studio_terms_continue_notice` — “By continuing, you agree to [app name]'s Terms & Conditions”. Default size is `:xs` with muted Flatpack copy (`text-[var(--surface-muted-content-color)]`). Pass `size: :sm` for `text-sm`. The Terms & Conditions words are a Flatpack Link (primary + underline). They open a Flatpack Modal whose body is the standalone terms view (title, date, Flatpack Content). On the host POST, call `accept!` with `{ "source" => "continue_notice" }`. Do not replace the checkbox helper
 - **Gate** on the host `ApplicationController`: redirects to Agree until the live version is accepted, and again after a new publish
 - **Users hook** on `RecordingStudioUser::Auth::BaseController` so after sign in / sign up land on Agree when acceptance is still required
+- **Users create-password slot** (`recording_studio_user/auth/registrations/_extra_fields`) renders `recording_studio_terms_continue_notice` when live Terms are pending. Successful `create_password` calls `accept!` with provenance `continue_notice`. Soft: TnC still boots without Users Auth.
 - **Admin** create/edit Terms, Publishable `QuickActions` (Draft / Publish now / Preview), and a Users page of receipts for each term. Engine tables use `TablePage` (Pagy, 25 rows) and Flatpack infinite pagination. Admin hub Terms and Conditions and Agree stats tables set `paginate per_page: 25`. Live and Agrees widgets stack the title above the count (`view_variant: :card`). The hub does not show Accessible **+ Access**. Writes go through a registered Admin `terms` resource (`authorize_resource!` / `perform_recording_studio_admin_action!`)
 - **Public Terms URL** at `/terms/:uuid/:slug` via Publishable
 - **FlatPack** UI component library for all views
@@ -107,6 +108,10 @@ Bump to **0.4.1**. No schema change. The Admin Terms hub no longer shows Accessi
 
 Bump to **0.5.0** and pin Publishable `v0.3.1`. No Terms schema change. Term show uses the Publishable status dropdown instead of a **Publish** button to the old edit form. Preview is its own route. Saving live Terms forks a draft; the public copy stays until you publish. Full notes: `CHANGELOG.md` (0.5.0).
 
+## Upgrading from 0.6.0
+
+Bump to **0.6.1** and pin `recording_studio_user` `>= 0.12.1`. No schema change. Create-password shows the continue-notice in Users `extra_fields` when live Terms are pending. Submitting that form writes a `continue_notice` receipt. Leave `ForcesAcceptance` and `UsersAuthRedirect` in place.
+
 ## Upgrading from 0.5.0
 
 Bump to **0.6.0**. Set `config.app_name` if you want a fixed product name. When it is blank, the gem uses `RecordingStudioSiteSettings.name_for` if that method exists. Site Settings is optional. No schema change. Continue-notice hosts render `recording_studio_terms_continue_notice` and call `accept!` with `continue_notice`. Agree no longer sets PageNav. Dummy default layout skips PageNav when `skip_page_nav` is set.
@@ -131,8 +136,9 @@ The dummy host follows Recording Studio's root recording pattern:
   ```
   Live means Publishable `currently_published?` (scheduled-in-the-future is not current). `accept!` raises `RecordingStudioTermsAndConditions::NotLive` for drafts and unpublished versions and does not write a receipt. `indexable` is SEO and is not used for clickwrap. Retrying `accept!` for the same actor and snapshot returns the existing receipt. Saving live Terms forks a draft; people who already agreed stay agreed until that draft is published. A new published version still needs a new tick. The “You already agreed” Alert shows when Agree lists live Terms the person has not accepted yet and they already have a receipt for an older Terms version in that workspace. First-time Agree never shows it.
 - The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends `UsersAuthRedirect` on Users Auth. Both reuse `pending_published_list` / `requires_acceptance?` and the mounted Agree screen. Auth, Agree, Admin, public Terms, and root switch stay reachable so people can sign in, accept, publish, or switch workspace.
+- With Users `>= 0.12.1`, the gem fills the create-password `extra_fields` slot with `recording_studio_terms_continue_notice` and accepts pending live Terms on that POST (`source` `continue_notice`). Continuing the form is the agreement. `NotLive` does not fail signup.
 - Hosts can render `recording_studio_terms_agree` or `recording_studio_terms_agree(inside_form: true)` inside signup or similar. The helper is the `required` `agreed` checkbox only. On the host POST, call `accept!` for the pending live version — do not invent a second receipt.
-- Hosts can also render `recording_studio_terms_continue_notice`. The link opens a Flatpack Modal with the live copy in `FlatPack::Content`. On that POST, call `accept!` with `{ "source" => "continue_notice" }`.
+- Hosts can also render `recording_studio_terms_continue_notice`. Default is xs and muted. Pass `size: :sm` for `text-sm`. The link opens a Flatpack Modal with the standalone terms view (same document as the public show). On that POST, call `accept!` with `{ "source" => "continue_notice" }`.
 - Scroll-to-end before Agree is optional. Set `config.require_scroll_to_end = true`, or wrap the live copy and Agree button with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` and `recording_studio_terms_agree_button(require_scroll_to_end: true)`. Pin the engine Stimulus controller in the host importmap. The checkbox stays required either way. Missing IntersectionObserver leaves Agree enabled. An already-visible sentinel unlocks immediately.
 - Product configuration is `mount_path`, `app_name`, `require_scroll_to_end`, and `capture_request_provenance` (IP/UA on gem UI accepts, default off). There is no API key. `app_name` is optional. A blank value uses Site Settings `name_for` when that gem is loaded.
 - Each configured recordable declares `recording_studio_recordable(...)`; strict declaration validation stays enabled
@@ -233,7 +239,7 @@ See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full do
 | RecordingStudio | 4.x (`~> 4.2` in the gemspec; dummy GitHub tag `v4.2.0`) |
 | Accessible      | gemspec `~> 0.8`; dummy GitHub tag `v0.9.1` |
 | Admin           | gemspec `~> 2.0`; dummy GitHub tag `v2.0.2` |
-| Users           | gemspec `recording_studio_user ~> 0.11`; dummy GitHub tag `v0.11.0` |
+| Users           | gemspec `recording_studio_user >= 0.12.1`; dummy GitHub ref `0b1d229` |
 | Publishable     | gemspec `~> 0.3`; dummy GitHub tag `v0.3.1` |
 | Attachable      | dummy GitHub tag `v0.5.1` (Users Profile needs it) |
 | Root Switchable | dummy GitHub tag `v0.5.0` |

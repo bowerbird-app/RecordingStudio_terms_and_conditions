@@ -16,7 +16,11 @@ Then:
 - Enable Admin `section :terms` on an Admin root and grant Accessible access.
 - Publish with Publishable `QuickActions` on term show, or the Publish settings hub. Do not add a custom publish action.
 
-The host gate and Users post-auth hook attach automatically.
+The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
+
+## Upgrade from 0.6.0 to 0.6.1
+
+No schema change. Pin `recording_studio_user` `>= 0.12.1`. Signup extra_fields is the continue-notice helper. A successful create-password writes `{ "source" => "continue_notice" }`. Keep `ForcesAcceptance` and `UsersAuthRedirect`. Continue-notice is xs and muted by default; pass `size: :sm` for the larger size. The Terms link opens a modal with the standalone terms document.
 
 ## Upgrade from 0.5.0 to 0.6.0
 
@@ -76,6 +80,7 @@ Product config after 0.4.0 is `mount_path`, `require_scroll_to_end` (default off
 - Accessible dummy tag `v0.9.1` and Root Switchable dummy tag `v0.5.0`
 - FlatPack dummy tag `v0.1.186`
 - Publishable dummy tag `v0.3.1` (gemspec `~> 0.3`)
+- Users `>= 0.12.1` (dummy GitHub ref `0b1d229` until a `v0.12.1` tag)
 - Public RubyGems and GitHub access for dependency installation
 
 ## Verification

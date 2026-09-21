@@ -10,6 +10,7 @@ module RecordingStudioTermsAndConditions
     def install
       include_host_gate
       prepend_users_auth_redirect
+      prepend_users_signup_acceptance
     end
 
     private
@@ -28,6 +29,14 @@ module RecordingStudioTermsAndConditions
       return if auth.ancestors.include?(UsersAuthRedirect)
 
       auth.prepend UsersAuthRedirect
+    end
+
+    def prepend_users_signup_acceptance
+      registrations = "RecordingStudioUser::Auth::RegistrationsController".safe_constantize
+      return unless registrations
+      return if registrations.ancestors.include?(SignupAcceptance)
+
+      registrations.prepend SignupAcceptance
     end
   end
 end

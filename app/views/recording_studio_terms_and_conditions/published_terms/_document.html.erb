@@ -1,0 +1,13 @@
+<%= render FlatPack::PageTitle::Component.new(
+  title: terms&.title.presence || "Terms and Conditions",
+  subtitle: terms_heading_date(terms),
+  variant: :h1
+) do |page_title| %>
+  <% if local_assigns[:preview_badge].present? %>
+    <% page_title.slot do %>
+      <%= preview_badge %>
+    <% end %>
+  <% end %>
+<% end %>
+
+<%= terms_content(terms&.body) %>

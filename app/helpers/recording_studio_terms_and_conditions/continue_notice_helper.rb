@@ -5,12 +5,14 @@ module RecordingStudioTermsAndConditions
     include TermsContextHelper
     include AgreeCopyHelper
 
-    def recording_studio_terms_continue_notice(actor: nil, root: nil, pending: nil)
+    CONTINUE_NOTICE_SIZES = { xs: "text-xs", sm: "text-sm" }.freeze
+
+    def recording_studio_terms_continue_notice(actor: nil, root: nil, pending: nil, size: :xs)
       terms = continue_notice_terms(actor, root, pending)
       return if terms.blank?
 
       modal_id = "terms-continue-notice-#{SecureRandom.hex(4)}"
-      safe_join([continue_notice_copy(modal_id), continue_notice_modal(terms, modal_id)])
+      safe_join([continue_notice_copy(modal_id, size), continue_notice_modal(terms, modal_id)])
     end
 
     private
@@ -24,8 +26,16 @@ module RecordingStudioTermsAndConditions
       recording_studio_terms_pending_list(actor, root, pending).first
     end
 
-    def continue_notice_copy(modal_id)
-      content_tag(:p, continue_notice_sentence(modal_id), class: "text-sm")
+    def continue_notice_copy(modal_id, size = :xs)
+      content_tag(:p, continue_notice_sentence(modal_id), class: continue_notice_copy_class(size))
+    end
+
+    def continue_notice_copy_class(size)
+      "#{continue_notice_size_class(size)} text-[var(--surface-muted-content-color)]"
+    end
+
+    def continue_notice_size_class(size)
+      CONTINUE_NOTICE_SIZES.fetch(size.to_s.to_sym, CONTINUE_NOTICE_SIZES[:xs])
     end
 
     def continue_notice_sentence(modal_id)
@@ -43,15 +53,24 @@ module RecordingStudioTermsAndConditions
       render(
         FlatPack::Link::Component.new(
           href: "##{modal_id}",
+          class: "text-[var(--color-primary)] underline underline-offset-[0.15em]",
           data: { modal_id: modal_id }
         ).with_content("Terms & Conditions")
       )
     end
 
     def continue_notice_modal(terms, modal_id)
-      render(FlatPack::Modal::Component.new(id: modal_id, title: terms_agree_heading(terms), size: :lg)) do |modal|
-        modal.body { terms_content(terms.body) }
+      render(FlatPack::Modal::Component.new(id: modal_id, size: :lg)) do |modal|
+        modal.body { terms_standalone_document(terms) }
       end
+    end
+
+    def terms_standalone_document(terms)
+      render(
+        "recording_studio_terms_and_conditions/published_terms/document",
+        terms: terms,
+        preview_badge: nil
+      )
     end
   end
 end
