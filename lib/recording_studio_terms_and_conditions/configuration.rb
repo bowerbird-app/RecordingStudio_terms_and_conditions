@@ -65,7 +65,7 @@ module RecordingStudioTermsAndConditions
       method = ::RecordingStudioSiteSettings.method(:name_for)
       name = method.arity.zero? ? method.call : method.call(nil)
       name.to_s.strip.presence
-    rescue ArgumentError, NoMethodError, NameError
+    rescue ArgumentError, NameError
       nil
     end
   end
