@@ -91,7 +91,7 @@ GIT
 PATH
   remote: ../..
   specs:
-    recording_studio_terms_and_conditions (0.5.0)
+    recording_studio_terms_and_conditions (0.6.0)
       flat_pack (>= 0.1.186)
       rails (~> 8.1.0)
       recording_studio (~> 4.2)
@@ -758,7 +758,7 @@ CHECKSUMS
   recording_studio_attachable (0.5.1)
   recording_studio_publishable (0.3.1)
   recording_studio_root_switchable (0.5.0)
-  recording_studio_terms_and_conditions (0.5.0)
+  recording_studio_terms_and_conditions (0.6.0)
   recording_studio_user (0.11.0)
   regexp_parser (2.11.3) sha256=ca13f381a173b7a93450e53459075c9b76a10433caadcb2f1180f2c741fc55a4
   reline (0.6.3) sha256=1198b04973565b36ec0f11542ab3f5cfeeec34823f4e54cebde90968092b1835
