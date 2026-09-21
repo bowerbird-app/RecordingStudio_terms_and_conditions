@@ -56,7 +56,7 @@ module RecordingStudioTermsAndConditions
       {
         name: "agreed",
         value: "1",
-        checked: false,
+        checked: true,
         required: true
       }
     end

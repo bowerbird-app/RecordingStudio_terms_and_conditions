@@ -43,6 +43,7 @@ class AgreeHelperTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "On a page"
     refute_includes response.body, "Inside a form"
     assert_select "input[type=checkbox][name=agreed][required]", count: 1
+    assert_select "input[type=checkbox][name=agreed][checked]", count: 1
     assert_select "input[type=hidden][name=source][value=clickwrap]", count: 1
     assert_select "input[type=hidden][name=source][value=continue_notice]", count: 1
     assert_select "button", text: "Agree", count: 0

@@ -21,7 +21,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     switch_to_workspace(@workspace)
   end
 
-  test "clickwrap shows live terms with an unchecked required checkbox" do
+  test "clickwrap shows live terms with a pre-checked required checkbox" do
     get recording_studio_terms_and_conditions.acceptance_path
 
     assert_response :success
@@ -38,7 +38,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Read the full terms"
     assert_select "div.py-5"
     assert_select "input[type=checkbox][name=agreed][required]"
-    assert_select "input[type=checkbox][name=agreed][checked]", count: 0
+    assert_select "input[type=checkbox][name=agreed][checked]", count: 1
     assert_includes response.body, "Agree"
     assert_select "[data-controller='recording-studio-terms-and-conditions--scroll-to-end']", count: 1
     assert_select "[data-recording-studio-terms-and-conditions--scroll-to-end-target='end']", count: 1
