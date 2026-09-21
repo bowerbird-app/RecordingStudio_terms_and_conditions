@@ -80,7 +80,7 @@ Product config after 0.4.0 is `mount_path`, `require_scroll_to_end` (default off
 - Accessible dummy tag `v0.9.1` and Root Switchable dummy tag `v0.5.0`
 - FlatPack dummy tag `v0.1.186`
 - Publishable dummy tag `v0.3.1` (gemspec `~> 0.3`)
-- Users `>= 0.12.1` (dummy GitHub ref `0b1d229` until a `v0.12.1` tag)
+- Users `>= 0.12.1` (dummy GitHub tag `v0.12.1`)
 - Public RubyGems and GitHub access for dependency installation
 
 ## Verification

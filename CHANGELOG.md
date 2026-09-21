@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Root and dummy Gemfiles pin `recording_studio_user` at GitHub tag `v0.12.1`.
+
 ## [0.6.1] - 2026-09-21
 
 ### Added
@@ -15,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Soft `SignupAcceptance` on Users `RegistrationsController`: after a successful `create_password`, pending live Terms are `accept!`ed with provenance `source` `continue_notice`. Continuing the form is the agreement. `ForcesAcceptance` and `UsersAuthRedirect` still gate. `NotLive` does not fail signup.
 
 ### Changed
-- Requires `recording_studio_user` `>= 0.12.1` (create-password extra_fields slot). Dummy pins Users at GitHub `0b1d229` until a `v0.12.1` tag exists.
+- Requires `recording_studio_user` `>= 0.12.1` (create-password extra_fields slot). Dummy and root Gemfiles pin Users at GitHub tag `v0.12.1`.
 
 ### Upgrade notes (0.6.0 → 0.6.1)
 - Pin `recording_studio_user` to `0.12.1` or later. No Terms or Acceptance schema change. No user-table timestamp.
