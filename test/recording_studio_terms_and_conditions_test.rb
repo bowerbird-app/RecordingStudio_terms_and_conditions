@@ -55,12 +55,10 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.5.1"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_publishable", tag: "v0.3.1"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.0.2"'
-    users_pin = [
-      'github: "bowerbird-app/RecordingStudio_users"',
-      'ref: "0b1d229693041093200420b318154ff07acca33e"'
-    ].join(", ")
-    assert_includes gemfile, users_pin
-    assert_includes root_gemfile, users_pin
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_users"'
+    assert_includes gemfile, 'ref: "0b1d229693041093200420b318154ff07acca33e"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_users"'
+    assert_includes root_gemfile, 'ref: "0b1d229693041093200420b318154ff07acca33e"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.5.0"'
     assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.186"'
     refute_includes gemfile, "recording_studio/v3.0.0"
