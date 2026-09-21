@@ -97,4 +97,10 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     assert_equal [ "Workspace" ], RecordingStudio.configuration.enabled_recordable_types_for(:example)
     assert_includes ApplicationController.ancestors, RecordingStudio::UsesDefaultLayout
   end
+
+  test "dummy terms initializer sets a concrete app_name" do
+    assert_equal "Terms Dummy", RecordingStudioTermsAndConditions.configuration.app_name
+    initializer = File.read(Rails.root.join("config/initializers/recording_studio_terms_and_conditions.rb"))
+    assert_includes initializer, 'config.app_name = "Terms Dummy"'
+  end
 end

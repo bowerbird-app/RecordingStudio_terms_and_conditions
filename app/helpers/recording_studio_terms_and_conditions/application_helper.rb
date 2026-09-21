@@ -3,6 +3,7 @@
 module RecordingStudioTermsAndConditions
   module ApplicationHelper
     include AgreeHelper
+    include ContinueNoticeHelper
     include TablePaginationHelper
     include TermsDateHelper
 
@@ -20,6 +21,10 @@ module RecordingStudioTermsAndConditions
         page_nav_back_url: back_url,
         page_nav_back_label: back_label
       )
+    end
+
+    def terms_skip_page_nav
+      content_for(:skip_page_nav, "1")
     end
 
     def terms_publishable_edit_path(recording)

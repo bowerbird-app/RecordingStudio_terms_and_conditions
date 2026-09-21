@@ -1,4 +1,4 @@
-<% terms_page_nav(title: "Agree", back_url: main_app.root_path) %>
+<% terms_skip_page_nav %>
 
 <%= render FlatPack::PageTitle::Component.new(
   title: terms_agree_heading(@terms),
@@ -23,14 +23,14 @@
 <% else %>
   <% require_scroll_to_end = recording_studio_terms_require_scroll_to_end? %>
   <%= recording_studio_terms_scroll_to_end(require_scroll_to_end: require_scroll_to_end) do %>
-    <% url = terms_public_url(@terms) %>
-    <% if url.present? %>
-      <div class="mb-4">
-        <%= render FlatPack::Link::Component.new(href: url).with_content("Open the public page") %>
-      </div>
+    <%= render FlatPack::Collapse::Component.new(
+      id: "agree-terms-body",
+      title: terms_agree_heading(@terms),
+      open: false
+    ) do %>
+      <%= terms_content(@terms.body) %>
+      <%= recording_studio_terms_scroll_to_end_sentinel if require_scroll_to_end %>
     <% end %>
-    <%= terms_content(@terms.body) %>
-    <%= recording_studio_terms_scroll_to_end_sentinel if require_scroll_to_end %>
     <% unless @already_accepted %>
       <%= form_with url: acceptance_path, method: :post do %>
         <%= recording_studio_terms_agree(

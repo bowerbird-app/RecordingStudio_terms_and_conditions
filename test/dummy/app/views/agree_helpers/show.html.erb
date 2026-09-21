@@ -3,7 +3,7 @@
 <div class="flex w-full flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
     title: "Agree helper",
-    subtitle: "The checkbox. Hosts put it in their form and call accept!.",
+    subtitle: "Checkbox or continue notice. Each form calls accept! and clears the gate.",
     variant: :h1
   ) %>
 
@@ -12,9 +12,20 @@
     code: [
       "<" + "%= recording_studio_terms_agree %" + ">",
       "<" + "%= recording_studio_terms_agree(inside_form: true) %" + ">",
-      "<" + "%= recording_studio_terms_agree(link_terms: true) %" + ">"
+      "<" + "%= recording_studio_terms_agree(link_terms: true) %" + ">",
+      "<" + "%= recording_studio_terms_continue_notice %" + ">"
     ].join("\n")
   ) %>
 
-  <%= recording_studio_terms_agree(inside_form: true, link_terms: true) %>
+  <%= form_with url: agree_helper_path, method: :post do %>
+    <%= hidden_field_tag :source, "clickwrap" %>
+    <%= recording_studio_terms_agree(inside_form: true, link_terms: true) %>
+    <%= render FlatPack::Button::Component.new(text: "Accept", style: :secondary, type: "submit") %>
+  <% end %>
+
+  <%= form_with url: agree_helper_path, method: :post do %>
+    <%= hidden_field_tag :source, "continue_notice" %>
+    <%= recording_studio_terms_continue_notice %>
+    <%= render FlatPack::Button::Component.new(text: "Continue", style: :primary, type: "submit") %>
+  <% end %>
 </div>

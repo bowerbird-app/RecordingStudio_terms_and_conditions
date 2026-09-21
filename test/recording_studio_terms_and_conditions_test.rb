@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.5.0", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.6.0", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -209,8 +209,13 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
 
     agree_helper_page = File.read(File.expand_path("dummy/app/views/agree_helpers/show.html.erb", __dir__))
     assert_includes agree_helper_page, "FlatPack::CodeBlock::Component"
+    assert_includes agree_helper_page, "recording_studio_terms_continue_notice"
     refute_includes agree_helper_page, "Join"
-    refute_includes agree_helper_page, "FlatPack::Button::Component"
+    assert_includes agree_helper_page, "FlatPack::Button::Component"
+    assert_includes agree_helper_page, 'text: "Continue"'
+    assert_includes agree_helper_page, 'text: "Accept"'
+    assert_includes agree_helper_page, 'source, "clickwrap"'
+    assert_includes agree_helper_page, 'source, "continue_notice"'
   end
 
   def test_dummy_default_layout_head_loads_flatpack_application
@@ -230,6 +235,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes layout, "url: anchor_url"
     refute_includes layout, "max-w-3xl"
     assert_includes layout, "publishable_head_tags"
+    assert_includes layout, "skip_page_nav"
     assert_includes layout, "publishable_document_title"
 
     helper = File.read(File.expand_path("dummy/app/helpers/application_helper.rb", __dir__))
@@ -261,11 +267,23 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes agree, "FlatPack::SectionTitle::Component"
     refute_includes agree, "terms_version_date"
     assert_includes agree, "terms_content"
+    assert_includes agree, "terms_skip_page_nav"
+    refute_includes agree, "terms_page_nav"
+    assert_includes agree, "FlatPack::Collapse::Component"
+    assert_includes agree, "open: false"
+    assert_includes agree, "title: terms_agree_heading(@terms)"
+    refute_includes agree, 'title: "Terms"'
     refute_includes agree, "-mt-5 mb-6"
     helper = engine_source("app/helpers/recording_studio_terms_and_conditions/agree_helper.rb")
+    continue_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/continue_notice_helper.rb")
     scroll_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/scroll_to_end_helper.rb")
     assert_includes helper, "include ScrollToEndHelper"
     assert_includes helper, "def recording_studio_terms_agree"
+    refute_includes helper, "def recording_studio_terms_continue_notice"
+    assert_includes continue_helper, "def recording_studio_terms_continue_notice"
+    assert_includes continue_helper, "continue_notice"
+    assert_includes continue_helper, "FlatPack::Modal::Component"
+    assert_includes continue_helper, "terms_content(terms.body)"
     assert_includes helper, "pending: nil"
     assert_includes helper, "recording_studio_terms_agree_label"
     copy_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/agree_copy_helper.rb")
@@ -288,6 +306,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes helper, "form_with"
     application_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/application_helper.rb")
     assert_includes application_helper, "include TablePaginationHelper"
+    assert_includes application_helper, "include ContinueNoticeHelper"
     pagination_helper = engine_source(
       "app/helpers/recording_studio_terms_and_conditions/table_pagination_helper.rb"
     )
@@ -303,6 +322,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes table_page, "overflow: :last_page"
     date_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/terms_date_helper.rb")
     assert_includes application_helper, "include TermsDateHelper"
+    assert_includes application_helper, "def terms_skip_page_nav"
+    assert_includes application_helper, "skip_page_nav"
     assert_includes date_helper, "def terms_calendar_date"
     assert_includes date_helper, "def terms_heading_date"
     assert_includes date_helper, "%e %b %Y"
@@ -634,6 +655,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert File.exist?(skill)
     assert_includes File.read(skill), "recording-studio-gems"
     assert_includes File.read(skill), "Upgrade (0.4.x → 0.5.0)"
+    assert_includes File.read(skill), "Upgrade (0.5.0 → 0.6.0)"
   end
 
   def test_zero_four_upgrade_docs_match_shipped_behavior
@@ -641,16 +663,25 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.6.0]"
     assert_includes changelog, "## [0.5.0]"
     assert_includes changelog, "## [0.4.1]"
+    assert_includes changelog, "Upgrade notes (0.5.0 → 0.6.0)"
+    assert_includes changelog, "config.app_name"
+    assert_includes changelog, "recording_studio_terms_continue_notice"
+    assert_includes changelog, "continue_notice"
+    assert_includes notes, "skip_page_nav"
+    assert_includes readme, "recording_studio_terms_continue_notice"
     assert_includes changelog, "Upgrade notes (0.4.x → 0.5.0)"
     assert_includes changelog, "QuickActions"
     assert_includes changelog, "v0.3.1"
     assert_includes changelog, "forks a new draft"
     assert_includes changelog, "Upgrade notes (0.4.0 → 0.4.1)"
     assert_includes changelog, "+ Access"
+    assert_includes notes, "Upgrade from 0.5.0 to 0.6.0"
     assert_includes notes, "Upgrade from 0.4.x to 0.5.0"
     assert_includes notes, "Upgrade from 0.4.0 to 0.4.1"
+    assert_includes readme, "Upgrading from 0.5.0"
     assert_includes readme, "Upgrading from 0.4.x"
     assert_includes readme, "Upgrading from 0.4.0"
     assert_includes changelog, "body_digest"

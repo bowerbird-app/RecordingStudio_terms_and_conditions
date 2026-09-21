@@ -6,6 +6,7 @@ module RecordingStudioTermsAndConditions
   module AgreeHelper
     include ScrollToEndHelper
     include AgreeCopyHelper
+    include TermsContextHelper
 
     def recording_studio_terms_agree(inside_form: false, actor: nil, root: nil, link_terms: false, pending: nil)
       root ||= recording_studio_terms_agree_root
@@ -19,15 +20,6 @@ module RecordingStudioTermsAndConditions
     end
 
     private
-
-    def recording_studio_terms_pending_list(actor, root, pending)
-      return Array(pending).compact unless pending.nil?
-
-      list = RecordingStudioTermsAndConditions.pending_published_list(actor, root)
-      return list if list.any?
-
-      Array(RecordingStudioTermsAndConditions.current_published_for(root)).compact
-    end
 
     def recording_studio_terms_agree_fields(terms_list, _inside_form, link_terms: false)
       checkbox_id = "agreed_#{SecureRandom.hex(4)}"
@@ -64,7 +56,7 @@ module RecordingStudioTermsAndConditions
       {
         name: "agreed",
         value: "1",
-        checked: false,
+        checked: true,
         required: true
       }
     end
@@ -83,16 +75,6 @@ module RecordingStudioTermsAndConditions
       return "terms" if url.blank?
 
       render(FlatPack::Link::Component.new(href: url).with_content("terms"))
-    end
-
-    def recording_studio_terms_agree_root
-      Gate.root_for(controller)
-    end
-
-    def recording_studio_terms_agree_actor
-      return current_user if respond_to?(:current_user) && current_user
-
-      Current.actor if defined?(Current)
     end
   end
 end

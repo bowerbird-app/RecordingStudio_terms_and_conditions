@@ -7,7 +7,7 @@ description: Published Terms, clickwrap acceptance, and the host gate for Record
 
 This is the kit gem for **published Terms** and **clickwrap acceptance**. Do not invent a second acceptance table, accept screen, or post-auth redirect.
 
-Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.5.0**.
+Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.6.0**.
 
 ## Need
 
@@ -57,9 +57,12 @@ Drop the host helper onto a form:
 <%= recording_studio_terms_agree %>
 <%= recording_studio_terms_agree(inside_form: true) %>
 <%= recording_studio_terms_agree(link_terms: true) %>
+<%= recording_studio_terms_continue_notice %>
 ```
 
-The helper is the checkbox only — HTML `required`, named `agreed`. Put it in a form. On submit call `accept!` for the pending live version. Do not add a second receipt table.
+The checkbox helper is HTML `required`, named `agreed`. Put it in a form. On submit call `accept!` for the pending live version. Do not add a second receipt table.
+
+`recording_studio_terms_continue_notice` is a second helper. Copy uses `config.app_name`. The Terms & Conditions link opens a Flatpack Modal with `FlatPack::Content` inside. On that host POST, call `accept!` with `{ "source" => "continue_notice" }`. Do not remove the checkbox helper. Dummy `/agree_helper` posts both helpers and then lets home load.
 
 Optional scroll-to-end before Agree (default off):
 
@@ -71,7 +74,9 @@ end
 
 Or wrap a host clickwrap with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` and `recording_studio_terms_agree_button(require_scroll_to_end: true)`. Pin `recording_studio_terms_and_conditions/controllers` in the host importmap. The checkbox is still required. Missing IntersectionObserver leaves Agree enabled.
 
-Set `config.capture_request_provenance = true` only if the gem Agree screen should store IP and user agent (default off). Product config is `mount_path`, `require_scroll_to_end`, and `capture_request_provenance`. There is no API key.
+Set `config.capture_request_provenance = true` only if the gem Agree screen should store IP and user agent (default off). Product config is `mount_path`, `app_name`, `require_scroll_to_end`, and `capture_request_provenance`. There is no API key.
+
+Agree is still the post-auth destination. It has no PageNav. Live copy sits in a closed Flatpack Collapse wrapping Content. The Collapse title is the live Terms heading (`terms_agree_heading`). Re-accept Alert stays above. Checkbox and Agree stay at the bottom.
 
 ## Upgrade (0.3.x → 0.4.0)
 
@@ -91,3 +96,7 @@ No migrations. The Admin Terms hub no longer shows Accessible **+ Access**. Use 
 ## Upgrade (0.4.x → 0.5.0)
 
 Pin `recording_studio_publishable` `v0.3.1`. No Terms migrations. Term show uses `QuickActions` instead of a **Publish** button to the old edit form. Preview is not a query param on the public URL. Edit of live Terms forks a draft; publish when the new copy should go live.
+
+## Upgrade (0.5.0 → 0.6.0)
+
+No migrations. Set `config.app_name` for a fixed product name. A blank value uses `RecordingStudioSiteSettings.name_for` when that method exists. Continue-notice hosts render `recording_studio_terms_continue_notice` and call `accept!` with `continue_notice`. Agree skips PageNav (`skip_page_nav`).

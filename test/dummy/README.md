@@ -13,6 +13,8 @@ This Rails app exists to validate the Recording Studio Terms and Conditions addo
 - Dummy-only `/docs/*` pages for gem-specific onboarding
 - Acceptance gate: a workspace with live published Terms sends signed-in people to Agree until they accept
 - Dummy opts in to `require_scroll_to_end` so Agree stays disabled until the live copy is scrolled to the end. Missing IntersectionObserver still leaves Agree enabled
+- Dummy sets `config.app_name = "Terms Dummy"`
+- Dummy `/agree_helper` posts the checkbox path (`clickwrap`) and the continue-notice path. Either one writes a receipt and clears the gate.
 - Hosts install with `recording_studio_terms_and_conditions:install` (mount, migrations, initializer, importmap pin)
 
 ## Quick Start
@@ -41,7 +43,7 @@ Then open `/users/sign_in`, continue with email, and sign in with:
 - `/recordings/:id/publishable/preview` - signed-in Preview of draft or scheduled Terms
 - `/recording_studio` - redirects to `/` while the mounted Recording Studio engine stays available under that prefix for non-root routes
 - `/users/sign_in` - Users Auth sign-in (email, then password)
-- `/agree_helper` - embeddable Agree helper demo (code example + checkbox)
+- `/agree_helper` - embeddable Agree helpers (checkbox plus continue notice)
 - `/docs/install`, `/docs/config`, `/docs/recordable_types`, `/docs/recordings_tree`, `/docs/gem_views`, `/docs/methods` - dummy-only starter pages
 - `/up` - Rails health check
 

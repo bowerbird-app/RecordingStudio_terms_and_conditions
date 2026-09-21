@@ -17,6 +17,7 @@
     code: <<~CODE
       terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
       RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap" })
+      RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "continue_notice" })
       RecordingStudioTermsAndConditions.pending_published_list(user, workspace)
       RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace)
     CODE
@@ -24,7 +25,7 @@
 
   <%= render FlatPack::SectionTitle::Component.new(
     title: "Agree helper",
-    subtitle: "recording_studio_terms_agree"
+    subtitle: "recording_studio_terms_agree and recording_studio_terms_continue_notice"
   ) %>
 
   <%= render FlatPack::CodeBlock::Component.new(
@@ -33,6 +34,7 @@
       "<" + "%= recording_studio_terms_agree %" + ">",
       "<" + "%= recording_studio_terms_agree(inside_form: true) %" + ">",
       "<" + "%= recording_studio_terms_agree(link_terms: true) %" + ">",
+      "<" + "%= recording_studio_terms_continue_notice %" + ">",
       "<" + "%= recording_studio_terms_scroll_to_end(require_scroll_to_end: true) do %" + ">",
       "  …live copy and sentinel…",
       "  <" + "%= recording_studio_terms_agree_button(require_scroll_to_end: true) %" + ">",

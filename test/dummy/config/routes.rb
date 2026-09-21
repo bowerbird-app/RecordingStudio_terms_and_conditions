@@ -34,6 +34,7 @@ Rails.application.routes.draw do
   get "docs/gem_views", to: "docs#gem_views", as: :docs_gem_views
   get "docs/methods", to: "docs#methods", as: :docs_methods
   get "agree_helper", to: "agree_helpers#show", as: :agree_helper
+  post "agree_helper", to: "agree_helpers#create"
 
   # Defines the root path route ("/")
   root "home#index"
