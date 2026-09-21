@@ -285,8 +285,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes helper, "def recording_studio_terms_agree"
     refute_includes helper, "def recording_studio_terms_continue_notice"
     assert_includes continue_helper, "def recording_studio_terms_continue_notice"
-    assert_includes continue_helper, "size: :sm"
+    assert_includes continue_helper, "size: :xs"
     assert_includes continue_helper, "text-xs"
+    assert_includes continue_helper, "surface-muted-content-color"
     assert_includes continue_helper, "continue_notice"
     assert_includes continue_helper, "FlatPack::Modal::Component"
     assert_includes continue_helper, "terms_content(terms.body)"
@@ -668,7 +669,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes File.read(skill), "Upgrade (0.6.0 → 0.6.1)"
     extra_fields_source = File.read(File.join(engine_root, extra_fields))
     assert_includes extra_fields_source, "recording_studio_terms_continue_notice"
-    assert_includes extra_fields_source, "size: :xs"
+    refute_includes extra_fields_source, "size: :xs"
     refute_includes extra_fields_source, "recording_studio_terms_agree("
     assert_includes File.read(skill), '{ "source" => "continue_notice" }'
   end

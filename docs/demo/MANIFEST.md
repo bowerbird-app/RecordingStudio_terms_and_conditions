@@ -14,7 +14,7 @@ Stills retaken 2026-09-21 after continue-notice Modal and Agree Collapse restyle
 | `tnc-agree-helper.png.b64` | Base64 of the helper still |
 | `tnc-continue-notice-modal.png` | Continue-notice Flatpack Modal with `FlatPack::Content` body |
 | `tnc-continue-notice-modal.png.b64` | Base64 of the modal still |
-| `tnc-signup-continue-notice.png` | Users create-password step with the smaller (`text-xs`) By continuing notice |
+| `tnc-signup-continue-notice.png` | Users create-password step with the xs muted By continuing notice |
 | `tnc-signup-continue-notice.png.b64` | Base64 of the signup still |
 | `tnc-admin-terms.png` | Admin Terms Flatpack table |
 | `tnc-admin-richtext.png` | Admin edit TipTap body |

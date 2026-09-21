@@ -7,7 +7,7 @@ module RecordingStudioTermsAndConditions
 
     CONTINUE_NOTICE_SIZES = { xs: "text-xs", sm: "text-sm" }.freeze
 
-    def recording_studio_terms_continue_notice(actor: nil, root: nil, pending: nil, size: :sm)
+    def recording_studio_terms_continue_notice(actor: nil, root: nil, pending: nil, size: :xs)
       terms = continue_notice_terms(actor, root, pending)
       return if terms.blank?
 
@@ -26,12 +26,16 @@ module RecordingStudioTermsAndConditions
       recording_studio_terms_pending_list(actor, root, pending).first
     end
 
-    def continue_notice_copy(modal_id, size = :sm)
-      content_tag(:p, continue_notice_sentence(modal_id), class: continue_notice_size_class(size))
+    def continue_notice_copy(modal_id, size = :xs)
+      content_tag(:p, continue_notice_sentence(modal_id), class: continue_notice_copy_class(size))
+    end
+
+    def continue_notice_copy_class(size)
+      "#{continue_notice_size_class(size)} text-[var(--surface-muted-content-color)]"
     end
 
     def continue_notice_size_class(size)
-      CONTINUE_NOTICE_SIZES.fetch(size.to_s.to_sym, CONTINUE_NOTICE_SIZES[:sm])
+      CONTINUE_NOTICE_SIZES.fetch(size.to_s.to_sym, CONTINUE_NOTICE_SIZES[:xs])
     end
 
     def continue_notice_sentence(modal_id)

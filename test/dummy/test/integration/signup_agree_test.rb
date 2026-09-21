@@ -23,7 +23,7 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
     assert_select "input[type=checkbox][name=agreed]", count: 0
     assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
     assert_includes response.body, "Terms &amp; Conditions"
-    assert_includes response.body, '<p class="text-xs">'
+    assert_includes response.body, '<p class="text-xs text-[var(--surface-muted-content-color)]">'
   end
 
   test "create-password writes a continue_notice receipt and clears the gate" do

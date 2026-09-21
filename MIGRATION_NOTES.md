@@ -20,7 +20,7 @@ The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` a
 
 ## Upgrade from 0.6.0 to 0.6.1
 
-No schema change. Pin `recording_studio_user` `>= 0.12.1`. Signup extra_fields is the continue-notice helper at `size: :xs`. A successful create-password writes `{ "source" => "continue_notice" }`. Keep `ForcesAcceptance` and `UsersAuthRedirect`. Continue-notice `size:` is `:xs` or `:sm` (default `:sm`).
+No schema change. Pin `recording_studio_user` `>= 0.12.1`. Signup extra_fields is the continue-notice helper. A successful create-password writes `{ "source" => "continue_notice" }`. Keep `ForcesAcceptance` and `UsersAuthRedirect`. Continue-notice is xs and muted by default; pass `size: :sm` for the larger size.
 
 ## Upgrade from 0.5.0 to 0.6.0
 
