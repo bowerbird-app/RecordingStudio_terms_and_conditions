@@ -57,6 +57,7 @@ class TermsAgreeHelperTest < ActionView::TestCase
     assert_includes html, "Be kind in the booth."
     assert_includes html, "Studio Terms"
     assert_includes html, "page-title"
+    refute_includes html, "--modal-title-color"
     assert_includes html, "flat-pack-link"
     assert_includes html, "text-[var(--color-primary)]"
     assert_includes html, "underline"

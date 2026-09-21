@@ -29,6 +29,7 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "underline"
     assert_includes response.body, "page-title"
     assert_includes response.body, "fp-content"
+    refute_includes response.body, "--modal-title-color"
     live = RecordingStudioTermsAndConditions.current_published_for(@workspace)
     assert_includes response.body, live.title
     assert_includes CGI.unescapeHTML(response.body), live.body.to_s

@@ -60,7 +60,7 @@ module RecordingStudioTermsAndConditions
     end
 
     def continue_notice_modal(terms, modal_id)
-      render(FlatPack::Modal::Component.new(id: modal_id, title: terms_agree_heading(terms), size: :lg)) do |modal|
+      render(FlatPack::Modal::Component.new(id: modal_id, size: :lg)) do |modal|
         modal.body { terms_standalone_document(terms) }
       end
     end

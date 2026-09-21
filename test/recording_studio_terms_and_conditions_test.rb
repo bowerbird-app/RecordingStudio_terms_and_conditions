@@ -293,6 +293,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes continue_helper, "terms_standalone_document"
     assert_includes continue_helper, "color-primary"
     assert_includes continue_helper, "underline"
+    refute_includes continue_helper, "title: terms_agree_heading"
     refute_includes continue_helper, "terms_content(terms.body)"
     document = engine_source("#{views}/published_terms/_document.html.erb")
     assert_includes document, "FlatPack::PageTitle::Component"
