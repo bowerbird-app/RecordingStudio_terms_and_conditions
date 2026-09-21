@@ -246,27 +246,34 @@ class EngineTest < Minitest::Test
       Object.const_set(:ApplicationController, host)
       created_host = true
     end
-    created_users = false
-    auth = Class.new
-    registrations = Class.new
-    unless defined?(RecordingStudioUser)
-      users = Module.new
-      users_auth = Module.new
-      Object.const_set(:RecordingStudioUser, users)
-      users.const_set(:Auth, users_auth)
-      users_auth.const_set(:BaseController, auth)
-      users_auth.const_set(:RegistrationsController, registrations)
-      created_users = true
-    end
+    created_users, auth, registrations = fake_users_auth_constants
 
     2.times { RecordingStudioTermsAndConditions::AcceptanceGateInstaller.call }
 
     assert_includes host.ancestors, RecordingStudioTermsAndConditions::ForcesAcceptance if created_host
-    assert_includes auth.ancestors, RecordingStudioTermsAndConditions::UsersAuthRedirect if created_users
-    assert_includes registrations.ancestors, RecordingStudioTermsAndConditions::SignupAcceptance if created_users
+    assert_users_gate_installed(auth, registrations) if created_users
   ensure
     Object.send(:remove_const, :ApplicationController) if created_host
     Object.send(:remove_const, :RecordingStudioUser) if created_users
+  end
+
+  def fake_users_auth_constants
+    auth = Class.new
+    registrations = Class.new
+    return [false, auth, registrations] if defined?(RecordingStudioUser)
+
+    users = Module.new
+    users_auth = Module.new
+    Object.const_set(:RecordingStudioUser, users)
+    users.const_set(:Auth, users_auth)
+    users_auth.const_set(:BaseController, auth)
+    users_auth.const_set(:RegistrationsController, registrations)
+    [true, auth, registrations]
+  end
+
+  def assert_users_gate_installed(auth, registrations)
+    assert_includes auth.ancestors, RecordingStudioTermsAndConditions::UsersAuthRedirect
+    assert_includes registrations.ancestors, RecordingStudioTermsAndConditions::SignupAcceptance
   end
 
   def test_apply_controller_extensions_matches_demodulized_name

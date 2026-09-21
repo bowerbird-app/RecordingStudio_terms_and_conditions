@@ -55,8 +55,12 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.5.1"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_publishable", tag: "v0.3.1"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.0.2"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_users", ref: "0b1d229693041093200420b318154ff07acca33e"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_users", ref: "0b1d229693041093200420b318154ff07acca33e"'
+    users_pin = [
+      'github: "bowerbird-app/RecordingStudio_users"',
+      'ref: "0b1d229693041093200420b318154ff07acca33e"'
+    ].join(", ")
+    assert_includes gemfile, users_pin
+    assert_includes root_gemfile, users_pin
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.5.0"'
     assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.186"'
     refute_includes gemfile, "recording_studio/v3.0.0"
@@ -654,9 +658,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/users_auth_redirect.rb"))
     assert File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/acceptance_gate_installer.rb"))
     assert File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/signup_acceptance.rb"))
-    assert File.exist?(
-      File.join(engine_root, "app/views/recording_studio_user/auth/registrations/_extra_fields.html.erb")
-    )
+    extra_fields = "app/views/recording_studio_user/auth/registrations/_extra_fields.html.erb"
+    assert File.exist?(File.join(engine_root, extra_fields))
     skill = File.join(engine_root, ".github/skills/recording-studio-terms-and-conditions/SKILL.md")
     assert File.exist?(skill)
     assert_includes File.read(skill), "recording-studio-gems"
