@@ -155,9 +155,7 @@ class ConfigurationTest < Minitest::Test
   end
 
   def restore_site_settings
-    if Object.const_defined?(:RecordingStudioSiteSettings)
-      Object.send(:remove_const, :RecordingStudioSiteSettings)
-    end
+    Object.send(:remove_const, :RecordingStudioSiteSettings) if Object.const_defined?(:RecordingStudioSiteSettings)
     Object.const_set(:RecordingStudioSiteSettings, @site_settings_const) if @stashed_site_settings
   end
 end

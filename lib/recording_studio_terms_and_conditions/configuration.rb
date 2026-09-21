@@ -62,14 +62,9 @@ module RecordingStudioTermsAndConditions
       return unless defined?(::RecordingStudioSiteSettings)
       return unless ::RecordingStudioSiteSettings.respond_to?(:name_for)
 
-      name =
-        begin
-          ::RecordingStudioSiteSettings.name_for
-        rescue ArgumentError
-          ::RecordingStudioSiteSettings.name_for(nil)
-        end
-      stripped = name.to_s.strip
-      stripped.empty? ? nil : stripped
+      method = ::RecordingStudioSiteSettings.method(:name_for)
+      name = method.arity.zero? ? method.call : method.call(nil)
+      name.to_s.strip.presence
     rescue ArgumentError, NoMethodError, NameError
       nil
     end
