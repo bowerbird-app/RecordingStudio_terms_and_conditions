@@ -76,7 +76,7 @@ Or wrap a host clickwrap with `recording_studio_terms_scroll_to_end(require_scro
 
 Set `config.capture_request_provenance = true` only if the gem Agree screen should store IP and user agent (default off). Product config is `mount_path`, `app_name`, `require_scroll_to_end`, and `capture_request_provenance`. There is no API key.
 
-Agree is still the post-auth destination. It has no PageNav. Live copy sits in a closed Flatpack Collapse wrapping Content. Re-accept Alert stays above. Checkbox and Agree stay at the bottom.
+Agree is still the post-auth destination. It has no PageNav. Live copy sits in a closed Flatpack Collapse wrapping Content. The Collapse title is the live Terms heading (`terms_agree_heading`). Re-accept Alert stays above. Checkbox and Agree stay at the bottom.
 
 ## Upgrade (0.3.x → 0.4.0)
 

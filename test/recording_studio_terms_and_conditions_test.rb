@@ -271,6 +271,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes agree, "terms_page_nav"
     assert_includes agree, "FlatPack::Collapse::Component"
     assert_includes agree, "open: false"
+    assert_includes agree, "title: terms_agree_heading(@terms)"
+    refute_includes agree, 'title: "Terms"'
     refute_includes agree, "-mt-5 mb-6"
     helper = engine_source("app/helpers/recording_studio_terms_and_conditions/agree_helper.rb")
     continue_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/continue_notice_helper.rb")

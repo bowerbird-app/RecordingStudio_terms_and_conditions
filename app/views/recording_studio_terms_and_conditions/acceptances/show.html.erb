@@ -25,7 +25,7 @@
   <%= recording_studio_terms_scroll_to_end(require_scroll_to_end: require_scroll_to_end) do %>
     <%= render FlatPack::Collapse::Component.new(
       id: "agree-terms-body",
-      title: "Terms",
+      title: terms_agree_heading(@terms),
       open: false
     ) do %>
       <%= terms_content(@terms.body) %>

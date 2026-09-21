@@ -8,7 +8,7 @@ Stills retaken 2026-09-21 after continue-notice Modal and Agree Collapse restyle
 | `tnc-clickwrap-demo.mp4.b64` | Full base64 of the mp4 (over GitHub contents 1MB — use the parts) |
 | `tnc-clickwrap-demo.mp4.b64.part1` / `.part2` | Split base64, each under 800_000 chars |
 | `tnc-clickwrap-demo.mp4.b64.manifest` | original_bytes, sha256, ordered part paths |
-| `tnc-agree.png` | Agree after C3: no PageNav, closed Terms Collapse, checkbox and Agree |
+| `tnc-agree.png` | Agree after C3: no PageNav, closed Collapse titled with the live Terms heading, checkbox and Agree |
 | `tnc-agree.png.b64` | Base64 of the Agree still |
 | `tnc-agree-helper.png` | Dummy `/agree_helper` checkbox form plus continue notice |
 | `tnc-agree-helper.png.b64` | Base64 of the helper still |
