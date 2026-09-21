@@ -8,7 +8,7 @@ class SignupAcceptanceTest < Minitest::Test
 
     attr_accessor :params, :finished_user, :root
 
-    def initialize(params: {}, actor:, root: :workspace)
+    def initialize(actor:, params: {}, root: :workspace)
       @params = params
       @actor = actor
       @root = root
