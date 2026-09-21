@@ -7,9 +7,21 @@ module RecordingStudioTermsAndConditions
 
     def initialize
       @mount_path = "/recording_studio_terms_and_conditions"
+      @app_name = ""
       @require_scroll_to_end = false
       @capture_request_provenance = false
       @hooks = RecordingStudio::Hooks.new
+    end
+
+    def app_name
+      configured = @app_name.to_s.strip
+      return configured unless configured.empty?
+
+      site_settings_name.to_s
+    end
+
+    def app_name=(value)
+      @app_name = value.nil? ? "" : value.to_s
     end
 
     def require_scroll_to_end=(value)
@@ -23,6 +35,7 @@ module RecordingStudioTermsAndConditions
     def to_h
       {
         mount_path: mount_path,
+        app_name: app_name,
         require_scroll_to_end: require_scroll_to_end,
         capture_request_provenance: capture_request_provenance,
         hooks_registered: hooks.instance_variable_get(:@registry).transform_values(&:size)
@@ -41,6 +54,24 @@ module RecordingStudioTermsAndConditions
 
     def self.flag?(value)
       value == true || value.to_s.casecmp("true").zero? || value.to_s == "1"
+    end
+
+    private
+
+    def site_settings_name
+      return unless defined?(::RecordingStudioSiteSettings)
+      return unless ::RecordingStudioSiteSettings.respond_to?(:name_for)
+
+      name =
+        begin
+          ::RecordingStudioSiteSettings.name_for
+        rescue ArgumentError
+          ::RecordingStudioSiteSettings.name_for(nil)
+        end
+      stripped = name.to_s.strip
+      stripped.empty? ? nil : stripped
+    rescue ArgumentError, NoMethodError, NameError
+      nil
     end
   end
 end

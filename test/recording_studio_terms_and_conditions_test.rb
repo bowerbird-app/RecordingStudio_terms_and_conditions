@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.5.0", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.6.0", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -634,6 +634,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert File.exist?(skill)
     assert_includes File.read(skill), "recording-studio-gems"
     assert_includes File.read(skill), "Upgrade (0.4.x → 0.5.0)"
+    assert_includes File.read(skill), "Upgrade (0.5.0 → 0.6.0)"
   end
 
   def test_zero_four_upgrade_docs_match_shipped_behavior
@@ -641,16 +642,21 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.6.0]"
     assert_includes changelog, "## [0.5.0]"
     assert_includes changelog, "## [0.4.1]"
+    assert_includes changelog, "Upgrade notes (0.5.0 → 0.6.0)"
+    assert_includes changelog, "config.app_name"
     assert_includes changelog, "Upgrade notes (0.4.x → 0.5.0)"
     assert_includes changelog, "QuickActions"
     assert_includes changelog, "v0.3.1"
     assert_includes changelog, "forks a new draft"
     assert_includes changelog, "Upgrade notes (0.4.0 → 0.4.1)"
     assert_includes changelog, "+ Access"
+    assert_includes notes, "Upgrade from 0.5.0 to 0.6.0"
     assert_includes notes, "Upgrade from 0.4.x to 0.5.0"
     assert_includes notes, "Upgrade from 0.4.0 to 0.4.1"
+    assert_includes readme, "Upgrading from 0.5.0"
     assert_includes readme, "Upgrading from 0.4.x"
     assert_includes readme, "Upgrading from 0.4.0"
     assert_includes changelog, "body_digest"

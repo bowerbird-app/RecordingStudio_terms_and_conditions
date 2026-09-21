@@ -7,7 +7,7 @@ description: Published Terms, clickwrap acceptance, and the host gate for Record
 
 This is the kit gem for **published Terms** and **clickwrap acceptance**. Do not invent a second acceptance table, accept screen, or post-auth redirect.
 
-Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.5.0**.
+Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.6.0**.
 
 ## Need
 
@@ -91,3 +91,7 @@ No migrations. The Admin Terms hub no longer shows Accessible **+ Access**. Use 
 ## Upgrade (0.4.x → 0.5.0)
 
 Pin `recording_studio_publishable` `v0.3.1`. No Terms migrations. Term show uses `QuickActions` instead of a **Publish** button to the old edit form. Preview is not a query param on the public URL. Edit of live Terms forks a draft; publish when the new copy should go live.
+
+## Upgrade (0.5.0 → 0.6.0)
+
+No migrations. Set `config.app_name` for a fixed product name. A blank value uses `RecordingStudioSiteSettings.name_for` when that method exists.

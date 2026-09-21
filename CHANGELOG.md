@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-21
+
+### Added
+- Optional `config.app_name` (string, default blank). When blank, `app_name` uses `RecordingStudioSiteSettings.name_for` if that constant and method exist. Site Settings is not a gem dependency.
+
+### Upgrade notes (0.5.0 → 0.6.0)
+- Set `config.app_name` in the host initializer if you want a fixed product name. Leave it blank to use Site Settings when that gem is loaded. No schema change.
+
 ## [0.5.0] - 2026-09-17
 
 ### Changed
@@ -216,7 +224,8 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.6.0
 [0.5.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.5.0
 [0.4.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.4.1
 [0.4.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.4.0

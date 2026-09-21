@@ -18,6 +18,10 @@ Then:
 
 The host gate and Users post-auth hook attach automatically.
 
+## Upgrade from 0.5.0 to 0.6.0
+
+No schema change. Set `config.app_name` for a fixed product name. Leave it blank to use `RecordingStudioSiteSettings.name_for` when Site Settings is loaded.
+
 ## Upgrade from 0.4.x to 0.5.0
 
 Pin `recording_studio_publishable` `v0.3.1`. No Terms or Acceptance schema change.
