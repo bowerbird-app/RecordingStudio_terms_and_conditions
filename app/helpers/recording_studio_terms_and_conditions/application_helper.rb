@@ -22,6 +22,10 @@ module RecordingStudioTermsAndConditions
       )
     end
 
+    def terms_skip_page_nav
+      content_for(:skip_page_nav, "1")
+    end
+
     def terms_publishable_edit_path(recording)
       return unless recording && respond_to?(:recording_studio_publishable)
 

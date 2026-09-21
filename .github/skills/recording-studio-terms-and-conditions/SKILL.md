@@ -57,9 +57,12 @@ Drop the host helper onto a form:
 <%= recording_studio_terms_agree %>
 <%= recording_studio_terms_agree(inside_form: true) %>
 <%= recording_studio_terms_agree(link_terms: true) %>
+<%= recording_studio_terms_continue_notice %>
 ```
 
-The helper is the checkbox only — HTML `required`, named `agreed`. Put it in a form. On submit call `accept!` for the pending live version. Do not add a second receipt table.
+The checkbox helper is HTML `required`, named `agreed`. Put it in a form. On submit call `accept!` for the pending live version. Do not add a second receipt table.
+
+`recording_studio_terms_continue_notice` is a second helper. Copy uses `config.app_name`. The Terms & Conditions link opens a Flatpack Modal with `FlatPack::Content` inside. On that host POST, call `accept!` with `{ "source" => "continue_notice" }`. Do not remove the checkbox helper.
 
 Optional scroll-to-end before Agree (default off):
 
@@ -71,7 +74,9 @@ end
 
 Or wrap a host clickwrap with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` and `recording_studio_terms_agree_button(require_scroll_to_end: true)`. Pin `recording_studio_terms_and_conditions/controllers` in the host importmap. The checkbox is still required. Missing IntersectionObserver leaves Agree enabled.
 
-Set `config.capture_request_provenance = true` only if the gem Agree screen should store IP and user agent (default off). Product config is `mount_path`, `require_scroll_to_end`, and `capture_request_provenance`. There is no API key.
+Set `config.capture_request_provenance = true` only if the gem Agree screen should store IP and user agent (default off). Product config is `mount_path`, `app_name`, `require_scroll_to_end`, and `capture_request_provenance`. There is no API key.
+
+Agree is still the post-auth destination. It has no PageNav. Live copy sits in a closed Flatpack Collapse wrapping Content. Re-accept Alert stays above. Checkbox and Agree stay at the bottom.
 
 ## Upgrade (0.3.x → 0.4.0)
 
@@ -94,4 +99,4 @@ Pin `recording_studio_publishable` `v0.3.1`. No Terms migrations. Term show uses
 
 ## Upgrade (0.5.0 → 0.6.0)
 
-No migrations. Set `config.app_name` for a fixed product name. A blank value uses `RecordingStudioSiteSettings.name_for` when that method exists.
+No migrations. Set `config.app_name` for a fixed product name. A blank value uses `RecordingStudioSiteSettings.name_for` when that method exists. Continue-notice hosts render `recording_studio_terms_continue_notice` and call `accept!` with `continue_notice`. Agree skips PageNav (`skip_page_nav`).

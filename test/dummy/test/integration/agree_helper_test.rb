@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "cgi"
 require "devise/test/integration_helpers"
 
 class AgreeHelperTest < ActionDispatch::IntegrationTest
@@ -28,11 +29,16 @@ class AgreeHelperTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Agree helper"
     assert_includes response.body, "recording_studio_terms_agree"
+    assert_includes response.body, "recording_studio_terms_continue_notice"
     assert_includes response.body, "inside_form: true"
     assert_includes response.body, "link_terms: true"
     refute_includes response.body, "data-controller=\"recording-studio-terms-and-conditions--scroll-to-end\""
     assert_includes response.body, "I agree to these"
+    assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree to Terms Dummy's"
     assert_select "a.flat-pack-link[href*='/terms/']", text: "terms"
+    assert_select "a.flat-pack-link[data-modal-id]", text: "Terms & Conditions"
+    assert_select "[data-controller='flat-pack--modal']", count: 1
+    assert_includes response.body, "fp-content"
     refute_includes response.body, "Join"
     refute_includes response.body, "On a page"
     refute_includes response.body, "Inside a form"
@@ -40,5 +46,15 @@ class AgreeHelperTest < ActionDispatch::IntegrationTest
     assert_select "button", text: "Agree", count: 0
     assert_select "button", text: "Join", count: 0
     assert_select "form[action=?]", recording_studio_terms_and_conditions.acceptance_path, count: 0
+    assert_select "form[action=?]", "/agree_helper", count: 1
+  end
+
+  test "continue notice POST writes a continue_notice receipt" do
+    post "/agree_helper"
+
+    assert_redirected_to "/"
+    assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
+    receipt = RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last
+    assert_equal({ "source" => "continue_notice" }, receipt.provenance)
   end
 end

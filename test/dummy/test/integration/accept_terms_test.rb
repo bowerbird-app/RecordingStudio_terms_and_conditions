@@ -44,7 +44,10 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     assert_select "[data-recording-studio-terms-and-conditions--scroll-to-end-target='end']", count: 1
     assert_select "button[type=submit][disabled]", text: "Agree"
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
-    assert_select "nav[aria-label='Page navigation']", count: 1
+    assert_select "nav[aria-label='Page navigation']", count: 0
+    assert_select "[data-controller='flat-pack--collapse']", count: 1
+    assert_select "button[aria-expanded='false']", text: /Terms/
+    assert_select "#agree-terms-body-content[hidden]", count: 1
     assert_match %r{flat_pack/application}, response.body
     refute_includes response.body, "Read them, tick the box"
     refute_includes response.body, "Tick the box if you agree."

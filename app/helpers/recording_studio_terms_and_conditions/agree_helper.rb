@@ -18,6 +18,24 @@ module RecordingStudioTermsAndConditions
       recording_studio_terms_agree_fields(pending_terms, inside_form, link_terms: link_terms)
     end
 
+    def recording_studio_terms_continue_notice(actor: nil, root: nil, pending: nil)
+      root ||= recording_studio_terms_agree_root
+      actor ||= recording_studio_terms_agree_actor
+      pending_terms = recording_studio_terms_pending_list(actor, root, pending)
+      return if pending.nil? && actor.present? &&
+                !RecordingStudioTermsAndConditions.requires_acceptance?(actor, root)
+      return if pending_terms.blank?
+
+      terms = pending_terms.first
+      modal_id = "terms-continue-notice-#{SecureRandom.hex(4)}"
+      safe_join(
+        [
+          content_tag(:p, recording_studio_terms_continue_notice_copy(modal_id), class: "text-sm"),
+          recording_studio_terms_continue_notice_modal(terms, modal_id)
+        ]
+      )
+    end
+
     private
 
     def recording_studio_terms_pending_list(actor, root, pending)
@@ -83,6 +101,32 @@ module RecordingStudioTermsAndConditions
       return "terms" if url.blank?
 
       render(FlatPack::Link::Component.new(href: url).with_content("terms"))
+    end
+
+    def recording_studio_terms_continue_notice_copy(modal_id)
+      app_name = RecordingStudioTermsAndConditions.configuration.app_name
+      prefix = if app_name.present?
+                 safe_join([ "By continuing, you agree to ", app_name, "'s " ])
+               else
+                 "By continuing, you agree to the "
+               end
+
+      safe_join([ prefix, recording_studio_terms_continue_notice_link(modal_id), "." ])
+    end
+
+    def recording_studio_terms_continue_notice_link(modal_id)
+      render(
+        FlatPack::Link::Component.new(
+          href: "##{modal_id}",
+          data: { modal_id: modal_id }
+        ).with_content("Terms & Conditions")
+      )
+    end
+
+    def recording_studio_terms_continue_notice_modal(terms, modal_id)
+      render(FlatPack::Modal::Component.new(id: modal_id, title: terms_agree_heading(terms), size: :lg)) do |modal|
+        modal.body { terms_content(terms.body) }
+      end
     end
 
     def recording_studio_terms_agree_root

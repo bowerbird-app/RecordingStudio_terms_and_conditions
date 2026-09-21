@@ -22,6 +22,10 @@ The host gate and Users post-auth hook attach automatically.
 
 No schema change. Set `config.app_name` for a fixed product name. Leave it blank to use `RecordingStudioSiteSettings.name_for` when Site Settings is loaded.
 
+`recording_studio_terms_continue_notice` is a second helper. Host POST for that path calls `accept!` with `{ "source" => "continue_notice" }`. The checkbox helper stays.
+
+Agree no longer calls `terms_page_nav`. Dummy default layout skips PageNav when `skip_page_nav` is set. Live copy is a closed Flatpack Collapse plus Content. Optional scroll-to-end is unchanged.
+
 ## Upgrade from 0.4.x to 0.5.0
 
 Pin `recording_studio_publishable` `v0.3.1`. No Terms or Acceptance schema change.
