@@ -273,13 +273,15 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes agree, "open: false"
     refute_includes agree, "-mt-5 mb-6"
     helper = engine_source("app/helpers/recording_studio_terms_and_conditions/agree_helper.rb")
+    continue_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/continue_notice_helper.rb")
     scroll_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/scroll_to_end_helper.rb")
     assert_includes helper, "include ScrollToEndHelper"
     assert_includes helper, "def recording_studio_terms_agree"
-    assert_includes helper, "def recording_studio_terms_continue_notice"
-    assert_includes helper, "continue_notice"
-    assert_includes helper, "FlatPack::Modal::Component"
-    assert_includes helper, "terms_content(terms.body)"
+    refute_includes helper, "def recording_studio_terms_continue_notice"
+    assert_includes continue_helper, "def recording_studio_terms_continue_notice"
+    assert_includes continue_helper, "continue_notice"
+    assert_includes continue_helper, "FlatPack::Modal::Component"
+    assert_includes continue_helper, "terms_content(terms.body)"
     assert_includes helper, "pending: nil"
     assert_includes helper, "recording_studio_terms_agree_label"
     copy_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/agree_copy_helper.rb")
@@ -302,6 +304,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes helper, "form_with"
     application_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/application_helper.rb")
     assert_includes application_helper, "include TablePaginationHelper"
+    assert_includes application_helper, "include ContinueNoticeHelper"
     pagination_helper = engine_source(
       "app/helpers/recording_studio_terms_and_conditions/table_pagination_helper.rb"
     )

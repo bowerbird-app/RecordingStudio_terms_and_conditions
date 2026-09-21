@@ -1,0 +1,57 @@
+# frozen_string_literal: true
+
+module RecordingStudioTermsAndConditions
+  module ContinueNoticeHelper
+    include TermsContextHelper
+    include AgreeCopyHelper
+
+    def recording_studio_terms_continue_notice(actor: nil, root: nil, pending: nil)
+      terms = continue_notice_terms(actor, root, pending)
+      return if terms.blank?
+
+      modal_id = "terms-continue-notice-#{SecureRandom.hex(4)}"
+      safe_join([continue_notice_copy(modal_id), continue_notice_modal(terms, modal_id)])
+    end
+
+    private
+
+    def continue_notice_terms(actor, root, pending)
+      root ||= recording_studio_terms_agree_root
+      actor ||= recording_studio_terms_agree_actor
+      return if pending.nil? && actor.present? &&
+                !RecordingStudioTermsAndConditions.requires_acceptance?(actor, root)
+
+      recording_studio_terms_pending_list(actor, root, pending).first
+    end
+
+    def continue_notice_copy(modal_id)
+      content_tag(:p, continue_notice_sentence(modal_id), class: "text-sm")
+    end
+
+    def continue_notice_sentence(modal_id)
+      app_name = RecordingStudioTermsAndConditions.configuration.app_name
+      prefix = if app_name.present?
+                 safe_join(["By continuing, you agree to ", app_name, "'s "])
+               else
+                 "By continuing, you agree to the "
+               end
+
+      safe_join([prefix, continue_notice_link(modal_id), "."])
+    end
+
+    def continue_notice_link(modal_id)
+      render(
+        FlatPack::Link::Component.new(
+          href: "##{modal_id}",
+          data: { modal_id: modal_id }
+        ).with_content("Terms & Conditions")
+      )
+    end
+
+    def continue_notice_modal(terms, modal_id)
+      render(FlatPack::Modal::Component.new(id: modal_id, title: terms_agree_heading(terms), size: :lg)) do |modal|
+        modal.body { terms_content(terms.body) }
+      end
+    end
+  end
+end

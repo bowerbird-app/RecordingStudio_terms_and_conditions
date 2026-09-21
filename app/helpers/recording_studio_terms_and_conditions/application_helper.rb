@@ -3,6 +3,7 @@
 module RecordingStudioTermsAndConditions
   module ApplicationHelper
     include AgreeHelper
+    include ContinueNoticeHelper
     include TablePaginationHelper
     include TermsDateHelper
 
