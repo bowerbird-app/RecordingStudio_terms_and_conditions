@@ -264,7 +264,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute File.exist?(engine_path("app/views/layouts/recording_studio_terms_and_conditions/public.html.erb"))
 
     refute_includes agree, "FlatPack::Card::Component"
-    assert_includes agree, "inside_form: true"
+    refute_includes agree, "recording_studio_terms_agree("
+    assert_includes agree, "recording_studio_terms_continue_notice"
     assert_includes agree, "pending: @pending_terms"
     assert_includes agree, "terms_agree_heading"
     assert_includes agree, "terms_heading_date"
@@ -364,8 +365,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes agree, "terms_reaccept_notice"
     refute_includes agree, "terms_reaccept_alert_title"
     assert_includes agree, "space-y-4"
-    assert_includes agree, "@reaccepting"
-    assert_includes agree, "Agree again"
+    refute_includes agree, "@reaccepting"
+    assert_includes agree, 'text: "Continue"'
+    refute_includes agree, "Agree again"
     refute_includes copy_helper, "def terms_reaccept_alert_title"
     refute_includes public_show, "FlatPack::Card::Component"
     refute_includes public_show, "<article>"

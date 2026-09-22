@@ -20,7 +20,7 @@ The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` a
 
 ## Upgrade from 0.6.2 to 0.6.3
 
-No schema change. `root_for_signup` falls back when the current root has no live Terms. Agree drops the on-page “Terms updated” Alert; re-accept flashes “We've updated our Terms and Conditions” (button stays **Agree again**). Checkbox uses `my-3`. Pin FlatPack `>= 0.1.195` and rebuild Tailwind. Hosts that overrode `acceptances/show` only for that Alert can delete the override after bumping.
+No schema change. `root_for_signup` falls back when the current root has no live Terms. Agree drops the on-page “Terms updated” Alert; re-accept flashes “We've updated our Terms and Conditions”. Accept screen uses continue-notice + **Continue** (no checkbox); POST writes `continue_notice`. Pin FlatPack `>= 0.1.195` and rebuild Tailwind. Hosts that overrode `acceptances/show` only for the old Alert or checkbox can delete the override after bumping.
 
 ## Upgrade from 0.6.1 to 0.6.2
 

@@ -21,7 +21,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     switch_to_workspace(@workspace)
   end
 
-  test "clickwrap shows live terms with a pre-checked required checkbox" do
+  test "accept screen shows live terms with continue notice and Continue" do
     get recording_studio_terms_and_conditions.acceptance_path
 
     assert_response :success
@@ -30,21 +30,21 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     refute_select "a", text: "Sign out"
     assert_includes response.body, "Studio Terms"
     assert_includes response.body, "Be kind"
-    assert_includes response.body, "I agree to these terms"
+    assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
+    assert_includes response.body, "Terms &amp; Conditions"
+    refute_includes response.body, "I agree to these terms"
+    assert_select "input[type=checkbox][name=agreed]", count: 0
     assert_includes response.body, "fp-content"
     published_on = @recording.current_publishable.publish_at.in_time_zone.strftime("%e %b %Y").squish
     assert_includes response.body, published_on
     refute_includes response.body, "ago"
     refute_includes response.body, "Read the full terms"
-    assert_select "div.my-3"
-    assert_select "input[type=checkbox][name=agreed][required]"
-    assert_select "input[type=checkbox][name=agreed][checked]", count: 1
-    assert_includes response.body, "Agree"
+    assert_select "button[type=submit]", text: "Continue"
+    refute_includes response.body, "Agree again"
+    assert_select "button[type=submit]", text: "Agree", count: 0
     assert_select "[data-controller='recording-studio-terms-and-conditions--scroll-to-end']", count: 0
     assert_select "[data-recording-studio-terms-and-conditions--scroll-to-end-target='end']", count: 0
     assert_select "[data-recording-studio-terms-and-conditions--scroll-to-end-target='agree']", count: 0
-    assert_select "button[type=submit][disabled]", text: "Agree", count: 0
-    assert_select "button[type=submit]", text: "Agree"
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
     assert_select "nav[aria-label='Page navigation']", count: 0
     assert_select "[data-controller='flat-pack--collapse']", count: 1
@@ -55,11 +55,10 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Tick the box if you agree."
     refute_includes response.body, "Terms updated"
     refute_includes CGI.unescapeHTML(response.body), "These terms changed. Agree again to stay in."
-    refute_includes response.body, "Agree again"
   end
 
-  test "re-gate after a new live version shows the updated notice and date" do
-    RecordingStudioTermsAndConditions.accept!(@user, @recording, { "source" => "clickwrap" })
+  test "re-gate after a new live version shows the flash date and Continue" do
+    RecordingStudioTermsAndConditions.accept!(@user, @recording, { "source" => "continue_notice" })
     revised = @root.revise(@recording) do |terms|
       terms.body = "Be kinder."
     end
@@ -75,24 +74,16 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, published_on
     refute_includes CGI.unescapeHTML(response.body), "You already agreed. This version is from #{published_on}."
     refute_includes response.body, "What changed"
-    assert_select "button[type=submit]", text: "Agree again"
-    assert_select "div.my-3"
+    assert_select "button[type=submit]", text: "Continue"
+    assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
+    assert_select "input[type=checkbox][name=agreed]", count: 0
+    refute_includes response.body, "Agree again"
     refute_includes CGI.unescapeHTML(response.body), "The live version for this workspace."
     refute_includes CGI.unescapeHTML(response.body), "These terms changed. Agree again to stay in."
   end
 
-  test "agree stays gated on the server when the box is not ticked" do
-    assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
-      post recording_studio_terms_and_conditions.acceptance_path, params: { agreed: "0" }
-    end
-
-    assert_response :unprocessable_entity
-    assert_includes response.body, "Tick the box if you agree."
-    refute RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
-  end
-
-  test "ticking agree records a clickwrap receipt" do
-    post recording_studio_terms_and_conditions.acceptance_path, params: { agreed: "1" }
+  test "continue records a continue_notice receipt" do
+    post recording_studio_terms_and_conditions.acceptance_path
 
     assert_redirected_to "/"
     follow_redirect!
@@ -101,17 +92,17 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
     receipt = RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last
     assert_equal RecordingStudioTermsAndConditions::BodyDigest.call("Be kind. Don't be a jerk."), receipt.body_digest
-    assert_equal({ "source" => "clickwrap" }, receipt.provenance)
+    assert_equal({ "source" => "continue_notice" }, receipt.provenance)
     refute receipt.provenance.key?("ip")
     refute receipt.provenance.key?("user_agent")
   end
 
-  test "double agree for the same live snapshot does not insert a second receipt" do
-    post recording_studio_terms_and_conditions.acceptance_path, params: { agreed: "1" }
+  test "double continue for the same live snapshot does not insert a second receipt" do
+    post recording_studio_terms_and_conditions.acceptance_path
     receipt = RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last
 
     assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
-      post recording_studio_terms_and_conditions.acceptance_path, params: { agreed: "1" }
+      post recording_studio_terms_and_conditions.acceptance_path
     end
 
     assert_redirected_to "/"
@@ -123,11 +114,10 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     RecordingStudioTermsAndConditions.configuration.capture_request_provenance = true
 
     post recording_studio_terms_and_conditions.acceptance_path,
-         params: { agreed: "1" },
          headers: { "User-Agent" => "TermsTest/1.0" }
 
     receipt = RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last
-    assert_equal "clickwrap", receipt.provenance.fetch("source")
+    assert_equal "continue_notice", receipt.provenance.fetch("source")
     assert receipt.provenance["ip"].present?
     assert_equal "TermsTest/1.0", receipt.provenance.fetch("user_agent")
   ensure
@@ -143,9 +133,9 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     assert_select "[data-controller='recording-studio-terms-and-conditions--scroll-to-end']", count: 0
     assert_select "[data-recording-studio-terms-and-conditions--scroll-to-end-target='end']", count: 0
     assert_select "[data-recording-studio-terms-and-conditions--scroll-to-end-target='agree']", count: 0
-    assert_select "button[type=submit][disabled]", text: "Agree", count: 0
-    assert_select "button[type=submit]", text: "Agree"
-    assert_select "input[type=checkbox][name=agreed][required]"
+    assert_select "button[type=submit][disabled]", text: "Continue", count: 0
+    assert_select "button[type=submit]", text: "Continue"
+    assert_select "input[type=checkbox][name=agreed]", count: 0
   ensure
     RecordingStudioTermsAndConditions.configuration.require_scroll_to_end = false
   end
@@ -160,25 +150,25 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Nothing to agree to yet"
   end
 
-  test "agreeing when the workspace only has a draft does not write a receipt" do
+  test "continuing when the workspace only has a draft does not write a receipt" do
     draft_workspace = Workspace.create!(name: "Draft #{SecureRandom.hex(4)}")
     draft_root = RecordingStudio.root_recording_for(draft_workspace)
     record_terms(draft_root, title: "Draft terms", body: "Not live.")
     switch_to_workspace(draft_workspace)
 
     assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
-      post recording_studio_terms_and_conditions.acceptance_path, params: { agreed: "1" }
+      post recording_studio_terms_and_conditions.acceptance_path
     end
 
     assert_response :unprocessable_entity
     assert_includes response.body, "There are no live terms to agree to."
   end
 
-  test "agreeing to a non-live version does not write a receipt" do
+  test "continuing a non-live version does not write a receipt" do
     draft = record_terms(@root, title: "Stale draft", body: "Skip me.")
     force_current_published_for(draft.recordable) do
       assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
-        post recording_studio_terms_and_conditions.acceptance_path, params: { agreed: "1" }
+        post recording_studio_terms_and_conditions.acceptance_path
       end
     end
 

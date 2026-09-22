@@ -13,7 +13,7 @@ This Rails app exists to validate the Recording Studio Terms and Conditions addo
 - Dummy-only `/docs/*` pages for gem-specific onboarding
 - Acceptance gate: a workspace with live published Terms sends signed-in people to Agree until they accept
 - Create-password signup shows the continue-notice in the Users extra_fields slot when live Terms are pending; submitting the form writes a `continue_notice` receipt
-- Dummy does **not** turn on `require_scroll_to_end`. The gem Agree screen never gates on scroll. The checkbox is the yes.
+- Dummy does **not** turn on `require_scroll_to_end`. The gem Accept screen uses continue-notice + **Continue** (no checkbox).
 - Dummy sets `config.app_name = "Terms Dummy"`
 - Dummy `/agree_helper` posts the checkbox path (`clickwrap`) and the continue-notice path. Either one writes a receipt and clears the gate.
 - Hosts install with `recording_studio_terms_and_conditions:install` (mount, migrations, initializer, importmap pin)

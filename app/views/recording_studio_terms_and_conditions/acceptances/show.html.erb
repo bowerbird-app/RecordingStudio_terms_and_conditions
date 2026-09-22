@@ -23,15 +23,14 @@
 
     <% unless @already_accepted %>
       <%= form_with url: acceptance_path, method: :post do %>
-        <%= recording_studio_terms_agree(
-          inside_form: true,
+        <%= recording_studio_terms_continue_notice(
           actor: current_user,
           root: @root,
           pending: @pending_terms
         ) %>
         <%= recording_studio_terms_agree_button(
           require_scroll_to_end: false,
-          text: @reaccepting ? "Agree again" : "Agree"
+          text: "Continue"
         ) %>
       <% end %>
     <% end %>

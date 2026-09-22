@@ -110,7 +110,7 @@ Bump to **0.5.0** and pin Publishable `v0.3.1`. No Terms schema change. Term sho
 
 ## Upgrading from 0.6.2
 
-Bump to **0.6.3**. No schema change. Signup continue-notice uses `root_for_signup` fallback when the current workspace has no live Terms. Agree no longer shows an on-page “Terms updated” Alert; re-accept flashes “We've updated our Terms and Conditions” (button stays **Agree again**). Pin FlatPack `>= 0.1.195` and rebuild Tailwind. Hosts that overrode `acceptances/show` only for that Alert can drop the override.
+Bump to **0.6.3**. No schema change. Signup continue-notice uses `root_for_signup` fallback when the current workspace has no live Terms. Agree no longer shows an on-page “Terms updated” Alert; re-accept flashes “We've updated our Terms and Conditions”. Accept screen uses continue-notice + **Continue** (no checkbox). Pin FlatPack `>= 0.1.195` and rebuild Tailwind. Hosts that overrode `acceptances/show` only for the old Alert or checkbox can drop the override.
 
 ## Upgrading from 0.6.1
 
@@ -146,7 +146,7 @@ The dummy host follows Recording Studio's root recording pattern:
 - The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends `UsersAuthRedirect` on Users Auth. Both reuse `pending_published_list` / `requires_acceptance?` and the mounted Agree screen. Auth, Agree, Admin, public Terms, and root switch stay reachable so people can sign in, accept, publish, or switch workspace.
 - With Users `>= 0.12.1`, the gem fills the create-password `extra_fields` slot with `recording_studio_terms_continue_notice` and accepts pending live Terms on that POST (`source` `continue_notice`). Continuing the form is the agreement. `root_for_signup` falls back to another root when the current workspace has no live Terms. `NotLive` does not fail signup.
 - Hosts can render `recording_studio_terms_agree` or `recording_studio_terms_agree(inside_form: true)` inside signup or similar. The helper is the `required` `agreed` checkbox only. On the host POST, call `accept!` for the pending live version — do not invent a second receipt.
-- Agree has no on-page re-accept Alert. A new live version still flashes “We've updated our Terms and Conditions” and shows **Agree again**.
+- Agree has no on-page re-accept Alert. A new live version still flashes “We've updated our Terms and Conditions”. The Accept screen uses continue-notice and **Continue**.
 - Hosts can also render `recording_studio_terms_continue_notice`. Default is xs and muted. Pass `size: :sm` for `text-sm`. The link opens a Flatpack Modal with the standalone terms view (same document as the public show). On that POST, call `accept!` with `{ "source" => "continue_notice" }`.
 - The gem Agree screen does not apply scroll-to-end. Hosts that still want a scroll gate wrap their own copy with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` and `recording_studio_terms_agree_button(require_scroll_to_end: true)`, and pin the engine Stimulus controller in the host importmap. The checkbox stays required either way. Missing IntersectionObserver leaves Agree enabled.
 - Product configuration is `mount_path`, `app_name`, `require_scroll_to_end`, and `capture_request_provenance` (IP/UA on gem UI accepts, default off). There is no API key. `app_name` is optional. A blank value uses Site Settings `name_for` when that gem is loaded.

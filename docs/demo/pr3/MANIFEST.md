@@ -7,7 +7,8 @@ Captured 2026-09-15 from the PR branch dummy at `http://127.0.0.1:3000` (Flatpac
 | `agree_before_scroll.png` | Agree screen, dummy `require_scroll_to_end` on. Top of live Studio Terms; Agree is below the fold. |
 | `agree_after_scroll.png` | Same screen after the end sentinel is scrolled into view. Agree is enabled (dark primary). Checkbox still required. |
 | `agree_ticked.png` | End of clickwrap: box ticked, Agree enabled. Scroll-to-end does not imply reading. |
-| `agree_regate.png` | Re-gate Agree after an older snapshot was accepted and a new live version published. No on-page “Terms updated” Alert. Calendar date subtitle, **Agree again**, flash “We've updated our Terms and Conditions”. First-time Agree has no flash. |
+| `agree_regate.png` | Re-gate Accept after an older snapshot was accepted and a new live version published. No on-page “Terms updated” Alert. Continue-notice + **Continue**, calendar date subtitle, flash “We've updated our Terms and Conditions”. First-time Accept has no flash. |
+
 
 
 | `dummy_config.png` | Dummy `/docs/config` (A6): product knobs `mount_path`, `require_scroll_to_end`, `capture_request_provenance`. No template `api_key` / `enable_feature_x` / `timeout`. |
