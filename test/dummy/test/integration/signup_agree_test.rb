@@ -71,6 +71,41 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "create-password falls back to a live-terms root when the current root has none" do
+    empty = Workspace.create!(name: "Empty signup #{SecureRandom.hex(4)}")
+    RecordingStudio.root_recording_for(empty)
+    ensure_live_terms!
+    live = RecordingStudioTermsAndConditions.current_published_for(@workspace)
+    assert live
+
+    email = "signup-fallback-#{SecureRandom.hex(4)}@example.com"
+
+    RecordingStudioTermsAndConditions::Gate.stub(:root_for, empty) do
+      post "/users/sign_up", params: { user: { email: email } }
+      assert_redirected_to "/users/sign_up/password"
+      follow_redirect!
+
+      assert_response :success
+      assert_select "input#user_password[type=password]"
+      assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
+      assert_includes response.body, live.title
+
+      assert_difference -> { RecordingStudioTermsAndConditions::Acceptance.count }, +1 do
+        post "/users/sign_up/password", params: {
+          user: { email: email, password: "Password" }
+        }
+      end
+    end
+
+    user = User.find_by!(email: email)
+    assert RecordingStudioTermsAndConditions.accepted?(user, @workspace)
+    refute RecordingStudioTermsAndConditions.current_published_for(empty)
+    receipt = RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last
+    assert_equal({ "source" => "continue_notice" }, receipt.provenance)
+    assert_equal user.id, receipt.actor_id
+    assert_equal live.id, receipt.terms_id
+  end
+
   private
 
   def ensure_live_terms!

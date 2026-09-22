@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.3] - 2026-09-22
+
+### Changed
+- `Gate.root_for_signup` treats a current root with no live Terms as empty and falls back to `first_root_with_live_terms`. Unsigned create-password still shows the continue notice when any root has live Terms. Signed-in `root_for` / `pending_for` / `required?` are unchanged — post-auth Agree still uses the workspace you are in.
+- Agree no longer shows the on-page “Terms updated” Flatpack Alert or the “You already agreed…” paragraph. Re-accept keeps the flash “Terms changed. Agree again.”, the calendar date subtitle, and **Agree again**. Checkbox spacing uses `pt-2` instead of `py-5`.
+
+### Upgrade notes (0.6.2 → 0.6.3)
+- No schema change. Hosts that overrode `acceptances/show` can delete the override after bumping if they only kept the old re-accept Alert.
+- Signup continue-notice follows `root_for_signup` fallback. Leave `ForcesAcceptance` and `UsersAuthRedirect` on the current root.
+
 ## [0.6.2] - 2026-09-22
 
 ### Changed

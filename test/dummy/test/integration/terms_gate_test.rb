@@ -73,7 +73,7 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
     follow_redirect!
     assert_includes CGI.unescapeHTML(response.body), "Terms changed. Agree again."
-    assert_includes response.body, "Terms updated"
+    refute_includes response.body, "Terms updated"
     refute RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
     assert RecordingStudioTermsAndConditions.reaccepting?(@user, @workspace)
   end

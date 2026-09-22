@@ -108,6 +108,10 @@ Bump to **0.4.1**. No schema change. The Admin Terms hub no longer shows Accessi
 
 Bump to **0.5.0** and pin Publishable `v0.3.1`. No Terms schema change. Term show uses the Publishable status dropdown instead of a **Publish** button to the old edit form. Preview is its own route. Saving live Terms forks a draft; the public copy stays until you publish. Full notes: `CHANGELOG.md` (0.5.0).
 
+## Upgrading from 0.6.2
+
+Bump to **0.6.3**. No schema change. Signup continue-notice uses `root_for_signup` fallback when the current workspace has no live Terms. Agree no longer shows an on-page “Terms updated” Alert; re-accept still flashes “Terms changed. Agree again.” Hosts that overrode `acceptances/show` only for that Alert can drop the override.
+
 ## Upgrading from 0.6.1
 
 Bump to **0.6.2**. No schema change. The gem Agree screen no longer applies scroll-to-end. Dummy leaves `require_scroll_to_end` off. The checkbox is still required. Hosts that still want a scroll gate wrap their own copy with the helper. First-time gate no longer flashes “One more thing — agree to the terms.” Successful Agree no longer flashes “You're in. Thanks for reading.”
@@ -140,8 +144,9 @@ The dummy host follows Recording Studio's root recording pattern:
   ```
   Live means Publishable `currently_published?` (scheduled-in-the-future is not current). `accept!` raises `RecordingStudioTermsAndConditions::NotLive` for drafts and unpublished versions and does not write a receipt. `indexable` is SEO and is not used for clickwrap. Retrying `accept!` for the same actor and snapshot returns the existing receipt. Saving live Terms forks a draft; people who already agreed stay agreed until that draft is published. A new published version still needs a new tick. The “You already agreed” Alert shows when Agree lists live Terms the person has not accepted yet and they already have a receipt for an older Terms version in that workspace. First-time Agree never shows it.
 - The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends `UsersAuthRedirect` on Users Auth. Both reuse `pending_published_list` / `requires_acceptance?` and the mounted Agree screen. Auth, Agree, Admin, public Terms, and root switch stay reachable so people can sign in, accept, publish, or switch workspace.
-- With Users `>= 0.12.1`, the gem fills the create-password `extra_fields` slot with `recording_studio_terms_continue_notice` and accepts pending live Terms on that POST (`source` `continue_notice`). Continuing the form is the agreement. `NotLive` does not fail signup.
+- With Users `>= 0.12.1`, the gem fills the create-password `extra_fields` slot with `recording_studio_terms_continue_notice` and accepts pending live Terms on that POST (`source` `continue_notice`). Continuing the form is the agreement. `root_for_signup` falls back to another root when the current workspace has no live Terms. `NotLive` does not fail signup.
 - Hosts can render `recording_studio_terms_agree` or `recording_studio_terms_agree(inside_form: true)` inside signup or similar. The helper is the `required` `agreed` checkbox only. On the host POST, call `accept!` for the pending live version — do not invent a second receipt.
+- Agree has no on-page re-accept Alert. A new live version still flashes “Terms changed. Agree again.” and shows **Agree again**.
 - Hosts can also render `recording_studio_terms_continue_notice`. Default is xs and muted. Pass `size: :sm` for `text-sm`. The link opens a Flatpack Modal with the standalone terms view (same document as the public show). On that POST, call `accept!` with `{ "source" => "continue_notice" }`.
 - The gem Agree screen does not apply scroll-to-end. Hosts that still want a scroll gate wrap their own copy with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` and `recording_studio_terms_agree_button(require_scroll_to_end: true)`, and pin the engine Stimulus controller in the host importmap. The checkbox stays required either way. Missing IntersectionObserver leaves Agree enabled.
 - Product configuration is `mount_path`, `app_name`, `require_scroll_to_end`, and `capture_request_provenance` (IP/UA on gem UI accepts, default off). There is no API key. `app_name` is optional. A blank value uses Site Settings `name_for` when that gem is loaded.
