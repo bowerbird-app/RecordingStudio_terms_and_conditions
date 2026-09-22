@@ -49,5 +49,8 @@ test/dummy/config/credentials/*.key
 *.gem
 pkg/
 
+# SimpleCov
+coverage/
+
 # Rename script state
 .rename_state.yml

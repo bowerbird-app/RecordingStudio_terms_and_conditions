@@ -109,7 +109,7 @@ class GateTest < Minitest::Test
       :recording
     end
 
-    RecordingStudioTermsAndConditions.stub(:current_published_for, ->(*) { nil }) do
+    RecordingStudioTermsAndConditions.stub(:current_published_for, ->(*) {}) do
       RecordingStudioTermsAndConditions.stub(:pending_published_list, ->(*) { [] }) do
         RecordingStudioTermsAndConditions::Gate.stub(:first_root_with_live_terms, :live_workspace) do
           assert_equal :live_workspace, RecordingStudioTermsAndConditions::Gate.root_for_signup(both)
@@ -124,7 +124,7 @@ class GateTest < Minitest::Test
       :empty_workspace
     end
 
-    RecordingStudioTermsAndConditions.stub(:current_published_for, ->(*) { nil }) do
+    RecordingStudioTermsAndConditions.stub(:current_published_for, ->(*) {}) do
       RecordingStudioTermsAndConditions.stub(:pending_published_list, ->(*) { [] }) do
         RecordingStudioTermsAndConditions::Gate.stub(:first_root_with_live_terms, nil) do
           assert_equal :empty_workspace, RecordingStudioTermsAndConditions::Gate.root_for_signup(both)
