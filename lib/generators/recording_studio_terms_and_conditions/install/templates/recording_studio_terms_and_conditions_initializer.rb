@@ -9,8 +9,9 @@ RecordingStudioTermsAndConditions.configure do |config|
   # config.app_name = "Your app"
 
   # Optional. When true, Agree stays disabled until the live copy is scrolled to the end.
-  # The required checkbox still applies. Hosts can also pass require_scroll_to_end: true
-  # to recording_studio_terms_scroll_to_end / recording_studio_terms_agree_button.
+  # A sentinel inside a closed collapse does not lock Agree. The required checkbox still
+  # applies. Hosts can also pass require_scroll_to_end: true to
+  # recording_studio_terms_scroll_to_end / recording_studio_terms_agree_button.
   # Missing IntersectionObserver leaves Agree enabled so keyboard users are not stuck.
   # config.require_scroll_to_end = false
 

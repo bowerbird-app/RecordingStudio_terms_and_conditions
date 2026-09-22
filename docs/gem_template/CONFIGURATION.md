@@ -1,6 +1,6 @@
 > **Architecture Documentation**
 > *   **Canonical Source:** [bowerbird-app/gem_template](https://github.com/bowerbird-app/gem_template/tree/main/docs/gem_template)
-> *   **Last Updated:** September 21, 2026
+> *   **Last Updated:** September 22, 2026
 >
 > *Maintainers: Please update the date above when modifying this file.*
 
@@ -36,7 +36,7 @@ This addon does not ship template knobs (`api_key`, `enable_feature_x`, `timeout
 |-------------------------------|---------|----------------------------------------------|-------------|
 | `mount_path`                  | String  | `/recording_studio_terms_and_conditions`     | Engine mount used by Agree and admin path helpers. |
 | `app_name`                    | String  | `""`                                         | Product name. When blank, uses `RecordingStudioSiteSettings.name_for` if that method exists. Site Settings is not required. |
-| `require_scroll_to_end`       | Boolean | `false`                                      | When true, Agree starts disabled until the live copy sentinel is visible. Missing `IntersectionObserver` leaves Agree enabled. The checkbox is still required. |
+| `require_scroll_to_end`       | Boolean | `false`                                      | When true, JS disables Agree until the live copy sentinel is visible. A sentinel inside a closed collapse does not lock Agree. Missing `IntersectionObserver` leaves Agree enabled. The checkbox is still required. |
 | `capture_request_provenance`  | Boolean | `false`                                      | When true, the gem Agree screen stores IP and user agent on new receipts. Direct `accept!` callers pass their own provenance. Default stays off. |
 
 ### RecordingStudio Host-App Declarations

@@ -29,10 +29,18 @@ class TermsAgreeHelperTest < ActionView::TestCase
     assert_includes html, "copy"
   end
 
-  test "agree button starts disabled when scroll-to-end is on so JS can unlock" do
+  test "agree button stays enabled in HTML when scroll-to-end is on" do
     html = recording_studio_terms_agree_button(require_scroll_to_end: true)
 
-    assert_includes html, "disabled"
+    refute_includes html, 'disabled="disabled"'
+    refute_match(/<button[^>]*\sdisabled(?:=|>|\s)/, html)
+    assert_includes html, "recording-studio-terms-and-conditions--scroll-to-end-target"
+  end
+
+  test "scroll sentinel has a box so IntersectionObserver can see it" do
+    html = recording_studio_terms_scroll_to_end_sentinel
+
+    assert_includes html, "block h-px w-full"
     assert_includes html, "recording-studio-terms-and-conditions--scroll-to-end-target"
   end
 

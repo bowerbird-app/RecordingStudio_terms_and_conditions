@@ -7,8 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-- Root and dummy Gemfiles pin `recording_studio_user` at GitHub tag `v0.12.1`.
+## [0.6.2] - 2026-09-22
+
+### Fixed
+- Optional scroll-to-end no longer leaves Agree disabled on the clickwrap screen. Live copy sits in a closed Flatpack Collapse, so the end sentinel is `[hidden]` and cannot be observed. Agree stays enabled until the copy is open and the sentinel can actually be scrolled into view. The button is no longer `disabled` in the HTML; JS locks it only when the gate can run. The sentinel is a 1px block so IntersectionObserver can see it.
+
+### Upgrade notes (0.6.1 → 0.6.2)
+- No schema change. Hosts with `require_scroll_to_end` get a clickable Agree while Terms stay collapsed. Opening the copy still gates Agree until the end is visible. Rebuild or refresh the importmap pin for `recording_studio_terms_and_conditions/controllers` so the Stimulus controller updates.
 
 ## [0.6.1] - 2026-09-21
 
@@ -248,7 +253,8 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.6.1...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.6.2...HEAD
+[0.6.2]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.6.2
 [0.6.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.6.1
 [0.6.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.6.0
 [0.5.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.5.0

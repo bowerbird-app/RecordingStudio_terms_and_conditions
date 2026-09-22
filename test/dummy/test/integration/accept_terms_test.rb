@@ -42,7 +42,9 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Agree"
     assert_select "[data-controller='recording-studio-terms-and-conditions--scroll-to-end']", count: 1
     assert_select "[data-recording-studio-terms-and-conditions--scroll-to-end-target='end']", count: 1
-    assert_select "button[type=submit][disabled]", text: "Agree"
+    assert_select "[data-recording-studio-terms-and-conditions--scroll-to-end-target='agree']", count: 1
+    assert_select "button[type=submit][disabled]", text: "Agree", count: 0
+    assert_select "button[type=submit]", text: "Agree"
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
     assert_select "nav[aria-label='Page navigation']", count: 0
     assert_select "[data-controller='flat-pack--collapse']", count: 1
