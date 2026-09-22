@@ -32,7 +32,7 @@ class TermsAgreeHelperTest < ActionView::TestCase
   test "agree button stays enabled in HTML when scroll-to-end is on" do
     html = recording_studio_terms_agree_button(require_scroll_to_end: true)
 
-    refute_includes html, 'disabled="disabled"'
+    refute_includes html, "disabled=\"disabled\""
     refute_match(/<button[^>]*\sdisabled(?:=|>|\s)/, html)
     assert_includes html, "recording-studio-terms-and-conditions--scroll-to-end-target"
   end

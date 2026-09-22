@@ -36,7 +36,9 @@ module RecordingStudioTermsAndConditions
       scroll = recording_studio_terms_require_scroll_to_end?(require_scroll_to_end: require_scroll_to_end)
       arguments = { text: text, style: :primary, type: "submit" }
       if scroll
-        arguments[:data] = { recording_studio_terms_and_conditions__scroll_to_end_target: "agree" }
+        arguments[:data] = {
+          recording_studio_terms_and_conditions__scroll_to_end_target: "agree"
+        }
       end
 
       render(FlatPack::Button::Component.new(**arguments))

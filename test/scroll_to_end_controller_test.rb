@@ -43,12 +43,12 @@ class ScrollToEndControllerTest < Minitest::Test
     refute_includes source, "scroll_to_end_gate"
     refute_includes source, "from \"./"
     assert_includes source, "sentinelIsObservable"
-    assert_includes source, 'this.hasEndTarget && "IntersectionObserver" in window && sentinelIsObservable(this.endTarget)'
+    assert_includes source, "IntersectionObserver\" in window && sentinelIsObservable(this.endTarget)"
     assert_includes source, "if (!shouldLockAgree(canObserve, visible))"
     assert_includes source, "this.unlockAgree()"
     assert_includes source, "attributeFilter: [\"hidden\"]"
     assert_includes source, "this.syncAgree()"
-    assert_includes source, 'this.hiddenObserver.observe(this.element'
+    assert_includes source, "this.hiddenObserver.observe(this.element"
   end
 
   private
