@@ -3,6 +3,8 @@
 module RecordingStudioTermsAndConditions
   # Optional clickwrap gate: Agree stays disabled until the end sentinel is visible.
   # Hosts opt in with `config.require_scroll_to_end` or a helper keyword.
+  # A closed collapse hides the sentinel, so Agree stays enabled until the copy can be
+  # scrolled. Missing IntersectionObserver leaves Agree enabled.
   module ScrollToEndHelper
     SCROLL_TO_END_CONTROLLER = "recording-studio-terms-and-conditions--scroll-to-end"
 
@@ -25,6 +27,7 @@ module RecordingStudioTermsAndConditions
       tag.span(
         "",
         "aria-hidden": true,
+        class: "block h-px w-full",
         data: { recording_studio_terms_and_conditions__scroll_to_end_target: "end" }
       )
     end
@@ -33,8 +36,9 @@ module RecordingStudioTermsAndConditions
       scroll = recording_studio_terms_require_scroll_to_end?(require_scroll_to_end: require_scroll_to_end)
       arguments = { text: text, style: :primary, type: "submit" }
       if scroll
-        arguments[:disabled] = true
-        arguments[:data] = { recording_studio_terms_and_conditions__scroll_to_end_target: "agree" }
+        arguments[:data] = {
+          recording_studio_terms_and_conditions__scroll_to_end_target: "agree"
+        }
       end
 
       render(FlatPack::Button::Component.new(**arguments))

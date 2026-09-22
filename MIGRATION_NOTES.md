@@ -18,6 +18,10 @@ Then:
 
 The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
 
+## Upgrade from 0.6.1 to 0.6.2
+
+No schema change. The gem Agree screen no longer applies `require_scroll_to_end`. Dummy leaves it off. Hosts that still want a scroll gate wrap their own live copy with `recording_studio_terms_scroll_to_end` and `recording_studio_terms_agree_button`. First-time redirects to Agree no longer flash “One more thing — agree to the terms.” Successful Agree no longer flashes “You're in. Thanks for reading.”
+
 ## Upgrade from 0.6.0 to 0.6.1
 
 No schema change. Pin `recording_studio_user` `>= 0.12.1`. Signup extra_fields is the continue-notice helper. A successful create-password writes `{ "source" => "continue_notice" }`. Keep `ForcesAcceptance` and `UsersAuthRedirect`. Continue-notice is xs and muted by default; pass `size: :sm` for the larger size. The Terms link opens a modal with the standalone terms document.

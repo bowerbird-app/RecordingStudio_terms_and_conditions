@@ -21,29 +21,25 @@
     description: "Someone still needs to publish terms for this workspace."
   ) %>
 <% else %>
-  <% require_scroll_to_end = recording_studio_terms_require_scroll_to_end? %>
-  <%= recording_studio_terms_scroll_to_end(require_scroll_to_end: require_scroll_to_end) do %>
-    <%= render FlatPack::Collapse::Component.new(
-      id: "agree-terms-body",
-      title: terms_agree_heading(@terms),
-      open: false
-    ) do %>
-      <%= terms_content(@terms.body) %>
-      <%= recording_studio_terms_scroll_to_end_sentinel if require_scroll_to_end %>
-    <% end %>
-    <% unless @already_accepted %>
-      <%= form_with url: acceptance_path, method: :post do %>
-        <%= recording_studio_terms_agree(
-          inside_form: true,
-          actor: current_user,
-          root: @root,
-          pending: @pending_terms
-        ) %>
-        <%= recording_studio_terms_agree_button(
-          require_scroll_to_end: require_scroll_to_end,
-          text: @reaccepting ? "Agree again" : "Agree"
-        ) %>
-      <% end %>
+  <%= render FlatPack::Collapse::Component.new(
+    id: "agree-terms-body",
+    title: terms_agree_heading(@terms),
+    open: false
+  ) do %>
+    <%= terms_content(@terms.body) %>
+  <% end %>
+  <% unless @already_accepted %>
+    <%= form_with url: acceptance_path, method: :post do %>
+      <%= recording_studio_terms_agree(
+        inside_form: true,
+        actor: current_user,
+        root: @root,
+        pending: @pending_terms
+      ) %>
+      <%= recording_studio_terms_agree_button(
+        require_scroll_to_end: false,
+        text: @reaccepting ? "Agree again" : "Agree"
+      ) %>
     <% end %>
   <% end %>
 <% end %>

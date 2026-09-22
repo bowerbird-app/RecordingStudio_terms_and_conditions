@@ -8,10 +8,11 @@ RecordingStudioTermsAndConditions.configure do |config|
   # if that method exists. Site Settings is not required.
   # config.app_name = "Your app"
 
-  # Optional. When true, Agree stays disabled until the live copy is scrolled to the end.
-  # The required checkbox still applies. Hosts can also pass require_scroll_to_end: true
-  # to recording_studio_terms_scroll_to_end / recording_studio_terms_agree_button.
-  # Missing IntersectionObserver leaves Agree enabled so keyboard users are not stuck.
+  # Optional. Host helper only. The gem Agree screen ignores this flag.
+  # When true on a host wrap, Agree stays disabled until the live copy is scrolled
+  # to the end. Pass require_scroll_to_end: true to recording_studio_terms_scroll_to_end
+  # / recording_studio_terms_agree_button. Missing IntersectionObserver leaves Agree
+  # enabled so keyboard users are not stuck.
   # config.require_scroll_to_end = false
 
   # Optional. When true, the gem Agree screen stores IP and user agent in provenance.

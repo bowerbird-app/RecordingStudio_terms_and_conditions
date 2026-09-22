@@ -26,14 +26,29 @@ class ScrollToEndControllerTest < Minitest::Test
     refute gate_js("elementIsInViewport(null, 100)")
   end
 
-  def test_controller_unlocks_when_observer_is_missing_or_sentinel_is_visible
+  def test_hidden_sentinel_is_not_observable
+    hidden = "{ hidden: true, closest: () => null }"
+    nested = "{ hidden: false, closest: (sel) => (sel === '[hidden]' ? {} : null) }"
+    visible = "{ hidden: false, closest: () => null }"
+
+    refute gate_js("sentinelIsObservable(null)")
+    refute gate_js("sentinelIsObservable(#{hidden})")
+    refute gate_js("sentinelIsObservable(#{nested})")
+    assert gate_js("sentinelIsObservable(#{visible})")
+  end
+
+  def test_controller_unlocks_when_observer_is_missing_or_sentinel_is_hidden
     source = File.read(CONTROLLER)
 
     refute_includes source, "scroll_to_end_gate"
     refute_includes source, "from \"./"
-    assert_includes source, 'this.hasEndTarget && "IntersectionObserver" in window'
+    assert_includes source, "sentinelIsObservable"
+    assert_includes source, "IntersectionObserver\" in window && sentinelIsObservable(this.endTarget)"
     assert_includes source, "if (!shouldLockAgree(canObserve, visible))"
     assert_includes source, "this.unlockAgree()"
+    assert_includes source, "attributeFilter: [\"hidden\"]"
+    assert_includes source, "this.syncAgree()"
+    assert_includes source, "this.hiddenObserver.observe(this.element"
   end
 
   private

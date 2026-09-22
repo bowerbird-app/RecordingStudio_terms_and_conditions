@@ -7,7 +7,7 @@ description: Published Terms, clickwrap acceptance, and the host gate for Record
 
 This is the kit gem for **published Terms** and **clickwrap acceptance**. Do not invent a second acceptance table, accept screen, or post-auth redirect.
 
-Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.6.1**.
+Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.6.2**.
 
 ## Need
 
@@ -67,7 +67,7 @@ The checkbox helper is HTML `required`, named `agreed`. Put it in a form. On sub
 
 `recording_studio_terms_continue_notice` is a second helper. Copy uses `config.app_name`. Default is `text-xs` plus muted Flatpack copy (`text-[var(--surface-muted-content-color)]`). `size:` is `:xs` (default) or `:sm`. Unknown sizes use `:xs`. The Terms & Conditions words are a Flatpack Link (primary + underline). They open a Flatpack Modal whose body is the standalone terms document (`published_terms/_document`: PageTitle, date, Flatpack Content). On that host POST, call `accept!` with `{ "source" => "continue_notice" }`. Do not remove the checkbox helper. Dummy `/agree_helper` posts both helpers and then lets home load.
 
-Optional scroll-to-end before Agree (default off):
+The gem Agree screen does not apply scroll-to-end. Hosts that still want a scroll gate wrap their own copy:
 
 ```ruby
 RecordingStudioTermsAndConditions.configure do |config|
@@ -80,6 +80,10 @@ Or wrap a host clickwrap with `recording_studio_terms_scroll_to_end(require_scro
 Set `config.capture_request_provenance = true` only if the gem Agree screen should store IP and user agent (default off). Product config is `mount_path`, `app_name`, `require_scroll_to_end`, and `capture_request_provenance`. There is no API key.
 
 Agree is still the post-auth destination. It has no PageNav. Live copy sits in a closed Flatpack Collapse wrapping Content. The Collapse title is the live Terms heading (`terms_agree_heading`). Re-accept Alert stays above. Checkbox and Agree stay at the bottom.
+
+## Upgrade (0.6.1 → 0.6.2)
+
+No migrations. The gem Agree screen no longer applies scroll-to-end. Dummy leaves `require_scroll_to_end` off. Hosts that still want a scroll gate wrap their own copy with the helper. First-time gate no longer flashes “One more thing — agree to the terms.” Successful Agree no longer flashes “You're in. Thanks for reading.”
 
 ## Upgrade (0.6.0 → 0.6.1)
 

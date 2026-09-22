@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.6.1", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.6.2", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -314,6 +314,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
       "app/javascript/recording_studio_terms_and_conditions/controllers/scroll_to_end_controller.js"
     )
     assert_includes controller_js, "shouldLockAgree"
+    assert_includes controller_js, "sentinelIsObservable"
     assert_includes controller_js, "IntersectionObserver"
     assert_includes helper, "class: \"py-5\""
     assert_includes helper, "with_content(\"terms\")"
@@ -438,8 +439,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     application_js = File.read(File.expand_path("dummy/app/javascript/application.js", __dir__))
     assert_includes application_js, 'import "@hotwired/turbo-rails"'
     accept = engine_source("#{views}/acceptances/show.html.erb")
-    assert_includes accept, "recording_studio_terms_scroll_to_end"
+    refute_includes accept, "recording_studio_terms_scroll_to_end"
     assert_includes accept, "recording_studio_terms_agree_button"
+    assert_includes accept, "require_scroll_to_end: false"
     controller_js = "app/javascript/recording_studio_terms_and_conditions/controllers/scroll_to_end_controller.js"
     assert File.exist?(engine_path(controller_js))
   end
@@ -675,6 +677,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes File.read(skill), "Upgrade (0.4.x → 0.5.0)"
     assert_includes File.read(skill), "Upgrade (0.5.0 → 0.6.0)"
     assert_includes File.read(skill), "Upgrade (0.6.0 → 0.6.1)"
+    assert_includes File.read(skill), "Upgrade (0.6.1 → 0.6.2)"
     extra_fields_source = File.read(File.join(engine_root, extra_fields))
     assert_includes extra_fields_source, "recording_studio_terms_continue_notice"
     refute_includes extra_fields_source, "size: :xs"
@@ -687,8 +690,10 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.6.2]"
     assert_includes changelog, "## [0.6.1]"
     assert_includes changelog, "## [0.6.0]"
+    assert_includes changelog, "Upgrade notes (0.6.1 → 0.6.2)"
     assert_includes changelog, "Upgrade notes (0.6.0 → 0.6.1)"
     assert_includes changelog, '"source" => "continue_notice"'
     assert_includes changelog, "## [0.5.0]"
@@ -705,8 +710,10 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "forks a new draft"
     assert_includes changelog, "Upgrade notes (0.4.0 → 0.4.1)"
     assert_includes changelog, "+ Access"
+    assert_includes notes, "Upgrade from 0.6.1 to 0.6.2"
     assert_includes notes, "Upgrade from 0.6.0 to 0.6.1"
     assert_includes notes, "Upgrade from 0.5.0 to 0.6.0"
+    assert_includes readme, "Upgrading from 0.6.1"
     assert_includes readme, "Upgrading from 0.6.0"
     assert_includes notes, "Upgrade from 0.4.x to 0.5.0"
     assert_includes notes, "Upgrade from 0.4.0 to 0.4.1"

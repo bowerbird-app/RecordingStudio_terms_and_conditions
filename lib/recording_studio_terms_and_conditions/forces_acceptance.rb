@@ -32,11 +32,9 @@ module RecordingStudioTermsAndConditions
 
     def terms_gate_notice
       root = Gate.root_for(self)
-      if RecordingStudioTermsAndConditions.reaccepting?(signed_in_actor, root)
-        "Terms changed. Agree again."
-      else
-        "One more thing — agree to the terms."
-      end
+      return unless RecordingStudioTermsAndConditions.reaccepting?(signed_in_actor, root)
+
+      "Terms changed. Agree again."
     end
 
     def signed_in_actor

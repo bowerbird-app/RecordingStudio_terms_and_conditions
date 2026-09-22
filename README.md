@@ -16,7 +16,7 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, embed
 - **Terms** recordable (`RecordingStudioTermsAndConditions::Terms`, product label `"Terms"`) with Publishable opted in on the type
 - **Acceptance** append-only table for clickwrap receipts (not a recordable). New rows store a SHA-256 body digest of the live copy at accept time
 - **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for`, `pending_published_list` / `pending_published_for`, `accepted?`, `accept!`, `requires_acceptance?`, `reaccepting?`
-- **Agree screen** for the current published Terms (pre-checked checkbox, gated Agree, `accept!`). No PageNav. Live copy sits in a Flatpack Collapse (closed by default) wrapping `FlatPack::Content`. Optional `require_scroll_to_end` keeps Agree disabled until a sentinel after the live body is visible (default off). If IntersectionObserver is missing, Agree stays enabled. The calendar date stays in the heading, not a relative “hours ago”
+- **Agree screen** for the current published Terms (pre-checked checkbox, gated Agree, `accept!`). No PageNav. Live copy sits in a Flatpack Collapse (closed by default) wrapping `FlatPack::Content`. The gem Agree screen does not use `require_scroll_to_end`. The calendar date stays in the heading, not a relative “hours ago”
 - **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`. Pass `link_terms: true` to turn the word terms into a link to the public URL. On submit, call `accept!` for the pending live version
 - **Host helper** `recording_studio_terms_continue_notice` — “By continuing, you agree to [app name]'s Terms & Conditions”. Default size is `:xs` with muted Flatpack copy (`text-[var(--surface-muted-content-color)]`). Pass `size: :sm` for `text-sm`. The Terms & Conditions words are a Flatpack Link (primary + underline). They open a Flatpack Modal whose body is the standalone terms view (title, date, Flatpack Content). On the host POST, call `accept!` with `{ "source" => "continue_notice" }`. Do not replace the checkbox helper
 - **Gate** on the host `ApplicationController`: redirects to Agree until the live version is accepted, and again after a new publish
@@ -108,6 +108,10 @@ Bump to **0.4.1**. No schema change. The Admin Terms hub no longer shows Accessi
 
 Bump to **0.5.0** and pin Publishable `v0.3.1`. No Terms schema change. Term show uses the Publishable status dropdown instead of a **Publish** button to the old edit form. Preview is its own route. Saving live Terms forks a draft; the public copy stays until you publish. Full notes: `CHANGELOG.md` (0.5.0).
 
+## Upgrading from 0.6.1
+
+Bump to **0.6.2**. No schema change. The gem Agree screen no longer applies scroll-to-end. Dummy leaves `require_scroll_to_end` off. The checkbox is still required. Hosts that still want a scroll gate wrap their own copy with the helper. First-time gate no longer flashes “One more thing — agree to the terms.” Successful Agree no longer flashes “You're in. Thanks for reading.”
+
 ## Upgrading from 0.6.0
 
 Bump to **0.6.1** and pin `recording_studio_user` `>= 0.12.1`. No schema change. Create-password shows the continue-notice in Users `extra_fields` when live Terms are pending. Submitting that form writes a `continue_notice` receipt. Leave `ForcesAcceptance` and `UsersAuthRedirect` in place.
@@ -139,7 +143,7 @@ The dummy host follows Recording Studio's root recording pattern:
 - With Users `>= 0.12.1`, the gem fills the create-password `extra_fields` slot with `recording_studio_terms_continue_notice` and accepts pending live Terms on that POST (`source` `continue_notice`). Continuing the form is the agreement. `NotLive` does not fail signup.
 - Hosts can render `recording_studio_terms_agree` or `recording_studio_terms_agree(inside_form: true)` inside signup or similar. The helper is the `required` `agreed` checkbox only. On the host POST, call `accept!` for the pending live version — do not invent a second receipt.
 - Hosts can also render `recording_studio_terms_continue_notice`. Default is xs and muted. Pass `size: :sm` for `text-sm`. The link opens a Flatpack Modal with the standalone terms view (same document as the public show). On that POST, call `accept!` with `{ "source" => "continue_notice" }`.
-- Scroll-to-end before Agree is optional. Set `config.require_scroll_to_end = true`, or wrap the live copy and Agree button with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` and `recording_studio_terms_agree_button(require_scroll_to_end: true)`. Pin the engine Stimulus controller in the host importmap. The checkbox stays required either way. Missing IntersectionObserver leaves Agree enabled. An already-visible sentinel unlocks immediately.
+- The gem Agree screen does not apply scroll-to-end. Hosts that still want a scroll gate wrap their own copy with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` and `recording_studio_terms_agree_button(require_scroll_to_end: true)`, and pin the engine Stimulus controller in the host importmap. The checkbox stays required either way. Missing IntersectionObserver leaves Agree enabled.
 - Product configuration is `mount_path`, `app_name`, `require_scroll_to_end`, and `capture_request_provenance` (IP/UA on gem UI accepts, default off). There is no API key. `app_name` is optional. A blank value uses Site Settings `name_for` when that gem is loaded.
 - Each configured recordable declares `recording_studio_recordable(...)`; strict declaration validation stays enabled
 - A root `RecordingStudio::Recording` wraps the Workspace
