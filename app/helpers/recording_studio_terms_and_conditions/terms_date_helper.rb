@@ -32,11 +32,6 @@ module RecordingStudioTermsAndConditions
       terms_calendar_date(terms_version_time(terms, recording))
     end
 
-    def terms_reaccept_notice(terms, recording: nil)
-      date = terms_calendar_date(terms_version_time(terms, recording))
-      "You already agreed. This version is from #{date}."
-    end
-
     private
 
     def live_terms_updated_at(recording)

@@ -39,7 +39,8 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     follow_redirect!
     refute_includes CGI.unescapeHTML(response.body), "One more thing — agree to the terms."
     refute_includes response.body, "One more thing"
-    assert_includes response.body, "I agree to these terms"
+    assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
+    refute_includes response.body, "I agree to these terms"
   end
 
   test "accepting the live version opens the app again" do
@@ -47,7 +48,7 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     get "/docs/install"
     assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
 
-    post recording_studio_terms_and_conditions.acceptance_path, params: { agreed: "1" }
+    post recording_studio_terms_and_conditions.acceptance_path
 
     assert_redirected_to "/docs/install"
     follow_redirect!
@@ -72,8 +73,8 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     get "/"
     assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
     follow_redirect!
-    assert_includes CGI.unescapeHTML(response.body), "Terms changed. Agree again."
-    assert_includes response.body, "Terms updated"
+    assert_includes CGI.unescapeHTML(response.body), "We've updated our Terms and Conditions"
+    refute_includes response.body, "Terms updated"
     refute RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
     assert RecordingStudioTermsAndConditions.reaccepting?(@user, @workspace)
   end
@@ -93,7 +94,8 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     assert_response :redirect
     follow_redirect!
     follow_redirect! if response.redirect?
-    assert_includes response.body, "I agree to these terms"
+    assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
+    refute_includes response.body, "I agree to these terms"
   end
 
   test "users auth after sign up uses the same clickwrap" do

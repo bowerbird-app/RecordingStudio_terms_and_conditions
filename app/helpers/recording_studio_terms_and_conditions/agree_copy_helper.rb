@@ -6,10 +6,6 @@ module RecordingStudioTermsAndConditions
       terms&.title.presence || "Terms and Conditions"
     end
 
-    def terms_reaccept_alert_title
-      "Terms updated"
-    end
-
     def terms_users_subtitle(_terms = nil)
       "People who ticked the box for these terms."
     end

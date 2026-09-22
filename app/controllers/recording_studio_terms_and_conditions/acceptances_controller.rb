@@ -10,7 +10,6 @@ module RecordingStudioTermsAndConditions
 
     def create
       load_acceptance_context
-      return reject_agreement("Tick the box if you agree.") unless agreed?
       return reject_agreement("There are no live terms to agree to.") if @terms.blank?
 
       accept_current_terms!
@@ -33,14 +32,14 @@ module RecordingStudioTermsAndConditions
     end
 
     def accept_current_terms!
-      RecordingStudioTermsAndConditions.accept!(current_actor, @terms, clickwrap_provenance)
+      RecordingStudioTermsAndConditions.accept!(current_actor, @terms, continue_notice_provenance)
       redirect_to next_path_after_acceptance
     rescue RecordingStudioTermsAndConditions::NotLive
       reject_agreement("Those terms aren't live. Refresh and agree to the current ones.")
     end
 
-    def clickwrap_provenance
-      provenance = { "source" => "clickwrap" }
+    def continue_notice_provenance
+      provenance = { "source" => "continue_notice" }
       return provenance unless RecordingStudioTermsAndConditions.configuration.capture_request_provenance
 
       provenance.merge(
@@ -60,10 +59,6 @@ module RecordingStudioTermsAndConditions
       return current_root_recordable if respond_to?(:current_root_recordable, true) && current_root_recordable
 
       current_root_recording if respond_to?(:current_root_recording, true)
-    end
-
-    def agreed?
-      ActiveModel::Type::Boolean.new.cast(params[:agreed])
     end
 
     def current_actor

@@ -76,17 +76,25 @@ module RecordingStudioTermsAndConditions
     end
 
     def root_for_signup(controller)
-      root_for(controller).presence || first_root_with_live_terms
+      current = root_for(controller)
+      return current if current.present? && live_terms_on?(current)
+
+      first_root_with_live_terms || current
     end
 
     def first_root_with_live_terms
       return unless defined?(RecordingStudio::Recording)
 
       RecordingStudio::Recording.where(parent_recording_id: nil).find_each do |root|
-        return root.recordable if TermsAcceptance.current_published_for(root)
+        return root.recordable if live_terms_on?(root)
       end
 
       nil
+    end
+
+    def live_terms_on?(root)
+      RecordingStudioTermsAndConditions.current_published_for(root).present? ||
+        RecordingStudioTermsAndConditions.pending_published_list(nil, root).any?
     end
   end
 end

@@ -78,7 +78,70 @@ class GateTest < Minitest::Test
 
     assert_equal :workspace, RecordingStudioTermsAndConditions::Gate.root_for(both)
     assert_equal :recording, RecordingStudioTermsAndConditions::Gate.root_for(recording_only)
-    assert_equal :workspace, RecordingStudioTermsAndConditions::Gate.root_for_signup(both)
+  end
+
+  def test_root_for_signup_stays_on_current_when_it_has_live_terms
+    both = Object.new
+    def both.current_root_recordable
+      :workspace
+    end
+
+    def both.current_root_recording
+      :recording
+    end
+
+    RecordingStudioTermsAndConditions.stub(:current_published_for, ->(root) { root == :workspace ? :terms : nil }) do
+      RecordingStudioTermsAndConditions.stub(:pending_published_list, ->(*) { [] }) do
+        RecordingStudioTermsAndConditions::Gate.stub(:first_root_with_live_terms, :other) do
+          assert_equal :workspace, RecordingStudioTermsAndConditions::Gate.root_for_signup(both)
+        end
+      end
+    end
+  end
+
+  def test_root_for_signup_falls_back_when_current_has_no_live_terms
+    both = Object.new
+    def both.current_root_recordable
+      :empty_workspace
+    end
+
+    def both.current_root_recording
+      :recording
+    end
+
+    RecordingStudioTermsAndConditions.stub(:current_published_for, ->(*) {}) do
+      RecordingStudioTermsAndConditions.stub(:pending_published_list, ->(*) { [] }) do
+        RecordingStudioTermsAndConditions::Gate.stub(:first_root_with_live_terms, :live_workspace) do
+          assert_equal :live_workspace, RecordingStudioTermsAndConditions::Gate.root_for_signup(both)
+        end
+      end
+    end
+  end
+
+  def test_root_for_signup_keeps_empty_current_when_no_root_has_live_terms
+    both = Object.new
+    def both.current_root_recordable
+      :empty_workspace
+    end
+
+    RecordingStudioTermsAndConditions.stub(:current_published_for, ->(*) {}) do
+      RecordingStudioTermsAndConditions.stub(:pending_published_list, ->(*) { [] }) do
+        RecordingStudioTermsAndConditions::Gate.stub(:first_root_with_live_terms, nil) do
+          assert_equal :empty_workspace, RecordingStudioTermsAndConditions::Gate.root_for_signup(both)
+        end
+      end
+    end
+  end
+
+  def test_root_for_signup_uses_first_live_root_when_current_is_blank
+    blank = Object.new
+    def blank.current_root_recordable
+      nil
+    end
+
+    RecordingStudioTermsAndConditions::Gate.stub(:first_root_with_live_terms, :live_workspace) do
+      assert_equal :live_workspace, RecordingStudioTermsAndConditions::Gate.root_for_signup(blank)
+    end
   end
 
   def test_users_auth_redirect_falls_through_when_acceptance_is_not_required

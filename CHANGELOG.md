@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.3] - 2026-09-22
+
+### Changed
+- `Gate.root_for_signup` treats a current root with no live Terms as empty and falls back to `first_root_with_live_terms`. Unsigned create-password still shows the continue notice when any root has live Terms. Signed-in `root_for` / `pending_for` / `required?` are unchanged — post-auth Agree still uses the workspace you are in.
+- Agree no longer shows the on-page “Terms updated” Flatpack Alert or the “You already agreed…” paragraph. Re-accept keeps the flash “We've updated our Terms and Conditions” and the calendar date subtitle. The mounted Accept screen uses `recording_studio_terms_continue_notice` (no checkbox) and a **Continue** button; POST writes `{ "source" => "continue_notice" }`. Continue-notice sits in `mb-6` above Continue on Accept only.
+- Requires FlatPack `>= 0.1.195` (dummy GitHub tag `v0.1.195`) for theme-primary checkboxes. Host checkbox helper spacing uses `my-3`.
+
+### Upgrade notes (0.6.2 → 0.6.3)
+- No schema change. Hosts that overrode `acceptances/show` can delete the override after bumping if they only kept the old re-accept Alert or checkbox.
+- Signup continue-notice follows `root_for_signup` fallback. Leave `ForcesAcceptance` and `UsersAuthRedirect` on the current root.
+- Pin FlatPack `>= 0.1.195` and rebuild host Tailwind. Re-accept flash copy is “We've updated our Terms and Conditions”. Accept screen button is **Continue**; receipts from that POST use `continue_notice`.
+
 ## [0.6.2] - 2026-09-22
 
 ### Changed

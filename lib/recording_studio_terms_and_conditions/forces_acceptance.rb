@@ -34,7 +34,7 @@ module RecordingStudioTermsAndConditions
       root = Gate.root_for(self)
       return unless RecordingStudioTermsAndConditions.reaccepting?(signed_in_actor, root)
 
-      "Terms changed. Agree again."
+      "We've updated our Terms and Conditions"
     end
 
     def signed_in_actor

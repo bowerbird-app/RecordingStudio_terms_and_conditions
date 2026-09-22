@@ -24,7 +24,7 @@ module RecordingStudioTermsAndConditions
     def recording_studio_terms_agree_fields(terms_list, _inside_form, link_terms: false)
       checkbox_id = "agreed_#{SecureRandom.hex(4)}"
 
-      content_tag(:div, class: "py-5") do
+      content_tag(:div, class: "my-3") do
         recording_studio_terms_agree_labeled_box(terms_list, checkbox_id, link_terms)
       end
     end
