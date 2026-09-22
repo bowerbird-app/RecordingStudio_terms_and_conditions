@@ -52,7 +52,8 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     assert_redirected_to "/docs/install"
     follow_redirect!
     assert_response :success
-    assert_includes CGI.unescapeHTML(response.body), "You're in. Thanks for reading."
+    refute_includes CGI.unescapeHTML(response.body), "You're in. Thanks for reading."
+    refute_includes response.body, "You're in"
 
     get "/"
     assert_response :success

@@ -95,7 +95,8 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to "/"
     follow_redirect!
-    assert_includes CGI.unescapeHTML(response.body), "You're in. Thanks for reading."
+    refute_includes CGI.unescapeHTML(response.body), "You're in. Thanks for reading."
+    refute_includes response.body, "You're in"
     assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
     receipt = RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last
     assert_equal RecordingStudioTermsAndConditions::BodyDigest.call("Be kind. Don't be a jerk."), receipt.body_digest

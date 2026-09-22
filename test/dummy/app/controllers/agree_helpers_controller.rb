@@ -18,7 +18,7 @@ class AgreeHelpersController < ApplicationController
     end
 
     RecordingStudioTermsAndConditions.accept!(current_user, terms, { "source" => source })
-    redirect_to root_path, notice: "You're in. Thanks for reading."
+    redirect_to root_path
   end
 
   private

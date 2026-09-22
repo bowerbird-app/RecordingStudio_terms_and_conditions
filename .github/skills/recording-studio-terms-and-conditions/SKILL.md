@@ -83,7 +83,7 @@ Agree is still the post-auth destination. It has no PageNav. Live copy sits in a
 
 ## Upgrade (0.6.1 → 0.6.2)
 
-No migrations. The gem Agree screen no longer applies scroll-to-end. Dummy leaves `require_scroll_to_end` off. Hosts that still want a scroll gate wrap their own copy with the helper. First-time gate no longer flashes “One more thing — agree to the terms.”
+No migrations. The gem Agree screen no longer applies scroll-to-end. Dummy leaves `require_scroll_to_end` off. Hosts that still want a scroll gate wrap their own copy with the helper. First-time gate no longer flashes “One more thing — agree to the terms.” Successful Agree no longer flashes “You're in. Thanks for reading.”
 
 ## Upgrade (0.6.0 → 0.6.1)
 
