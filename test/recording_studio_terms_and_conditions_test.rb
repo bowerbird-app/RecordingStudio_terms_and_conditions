@@ -439,8 +439,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     application_js = File.read(File.expand_path("dummy/app/javascript/application.js", __dir__))
     assert_includes application_js, 'import "@hotwired/turbo-rails"'
     accept = engine_source("#{views}/acceptances/show.html.erb")
-    assert_includes accept, "recording_studio_terms_scroll_to_end"
+    refute_includes accept, "recording_studio_terms_scroll_to_end"
     assert_includes accept, "recording_studio_terms_agree_button"
+    assert_includes accept, "require_scroll_to_end: false"
     controller_js = "app/javascript/recording_studio_terms_and_conditions/controllers/scroll_to_end_controller.js"
     assert File.exist?(engine_path(controller_js))
   end

@@ -13,7 +13,7 @@ class TermsAgreeHelperTest < ActionView::TestCase
     assert recording_studio_terms_require_scroll_to_end?(require_scroll_to_end: true)
     refute recording_studio_terms_require_scroll_to_end?(require_scroll_to_end: false)
   ensure
-    RecordingStudioTermsAndConditions.configuration.require_scroll_to_end = true
+    RecordingStudioTermsAndConditions.configuration.require_scroll_to_end = false
   end
 
   test "scroll wrap is a no-op when the option is off" do

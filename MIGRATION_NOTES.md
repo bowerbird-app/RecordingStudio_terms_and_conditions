@@ -20,7 +20,7 @@ The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` a
 
 ## Upgrade from 0.6.1 to 0.6.2
 
-No schema change. Optional `require_scroll_to_end` leaves Agree enabled while the live copy is in a closed collapse. Opening the copy still gates Agree until the end sentinel is visible. Refresh the importmap pin for `recording_studio_terms_and_conditions/controllers`.
+No schema change. The gem Agree screen no longer applies `require_scroll_to_end`. Dummy leaves it off. Hosts that still want a scroll gate wrap their own live copy with `recording_studio_terms_scroll_to_end` and `recording_studio_terms_agree_button`.
 
 ## Upgrade from 0.6.0 to 0.6.1
 

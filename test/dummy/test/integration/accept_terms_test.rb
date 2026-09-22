@@ -40,9 +40,9 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     assert_select "input[type=checkbox][name=agreed][required]"
     assert_select "input[type=checkbox][name=agreed][checked]", count: 1
     assert_includes response.body, "Agree"
-    assert_select "[data-controller='recording-studio-terms-and-conditions--scroll-to-end']", count: 1
-    assert_select "[data-recording-studio-terms-and-conditions--scroll-to-end-target='end']", count: 1
-    assert_select "[data-recording-studio-terms-and-conditions--scroll-to-end-target='agree']", count: 1
+    assert_select "[data-controller='recording-studio-terms-and-conditions--scroll-to-end']", count: 0
+    assert_select "[data-recording-studio-terms-and-conditions--scroll-to-end-target='end']", count: 0
+    assert_select "[data-recording-studio-terms-and-conditions--scroll-to-end-target='agree']", count: 0
     assert_select "button[type=submit][disabled]", text: "Agree", count: 0
     assert_select "button[type=submit]", text: "Agree"
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
@@ -132,19 +132,20 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     RecordingStudioTermsAndConditions.configuration.capture_request_provenance = false
   end
 
-  test "agree stays enabled when the host leaves scroll-to-end off" do
-    RecordingStudioTermsAndConditions.configuration.require_scroll_to_end = false
+  test "gem Agree screen never applies scroll-to-end" do
+    RecordingStudioTermsAndConditions.configuration.require_scroll_to_end = true
 
     get recording_studio_terms_and_conditions.acceptance_path
 
     assert_response :success
     assert_select "[data-controller='recording-studio-terms-and-conditions--scroll-to-end']", count: 0
     assert_select "[data-recording-studio-terms-and-conditions--scroll-to-end-target='end']", count: 0
+    assert_select "[data-recording-studio-terms-and-conditions--scroll-to-end-target='agree']", count: 0
     assert_select "button[type=submit][disabled]", text: "Agree", count: 0
     assert_select "button[type=submit]", text: "Agree"
     assert_select "input[type=checkbox][name=agreed][required]"
   ensure
-    RecordingStudioTermsAndConditions.configuration.require_scroll_to_end = true
+    RecordingStudioTermsAndConditions.configuration.require_scroll_to_end = false
   end
 
   test "empty state when the current workspace has no live terms" do

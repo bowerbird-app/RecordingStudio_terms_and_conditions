@@ -9,11 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.6.2] - 2026-09-22
 
-### Fixed
-- Optional scroll-to-end no longer leaves Agree disabled on the clickwrap screen. Live copy sits in a closed Flatpack Collapse, so the end sentinel is `[hidden]` and cannot be observed. Agree stays enabled until the copy is open and the sentinel can actually be scrolled into view. The button is no longer `disabled` in the HTML; JS locks it only when the gate can run. The sentinel is a 1px block so IntersectionObserver can see it.
+### Changed
+- The gem Agree screen no longer applies optional scroll-to-end. Dummy leaves `require_scroll_to_end` off. Agree stays clickable; the required checkbox is the yes. Hosts can still wrap their own copy with the scroll helper.
 
 ### Upgrade notes (0.6.1 → 0.6.2)
-- No schema change. Hosts with `require_scroll_to_end` get a clickable Agree while Terms stay collapsed. Opening the copy still gates Agree until the end is visible. Rebuild or refresh the importmap pin for `recording_studio_terms_and_conditions/controllers` so the Stimulus controller updates.
+- No schema change. The mounted Agree screen ignores `config.require_scroll_to_end`. Dummy no longer opts in. Hosts that still want a scroll gate wrap their own live copy with `recording_studio_terms_scroll_to_end` and `recording_studio_terms_agree_button`.
 
 ## [0.6.1] - 2026-09-21
 

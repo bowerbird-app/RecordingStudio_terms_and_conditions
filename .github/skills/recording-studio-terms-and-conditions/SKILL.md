@@ -67,7 +67,7 @@ The checkbox helper is HTML `required`, named `agreed`. Put it in a form. On sub
 
 `recording_studio_terms_continue_notice` is a second helper. Copy uses `config.app_name`. Default is `text-xs` plus muted Flatpack copy (`text-[var(--surface-muted-content-color)]`). `size:` is `:xs` (default) or `:sm`. Unknown sizes use `:xs`. The Terms & Conditions words are a Flatpack Link (primary + underline). They open a Flatpack Modal whose body is the standalone terms document (`published_terms/_document`: PageTitle, date, Flatpack Content). On that host POST, call `accept!` with `{ "source" => "continue_notice" }`. Do not remove the checkbox helper. Dummy `/agree_helper` posts both helpers and then lets home load.
 
-Optional scroll-to-end before Agree (default off):
+The gem Agree screen does not apply scroll-to-end. Hosts that still want a scroll gate wrap their own copy:
 
 ```ruby
 RecordingStudioTermsAndConditions.configure do |config|
@@ -75,7 +75,7 @@ RecordingStudioTermsAndConditions.configure do |config|
 end
 ```
 
-Or wrap a host clickwrap with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` and `recording_studio_terms_agree_button(require_scroll_to_end: true)`. Pin `recording_studio_terms_and_conditions/controllers` in the host importmap. The checkbox is still required. Missing IntersectionObserver leaves Agree enabled. A sentinel inside a closed collapse leaves Agree enabled.
+Or wrap a host clickwrap with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` and `recording_studio_terms_agree_button(require_scroll_to_end: true)`. Pin `recording_studio_terms_and_conditions/controllers` in the host importmap. The checkbox is still required. Missing IntersectionObserver leaves Agree enabled.
 
 Set `config.capture_request_provenance = true` only if the gem Agree screen should store IP and user agent (default off). Product config is `mount_path`, `app_name`, `require_scroll_to_end`, and `capture_request_provenance`. There is no API key.
 
@@ -83,7 +83,7 @@ Agree is still the post-auth destination. It has no PageNav. Live copy sits in a
 
 ## Upgrade (0.6.1 → 0.6.2)
 
-No migrations. Optional scroll-to-end no longer deadlocks Agree while the collapse is closed. Refresh the importmap pin for `recording_studio_terms_and_conditions/controllers`.
+No migrations. The gem Agree screen no longer applies scroll-to-end. Dummy leaves `require_scroll_to_end` off. Hosts that still want a scroll gate wrap their own copy with the helper.
 
 ## Upgrade (0.6.0 → 0.6.1)
 
