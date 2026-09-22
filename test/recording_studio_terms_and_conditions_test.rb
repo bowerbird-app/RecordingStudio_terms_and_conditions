@@ -266,6 +266,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes agree, "FlatPack::Card::Component"
     refute_includes agree, "recording_studio_terms_agree("
     assert_includes agree, "recording_studio_terms_continue_notice"
+    assert_includes agree, "mb-6"
     assert_includes agree, "pending: @pending_terms"
     assert_includes agree, "terms_agree_heading"
     assert_includes agree, "terms_heading_date"
