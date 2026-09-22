@@ -37,7 +37,8 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     get "/"
     assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
     follow_redirect!
-    assert_includes CGI.unescapeHTML(response.body), "One more thing — agree to the terms."
+    refute_includes CGI.unescapeHTML(response.body), "One more thing — agree to the terms."
+    refute_includes response.body, "One more thing"
     assert_includes response.body, "I agree to these terms"
   end
 

@@ -11,9 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - The gem Agree screen no longer applies optional scroll-to-end. Dummy leaves `require_scroll_to_end` off. Agree stays clickable; the required checkbox is the yes. Hosts can still wrap their own copy with the scroll helper.
+- First-time gate no longer flashes “One more thing — agree to the terms.” The Agree screen is the notice. Re-accept still flashes “Terms changed. Agree again.”
 
 ### Upgrade notes (0.6.1 → 0.6.2)
 - No schema change. The mounted Agree screen ignores `config.require_scroll_to_end`. Dummy no longer opts in. Hosts that still want a scroll gate wrap their own live copy with `recording_studio_terms_scroll_to_end` and `recording_studio_terms_agree_button`.
+- First-time redirects to Agree no longer set a flash. A new live version still flashes “Terms changed. Agree again.”
 
 ## [0.6.1] - 2026-09-21
 

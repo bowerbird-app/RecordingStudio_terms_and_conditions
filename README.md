@@ -110,7 +110,7 @@ Bump to **0.5.0** and pin Publishable `v0.3.1`. No Terms schema change. Term sho
 
 ## Upgrading from 0.6.1
 
-Bump to **0.6.2**. No schema change. The gem Agree screen no longer applies scroll-to-end. Dummy leaves `require_scroll_to_end` off. The checkbox is still required. Hosts that still want a scroll gate wrap their own copy with the helper.
+Bump to **0.6.2**. No schema change. The gem Agree screen no longer applies scroll-to-end. Dummy leaves `require_scroll_to_end` off. The checkbox is still required. Hosts that still want a scroll gate wrap their own copy with the helper. First-time gate no longer flashes “One more thing — agree to the terms.”
 
 ## Upgrading from 0.6.0
 
