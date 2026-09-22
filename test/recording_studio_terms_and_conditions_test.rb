@@ -15,7 +15,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     gemspec = File.read(File.expand_path("../recording_studio_terms_and_conditions.gemspec", __dir__))
 
     assert_includes gemspec, 'spec.add_dependency "recording_studio", "~> 4.2"'
-    assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.186"'
+    assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.195"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", "~> 0.8"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_admin", "~> 2.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_publishable", "~> 0.3"'
@@ -60,7 +60,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes gemfile, "0b1d229693041093200420b318154ff07acca33e"
     refute_includes root_gemfile, "0b1d229693041093200420b318154ff07acca33e"
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.5.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.186"'
+    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.195"'
     refute_includes gemfile, "recording_studio/v3.0.0"
     refute_includes gemfile, 'tag: "v0.1.133"'
     refute_includes gemfile, 'tag: "v0.6.0"'
@@ -316,7 +316,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes controller_js, "shouldLockAgree"
     assert_includes controller_js, "sentinelIsObservable"
     assert_includes controller_js, "IntersectionObserver"
-    assert_includes helper, "class: \"pt-2\""
+    assert_includes helper, "class: \"my-3\""
     assert_includes helper, "with_content(\"terms\")"
     refute_includes helper, "Read the full terms"
     refute_includes helper, "form_with"
@@ -519,7 +519,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes readme, "come later"
     assert_includes readme, "#{internals_docs}/"
     assert_includes readme, "v4.2.0"
-    assert_includes readme, "v0.1.186"
+    assert_includes readme, "v0.1.195"
     assert_includes readme, "v0.3.1"
     assert_includes readme, "v0.9.1"
     refute_includes readme, "Internal template"

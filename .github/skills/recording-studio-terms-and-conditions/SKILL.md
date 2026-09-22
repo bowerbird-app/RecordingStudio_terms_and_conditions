@@ -83,7 +83,7 @@ Agree is still the post-auth destination. It has no PageNav. Live copy sits in a
 
 ## Upgrade (0.6.2 → 0.6.3)
 
-No migrations. `root_for_signup` falls back when the current root has no live Terms. Agree drops the on-page “Terms updated” Alert; re-accept still flashes “Terms changed. Agree again.” Hosts that overrode `acceptances/show` only for that Alert can delete the override.
+No migrations. `root_for_signup` falls back when the current root has no live Terms. Agree drops the on-page “Terms updated” Alert; re-accept flashes “We've updated our Terms and Conditions” (button stays **Agree again**). Checkbox uses `my-3`. Pin FlatPack `>= 0.1.195`. Hosts that overrode `acceptances/show` only for that Alert can delete the override.
 
 ## Upgrade (0.6.1 → 0.6.2)
 

@@ -36,7 +36,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, published_on
     refute_includes response.body, "ago"
     refute_includes response.body, "Read the full terms"
-    assert_select "div.pt-2"
+    assert_select "div.my-3"
     assert_select "input[type=checkbox][name=agreed][required]"
     assert_select "input[type=checkbox][name=agreed][checked]", count: 1
     assert_includes response.body, "Agree"
@@ -76,7 +76,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     refute_includes CGI.unescapeHTML(response.body), "You already agreed. This version is from #{published_on}."
     refute_includes response.body, "What changed"
     assert_select "button[type=submit]", text: "Agree again"
-    assert_select "div.pt-2"
+    assert_select "div.my-3"
     refute_includes CGI.unescapeHTML(response.body), "The live version for this workspace."
     refute_includes CGI.unescapeHTML(response.body), "These terms changed. Agree again to stay in."
   end
