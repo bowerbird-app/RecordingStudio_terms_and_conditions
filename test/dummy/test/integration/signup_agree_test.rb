@@ -80,7 +80,7 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
 
     email = "signup-fallback-#{SecureRandom.hex(4)}@example.com"
 
-    RecordingStudioTermsAndConditions::Gate.stub(:root_for, empty) do
+    with_current_root_for_gate(empty) do
       post "/users/sign_up", params: { user: { email: email } }
       assert_redirected_to "/users/sign_up/password"
       follow_redirect!
@@ -133,6 +133,20 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
     mod.class_eval do
       alias_method :pending_published_list, :pending_published_list_without_signup
       remove_method :pending_published_list_without_signup
+    end
+  end
+
+  def with_current_root_for_gate(root)
+    gate = RecordingStudioTermsAndConditions::Gate
+    gate.module_eval do
+      alias_method :root_for_without_signup_fallback, :root_for
+      define_method(:root_for) { |_controller| root }
+    end
+    yield
+  ensure
+    gate.module_eval do
+      alias_method :root_for, :root_for_without_signup_fallback
+      remove_method :root_for_without_signup_fallback
     end
   end
 end
