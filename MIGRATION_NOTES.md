@@ -25,7 +25,7 @@ bin/rails generate recording_studio_terms_and_conditions:migrations
 bin/rails db:migrate
 ```
 
-Adds `kind` on Terms (`terms_and_condition` default, or `privacy_policy`). One lineage per kind per workspace. Admin New is blocked when that kind already exists; edit a live copy to fork the next draft. SoleLive drafts other live rows of the same kind only. Gate pending is 0..2. Accept and host helpers write one receipt per pending live version. Public privacy pages are `/privacy/:uuid/:slug`. Continue-notice and Agree checkbox mention privacy when a privacy document is pending; privacy links open in a new tab.
+Adds `kind` on Terms (`terms_and_condition` default, or `privacy_policy`). One lineage per kind per workspace. Admin New is blocked when that kind already exists; edit a live copy to fork the next draft. SoleLive drafts other live rows of the same kind only. Gate pending is 0..2. Accept and host helpers write one receipt per pending live version. Accept PageTitle and Collapse rows follow the pending kinds. Public privacy pages are `/privacy/:uuid/:slug`. Continue-notice wraps with spacing; pass `link: false` for plain text. Agree checkbox mentions privacy when a privacy document is pending; privacy links open in a new tab.
 
 ## Upgrade from 0.6.5 to 0.6.6
 
