@@ -18,6 +18,10 @@ Then:
 
 The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
 
+## Upgrade from 0.7.1 to 0.7.2
+
+No schema change. Pin `recording_studio_user` `>= 0.12.2` (dummy and root GitHub tag `v0.12.2`). Users auth layout loads `flat_pack/application`, so Sign in and Sign up primary buttons fill.
+
 ## Upgrade from 0.7.0 to 0.7.1
 
 No schema change. `recording_studio_terms_continue_notice` wraps in `mt-3 mb-3` instead of `mt-3 mb-6`. Accept and create-password use that same helper, so the gap above **Continue** and **Sign up** tightens together.

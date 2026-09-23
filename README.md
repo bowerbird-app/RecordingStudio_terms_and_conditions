@@ -108,6 +108,10 @@ Bump to **0.4.1**. No schema change. The Admin Terms hub no longer shows Accessi
 
 Bump to **0.5.0** and pin Publishable `v0.3.1`. No Terms schema change. Term show uses the Publishable status dropdown instead of a **Publish** button to the old edit form. Preview is its own route. Saving live Terms forks a draft; the public copy stays until you publish. Full notes: `CHANGELOG.md` (0.5.0).
 
+## Upgrading from 0.7.1
+
+Bump to **0.7.2** and pin `recording_studio_user` `>= 0.12.2` (dummy GitHub tag `v0.12.2`). No schema change. Users auth layout loads `flat_pack/application`, so Sign in and Sign up primary buttons fill.
+
 ## Upgrading from 0.7.0
 
 Bump to **0.7.1**. No schema change. Continue-notice wraps in `mt-3 mb-3` (was `mt-3 mb-6`). Accept and create-password share that helper, so the gap above **Continue** and **Sign up** tightens together. Do not override the spacing in a host Accept view.
@@ -268,7 +272,7 @@ See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full do
 | RecordingStudio | 4.x (`~> 4.2` in the gemspec; dummy GitHub tag `v4.2.0`) |
 | Accessible      | gemspec `~> 0.8`; dummy GitHub tag `v0.9.1` |
 | Admin           | gemspec `~> 2.0`; dummy GitHub tag `v2.0.2` |
-| Users           | gemspec `recording_studio_user >= 0.12.1`; dummy GitHub tag `v0.12.1` |
+| Users           | gemspec `recording_studio_user >= 0.12.2`; dummy GitHub tag `v0.12.2` |
 | Publishable     | gemspec `~> 0.3`; dummy GitHub tag `v0.3.1` |
 | Attachable      | dummy GitHub tag `v0.5.1` (Users Profile needs it) |
 | Root Switchable | dummy GitHub tag `v0.5.0` |

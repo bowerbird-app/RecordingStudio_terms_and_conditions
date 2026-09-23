@@ -13,7 +13,8 @@ class LoginPageTest < ActionDispatch::IntegrationTest
     assert_select "label", text: "Email", count: 0
     assert_select "input[type='password'][name='user[password]']", count: 0
     assert_select "input[name='user[remember_me]']", count: 0
-    assert_select "button[type='submit']", text: "Continue with email"
+    assert_select 'button[type=submit][data-fp-style="primary"]', text: "Continue with email"
+    assert_match %r{flat_pack/application}, response.body
     refute_includes response.body, "Remember me"
     refute_includes response.body, "Default: admin@admin.com / Password"
     refute_includes response.body, "data-recording-studio-default-layout"
@@ -32,7 +33,8 @@ class LoginPageTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "input[type='password'][name='user[password]']"
     assert_select "input[type='hidden'][name='user[email]'][value='admin@admin.com']"
-    assert_select "button[type='submit']", text: "Sign in"
+    assert_select 'button[type=submit][data-fp-style="primary"]', text: "Sign in"
+    assert_match %r{flat_pack/application}, response.body
     assert_select "a[href='#{new_user_password_path}']", text: "Forgot your password?"
   end
 end

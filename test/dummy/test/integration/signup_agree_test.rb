@@ -19,7 +19,8 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "input#user_password[type=password]"
-    assert_select "button[type=submit]", text: "Sign up"
+    assert_select 'button[type=submit][data-fp-style="primary"]', text: "Sign up"
+    assert_match %r{flat_pack/application}, response.body
     assert_select "input[type=checkbox][name=agreed]", count: 0
     assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
     assert_includes response.body, "Terms &amp; Conditions"
