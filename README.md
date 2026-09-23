@@ -110,7 +110,7 @@ Bump to **0.5.0** and pin Publishable `v0.3.1`. No Terms schema change. Term sho
 
 ## Upgrading from 0.6.6
 
-Bump to **0.7.0**. Run the migrations generator and migrate. Existing Terms default to `terms_and_condition`. Admin New can add a Privacy Policy once; further versions are edit/fork only. SoleLive is per kind. Gate pending is 0..2. Accept and host helpers `accept!` every pending live version. Public privacy pages are `/privacy/:uuid/:slug`. Continue-notice and Agree checkbox mention privacy when a privacy document is pending; privacy links open in a new tab.
+Bump to **0.7.0**. Run the migrations generator and migrate. Existing Terms default to `terms_and_condition`. Admin New can add a Privacy Policy once; further versions are edit/fork only. SoleLive is per kind. Gate pending is 0..2. Accept and host helpers `accept!` every pending live version. Accept PageTitle and Collapse rows follow the pending kinds. Public privacy pages are `/privacy/:uuid/:slug`. Continue-notice wraps with spacing (`my-3`); pass `link: false` for plain text. Agree checkbox mentions privacy when a privacy document is pending; privacy links open in a new tab.
 
 ## Upgrading from 0.6.5
 
