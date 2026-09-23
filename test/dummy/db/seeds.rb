@@ -103,6 +103,26 @@ begin
       attributes: { slug: sample_slug, status: "published" }
     ).value!
   end
+
+  privacy_kind = RecordingStudioTermsAndConditions::Terms::KIND_PRIVACY
+  privacy_exists = root_recording.recordings_query(
+    include_children: true,
+    type: RecordingStudioTermsAndConditions::Terms.name
+  ).any? { |recording| recording.recordable&.kind.to_s == privacy_kind }
+  unless privacy_exists
+    privacy_recording = root_recording.record(
+      RecordingStudioTermsAndConditions::Terms,
+      actor: user
+    ) do |terms|
+      terms.title = "Privacy Policy v1.0"
+      terms.body = "<p>We keep the version you agreed to and a receipt of when you agreed. That is the privacy trail for this workspace.</p>"
+      terms.kind = privacy_kind
+    end
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: privacy_recording,
+      attributes: { slug: "privacy-policy", status: "published" }
+    ).value!
+  end
 ensure
   Current.actor = previous_actor
 end
@@ -114,3 +134,4 @@ puts "Seeded: Workspace '#{private_workspace.name}' with root recording ##{priva
 puts "Seeded: Folder '#{folder.name}' and page '#{page.title}'"
 puts "Seeded: AdminRoot '#{admin_root.name}' with root recording ##{admin_root_recording.id}"
 puts "Seeded: published Terms and Conditions under '#{workspace.name}'"
+puts "Seeded: published Privacy Policy under '#{workspace.name}'"
