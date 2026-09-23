@@ -14,9 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - The Accept screen passes `link: false`. Live copy is already in the closed Collapse, so Continue does not open a second copy in a modal. Signup and other hosts still get the link and modal unless they pass `link: false`.
+- Accept PageTitle is **We have updated our terms and conditions.** for a first visit and a re-gate. The Collapse title stays the live Terms name.
 
 ### Upgrade notes (0.6.4 → 0.6.5)
 - No schema change. Pin this gem at `0.6.5`. Default continue-notice still links “Terms & Conditions” and opens the modal. Pass `link: false` when the page already shows the terms (Accept does this). Hosts that overrode `acceptances/show` only to drop that link can delete the override.
+- Accept PageTitle no longer uses the live Terms heading on a first visit. It is “We have updated our terms and conditions.” The Collapse title is still the Terms name.
 
 ## [0.6.4] - 2026-09-23
 

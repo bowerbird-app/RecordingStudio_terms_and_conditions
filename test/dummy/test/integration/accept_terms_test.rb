@@ -28,6 +28,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     refute_select "header.fp-top-nav"
     refute_includes response.body, "Terms demo"
     refute_select "a", text: "Sign out"
+    assert_select "h1", text: "We have updated our terms and conditions."
     assert_includes response.body, "Studio Terms"
     assert_includes response.body, "Be kind"
     assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"

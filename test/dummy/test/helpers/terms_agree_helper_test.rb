@@ -106,8 +106,10 @@ class TermsAgreeHelperTest < ActionView::TestCase
 
     assert_equal "We have updated our terms and conditions.",
                  terms_accept_page_title(terms, reaccepting: true)
-    assert_equal "Studio Terms", terms_accept_page_title(terms, reaccepting: false)
-    assert_equal "Terms and Conditions", terms_accept_page_title(nil, reaccepting: false)
+    assert_equal "We have updated our terms and conditions.",
+                 terms_accept_page_title(terms, reaccepting: false)
+    assert_equal "We have updated our terms and conditions.",
+                 terms_accept_page_title(nil)
   end
 
   test "continue notice link false is plain text without a modal" do

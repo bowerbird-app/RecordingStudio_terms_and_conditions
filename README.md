@@ -110,7 +110,7 @@ Bump to **0.5.0** and pin Publishable `v0.3.1`. No Terms schema change. Term sho
 
 ## Upgrading from 0.6.4
 
-Bump to **0.6.5**. No schema change. Continue-notice still links “Terms & Conditions” and opens the modal. Pass `link: false` when the page already shows the terms. Accept does that. Signup keeps the link.
+Bump to **0.6.5**. No schema change. Continue-notice still links “Terms & Conditions” and opens the modal. Pass `link: false` when the page already shows the terms. Accept does that. Signup keeps the link. Accept PageTitle is “We have updated our terms and conditions.” The Collapse title stays the Terms name.
 
 ## Upgrading from 0.6.3
 
