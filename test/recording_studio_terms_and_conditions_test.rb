@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.7.0", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.7.1", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -304,7 +304,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes continue_helper, "def recording_studio_terms_continue_notice"
     assert_includes continue_helper, "size: :xs"
     assert_includes continue_helper, "link: true"
-    assert_includes continue_helper, 'class: "mt-3 mb-6"'
+    assert_includes continue_helper, 'class: "mt-3 mb-3"'
+    refute_includes continue_helper, "mb-6"
     assert_includes continue_helper, "text-xs"
     assert_includes continue_helper, "surface-muted-content-color"
     assert_includes continue_helper, "continue_notice"
@@ -725,6 +726,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes File.read(skill), "Upgrade (0.6.4 → 0.6.5)"
     assert_includes File.read(skill), "Upgrade (0.6.5 → 0.6.6)"
     assert_includes File.read(skill), "Upgrade (0.6.6 → 0.7.0)"
+    assert_includes File.read(skill), "Upgrade (0.7.0 → 0.7.1)"
+    assert_includes File.read(skill), "mt-3 mb-3"
     assert_includes File.read(skill), "link: false"
     extra_fields_source = File.read(File.join(engine_root, extra_fields))
     assert_includes extra_fields_source, "recording_studio_terms_continue_notice"
@@ -739,7 +742,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.7.1]"
     assert_includes changelog, "## [0.7.0]"
+    assert_includes changelog, "mt-3 mb-3"
     assert_includes changelog, "## [0.6.6]"
     assert_includes changelog, "## [0.6.5]"
     assert_includes changelog, "## [0.6.4]"
@@ -747,6 +752,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "## [0.6.2]"
     assert_includes changelog, "## [0.6.1]"
     assert_includes changelog, "## [0.6.0]"
+    assert_includes changelog, "Upgrade notes (0.7.0 → 0.7.1)"
     assert_includes changelog, "Upgrade notes (0.6.6 → 0.7.0)"
     assert_includes changelog, "Upgrade notes (0.6.5 → 0.6.6)"
     assert_includes changelog, "Upgrade notes (0.6.4 → 0.6.5)"
@@ -770,6 +776,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "forks a new draft"
     assert_includes changelog, "Upgrade notes (0.4.0 → 0.4.1)"
     assert_includes changelog, "+ Access"
+    assert_includes notes, "Upgrade from 0.7.0 to 0.7.1"
+    assert_includes notes, "mt-3 mb-3"
     assert_includes notes, "Upgrade from 0.6.6 to 0.7.0"
     assert_includes notes, "Upgrade from 0.6.5 to 0.6.6"
     assert_includes notes, "Upgrade from 0.6.4 to 0.6.5"
@@ -778,6 +786,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes notes, "Upgrade from 0.6.1 to 0.6.2"
     assert_includes notes, "Upgrade from 0.6.0 to 0.6.1"
     assert_includes notes, "Upgrade from 0.5.0 to 0.6.0"
+    assert_includes readme, "Upgrading from 0.7.0"
+    assert_includes readme, "mt-3 mb-3"
     assert_includes readme, "Upgrading from 0.6.6"
     assert_includes readme, "Upgrading from 0.6.5"
     assert_includes readme, "Upgrading from 0.6.4"

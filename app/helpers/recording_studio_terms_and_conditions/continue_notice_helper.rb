@@ -11,7 +11,7 @@ module RecordingStudioTermsAndConditions
       documents = continue_notice_documents(actor, root, pending)
       return if documents.blank?
 
-      content_tag(:div, class: "mt-3 mb-6") do
+      content_tag(:div, class: "mt-3 mb-3") do
         if link
           continue_notice_with_modals(documents, size)
         else

@@ -25,6 +25,8 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Terms &amp; Conditions"
     assert_match(/privacy policy/, response.body)
     assert_includes response.body, '<p class="text-xs text-[var(--surface-muted-content-color)]">'
+    assert_select "div.mt-3.mb-3"
+    assert_select "div.mt-3.mb-6", count: 0
     assert_select "a.flat-pack-link[data-modal-id]", text: "Terms & Conditions"
     assert_select "a.flat-pack-link[data-modal-id]", text: "privacy policy"
     assert_includes response.body, "text-[var(--color-primary)]"
