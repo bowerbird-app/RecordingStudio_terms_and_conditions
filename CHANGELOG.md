@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-09-23
+
+### Changed
+- Continue-notice wrapper is `mt-3 mb-3` (was `mt-3 mb-6`). Accept and create-password share that gap above **Continue** and **Sign up**.
+
+### Upgrade notes (0.7.0 → 0.7.1)
+- No schema change. Pin this gem at `0.7.1`. The helper owns the gap, so hosts do not override Accept or create-password spacing.
+
 ## [0.7.0] - 2026-09-23
 
 ### Added

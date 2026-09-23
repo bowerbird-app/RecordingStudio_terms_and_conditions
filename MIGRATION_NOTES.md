@@ -18,6 +18,10 @@ Then:
 
 The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
 
+## Upgrade from 0.7.0 to 0.7.1
+
+No schema change. `recording_studio_terms_continue_notice` wraps in `mt-3 mb-3` instead of `mt-3 mb-6`. Accept and create-password use that same helper, so the gap above **Continue** and **Sign up** tightens together.
+
 ## Upgrade from 0.6.6 to 0.7.0
 
 ```bash

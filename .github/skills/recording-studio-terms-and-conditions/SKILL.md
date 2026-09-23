@@ -7,7 +7,7 @@ description: Published Terms, clickwrap acceptance, and the host gate for Record
 
 This is the kit gem for **published Terms** and **clickwrap acceptance**. Do not invent a second acceptance table, accept screen, or post-auth redirect.
 
-Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.7.0**.
+Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.7.1**.
 
 ## Need
 
@@ -81,7 +81,11 @@ Or wrap a host clickwrap with `recording_studio_terms_scroll_to_end(require_scro
 
 Set `config.capture_request_provenance = true` only if the gem Agree screen should store IP and user agent (default off). Product config is `mount_path`, `app_name`, `require_scroll_to_end`, and `capture_request_provenance`. There is no API key.
 
-Agree is still the post-auth destination. It has no PageNav. Live pending copy sits in closed Flatpack Collapse rows wrapping Content (one row per pending kind). Accept PageTitle follows the pending set: terms only, privacy only, or “We have updated our terms and conditions and privacy policy.” when both are pending. No on-page re-accept Alert, and the gate does not flash. Continue-notice (`link: false` on Accept) and **Continue** stay at the bottom (no checkbox). Signup continue-notice uses `root_for_signup`, which falls back when the current root has no live Terms.
+Agree is still the post-auth destination. It has no PageNav. Live pending copy sits in closed Flatpack Collapse rows wrapping Content (one row per pending kind). Accept PageTitle follows the pending set: terms only, privacy only, or “We have updated our terms and conditions and privacy policy.” when both are pending. No on-page re-accept Alert, and the gate does not flash. Continue-notice (`link: false` on Accept) and **Continue** stay at the bottom (no checkbox). The notice wrapper is `mt-3 mb-3` on Accept and create-password. Signup continue-notice uses `root_for_signup`, which falls back when the current root has no live Terms.
+
+## Upgrade (0.7.0 → 0.7.1)
+
+No migrations. Continue-notice wraps in `mt-3 mb-3` (was `mt-3 mb-6`). Accept and create-password share that helper.
 
 ## Upgrade (0.6.6 → 0.7.0)
 
