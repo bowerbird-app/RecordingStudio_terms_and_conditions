@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.6] - 2026-09-23
+
+### Changed
+- The acceptance gate no longer flashes “We've updated our Terms and Conditions”. Accept still says **We have updated our terms and conditions.**
+
+### Upgrade notes (0.6.5 → 0.6.6)
+- No schema change. Pin this gem at `0.6.6`. A new live version still sends people to Accept. That redirect does not set a notice. Hosts that showed the same sentence in their own flash can drop it; the page title already says the terms changed.
+
 ## [0.6.5] - 2026-09-23
 
 ### Added
