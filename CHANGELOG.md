@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Admin Type column / select label **Privacy Policy**.
 
 ### Changed
-- Continue-notice wraps in `my-3` so it has spacing above the host button. `link: false` still turns links and modals off (Accept uses this).
+- Continue-notice wraps in `mt-3 mb-6` so it has spacing above the host button. `link: false` still turns links and modals off (Accept uses this).
 - Accept PageTitle follows pending kinds: terms only, privacy only, or **We have updated our terms and conditions and privacy policy.** when both are pending. Collapse rows only list the pending kinds.
 
 ### Upgrade notes (0.6.6 → 0.7.0)

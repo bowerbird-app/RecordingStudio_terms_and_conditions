@@ -136,7 +136,7 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
     assert_match(/and privacy policy/, CGI.unescapeHTML(response.body).gsub(/<[^>]+>/, ""))
     assert_select "[data-controller='flat-pack--collapse']", count: 2
     refute_includes response.body, "data-modal-id"
-    assert_select "div.my-3"
+    assert_select "div.mt-3.mb-6"
 
     assert_difference -> { RecordingStudioTermsAndConditions::Acceptance.count }, 2 do
       post recording_studio_terms_and_conditions.acceptance_path

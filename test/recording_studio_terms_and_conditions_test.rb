@@ -304,7 +304,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes continue_helper, "def recording_studio_terms_continue_notice"
     assert_includes continue_helper, "size: :xs"
     assert_includes continue_helper, "link: true"
-    assert_includes continue_helper, 'class: "my-3"'
+    assert_includes continue_helper, 'class: "mt-3 mb-6"'
     assert_includes continue_helper, "text-xs"
     assert_includes continue_helper, "surface-muted-content-color"
     assert_includes continue_helper, "continue_notice"

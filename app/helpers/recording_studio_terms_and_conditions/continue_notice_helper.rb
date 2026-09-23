@@ -11,7 +11,7 @@ module RecordingStudioTermsAndConditions
       documents = continue_notice_documents(actor, root, pending)
       return if documents.blank?
 
-      content_tag(:div, class: "my-3") do
+      content_tag(:div, class: "mt-3 mb-6") do
         if link
           continue_notice_with_modals(documents, size)
         else
@@ -122,15 +122,6 @@ module RecordingStudioTermsAndConditions
         terms: terms,
         preview_badge: nil
       )
-    end
-
-    def terms_document(documents)
-      Array(documents).find { |doc| doc.try(:terms_and_condition?) } ||
-        Array(documents).find { |doc| !doc.try(:privacy_policy?) }
-    end
-
-    def privacy_document(documents)
-      Array(documents).find { |doc| doc.try(:privacy_policy?) }
     end
   end
 end

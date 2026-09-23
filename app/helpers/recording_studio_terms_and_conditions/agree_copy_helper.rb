@@ -28,6 +28,15 @@ module RecordingStudioTermsAndConditions
       "People who ticked the box for these terms."
     end
 
+    def terms_document(documents)
+      Array(documents).find { |doc| doc.try(:terms_and_condition?) } ||
+        Array(documents).find { |doc| !doc.try(:privacy_policy?) }
+    end
+
+    def privacy_document(documents)
+      Array(documents).find { |doc| doc.try(:privacy_policy?) }
+    end
+
     private
 
     def accept_page_title_documents(terms, pending)

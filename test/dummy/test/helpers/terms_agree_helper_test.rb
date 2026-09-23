@@ -124,7 +124,7 @@ class TermsAgreeHelperTest < ActionView::TestCase
 
     html = recording_studio_terms_continue_notice(pending: [terms])
 
-    assert_includes html, 'class="my-3"'
+    assert_includes html, 'class="mt-3 mb-6"'
   end
 
   test "continue notice link false is plain text without a modal" do
@@ -142,7 +142,7 @@ class TermsAgreeHelperTest < ActionView::TestCase
     assert_includes CGI.unescapeHTML(html), "By continuing, you agree to Terms Dummy's"
     assert_includes html, "Terms &amp; Conditions"
     assert_includes html, "privacy policy"
-    assert_includes html, 'class="my-3"'
+    assert_includes html, 'class="mt-3 mb-6"'
     assert_includes html, '<p class="text-xs text-[var(--surface-muted-content-color)]">'
     refute_includes html, "data-modal-id"
     refute_includes html, "flat-pack--modal"
