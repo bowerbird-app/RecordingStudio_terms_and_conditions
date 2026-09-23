@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-09-23
+
+### Changed
+- Requires `recording_studio_user` `>= 0.12.2`. Dummy and root Gemfiles pin Users at GitHub tag `v0.12.2`. That release links `flat_pack/application` on the auth layout, so Sign in and Sign up primary buttons fill.
+
+### Upgrade notes (0.7.1 → 0.7.2)
+- No schema change. Pin this gem at `0.7.2` and `recording_studio_user` at `0.12.2`. Rebuild is not required for the button fill; Users auth layout loads `flat_pack/application`.
+
 ## [0.7.1] - 2026-09-23
 
 ### Changed
