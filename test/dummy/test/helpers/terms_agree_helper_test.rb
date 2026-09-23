@@ -37,6 +37,18 @@ class TermsAgreeHelperTest < ActionView::TestCase
     assert_includes html, "recording-studio-terms-and-conditions--scroll-to-end-target"
   end
 
+  test "agree button is Flatpack primary for Accept Continue" do
+    html = recording_studio_terms_agree_button(require_scroll_to_end: false, text: "Continue")
+
+    assert_includes html, 'data-fp-style="primary"'
+    assert_includes html, "fp-button"
+    assert_includes html, "fp-button-raised"
+    assert_includes html, "<span>Continue</span>"
+    refute_includes html, 'data-fp-style="secondary"'
+    refute_includes html, 'data-fp-style="ghost"'
+    refute_includes html, "fp-button-flat"
+  end
+
   test "scroll sentinel has a box so IntersectionObserver can see it" do
     html = recording_studio_terms_scroll_to_end_sentinel
 

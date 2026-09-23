@@ -41,6 +41,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "ago"
     refute_includes response.body, "Read the full terms"
     assert_select "button[type=submit]", text: "Continue"
+    assert_select 'button[type=submit][data-fp-style="primary"]', text: "Continue"
     refute_includes response.body, "Agree again"
     assert_select "button[type=submit]", text: "Agree", count: 0
     assert_select "[data-controller='recording-studio-terms-and-conditions--scroll-to-end']", count: 0
@@ -52,6 +53,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     assert_select "button[aria-expanded='false']", text: "Studio Terms"
     assert_select "#agree-terms-body-content[hidden]", count: 1
     assert_match %r{flat_pack/application}, response.body
+    assert_select 'link[rel="stylesheet"][href*="flat_pack/application"]', minimum: 1
     refute_includes response.body, "Read them, tick the box"
     refute_includes response.body, "Tick the box if you agree."
     refute_includes response.body, "Terms updated"

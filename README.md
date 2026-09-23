@@ -108,6 +108,10 @@ Bump to **0.4.1**. No schema change. The Admin Terms hub no longer shows Accessi
 
 Bump to **0.5.0** and pin Publishable `v0.3.1`. No Terms schema change. Term show uses the Publishable status dropdown instead of a **Publish** button to the old edit form. Preview is its own route. Saving live Terms forks a draft; the public copy stays until you publish. Full notes: `CHANGELOG.md` (0.5.0).
 
+## Upgrading from 0.6.3
+
+Bump to **0.6.4**. No schema change. Accept **Continue** stays Flatpack primary. The engine appends `flat_pack/application` so primary buttons paint if the host only loaded `flat_pack/variables`. Prefer linking `flat_pack/application` from `_default_layout_head` with Tailwind last.
+
 ## Upgrading from 0.6.2
 
 Bump to **0.6.3**. No schema change. Signup continue-notice uses `root_for_signup` fallback when the current workspace has no live Terms. Agree no longer shows an on-page “Terms updated” Alert; re-accept flashes “We've updated our Terms and Conditions”. Accept screen uses continue-notice + **Continue** (no checkbox). Pin FlatPack `>= 0.1.195` and rebuild Tailwind. Hosts that overrode `acceptances/show` only for the old Alert or checkbox can drop the override.
