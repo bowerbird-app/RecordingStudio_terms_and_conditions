@@ -11,8 +11,18 @@ module RecordingStudioTermsAndConditions
       documents = continue_notice_documents(actor, root, pending)
       return if documents.blank?
 
-      return continue_notice_copy(documents, nil, nil, size, link: false) unless link
+      content_tag(:div, class: "my-3") do
+        if link
+          continue_notice_with_modals(documents, size)
+        else
+          continue_notice_copy(documents, nil, nil, size, link: false)
+        end
+      end
+    end
 
+    private
+
+    def continue_notice_with_modals(documents, size)
       terms_modal_id = "terms-continue-notice-#{SecureRandom.hex(4)}"
       privacy_modal_id = "privacy-continue-notice-#{SecureRandom.hex(4)}"
       parts = [continue_notice_copy(documents, terms_modal_id, privacy_modal_id, size, link: true)]
@@ -20,8 +30,6 @@ module RecordingStudioTermsAndConditions
       parts << continue_notice_modal(privacy_document(documents), privacy_modal_id) if privacy_document(documents)
       safe_join(parts)
     end
-
-    private
 
     def continue_notice_documents(actor, root, pending)
       root ||= recording_studio_terms_agree_root

@@ -130,10 +130,13 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
 
     get recording_studio_terms_and_conditions.acceptance_path
     assert_response :success
+    assert_select "h1", text: "We have updated our terms and conditions and privacy policy."
     assert_includes response.body, "Studio Terms"
     assert_includes response.body, "Studio Privacy"
     assert_match(/and privacy policy/, CGI.unescapeHTML(response.body).gsub(/<[^>]+>/, ""))
     assert_select "[data-controller='flat-pack--collapse']", count: 2
+    refute_includes response.body, "data-modal-id"
+    assert_select "div.my-3"
 
     assert_difference -> { RecordingStudioTermsAndConditions::Acceptance.count }, 2 do
       post recording_studio_terms_and_conditions.acceptance_path
@@ -148,6 +151,31 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
       RecordingStudioTermsAndConditions.accept!(@user, privacy.recordable, { "source" => "continue_notice" })
       post recording_studio_terms_and_conditions.acceptance_path
     end
+  end
+
+  test "accept page shows only the pending kind and titles it" do
+    terms = record_terms(@root, title: "Studio Terms", body: "Be kind.")
+    publish_terms!(terms, slug: "only-terms-#{SecureRandom.hex(4)}")
+    privacy = record_terms(
+      @root,
+      title: "Studio Privacy",
+      body: "We keep receipts.",
+      kind: RecordingStudioTermsAndConditions::Terms::KIND_PRIVACY
+    )
+    publish_terms!(privacy, slug: "only-privacy-#{SecureRandom.hex(4)}")
+    RecordingStudioTermsAndConditions.accept!(@user, terms, { "source" => "clickwrap" })
+
+    sign_in @user
+    switch_to_workspace(@workspace)
+
+    get recording_studio_terms_and_conditions.acceptance_path
+    assert_response :success
+    assert_select "h1", text: "We have updated our privacy policy."
+    assert_includes response.body, "Studio Privacy"
+    refute_includes response.body, "Studio Terms"
+    assert_select "[data-controller='flat-pack--collapse']", count: 1
+    assert_includes CGI.unescapeHTML(response.body), "privacy policy"
+    refute_match(/Terms & Conditions and privacy policy/, CGI.unescapeHTML(response.body))
   end
 
   test "public privacy route and published_url use /privacy" do

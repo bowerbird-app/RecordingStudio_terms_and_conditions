@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Continue-notice includes “and privacy policy” plus a Privacy modal when a privacy document is pending. Agree checkbox copy includes “and privacy policy”; the privacy link opens in a new tab (`target=_blank`). Terms links stay same-tab.
 - Admin Type column / select label **Privacy Policy**.
 
+### Changed
+- Continue-notice wraps in `my-3` so it has spacing above the host button. `link: false` still turns links and modals off (Accept uses this).
+- Accept PageTitle follows pending kinds: terms only, privacy only, or **We have updated our terms and conditions and privacy policy.** when both are pending. Collapse rows only list the pending kinds.
+
 ### Upgrade notes (0.6.6 → 0.7.0)
 - Run `bin/rails generate recording_studio_terms_and_conditions:migrations` and `bin/rails db:migrate`. Existing Terms rows default to `terms_and_condition`.
 - Hosts that mount Publishable at `/` get `/privacy/:uuid/:slug` from this gem’s route append. Keep `/terms/:uuid/:slug`.

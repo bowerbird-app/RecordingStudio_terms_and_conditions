@@ -1,4 +1,4 @@
-<% agree_documents = @pending_terms.presence || Array(@terms).compact %>
+<% agree_documents = Array(@pending_terms).compact.presence || Array(@terms).compact %>
 <% terms_skip_page_nav %>
 
 <% if agree_documents.blank? %>
@@ -9,8 +9,8 @@
 <% else %>
   <div class="space-y-4">
     <%= render FlatPack::PageTitle::Component.new(
-      title: terms_accept_page_title(@terms, reaccepting: @reaccepting),
-      subtitle: terms_heading_date(@terms),
+      title: terms_accept_page_title(@terms, reaccepting: @reaccepting, pending: agree_documents),
+      subtitle: terms_heading_date(agree_documents.first),
       variant: :h1
     ) %>
 
@@ -26,14 +26,12 @@
 
     <% unless @already_accepted %>
       <%= form_with url: acceptance_path, method: :post do %>
-        <div class="mb-6">
-          <%= recording_studio_terms_continue_notice(
-            actor: current_user,
-            root: @root,
-            pending: @pending_terms,
-            link: false
-          ) %>
-        </div>
+        <%= recording_studio_terms_continue_notice(
+          actor: current_user,
+          root: @root,
+          pending: agree_documents,
+          link: false
+        ) %>
         <%= recording_studio_terms_agree_button(
           require_scroll_to_end: false,
           text: "Continue"
