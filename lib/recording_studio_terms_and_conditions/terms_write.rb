@@ -31,7 +31,9 @@ module RecordingStudioTermsAndConditions
 
     def same_copy?
       terms = recording.recordable
-      terms&.title.to_s == title && terms&.body.to_s == body
+      terms&.title.to_s == title &&
+        terms&.body.to_s == body &&
+        Terms.normalize_kind(terms&.kind) == source_kind
     end
 
     def revise_draft
@@ -44,13 +46,13 @@ module RecordingStudioTermsAndConditions
       parent = recording.parent_recording || recording.root_recording
       recording.root_recording.record(Terms, actor: actor, parent_recording: parent) do |terms|
         assign_fields(terms)
-        terms.kind = source_kind
       end
     end
 
     def assign_fields(terms)
       terms.title = title
       terms.body = body
+      terms.kind = source_kind
     end
 
     def source_kind

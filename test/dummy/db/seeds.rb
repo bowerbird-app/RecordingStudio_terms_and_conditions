@@ -16,6 +16,46 @@ find_or_record_child = lambda do |recordable, root_recording, parent_recording|
   ).recording
 end
 
+terms_recording_for_kind = lambda do |root_recording, kind|
+  RecordingStudioTermsAndConditions::KindPresence.recordings_for(root_recording, kind: kind)
+    .max_by { |recording| recording.created_at || Time.at(0) }
+end
+
+ensure_published_terms = lambda do |root_recording, user, kind:, title:, body:, slug:|
+  recording = terms_recording_for_kind.call(root_recording, kind)
+
+  if recording.blank?
+    recording = root_recording.record(
+      RecordingStudioTermsAndConditions::Terms,
+      actor: user
+    ) do |terms|
+      terms.title = title
+      terms.body = body
+      terms.kind = kind
+    end
+  elsif recording.recordable.title != title || recording.recordable.body != body ||
+        recording.recordable.kind.to_s != kind.to_s
+    recording = RecordingStudioTermsAndConditions::TermsWrite.call(
+      recording: recording,
+      actor: user,
+      title: title,
+      body: body,
+      kind: kind
+    )
+  end
+
+  current_slug = recording.try(:current_publishable)&.try(:slug)
+  if !recording.currently_published? || current_slug != slug
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: recording,
+      attributes: { slug: slug, status: "published" }
+    ).value!
+    recording = recording.reload
+  end
+
+  recording
+end
+
 # Create the admin user
 user = User.find_or_create_by!(email: "admin@admin.com") do |u|
   u.password = "Password"
@@ -65,64 +105,23 @@ begin
     end
   end
 
-  terms_recording = RecordingStudio::Recording.find_by(
-    recordable_type: RecordingStudioTermsAndConditions::Terms.name,
-    root_recording: root_recording,
-    trashed_at: nil
+  ensure_published_terms.call(
+    root_recording,
+    user,
+    kind: RecordingStudioTermsAndConditions::Terms::KIND_TERMS,
+    title: RecordingStudioTermsAndConditions::SampleTerms::TITLE,
+    body: RecordingStudioTermsAndConditions::SampleTerms::BODY,
+    slug: "terms-and-conditions"
   )
-  sample_title = RecordingStudioTermsAndConditions::SampleTerms::TITLE
-  sample_body = RecordingStudioTermsAndConditions::SampleTerms::BODY
-  sample_slug = "terms-and-conditions"
-  current_slug = terms_recording&.try(:current_publishable)&.try(:slug)
-  if terms_recording.blank?
-    terms_recording = root_recording.record(
-      RecordingStudioTermsAndConditions::Terms,
-      actor: user
-    ) do |terms|
-      terms.title = sample_title
-      terms.body = sample_body
-    end
-    RecordingStudioPublishable::Services::Publishables::Update.call(
-      parent_recording: terms_recording,
-      attributes: { slug: sample_slug, status: "published" }
-    ).value!
-  elsif terms_recording.recordable.title != sample_title || terms_recording.recordable.body != sample_body
-    terms_recording = RecordingStudioTermsAndConditions::TermsWrite.call(
-      recording: terms_recording,
-      actor: user,
-      title: sample_title,
-      body: sample_body
-    )
-    RecordingStudioPublishable::Services::Publishables::Update.call(
-      parent_recording: terms_recording,
-      attributes: { slug: sample_slug, status: "published" }
-    ).value!
-  elsif current_slug != sample_slug
-    RecordingStudioPublishable::Services::Publishables::Update.call(
-      parent_recording: terms_recording,
-      attributes: { slug: sample_slug, status: "published" }
-    ).value!
-  end
 
-  privacy_kind = RecordingStudioTermsAndConditions::Terms::KIND_PRIVACY
-  privacy_exists = root_recording.recordings_query(
-    include_children: true,
-    type: RecordingStudioTermsAndConditions::Terms.name
-  ).any? { |recording| recording.recordable&.kind.to_s == privacy_kind }
-  unless privacy_exists
-    privacy_recording = root_recording.record(
-      RecordingStudioTermsAndConditions::Terms,
-      actor: user
-    ) do |terms|
-      terms.title = "Privacy Policy v1.0"
-      terms.body = "<p>We keep the version you agreed to and a receipt of when you agreed. That is the privacy trail for this workspace.</p>"
-      terms.kind = privacy_kind
-    end
-    RecordingStudioPublishable::Services::Publishables::Update.call(
-      parent_recording: privacy_recording,
-      attributes: { slug: "privacy-policy", status: "published" }
-    ).value!
-  end
+  ensure_published_terms.call(
+    root_recording,
+    user,
+    kind: RecordingStudioTermsAndConditions::Terms::KIND_PRIVACY,
+    title: "Privacy Policy v1.0",
+    body: "<p>We keep the version you agreed to and a receipt of when you agreed. That is the privacy trail for this workspace.</p>",
+    slug: "privacy-policy"
+  )
 ensure
   Current.actor = previous_actor
 end

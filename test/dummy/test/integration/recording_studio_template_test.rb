@@ -61,6 +61,8 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     assert_equal 3, Workspace.count
     assert_equal "Terms and Conditions v1.0", terms.title
     assert_equal "Privacy Policy v1.0", privacy.title
+    assert_equal "terms_and_condition", terms.kind
+    assert_equal "privacy_policy", privacy.kind
     terms_recording = RecordingStudio::Recording.find_by!(recordable: terms)
     privacy_recording = RecordingStudio::Recording.find_by!(recordable: privacy)
     assert_equal "terms-and-conditions", terms_recording.try(:current_publishable)&.try(:slug)
@@ -70,8 +72,9 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     assert_equal "Terms and Conditions v1.0", RecordingStudioTermsAndConditions::SampleTerms::TITLE
     seeds_source = File.read(Rails.root.join("db/seeds.rb"))
     assert_includes seeds_source, "SampleTerms::BODY"
-    assert_includes seeds_source, 'sample_slug = "terms-and-conditions"'
+    assert_includes seeds_source, 'slug: "terms-and-conditions"'
     assert_includes seeds_source, 'slug: "privacy-policy"'
+    assert_includes seeds_source, "KIND_PRIVACY"
     refute_includes seeds_source, "studio-terms"
     assert RecordingStudio::Recording.find_by!(recordable: admin_root)
 
