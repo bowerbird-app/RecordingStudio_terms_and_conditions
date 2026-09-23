@@ -20,7 +20,7 @@ The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` a
 
 ## Upgrade from 0.6.4 to 0.6.5
 
-No schema change. `recording_studio_terms_continue_notice` still links “Terms & Conditions” and opens the modal. Pass `link: false` for plain text with no modal. Accept already does that because the Collapse shows the terms. Signup keeps the link. Accept PageTitle is “We have updated our terms and conditions.” on a first visit and a re-gate. The Collapse title stays the Terms name.
+No schema change. Pin FlatPack `>= 0.1.196` and rebuild Tailwind. `recording_studio_terms_continue_notice` still links “Terms & Conditions” and opens the modal. Pass `link: false` for plain text with no modal. Accept already does that because the Collapse shows the terms. Signup keeps the link. Accept PageTitle is “We have updated our terms and conditions.” on a first visit and a re-gate. The Collapse title stays the Terms name.
 
 ## Upgrade from 0.6.3 to 0.6.4
 

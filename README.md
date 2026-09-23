@@ -110,7 +110,7 @@ Bump to **0.5.0** and pin Publishable `v0.3.1`. No Terms schema change. Term sho
 
 ## Upgrading from 0.6.4
 
-Bump to **0.6.5**. No schema change. Continue-notice still links “Terms & Conditions” and opens the modal. Pass `link: false` when the page already shows the terms. Accept does that. Signup keeps the link. Accept PageTitle is “We have updated our terms and conditions.” The Collapse title stays the Terms name.
+Bump to **0.6.5**. No schema change. Pin FlatPack `>= 0.1.196` (dummy tag `v0.1.196`) and rebuild Tailwind. Continue-notice still links “Terms & Conditions” and opens the modal. Pass `link: false` when the page already shows the terms. Accept does that. Signup keeps the link. Accept PageTitle is “We have updated our terms and conditions.” The Collapse title stays the Terms name.
 
 ## Upgrading from 0.6.3
 
@@ -260,7 +260,7 @@ See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full do
 | Publishable     | gemspec `~> 0.3`; dummy GitHub tag `v0.3.1` |
 | Attachable      | dummy GitHub tag `v0.5.1` (Users Profile needs it) |
 | Root Switchable | dummy GitHub tag `v0.5.0` |
-| FlatPack        | gemspec `>= 0.1.195`; dummy GitHub tag `v0.1.195` |
+| FlatPack        | gemspec `>= 0.1.196`; dummy GitHub tag `v0.1.196` |
 | Devise          | latest  |
 
 The dummy Gemfile keeps `github:` sources so Bundler can fetch those gems. Hosts also need Publishable (and Users/Attachable) migrations from those gems — this addon only ships Terms and Acceptance migrations.

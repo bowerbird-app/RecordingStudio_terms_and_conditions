@@ -84,7 +84,7 @@ Agree is still the post-auth destination. It has no PageNav. Live copy sits in a
 
 ## Upgrade (0.6.4 → 0.6.5)
 
-No migrations. Continue-notice still links “Terms & Conditions” and opens the modal. Pass `link: false` for plain text with no modal. Accept does that. Signup keeps the link. Accept PageTitle is “We have updated our terms and conditions.” The Collapse title stays the Terms name.
+No migrations. Pin FlatPack `>= 0.1.196` (dummy tag `v0.1.196`) and rebuild Tailwind. Continue-notice still links “Terms & Conditions” and opens the modal. Pass `link: false` for plain text with no modal. Accept does that. Signup keeps the link. Accept PageTitle is “We have updated our terms and conditions.” The Collapse title stays the Terms name.
 
 ## Upgrade (0.6.3 → 0.6.4)
 
