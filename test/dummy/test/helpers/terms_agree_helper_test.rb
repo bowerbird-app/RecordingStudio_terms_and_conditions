@@ -37,6 +37,18 @@ class TermsAgreeHelperTest < ActionView::TestCase
     assert_includes html, "recording-studio-terms-and-conditions--scroll-to-end-target"
   end
 
+  test "agree button is Flatpack primary for Accept Continue" do
+    html = recording_studio_terms_agree_button(require_scroll_to_end: false, text: "Continue")
+
+    assert_includes html, 'data-fp-style="primary"'
+    assert_includes html, "fp-button"
+    assert_includes html, "fp-button-raised"
+    assert_includes html, "<span>Continue</span>"
+    refute_includes html, 'data-fp-style="secondary"'
+    refute_includes html, 'data-fp-style="ghost"'
+    refute_includes html, "fp-button-flat"
+  end
+
   test "scroll sentinel has a box so IntersectionObserver can see it" do
     html = recording_studio_terms_scroll_to_end_sentinel
 
@@ -87,6 +99,15 @@ class TermsAgreeHelperTest < ActionView::TestCase
 
     assert_includes recording_studio_terms_continue_notice(pending: [terms], size: :lg),
                     '<p class="text-xs text-[var(--surface-muted-content-color)]">'
+  end
+
+  test "accept page title names the update on re-gate" do
+    terms = Struct.new(:title).new("Studio Terms")
+
+    assert_equal "We have updated our terms and conditions.",
+                 terms_accept_page_title(terms, reaccepting: true)
+    assert_equal "Studio Terms", terms_accept_page_title(terms, reaccepting: false)
+    assert_equal "Terms and Conditions", terms_accept_page_title(nil, reaccepting: false)
   end
 
   test "continue notice drops the possessive when app_name is blank" do

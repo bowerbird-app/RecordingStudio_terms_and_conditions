@@ -7,7 +7,7 @@ description: Published Terms, clickwrap acceptance, and the host gate for Record
 
 This is the kit gem for **published Terms** and **clickwrap acceptance**. Do not invent a second acceptance table, accept screen, or post-auth redirect.
 
-Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.6.3**.
+Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.6.4**.
 
 ## Need
 
@@ -79,7 +79,11 @@ Or wrap a host clickwrap with `recording_studio_terms_scroll_to_end(require_scro
 
 Set `config.capture_request_provenance = true` only if the gem Agree screen should store IP and user agent (default off). Product config is `mount_path`, `app_name`, `require_scroll_to_end`, and `capture_request_provenance`. There is no API key.
 
-Agree is still the post-auth destination. It has no PageNav. Live copy sits in a closed Flatpack Collapse wrapping Content. The Collapse title is the live Terms heading (`terms_agree_heading`). No on-page re-accept Alert. Continue-notice and **Continue** stay at the bottom (no checkbox). Signup continue-notice uses `root_for_signup`, which falls back when the current root has no live Terms.
+Agree is still the post-auth destination. It has no PageNav. Live copy sits in a closed Flatpack Collapse wrapping Content. The Collapse title is the live Terms heading (`terms_agree_heading`). Re-gate PageTitle is “We have updated our terms and conditions.”; first-time PageTitle stays the Terms heading. No on-page re-accept Alert. Continue-notice and **Continue** stay at the bottom (no checkbox). Signup continue-notice uses `root_for_signup`, which falls back when the current root has no live Terms.
+
+## Upgrade (0.6.3 → 0.6.4)
+
+No migrations. Accept **Continue** stays Flatpack `style: :primary`. The engine appends `flat_pack/application` so primary paint works when a host only loaded `flat_pack/variables`. Prefer linking `flat_pack/application` from `_default_layout_head` with Tailwind last. Re-gate Accept PageTitle is “We have updated our terms and conditions.”
 
 ## Upgrade (0.6.2 → 0.6.3)
 

@@ -17,6 +17,20 @@ module RecordingStudioTermsAndConditions
 
     layout "recording_studio/default_layout"
 
+    # Flatpack 0.1.195+ paints `.fp-button[data-fp-style]` from kit CSS. Hosts that
+    # only load `flat_pack/variables` leave primary Continue looking like a bare
+    # bordered control. Append the kit sheet so Agree/Accept still fill primary.
+    before_action :ensure_flatpack_application_stylesheet
+
     protect_from_forgery with: :exception
+
+    private
+
+    def ensure_flatpack_application_stylesheet
+      view_context.content_for(
+        :head,
+        helpers.stylesheet_link_tag("flat_pack/application", "data-turbo-track": "reload")
+      )
+    end
   end
 end
