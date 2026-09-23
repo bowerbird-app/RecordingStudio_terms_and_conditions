@@ -48,7 +48,9 @@ class AgreeHelperTest < ActionDispatch::IntegrationTest
     assert_select "input[type=hidden][name=source][value=continue_notice]", count: 1
     assert_select "button", text: "Agree", count: 0
     assert_select "button", text: "Accept", count: 1
+    assert_select 'button[type=submit][data-fp-style="primary"]', text: "Accept", count: 1
     assert_select "button", text: "Continue", count: 1
+    assert_select 'button[type=submit][data-fp-style="primary"]', text: "Continue", count: 1
     assert_select "button", text: "Join", count: 0
     assert_select "form[action=?]", recording_studio_terms_and_conditions.acceptance_path, count: 0
     assert_select "form[action=?]", "/agree_helper", count: 2

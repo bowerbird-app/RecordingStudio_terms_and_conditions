@@ -5,8 +5,8 @@ class AgreeHelpersController < ApplicationController
   end
 
   def create
-    terms = RecordingStudioTermsAndConditions.pending_published_for(current_user, current_root_recordable)
-    if terms.blank?
+    pending = RecordingStudioTermsAndConditions.pending_published_list(current_user, current_root_recordable)
+    if pending.blank?
       redirect_to agree_helper_path, alert: "There are no live terms to agree to."
       return
     end
@@ -17,7 +17,9 @@ class AgreeHelpersController < ApplicationController
       return
     end
 
-    RecordingStudioTermsAndConditions.accept!(current_user, terms, { "source" => source })
+    pending.each do |terms|
+      RecordingStudioTermsAndConditions.accept!(current_user, terms, { "source" => source })
+    end
     redirect_to root_path
   end
 

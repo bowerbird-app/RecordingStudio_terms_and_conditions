@@ -23,8 +23,10 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
     assert_select "input[type=checkbox][name=agreed]", count: 0
     assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
     assert_includes response.body, "Terms &amp; Conditions"
+    assert_match(/privacy policy/, response.body)
     assert_includes response.body, '<p class="text-xs text-[var(--surface-muted-content-color)]">'
     assert_select "a.flat-pack-link[data-modal-id]", text: "Terms & Conditions"
+    assert_select "a.flat-pack-link[data-modal-id]", text: "privacy policy"
     assert_includes response.body, "text-[var(--color-primary)]"
     assert_includes response.body, "underline"
     assert_includes response.body, "page-title"
@@ -38,15 +40,17 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
   test "create-password writes a continue_notice receipt and clears the gate" do
     email = "signup-accept-#{SecureRandom.hex(4)}@example.com"
     open_create_password(email)
+    pending_count = RecordingStudioTermsAndConditions.pending_published_list(nil, @workspace).size
 
-    assert_difference -> { RecordingStudioTermsAndConditions::Acceptance.count }, +1 do
+    assert_difference -> { RecordingStudioTermsAndConditions::Acceptance.count }, pending_count do
       post "/users/sign_up/password", params: {
         user: { email: email, password: "Password" }
       }
     end
 
     user = User.find_by!(email: email)
-    assert RecordingStudioTermsAndConditions.accepted?(user, @workspace)
+    assert RecordingStudioTermsAndConditions.accepted?(user, @workspace, kind: "terms_and_condition")
+    assert RecordingStudioTermsAndConditions.accepted?(user, @workspace, kind: "privacy_policy") if pending_count > 1
     receipt = RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last
     assert_equal({ "source" => "continue_notice" }, receipt.provenance)
     assert_equal user.id, receipt.actor_id
@@ -89,8 +93,9 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
       assert_select "input#user_password[type=password]"
       assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
       assert_includes response.body, live.title
+      pending_count = RecordingStudioTermsAndConditions.pending_published_list(nil, @workspace).size
 
-      assert_difference -> { RecordingStudioTermsAndConditions::Acceptance.count }, +1 do
+      assert_difference -> { RecordingStudioTermsAndConditions::Acceptance.count }, pending_count do
         post "/users/sign_up/password", params: {
           user: { email: email, password: "Password" }
         }
@@ -98,9 +103,10 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
     end
 
     user = User.find_by!(email: email)
-    assert RecordingStudioTermsAndConditions.accepted?(user, @workspace)
+    assert RecordingStudioTermsAndConditions.accepted?(user, @workspace, kind: "terms_and_condition")
     refute RecordingStudioTermsAndConditions.current_published_for(empty)
-    receipt = RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last
+    receipt = RecordingStudioTermsAndConditions::Acceptance.where(actor: user, terms_id: live.id).first
+    assert receipt
     assert_equal({ "source" => "continue_notice" }, receipt.provenance)
     assert_equal user.id, receipt.actor_id
     assert_equal live.id, receipt.terms_id
@@ -109,10 +115,26 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
   private
 
   def ensure_live_terms!
-    return if RecordingStudioTermsAndConditions.current_published_for(@workspace)
+    ensure_live_document!(
+      kind: "terms_and_condition",
+      title: "Signup Terms",
+      body: "Be kind on the way in.",
+      slug_prefix: "signup-terms"
+    )
+    ensure_live_document!(
+      kind: "privacy_policy",
+      title: "Signup Privacy",
+      body: "We keep the version you agreed to.",
+      slug_prefix: "signup-privacy"
+    )
+  end
 
-    recording = record_terms(@root, title: "Signup Terms", body: "Be kind on the way in.")
-    publish_terms!(recording, slug: "signup-terms-#{SecureRandom.hex(4)}")
+  def ensure_live_document!(kind:, title:, body:, slug_prefix:)
+    live = RecordingStudioTermsAndConditions.current_published_for(@workspace, kind: kind)
+    return if live
+
+    recording = record_terms(@root, title: title, body: body, kind: kind)
+    publish_terms!(recording, slug: "#{slug_prefix}-#{SecureRandom.hex(4)}")
   end
 
   def open_create_password(email)

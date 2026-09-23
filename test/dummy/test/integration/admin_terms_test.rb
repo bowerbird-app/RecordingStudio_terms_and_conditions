@@ -54,6 +54,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
   test "admin can draft and revise terms" do
     sign_in @admin
     switch_to_workspace(@admin_root)
+    clear_terms_on_write_workspace!
 
     get recording_studio_terms_and_conditions.admin_terms_path
     assert_response :success
@@ -77,6 +78,8 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "What changed"
     refute_includes response.body, "terms[category]"
     refute_includes response.body, "Category"
+    assert_includes response.body, "terms[kind]"
+    assert_includes response.body, "Privacy Policy"
     assert_includes response.body, "Save draft"
     assert_select "div.inline-block button[type=submit]", text: "Save draft"
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
@@ -87,7 +90,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
     assert_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count }, 1 do
       post recording_studio_terms_and_conditions.admin_terms_path, params: {
-        terms: { title: "House rules", body: "No yelling in the booth." }
+        terms: { title: "House rules", body: "No yelling in the booth.", kind: "terms_and_condition" }
       }
     end
 
@@ -146,6 +149,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "House rules"
     assert_select "table thead th", text: "Title"
+    assert_select "table thead th", text: "Type"
     refute_select "table thead th", text: "Category"
     refute_select "table thead th", text: "Coverage"
     assert_select "table thead th", text: "Status"
@@ -388,6 +392,19 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
   end
 
   private
+
+  def clear_terms_on_write_workspace!
+    workspace = Workspace.find_by(name: "Studio Workspace")
+    return unless workspace
+
+    root = RecordingStudio.root_recording_for(workspace)
+    root.recordings_query(
+      include_children: true,
+      type: RecordingStudioTermsAndConditions::Terms.name
+    ).each do |recording|
+      recording.update_columns(trashed_at: Time.current)
+    end
+  end
 
   def first_table_row_count
     table = css_select("table").find do |candidate|

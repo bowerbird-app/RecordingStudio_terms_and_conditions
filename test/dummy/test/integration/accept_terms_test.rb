@@ -35,7 +35,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Terms &amp; Conditions"
     assert_select "a.flat-pack-link[data-modal-id]", count: 0
     assert_select "[data-controller='flat-pack--modal']", count: 0
-    assert_select "div.mb-6"
+    assert_select "div.mt-3.mb-6"
     refute_includes response.body, "I agree to these terms"
     assert_select "input[type=checkbox][name=agreed]", count: 0
     assert_includes response.body, "fp-content"

@@ -15,15 +15,15 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, embed
 - **Workspace**, **Folder**, and **Page** recordables seeded into the dummy host app
 - **Terms** recordable (`RecordingStudioTermsAndConditions::Terms`, product label `"Terms"`) with Publishable opted in on the type
 - **Acceptance** append-only table for clickwrap receipts (not a recordable). New rows store a SHA-256 body digest of the live copy at accept time
-- **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for`, `pending_published_list` / `pending_published_for`, `accepted?`, `accept!`, `requires_acceptance?`, `reaccepting?`
-- **Agree screen** for the current published Terms (pre-checked checkbox, gated Agree, `accept!`). No PageNav. Live copy sits in a Flatpack Collapse (closed by default) wrapping `FlatPack::Content`. The gem Agree screen does not use `require_scroll_to_end`. The calendar date stays in the heading, not a relative “hours ago”
-- **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`. Pass `link_terms: true` to turn the word terms into a link to the public URL. On submit, call `accept!` for the pending live version
-- **Host helper** `recording_studio_terms_continue_notice` — “By continuing, you agree to [app name]'s Terms & Conditions”. Default size is `:xs` with muted Flatpack copy (`text-[var(--surface-muted-content-color)]`). Pass `size: :sm` for `text-sm`. The Terms & Conditions words are a Flatpack Link (primary + underline). They open a Flatpack Modal whose body is the standalone terms view (title, date, Flatpack Content). Pass `link: false` for the same sentence as plain text, with no link and no modal (Accept does this because the Collapse already shows the terms). On the host POST, call `accept!` with `{ "source" => "continue_notice" }`. Do not replace the checkbox helper
-- **Gate** on the host `ApplicationController`: redirects to Agree until the live version is accepted, and again after a new publish
+- **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for` / `current_published_by_kind`, `pending_published_list` / `pending_published_for`, `accepted?`, `accept!`, `requires_acceptance?`, `reaccepting?`
+- **Agree screen** for pending live Terms and/or Privacy Policy (Continue + continue-notice, no checkbox on Accept). No PageNav. Each pending document sits in a Flatpack Collapse wrapping `FlatPack::Content`. Continue `accept!`s every pending live version
+- **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`. Pass `link_terms: true` to link “terms” (same tab) and “privacy policy” (`target=_blank`) when those documents are pending. On submit, call `accept!` for each pending live version
+- **Host helper** `recording_studio_terms_continue_notice` — “By continuing, you agree to [app name]'s Terms & Conditions” and, when privacy is pending, “and privacy policy”. Default size is `:xs` with muted Flatpack copy. Terms and privacy each open their own Flatpack Modal. Pass `link: false` for plain text (Accept does this). On the host POST, `accept!` each pending live version with `{ "source" => "continue_notice" }`
+- **Gate** on the host `ApplicationController`: redirects to Agree until every pending live kind is accepted (0..2), and again after a new publish of either kind
 - **Users hook** on `RecordingStudioUser::Auth::BaseController` so after sign in / sign up land on Agree when acceptance is still required
-- **Users create-password slot** (`recording_studio_user/auth/registrations/_extra_fields`) renders `recording_studio_terms_continue_notice` when live Terms are pending. Successful `create_password` calls `accept!` with provenance `continue_notice`. Soft: TnC still boots without Users Auth.
-- **Admin** create/edit Terms, Publishable `QuickActions` (Draft / Publish now / Preview), and a Users page of receipts for each term. Engine tables use `TablePage` (Pagy, 25 rows) and Flatpack infinite pagination. Admin hub Terms and Conditions and Agree stats tables set `paginate per_page: 25`. Live and Agrees widgets stack the title above the count (`view_variant: :card`). The hub does not show Accessible **+ Access**. Writes go through a registered Admin `terms` resource (`authorize_resource!` / `perform_recording_studio_admin_action!`)
-- **Public Terms URL** at `/terms/:uuid/:slug` via Publishable
+- **Users create-password slot** (`recording_studio_user/auth/registrations/_extra_fields`) renders `recording_studio_terms_continue_notice` when live documents are pending. Successful `create_password` calls `accept!` for each pending version with provenance `continue_notice`. Soft: TnC still boots without Users Auth.
+- **Admin** create/edit Terms or Privacy Policy (Type select; New blocked when that kind already exists), Publishable `QuickActions`, and a Users page of receipts. SoleLive is per kind
+- **Public Terms URL** at `/terms/:uuid/:slug` and **Privacy Policy** at `/privacy/:uuid/:slug` via Publishable
 - **FlatPack** UI component library for all views
 - **Dummy app** (`test/dummy/`) with a FlatPack sign-in screen, a home page on Recording Studio's default layout, mounted Recording Studio routes, and FlatPack's built-in rounded theme
 
@@ -107,6 +107,10 @@ Bump to **0.4.1**. No schema change. The Admin Terms hub no longer shows Accessi
 ## Upgrading from 0.4.x
 
 Bump to **0.5.0** and pin Publishable `v0.3.1`. No Terms schema change. Term show uses the Publishable status dropdown instead of a **Publish** button to the old edit form. Preview is its own route. Saving live Terms forks a draft; the public copy stays until you publish. Full notes: `CHANGELOG.md` (0.5.0).
+
+## Upgrading from 0.6.6
+
+Bump to **0.7.0**. Run the migrations generator and migrate. Existing Terms default to `terms_and_condition`. Admin New can add a Privacy Policy once; further versions are edit/fork only. SoleLive is per kind. Gate pending is 0..2. Accept and host helpers `accept!` every pending live version. Accept PageTitle and Collapse rows follow the pending kinds. Public privacy pages are `/privacy/:uuid/:slug`. Continue-notice wraps with spacing (`my-3`); pass `link: false` for plain text. Agree checkbox mentions privacy when a privacy document is pending; privacy links open in a new tab.
 
 ## Upgrading from 0.6.5
 

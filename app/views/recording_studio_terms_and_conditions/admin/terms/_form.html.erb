@@ -1,4 +1,14 @@
 <div class="flex w-full flex-col gap-6">
+  <% if local_assigns[:available_kinds] %>
+    <% options = Array(available_kinds).map { |value| [RecordingStudioTermsAndConditions::Terms.kind_label_for(value), value] } %>
+    <%= render FlatPack::Select::Component.new(
+      name: "terms[kind]",
+      value: kind,
+      label: "Type",
+      required: true,
+      options: options
+    ) %>
+  <% end %>
   <%= render FlatPack::TextInput::Component.new(
     name: "terms[title]",
     value: title,

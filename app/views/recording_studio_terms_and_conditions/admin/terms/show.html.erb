@@ -2,7 +2,7 @@
 
 <%= render FlatPack::PageTitle::Component.new(
   title: @terms.title,
-  subtitle: terms_heading_date(@terms, recording: @terms_recording),
+  subtitle: [@terms.kind_label, terms_heading_date(@terms, recording: @terms_recording)].compact.join(" · "),
   variant: :h1
 ) do |page_title| %>
   <% page_title.slot do %>

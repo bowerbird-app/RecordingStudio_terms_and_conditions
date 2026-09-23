@@ -12,17 +12,28 @@ class TermsTest < ActiveSupport::TestCase
     assert RecordingStudio.capability_enabled?(:publishable, for: RecordingStudioTermsAndConditions::Terms)
   end
 
-  test "terms table is a snapshot without updated_at" do
+  test "terms table is a snapshot with kind and without updated_at" do
     connection = ActiveRecord::Base.connection
 
     assert connection.table_exists?(:recording_studio_terms_and_conditions_terms)
     assert connection.column_exists?(:recording_studio_terms_and_conditions_terms, :title)
     assert connection.column_exists?(:recording_studio_terms_and_conditions_terms, :body)
+    assert connection.column_exists?(:recording_studio_terms_and_conditions_terms, :kind)
     assert connection.column_exists?(:recording_studio_terms_and_conditions_terms, :created_at)
     refute connection.column_exists?(:recording_studio_terms_and_conditions_terms, :change_note)
     refute connection.column_exists?(:recording_studio_terms_and_conditions_terms, :category)
     refute connection.column_exists?(:recording_studio_terms_and_conditions_terms, :updated_at)
     refute connection.column_exists?(:recording_studio_terms_and_conditions_terms, :published)
+  end
+
+  test "kind defaults to terms_and_condition and rejects unknown values" do
+    terms = RecordingStudioTermsAndConditions::Terms.new(title: "Studio", body: "Be kind.")
+    assert_equal "terms_and_condition", terms.kind
+    assert terms.valid?
+
+    terms.kind = "usage"
+    refute terms.valid?
+    assert_includes terms.errors[:kind], "is not included in the list"
   end
 
   test "terms can be recorded under a workspace and revised to a new snapshot" do

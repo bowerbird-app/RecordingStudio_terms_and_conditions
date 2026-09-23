@@ -8,7 +8,7 @@ module RecordingStudioTermsAndConditions
       list = RecordingStudioTermsAndConditions.pending_published_list(actor, root)
       return list if list.any?
 
-      Array(RecordingStudioTermsAndConditions.current_published_for(root)).compact
+      RecordingStudioTermsAndConditions.current_published_by_kind(root).values.compact
     end
 
     def recording_studio_terms_agree_root

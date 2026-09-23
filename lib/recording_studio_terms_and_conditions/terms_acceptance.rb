@@ -3,17 +3,24 @@
 module RecordingStudioTermsAndConditions
   class TermsAcceptance # rubocop:disable Metrics/ClassLength
     class << self
-      def current_published_for(root)
-        root_recording = resolve_root_recording(root)
-        return if root_recording.blank?
+      def current_published_for(root, kind: Terms::DEFAULT_KIND)
+        wanted = Terms.normalize_kind(kind)
+        return if Terms::KINDS.exclude?(wanted)
 
-        published_terms_recording_for(root_recording)&.recordable
+        current_published_by_kind(root)[wanted]
       end
 
-      def accepted?(actor, root)
+      def current_published_by_kind(root)
+        root_recording = resolve_root_recording(root)
+        return {} if root_recording.blank?
+
+        published_recordables_by_kind(root_recording)
+      end
+
+      def accepted?(actor, root, kind: Terms::DEFAULT_KIND)
         return false if actor.blank?
 
-        terms = current_published_for(root)
+        terms = current_published_for(root, kind: kind)
         return false if terms.blank?
 
         recording = recording_for_terms(terms)
@@ -27,15 +34,9 @@ module RecordingStudioTermsAndConditions
       end
 
       def reaccepting?(actor, root)
-        terms = pending_published_for(actor, root)
-        recording = recording_for_terms(terms)
-        return false if actor.blank? || recording.blank?
-
-        Acceptance.where(
-          actor_type: actor.class.base_class.name,
-          actor_id: actor.id,
-          terms_recording_id: sibling_terms_recording_ids(recording)
-        ).where.not(terms_id: terms.id).exists?
+        pending_published_list(actor, root).any? do |terms|
+          reaccepting_kind?(actor, terms)
+        end
       end
 
       def pending_published_for(actor, root)
@@ -43,10 +44,13 @@ module RecordingStudioTermsAndConditions
       end
 
       def pending_published_list(actor, root)
-        terms = current_published_for(root)
-        return [] if terms.blank? || accepted?(actor, root)
+        Terms::KINDS.filter_map do |kind|
+          terms = current_published_for(root, kind: kind)
+          next if terms.blank?
+          next if actor.present? && accepted?(actor, root, kind: kind)
 
-        [terms]
+          terms
+        end
       end
 
       def accept!(actor, version, provenance = {})
@@ -60,6 +64,17 @@ module RecordingStudioTermsAndConditions
       end
 
       private
+
+      def reaccepting_kind?(actor, terms)
+        recording = recording_for_terms(terms)
+        return false if actor.blank? || recording.blank?
+
+        Acceptance.where(
+          actor_type: actor.class.base_class.name,
+          actor_id: actor.id,
+          terms_recording_id: sibling_terms_recording_ids(recording)
+        ).where.not(terms_id: terms.id).exists?
+      end
 
       def create_receipt!(actor:, recording:, terms:, provenance:)
         existing = receipt_for(actor: actor, terms_recording_id: recording.id, terms_id: terms.id)
@@ -107,12 +122,36 @@ module RecordingStudioTermsAndConditions
       end
 
       def sibling_terms_recording_ids(recording)
-        SoleLive.terms_recordings_for(recording).map(&:id)
+        kind = recording.recordable&.kind
+        SoleLive.terms_recordings_for(recording, kind: kind).map(&:id)
       end
 
-      def published_terms_recording_for(root_recording)
-        candidates = root_recording.recordings_query(include_children: true, type: Terms.name)
-        candidates.select(&:currently_published?).max_by { |recording| publish_sort_key(recording) }
+      def published_recordables_by_kind(root_recording)
+        chosen = latest_live_recordings_by_kind(root_recording)
+        Terms::KINDS.each_with_object({}) do |kind, map|
+          map[kind] = chosen[kind].recordable if chosen[kind]
+        end
+      end
+
+      def latest_live_recordings_by_kind(root_recording)
+        recordings = root_recording.recordings_query(include_children: true, type: Terms.name)
+        recordings.each_with_object({}) do |recording, chosen|
+          kind = live_terms_kind(recording)
+          next if kind.blank? || keep_existing_recording?(chosen[kind], recording)
+
+          chosen[kind] = recording
+        end
+      end
+
+      def live_terms_kind(recording)
+        return unless recording.currently_published?
+
+        kind = recording.recordable&.kind.to_s
+        kind if Terms::KINDS.include?(kind)
+      end
+
+      def keep_existing_recording?(winner, recording)
+        winner.present? && publish_sort_key(recording) <= publish_sort_key(winner)
       end
 
       def publish_sort_key(recording)

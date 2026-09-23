@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.6.6", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.7.0", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -114,12 +114,15 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
 
     assert_includes terms_source, 'label: "Terms"'
     assert_includes terms_source, 'self.table_name = "recording_studio_terms_and_conditions_terms"'
+    assert_includes terms_source, 'DEFAULT_KIND = "terms_and_condition"'
+    assert_includes terms_source, "privacy_policy"
     refute_includes terms_source, "DEFAULT_CATEGORY"
     refute_includes terms_source, "category_unique_in_workspace"
     refute_includes terms_source, "change_note"
     assert_includes terms_source, "RecordingStudio::Capabilities::Publishable.to"
     assert_includes terms_source, 'public_controller: "recording_studio_terms_and_conditions/published_terms"'
     assert_includes terms_source, 'path: "/terms/:uuid/:slug"'
+    assert_includes terms_source, '"/privacy/:uuid/:slug"'
     refute_includes terms_source, "enable_capability"
     assert_includes acceptance_source, 'self.table_name = "recording_studio_terms_and_conditions_acceptances"'
     assert_includes acceptance_source, "def receipt_contract"
@@ -143,10 +146,14 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute names.grep(/add_category_to_recording_studio_terms_and_conditions_terms/).any?
     refute names.grep(/rename_kind_to_category_on_recording_studio_terms/).any?
     assert names.grep(/remove_category_and_change_note_from_recording_studio_terms/).any?
+    assert names.grep(/add_kind_to_recording_studio_terms_and_conditions_terms/).any?
     create_terms_name = names.grep(/create_recording_studio_terms_and_conditions_terms/).first
     create_terms = File.read(File.join(migrate_dir, create_terms_name))
     refute_includes create_terms, "category"
     refute_includes create_terms, "change_note"
+    kind_migration = File.read(File.join(migrate_dir, names.grep(/add_kind_to_recording_studio_terms/).first))
+    assert_includes kind_migration, "terms_and_condition"
+    assert_includes kind_migration, ":kind"
     assert_includes create, "unique: true"
     assert_includes create, "index_rstac_acceptances_on_actor_and_version"
     refute_includes provenance, "index_rstac_acceptances_on_actor_and_version"
@@ -159,17 +166,19 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_module_exposes_terms_acceptance_helpers
     source = File.read(File.expand_path("../lib/recording_studio_terms_and_conditions.rb", __dir__))
 
-    assert_includes source, "def current_published_for(root)"
+    assert_includes source, "def current_published_for(root"
     refute_includes source, "category:"
     refute_includes source, "def current_published_by_category(root)"
+    assert_includes source, "def current_published_by_kind(root)"
     assert_includes source, "def pending_published_for(actor, root)"
     assert_includes source, "def pending_published_list(actor, root)"
-    assert_includes source, "def accepted?(actor, root)"
+    assert_includes source, "def accepted?(actor, root"
     assert_includes source, "def requires_acceptance?(actor, root)"
     assert_includes source, "def reaccepting?(actor, root)"
     assert_includes source, "class NotLive < StandardError"
     helpers = %i[
       current_published_for
+      current_published_by_kind
       pending_published_for
       pending_published_list
       accepted?
@@ -190,6 +199,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes acceptance, "category:"
     refute_includes acceptance, "def current_published_by_category"
     refute_includes acceptance, "required_categories"
+    assert_includes acceptance, "current_published_by_kind"
+    assert_includes acceptance, "Terms::KINDS"
+    assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/kind_presence.rb"))
     refute File.exist?(engine_path("lib/recording_studio_terms_and_conditions/category_uniqueness.rb"))
     refute File.exist?(engine_path("lib/recording_studio_terms_and_conditions/category_coverage.rb"))
   end
@@ -266,8 +278,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes agree, "FlatPack::Card::Component"
     refute_includes agree, "recording_studio_terms_agree("
     assert_includes agree, "recording_studio_terms_continue_notice"
-    assert_includes agree, "mb-6"
-    assert_includes agree, "pending: @pending_terms"
+    refute_includes agree, "mb-6"
+    assert_includes agree, "pending: agree_documents"
     assert_includes agree, "link: false"
     assert_includes agree, "terms_agree_heading"
     assert_includes agree, "terms_accept_page_title"
@@ -279,8 +291,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes agree, "terms_page_nav"
     assert_includes agree, "FlatPack::Collapse::Component"
     assert_includes agree, "open: false"
-    assert_includes agree, "terms_accept_page_title(@terms, reaccepting: @reaccepting)"
-    assert_includes agree, "title: terms_agree_heading(@terms)"
+    assert_includes agree, "terms_accept_page_title(@terms, reaccepting: @reaccepting, pending: agree_documents)"
+    assert_includes agree, "title: terms_agree_heading(document)"
     refute_includes agree, 'title: "Terms"'
     refute_includes agree, "-mt-5 mb-6"
     helper = engine_source("app/helpers/recording_studio_terms_and_conditions/agree_helper.rb")
@@ -292,6 +304,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes continue_helper, "def recording_studio_terms_continue_notice"
     assert_includes continue_helper, "size: :xs"
     assert_includes continue_helper, "link: true"
+    assert_includes continue_helper, 'class: "mt-3 mb-6"'
     assert_includes continue_helper, "text-xs"
     assert_includes continue_helper, "surface-muted-content-color"
     assert_includes continue_helper, "continue_notice"
@@ -311,6 +324,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes copy_helper, "def terms_agree_heading"
     assert_includes copy_helper, "def terms_accept_page_title"
     assert_includes copy_helper, "We have updated our terms and conditions."
+    assert_includes copy_helper, "We have updated our privacy policy."
+    assert_includes copy_helper, "We have updated our terms and conditions and privacy policy."
     assert_includes copy_helper, "def terms_users_subtitle"
     refute_includes copy_helper, "def terms_agree_subtitle"
     assert_includes helper, "requires_acceptance?"
@@ -432,7 +447,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes admin_index, "min_width: :lg"
     form = engine_source("#{views}/admin/terms/_form.html.erb")
     assert_includes form, "terms_body_editor"
-    refute_includes form, "FlatPack::Select::Component"
+    assert_includes form, "FlatPack::Select::Component"
+    assert_includes form, "terms[kind]"
+    assert_includes form, "kind_label_for"
     refute_includes form, "terms[category]"
     refute_includes form, "change_note"
     refute_includes form, "category_select_options"
@@ -444,7 +461,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/sample_terms.rb"),
                     "When something breaks"
     dummy_seeds = File.read(File.expand_path("dummy/db/seeds.rb", __dir__))
-    assert_includes dummy_seeds, 'sample_slug = "terms-and-conditions"'
+    assert_includes dummy_seeds, 'slug: "terms-and-conditions"'
+    assert_includes dummy_seeds, 'slug: "privacy-policy"'
+    assert_includes dummy_seeds, "KIND_PRIVACY"
     refute_includes dummy_seeds, "studio-terms"
     importmap = File.read(File.expand_path("dummy/config/importmap.rb", __dir__))
     assert_includes importmap, "@tiptap/core"
@@ -678,6 +697,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin, 'admin_screen_path("recording_studio_terms")'
     assert_includes admin, "column :published"
     refute_includes admin, "column :category"
+    assert_includes admin, "column :kind"
+    assert_includes admin, "kind_label"
     refute_includes admin, "category_label"
     assert_includes admin, "admin_write_path"
     assert_includes admin, "admin_hub_path"
@@ -703,6 +724,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes File.read(skill), "Upgrade (0.6.3 → 0.6.4)"
     assert_includes File.read(skill), "Upgrade (0.6.4 → 0.6.5)"
     assert_includes File.read(skill), "Upgrade (0.6.5 → 0.6.6)"
+    assert_includes File.read(skill), "Upgrade (0.6.6 → 0.7.0)"
     assert_includes File.read(skill), "link: false"
     extra_fields_source = File.read(File.join(engine_root, extra_fields))
     assert_includes extra_fields_source, "recording_studio_terms_continue_notice"
@@ -717,6 +739,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.7.0]"
     assert_includes changelog, "## [0.6.6]"
     assert_includes changelog, "## [0.6.5]"
     assert_includes changelog, "## [0.6.4]"
@@ -724,6 +747,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "## [0.6.2]"
     assert_includes changelog, "## [0.6.1]"
     assert_includes changelog, "## [0.6.0]"
+    assert_includes changelog, "Upgrade notes (0.6.6 → 0.7.0)"
     assert_includes changelog, "Upgrade notes (0.6.5 → 0.6.6)"
     assert_includes changelog, "Upgrade notes (0.6.4 → 0.6.5)"
     assert_includes changelog, "Upgrade notes (0.6.3 → 0.6.4)"
@@ -746,6 +770,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "forks a new draft"
     assert_includes changelog, "Upgrade notes (0.4.0 → 0.4.1)"
     assert_includes changelog, "+ Access"
+    assert_includes notes, "Upgrade from 0.6.6 to 0.7.0"
     assert_includes notes, "Upgrade from 0.6.5 to 0.6.6"
     assert_includes notes, "Upgrade from 0.6.4 to 0.6.5"
     assert_includes notes, "Upgrade from 0.6.3 to 0.6.4"
@@ -753,6 +778,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes notes, "Upgrade from 0.6.1 to 0.6.2"
     assert_includes notes, "Upgrade from 0.6.0 to 0.6.1"
     assert_includes notes, "Upgrade from 0.5.0 to 0.6.0"
+    assert_includes readme, "Upgrading from 0.6.6"
     assert_includes readme, "Upgrading from 0.6.5"
     assert_includes readme, "Upgrading from 0.6.4"
     assert_includes readme, "Upgrading from 0.6.3"

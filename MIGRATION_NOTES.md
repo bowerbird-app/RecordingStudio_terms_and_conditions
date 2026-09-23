@@ -18,6 +18,15 @@ Then:
 
 The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
 
+## Upgrade from 0.6.6 to 0.7.0
+
+```bash
+bin/rails generate recording_studio_terms_and_conditions:migrations
+bin/rails db:migrate
+```
+
+Adds `kind` on Terms (`terms_and_condition` default, or `privacy_policy`). One lineage per kind per workspace. Admin New is blocked when that kind already exists; edit a live copy to fork the next draft. SoleLive drafts other live rows of the same kind only. Gate pending is 0..2. Accept and host helpers write one receipt per pending live version. Accept PageTitle and Collapse rows follow the pending kinds. Public privacy pages are `/privacy/:uuid/:slug`. Continue-notice wraps with spacing; pass `link: false` for plain text. Agree checkbox mentions privacy when a privacy document is pending; privacy links open in a new tab.
+
 ## Upgrade from 0.6.5 to 0.6.6
 
 No schema change. The gate no longer flashes “We've updated our Terms and Conditions” when a new live version needs another yes. Accept still uses the page title “We have updated our terms and conditions.”

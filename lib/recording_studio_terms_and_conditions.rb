@@ -10,6 +10,8 @@ require "recording_studio_terms_and_conditions/engine"
 require "recording_studio_terms_and_conditions/terms_acceptance"
 require "recording_studio_terms_and_conditions/terms_write"
 require "recording_studio_terms_and_conditions/sole_live"
+require "recording_studio_terms_and_conditions/kind_presence"
+require "recording_studio_terms_and_conditions/privacy_route"
 require "recording_studio_terms_and_conditions/table_page"
 require "recording_studio_terms_and_conditions/gate"
 require "recording_studio_terms_and_conditions/forces_acceptance"
@@ -34,8 +36,12 @@ module RecordingStudioTermsAndConditions
       yield(configuration) if block_given?
     end
 
-    def current_published_for(root)
-      TermsAcceptance.current_published_for(root)
+    def current_published_for(root, kind: Terms::DEFAULT_KIND)
+      TermsAcceptance.current_published_for(root, kind: kind)
+    end
+
+    def current_published_by_kind(root)
+      TermsAcceptance.current_published_by_kind(root)
     end
 
     def pending_published_for(actor, root)
@@ -46,8 +52,8 @@ module RecordingStudioTermsAndConditions
       TermsAcceptance.pending_published_list(actor, root)
     end
 
-    def accepted?(actor, root)
-      TermsAcceptance.accepted?(actor, root)
+    def accepted?(actor, root, kind: Terms::DEFAULT_KIND)
+      TermsAcceptance.accepted?(actor, root, kind: kind)
     end
 
     def requires_acceptance?(actor, root)

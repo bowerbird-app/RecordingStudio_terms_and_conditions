@@ -39,6 +39,7 @@ module RecordingStudioTermsAndConditions
                                   .order(updated_at: :desc)
       end
 
+      # rubocop:disable Metrics/BlockLength
       table do
         title "All versions"
         paginate per_page: 25
@@ -46,6 +47,10 @@ module RecordingStudioTermsAndConditions
                title: "Title",
                sortable: false,
                value: ->(recording, _context) { recording.recordable&.title }
+        column :kind,
+               title: "Type",
+               sortable: false,
+               value: ->(recording, _context) { recording.recordable&.kind_label }
         column :status,
                title: "Status",
                sortable: false,
@@ -66,6 +71,7 @@ module RecordingStudioTermsAndConditions
         admin_action "terms.edit"
         admin_action "terms.users"
       end
+      # rubocop:enable Metrics/BlockLength
       widget "widgets.terms.live", view_variant: :card
       widget "widgets.terms.agrees", view_variant: :card
     end
