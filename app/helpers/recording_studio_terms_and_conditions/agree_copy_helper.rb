@@ -8,10 +8,8 @@ module RecordingStudioTermsAndConditions
       terms&.title.presence || "Terms and Conditions"
     end
 
-    def terms_accept_page_title(terms, reaccepting: false)
-      return TERMS_UPDATED_PAGE_TITLE if reaccepting
-
-      terms_agree_heading(terms)
+    def terms_accept_page_title(*_args, **_kwargs)
+      TERMS_UPDATED_PAGE_TITLE
     end
 
     def terms_users_subtitle(_terms = nil)

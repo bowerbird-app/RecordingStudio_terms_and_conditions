@@ -106,8 +106,25 @@ class TermsAgreeHelperTest < ActionView::TestCase
 
     assert_equal "We have updated our terms and conditions.",
                  terms_accept_page_title(terms, reaccepting: true)
-    assert_equal "Studio Terms", terms_accept_page_title(terms, reaccepting: false)
-    assert_equal "Terms and Conditions", terms_accept_page_title(nil, reaccepting: false)
+    assert_equal "We have updated our terms and conditions.",
+                 terms_accept_page_title(terms, reaccepting: false)
+    assert_equal "We have updated our terms and conditions.",
+                 terms_accept_page_title(nil)
+  end
+
+  test "continue notice link false is plain text without a modal" do
+    terms = Struct.new(:body, :title).new("<p>Be kind in the booth.</p>", "Studio Terms")
+
+    html = recording_studio_terms_continue_notice(pending: [terms], link: false)
+
+    assert_includes CGI.unescapeHTML(html), "By continuing, you agree to Terms Dummy's"
+    assert_includes html, "Terms &amp; Conditions"
+    assert_includes html, '<p class="text-xs text-[var(--surface-muted-content-color)]">'
+    refute_includes html, "data-modal-id"
+    refute_includes html, "flat-pack--modal"
+    refute_includes html, "flat-pack-link"
+    refute_includes html, "fp-content"
+    refute_includes html, "Be kind in the booth."
   end
 
   test "continue notice drops the possessive when app_name is blank" do

@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.6.4", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.6.5", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -15,7 +15,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     gemspec = File.read(File.expand_path("../recording_studio_terms_and_conditions.gemspec", __dir__))
 
     assert_includes gemspec, 'spec.add_dependency "recording_studio", "~> 4.2"'
-    assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.195"'
+    assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.196"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", "~> 0.8"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_admin", "~> 2.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_publishable", "~> 0.3"'
@@ -60,7 +60,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes gemfile, "0b1d229693041093200420b318154ff07acca33e"
     refute_includes root_gemfile, "0b1d229693041093200420b318154ff07acca33e"
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.5.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.195"'
+    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.196"'
     refute_includes gemfile, "recording_studio/v3.0.0"
     refute_includes gemfile, 'tag: "v0.1.133"'
     refute_includes gemfile, 'tag: "v0.6.0"'
@@ -268,6 +268,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes agree, "recording_studio_terms_continue_notice"
     assert_includes agree, "mb-6"
     assert_includes agree, "pending: @pending_terms"
+    assert_includes agree, "link: false"
     assert_includes agree, "terms_agree_heading"
     assert_includes agree, "terms_accept_page_title"
     assert_includes agree, "terms_heading_date"
@@ -290,6 +291,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes helper, "def recording_studio_terms_continue_notice"
     assert_includes continue_helper, "def recording_studio_terms_continue_notice"
     assert_includes continue_helper, "size: :xs"
+    assert_includes continue_helper, "link: true"
     assert_includes continue_helper, "text-xs"
     assert_includes continue_helper, "surface-muted-content-color"
     assert_includes continue_helper, "continue_notice"
@@ -531,7 +533,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes readme, "come later"
     assert_includes readme, "#{internals_docs}/"
     assert_includes readme, "v4.2.0"
-    assert_includes readme, "v0.1.195"
+    assert_includes readme, "v0.1.196"
     assert_includes readme, "v0.3.1"
     assert_includes readme, "v0.9.1"
     refute_includes readme, "Internal template"
@@ -699,6 +701,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes File.read(skill), "Upgrade (0.6.1 → 0.6.2)"
     assert_includes File.read(skill), "Upgrade (0.6.2 → 0.6.3)"
     assert_includes File.read(skill), "Upgrade (0.6.3 → 0.6.4)"
+    assert_includes File.read(skill), "Upgrade (0.6.4 → 0.6.5)"
+    assert_includes File.read(skill), "link: false"
     extra_fields_source = File.read(File.join(engine_root, extra_fields))
     assert_includes extra_fields_source, "recording_studio_terms_continue_notice"
     refute_includes extra_fields_source, "size: :xs"
@@ -712,11 +716,13 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.6.5]"
     assert_includes changelog, "## [0.6.4]"
     assert_includes changelog, "## [0.6.3]"
     assert_includes changelog, "## [0.6.2]"
     assert_includes changelog, "## [0.6.1]"
     assert_includes changelog, "## [0.6.0]"
+    assert_includes changelog, "Upgrade notes (0.6.4 → 0.6.5)"
     assert_includes changelog, "Upgrade notes (0.6.3 → 0.6.4)"
     assert_includes changelog, "Upgrade notes (0.6.2 → 0.6.3)"
     assert_includes changelog, "Upgrade notes (0.6.1 → 0.6.2)"
@@ -737,11 +743,13 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "forks a new draft"
     assert_includes changelog, "Upgrade notes (0.4.0 → 0.4.1)"
     assert_includes changelog, "+ Access"
+    assert_includes notes, "Upgrade from 0.6.4 to 0.6.5"
     assert_includes notes, "Upgrade from 0.6.3 to 0.6.4"
     assert_includes notes, "Upgrade from 0.6.2 to 0.6.3"
     assert_includes notes, "Upgrade from 0.6.1 to 0.6.2"
     assert_includes notes, "Upgrade from 0.6.0 to 0.6.1"
     assert_includes notes, "Upgrade from 0.5.0 to 0.6.0"
+    assert_includes readme, "Upgrading from 0.6.4"
     assert_includes readme, "Upgrading from 0.6.3"
     assert_includes readme, "Upgrading from 0.6.2"
     assert_includes readme, "Upgrading from 0.6.1"

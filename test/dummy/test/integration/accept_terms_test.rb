@@ -28,10 +28,13 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     refute_select "header.fp-top-nav"
     refute_includes response.body, "Terms demo"
     refute_select "a", text: "Sign out"
+    assert_select "h1", text: "We have updated our terms and conditions."
     assert_includes response.body, "Studio Terms"
     assert_includes response.body, "Be kind"
     assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
     assert_includes response.body, "Terms &amp; Conditions"
+    assert_select "a.flat-pack-link[data-modal-id]", count: 0
+    assert_select "[data-controller='flat-pack--modal']", count: 0
     assert_select "div.mb-6"
     refute_includes response.body, "I agree to these terms"
     assert_select "input[type=checkbox][name=agreed]", count: 0
