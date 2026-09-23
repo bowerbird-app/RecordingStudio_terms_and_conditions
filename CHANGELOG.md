@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.5] - 2026-09-23
+
+### Added
+- `recording_studio_terms_continue_notice` takes `link:` (default `true`). `link: false` keeps the “By continuing…” sentence and renders “Terms & Conditions” as plain text, with no Flatpack Link and no modal.
+
+### Changed
+- The Accept screen passes `link: false`. Live copy is already in the closed Collapse, so Continue does not open a second copy in a modal. Signup and other hosts still get the link and modal unless they pass `link: false`.
+
+### Upgrade notes (0.6.4 → 0.6.5)
+- No schema change. Pin this gem at `0.6.5`. Default continue-notice still links “Terms & Conditions” and opens the modal. Pass `link: false` when the page already shows the terms (Accept does this). Hosts that overrode `acceptances/show` only to drop that link can delete the override.
+
 ## [0.6.4] - 2026-09-23
 
 ### Fixed

@@ -18,6 +18,10 @@ Then:
 
 The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
 
+## Upgrade from 0.6.4 to 0.6.5
+
+No schema change. `recording_studio_terms_continue_notice` still links “Terms & Conditions” and opens the modal. Pass `link: false` for plain text with no modal. Accept already does that because the Collapse shows the terms. Signup keeps the link.
+
 ## Upgrade from 0.6.3 to 0.6.4
 
 No schema change. Accept **Continue** is already Flatpack primary (`data-fp-style="primary"`). The engine appends `flat_pack/application` so the filled CTA paints when the host only linked `flat_pack/variables`. Still load `flat_pack/application` from `_default_layout_head` and keep Tailwind last. Re-gate Accept PageTitle is “We have updated our terms and conditions.” Flash stays “We've updated our Terms and Conditions”.

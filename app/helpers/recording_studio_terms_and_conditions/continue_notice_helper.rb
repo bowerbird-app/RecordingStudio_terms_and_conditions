@@ -7,12 +7,14 @@ module RecordingStudioTermsAndConditions
 
     CONTINUE_NOTICE_SIZES = { xs: "text-xs", sm: "text-sm" }.freeze
 
-    def recording_studio_terms_continue_notice(actor: nil, root: nil, pending: nil, size: :xs)
+    def recording_studio_terms_continue_notice(actor: nil, root: nil, pending: nil, size: :xs, link: true)
       terms = continue_notice_terms(actor, root, pending)
       return if terms.blank?
 
+      return continue_notice_copy(nil, size, link: false) unless link
+
       modal_id = "terms-continue-notice-#{SecureRandom.hex(4)}"
-      safe_join([continue_notice_copy(modal_id, size), continue_notice_modal(terms, modal_id)])
+      safe_join([continue_notice_copy(modal_id, size, link: true), continue_notice_modal(terms, modal_id)])
     end
 
     private
@@ -26,8 +28,8 @@ module RecordingStudioTermsAndConditions
       recording_studio_terms_pending_list(actor, root, pending).first
     end
 
-    def continue_notice_copy(modal_id, size = :xs)
-      content_tag(:p, continue_notice_sentence(modal_id), class: continue_notice_copy_class(size))
+    def continue_notice_copy(modal_id, size = :xs, link: true)
+      content_tag(:p, continue_notice_sentence(modal_id, link: link), class: continue_notice_copy_class(size))
     end
 
     def continue_notice_copy_class(size)
@@ -38,7 +40,7 @@ module RecordingStudioTermsAndConditions
       CONTINUE_NOTICE_SIZES.fetch(size.to_s.to_sym, CONTINUE_NOTICE_SIZES[:xs])
     end
 
-    def continue_notice_sentence(modal_id)
+    def continue_notice_sentence(modal_id, link:)
       app_name = RecordingStudioTermsAndConditions.configuration.app_name
       prefix = if app_name.present?
                  safe_join(["By continuing, you agree to ", app_name, "'s "])
@@ -46,7 +48,8 @@ module RecordingStudioTermsAndConditions
                  "By continuing, you agree to the "
                end
 
-      safe_join([prefix, continue_notice_link(modal_id), "."])
+      words = link ? continue_notice_link(modal_id) : "Terms & Conditions"
+      safe_join([prefix, words, "."])
     end
 
     def continue_notice_link(modal_id)
