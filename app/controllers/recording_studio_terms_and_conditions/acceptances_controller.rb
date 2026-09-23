@@ -41,7 +41,8 @@ module RecordingStudioTermsAndConditions
     end
 
     def documents_to_accept
-      @pending_terms.presence || Array(@terms).compact
+      list = @pending_terms.presence || Array(@terms).compact
+      list.uniq { |terms| [terms.class.name, terms.id] }
     end
 
     def continue_notice_provenance

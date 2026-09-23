@@ -142,6 +142,12 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
     assert_empty RecordingStudioTermsAndConditions.pending_published_list(@user, @workspace)
     assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace, kind: "terms_and_condition")
     assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace, kind: "privacy_policy")
+
+    assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
+      RecordingStudioTermsAndConditions.accept!(@user, terms.recordable, { "source" => "continue_notice" })
+      RecordingStudioTermsAndConditions.accept!(@user, privacy.recordable, { "source" => "continue_notice" })
+      post recording_studio_terms_and_conditions.acceptance_path
+    end
   end
 
   test "public privacy route and published_url use /privacy" do
