@@ -76,6 +76,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     assert RecordingStudioTermsAndConditions.reaccepting?(@user, @workspace)
     refute RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
     assert_includes response.body, "We have updated our terms and conditions."
+    refute_includes CGI.unescapeHTML(response.body), "We've updated our Terms and Conditions"
     refute_includes response.body, "Terms updated"
     published_on = revised.current_publishable.publish_at.in_time_zone.strftime("%e %b %Y").squish
     assert_includes response.body, published_on

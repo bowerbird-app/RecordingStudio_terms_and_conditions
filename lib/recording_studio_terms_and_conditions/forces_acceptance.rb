@@ -27,14 +27,7 @@ module RecordingStudioTermsAndConditions
       return if pending.empty?
 
       remember_requested_page
-      redirect_to Gate.acceptance_path(self), notice: terms_gate_notice
-    end
-
-    def terms_gate_notice
-      root = Gate.root_for(self)
-      return unless RecordingStudioTermsAndConditions.reaccepting?(signed_in_actor, root)
-
-      "We've updated our Terms and Conditions"
+      redirect_to Gate.acceptance_path(self)
     end
 
     def signed_in_actor
