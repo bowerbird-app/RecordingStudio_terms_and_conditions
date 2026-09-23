@@ -30,26 +30,34 @@ module RecordingStudioTermsAndConditions
     end
 
     def recording_studio_terms_agree_labeled_box(terms_list, checkbox_id, link_terms)
-      checkbox = recording_studio_terms_agree_checkbox_tag(terms_list, checkbox_id, link_terms)
-      return checkbox unless link_terms && terms_list.size == 1
-
-      content_tag(:div, class: "flex items-center") do
-        safe_join([checkbox, recording_studio_terms_agree_linked_label(terms_list.first, checkbox_id)])
+      if link_terms
+        content_tag(:div, class: "flex items-center") do
+          safe_join([
+                      recording_studio_terms_agree_checkbox_tag(terms_list, checkbox_id, linked: true),
+                      recording_studio_terms_agree_linked_label(terms_list, checkbox_id)
+                    ])
+        end
+      else
+        recording_studio_terms_agree_checkbox_tag(terms_list, checkbox_id, linked: false)
       end
     end
 
-    def recording_studio_terms_agree_checkbox_tag(terms_list, checkbox_id, link_terms)
+    def recording_studio_terms_agree_checkbox_tag(terms_list, checkbox_id, linked:)
       render(
         FlatPack::Checkbox::Component.new(
           **recording_studio_terms_agree_checkbox,
           id: checkbox_id,
-          label: link_terms && terms_list.size == 1 ? nil : recording_studio_terms_agree_label(terms_list)
+          label: linked ? nil : recording_studio_terms_agree_label(terms_list)
         )
       )
     end
 
-    def recording_studio_terms_agree_label(_terms_list)
-      "I agree to these terms"
+    def recording_studio_terms_agree_label(terms_list)
+      if terms_list_includes_privacy?(terms_list)
+        "I agree to these terms and privacy policy"
+      else
+        "I agree to these terms"
+      end
     end
 
     def recording_studio_terms_agree_checkbox
@@ -61,13 +69,25 @@ module RecordingStudioTermsAndConditions
       }
     end
 
-    def recording_studio_terms_agree_linked_label(terms, checkbox_id)
+    def recording_studio_terms_agree_linked_label(terms_list, checkbox_id)
       label_tag(
         checkbox_id,
-        safe_join(["I agree to these ".html_safe, recording_studio_terms_word_link(terms)]),
+        safe_join(["I agree to these ".html_safe, recording_studio_terms_agree_linked_words(terms_list)]),
         class: "ml-[var(--checkbox-label-gap)] text-sm font-medium " \
                "text-[var(--surface-content-color)] cursor-pointer"
       )
+    end
+
+    def recording_studio_terms_agree_linked_words(terms_list)
+      terms_doc = terms_list.find { |terms| terms.try(:terms_and_condition?) } || terms_list.first
+      privacy_doc = terms_list.find { |terms| terms.try(:privacy_policy?) }
+
+      words = [recording_studio_terms_word_link(terms_doc)]
+      if privacy_doc
+        words << " and ".html_safe
+        words << recording_studio_privacy_word_link(privacy_doc)
+      end
+      safe_join(words)
     end
 
     def recording_studio_terms_word_link(terms)
@@ -75,6 +95,19 @@ module RecordingStudioTermsAndConditions
       return "terms" if url.blank?
 
       render(FlatPack::Link::Component.new(href: url).with_content("terms"))
+    end
+
+    def recording_studio_privacy_word_link(terms)
+      url = terms.try(:published_url)
+      return "privacy policy" if url.blank?
+
+      render(
+        FlatPack::Link::Component.new(href: url, target: "_blank").with_content("privacy policy")
+      )
+    end
+
+    def terms_list_includes_privacy?(terms_list)
+      Array(terms_list).any? { |terms| terms.try(:privacy_policy?) }
     end
   end
 end

@@ -77,6 +77,8 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "What changed"
     refute_includes response.body, "terms[category]"
     refute_includes response.body, "Category"
+    assert_includes response.body, "terms[kind]"
+    assert_includes response.body, "Privacy Policy"
     assert_includes response.body, "Save draft"
     assert_select "div.inline-block button[type=submit]", text: "Save draft"
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
@@ -146,6 +148,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "House rules"
     assert_select "table thead th", text: "Title"
+    assert_select "table thead th", text: "Type"
     refute_select "table thead th", text: "Category"
     refute_select "table thead th", text: "Coverage"
     assert_select "table thead th", text: "Status"

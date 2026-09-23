@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module RecordingStudioTermsAndConditions
-  # One live Terms recording per workspace. Publishing a version drafts the others.
+  # One live Terms recording per kind per workspace. Publishing drafts the others of that kind.
   class SoleLive
     HOOK_EVENT = :recording_studio_terms_sole_live
 
@@ -28,7 +28,12 @@ module RecordingStudioTermsAndConditions
       return unless terms_recording?(parent_recording)
       return unless parent_recording.currently_published?
 
-      terms_recordings_for(parent_recording).each do |recording|
+      draft_other_live_of_kind(parent_recording)
+    end
+
+    def self.draft_other_live_of_kind(parent_recording)
+      kind = parent_recording.recordable&.kind
+      terms_recordings_for(parent_recording, kind: kind).each do |recording|
         next if recording.id == parent_recording.id
         next unless recording.currently_published?
 
@@ -43,9 +48,13 @@ module RecordingStudioTermsAndConditions
       recording.respond_to?(:recordable_type) && recording.recordable_type == Terms.name
     end
 
-    def self.terms_recordings_for(recording)
+    def self.terms_recordings_for(recording, kind: nil)
       root = recording.root_recording || recording
-      root.recordings_query(include_children: true, type: Terms.name)
+      recordings = root.recordings_query(include_children: true, type: Terms.name)
+      return recordings if kind.blank?
+
+      wanted = Terms.normalize_kind(kind)
+      recordings.select { |candidate| candidate.recordable&.kind.to_s == wanted }
     end
   end
 end

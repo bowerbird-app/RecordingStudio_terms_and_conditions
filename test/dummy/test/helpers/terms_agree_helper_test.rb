@@ -138,4 +138,53 @@ class TermsAgreeHelperTest < ActionView::TestCase
   ensure
     RecordingStudioTermsAndConditions.configuration.app_name = "Terms Dummy"
   end
+
+  test "continue notice includes privacy copy and modal when privacy is pending" do
+    terms = Struct.new(:body, :title, :kind).new(
+      "<p>Be kind.</p>",
+      "Studio Terms",
+      "terms_and_condition"
+    )
+    privacy = Struct.new(:body, :title, :kind).new(
+      "<p>We keep receipts.</p>",
+      "Studio Privacy",
+      "privacy_policy"
+    )
+    def terms.terms_and_condition? = true
+    def terms.privacy_policy? = false
+    def privacy.terms_and_condition? = false
+    def privacy.privacy_policy? = true
+
+    html = recording_studio_terms_continue_notice(pending: [terms, privacy])
+
+    assert_match(/and <a[^>]*>privacy policy<\/a>/, html)
+    assert_includes html, "Terms &amp; Conditions"
+    assert_equal 2, html.scan('data-controller="flat-pack--modal"').size
+    assert_includes html, "We keep receipts"
+  end
+
+  test "agree checkbox includes privacy link with target blank" do
+    terms = Struct.new(:body, :title, :published_url).new(
+      "<p>Be kind.</p>",
+      "Studio Terms",
+      "/terms/1/studio"
+    )
+    privacy = Struct.new(:body, :title, :published_url).new(
+      "<p>Private.</p>",
+      "Studio Privacy",
+      "/privacy/2/studio"
+    )
+    def terms.terms_and_condition? = true
+    def terms.privacy_policy? = false
+    def privacy.terms_and_condition? = false
+    def privacy.privacy_policy? = true
+
+    html = recording_studio_terms_agree(pending: [terms, privacy], link_terms: true)
+
+    assert_includes html, "I agree to these"
+    assert_includes html, 'href="/terms/1/studio"'
+    assert_includes html, 'href="/privacy/2/studio"'
+    assert_includes html, 'target="_blank"'
+    assert_includes html, "privacy policy"
+  end
 end

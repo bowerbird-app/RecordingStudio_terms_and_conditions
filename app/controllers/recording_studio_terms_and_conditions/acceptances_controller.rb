@@ -10,7 +10,7 @@ module RecordingStudioTermsAndConditions
 
     def create
       load_acceptance_context
-      return reject_agreement("There are no live terms to agree to.") if @terms.blank?
+      return reject_agreement("There are no live terms to agree to.") if documents_to_accept.blank?
 
       accept_current_terms!
     end
@@ -32,10 +32,16 @@ module RecordingStudioTermsAndConditions
     end
 
     def accept_current_terms!
-      RecordingStudioTermsAndConditions.accept!(current_actor, @terms, continue_notice_provenance)
+      documents_to_accept.each do |terms|
+        RecordingStudioTermsAndConditions.accept!(current_actor, terms, continue_notice_provenance)
+      end
       redirect_to next_path_after_acceptance
     rescue RecordingStudioTermsAndConditions::NotLive
       reject_agreement("Those terms aren't live. Refresh and agree to the current ones.")
+    end
+
+    def documents_to_accept
+      @pending_terms.presence || Array(@terms).compact
     end
 
     def continue_notice_provenance

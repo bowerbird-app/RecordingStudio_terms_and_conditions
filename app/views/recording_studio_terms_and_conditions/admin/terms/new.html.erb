@@ -8,7 +8,7 @@
   ) %>
 
   <%= form_with url: admin_terms_path, method: :post, scope: :terms, class: "flex w-full flex-col gap-6" do %>
-    <%= render "form", title: @title, body: @body %>
+    <%= render "form", title: @title, body: @body, kind: @kind, available_kinds: @available_kinds %>
     <div class="inline-block">
       <%= render FlatPack::Button::Component.new(
         text: "Save draft",

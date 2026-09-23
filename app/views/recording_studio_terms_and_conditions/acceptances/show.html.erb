@@ -1,6 +1,7 @@
+<% agree_documents = @pending_terms.presence || Array(@terms).compact %>
 <% terms_skip_page_nav %>
 
-<% if @terms.blank? %>
+<% if agree_documents.blank? %>
   <%= render FlatPack::EmptyState::Component.new(
     title: "Nothing to agree to yet",
     description: "Someone still needs to publish terms for this workspace."
@@ -13,12 +14,14 @@
       variant: :h1
     ) %>
 
-    <%= render FlatPack::Collapse::Component.new(
-      id: "agree-terms-body",
-      title: terms_agree_heading(@terms),
-      open: false
-    ) do %>
-      <%= terms_content(@terms.body) %>
+    <% agree_documents.each_with_index do |document, index| %>
+      <%= render FlatPack::Collapse::Component.new(
+        id: agree_documents.size == 1 ? "agree-terms-body" : "agree-terms-body-#{index}",
+        title: terms_agree_heading(document),
+        open: false
+      ) do %>
+        <%= terms_content(document.body) %>
+      <% end %>
     <% end %>
 
     <% unless @already_accepted %>

@@ -12,17 +12,26 @@ module RecordingStudioTermsAndConditions
       end
 
       def new
-        assign_form_fields(title: "", body: "")
+        @available_kinds = KindPresence.available_kinds(terms_parent_root)
+        if @available_kinds.empty?
+          redirect_to admin_terms_path,
+                      alert: "This workspace already has Terms and a Privacy Policy. Edit a version to change them."
+          return
+        end
+
+        assign_form_fields(title: "", body: "", kind: @available_kinds.first)
       end
 
       def create
         return render_missing_workspace if terms_parent_root.blank?
+        return render_create_blocked if create_kind_taken?
 
         recording = write_terms_resource!(:new, terms_parent_root, audit_action: :create) do
           draft_terms!(terms_parent_root)
         end
         redirect_to admin_term_path(recording), notice: "Terms drafted. Publish when they are ready."
       rescue ActiveRecord::RecordInvalid => e
+        @available_kinds = KindPresence.available_kinds(terms_parent_root)
         render_invalid_terms(:new, e, "Could not save that draft.")
       end
 
@@ -86,6 +95,7 @@ module RecordingStudioTermsAndConditions
 
       def render_missing_workspace
         flash.now[:alert] = "Pick a workspace first."
+        @available_kinds = KindPresence.available_kinds(nil)
         assign_form_fields_from_params
         render :new, status: :unprocessable_entity
       end
@@ -102,7 +112,8 @@ module RecordingStudioTermsAndConditions
             recording: terms_recording,
             actor: current_admin_actor,
             title: terms_params[:title],
-            body: terms_params[:body]
+            body: terms_params[:body],
+            kind: terms_recording.recordable&.kind
           )
         end
       end
@@ -118,23 +129,50 @@ module RecordingStudioTermsAndConditions
       def assign_terms_fields(terms)
         terms.title = terms_params[:title]
         terms.body = terms_params[:body]
+        terms.kind = Terms.normalize_kind(terms_params[:kind])
       end
 
       def assign_form_fields_from(terms)
-        assign_form_fields(title: terms.title, body: terms.body)
+        assign_form_fields(
+          title: terms.title,
+          body: terms.body,
+          kind: terms.kind.presence || Terms::DEFAULT_KIND
+        )
       end
 
       def assign_form_fields_from_params
-        assign_form_fields(title: terms_params[:title], body: terms_params[:body])
+        assign_form_fields(
+          title: terms_params[:title],
+          body: terms_params[:body],
+          kind: terms_params[:kind].presence || Terms::DEFAULT_KIND
+        )
       end
 
-      def assign_form_fields(title:, body:)
+      def assign_form_fields(title:, body:, kind: Terms::DEFAULT_KIND)
         @title = title
         @body = body
+        @kind = kind
+      end
+
+      def create_blocked_message(kind)
+        label = Terms.kind_label_for(kind)
+        "This workspace already has #{label}. Open that version and edit to make a new draft."
+      end
+
+      def create_kind_taken?
+        KindPresence.exists?(terms_parent_root, kind: Terms.normalize_kind(terms_params[:kind]))
+      end
+
+      def render_create_blocked
+        kind = Terms.normalize_kind(terms_params[:kind])
+        flash.now[:alert] = create_blocked_message(kind)
+        @available_kinds = KindPresence.available_kinds(terms_parent_root)
+        assign_form_fields_from_params
+        render :new, status: :unprocessable_entity
       end
 
       def terms_params
-        params.fetch(:terms, {}).permit(:title, :body)
+        params.fetch(:terms, {}).permit(:title, :body, :kind)
       end
     end
   end

@@ -27,6 +27,7 @@
       title: title,
       href: admin_term_path(recording),
       live: live,
+      kind: recording.recordable&.kind_label.presence || "Terms and Conditions",
       published: terms_published_at(recording),
       agrees: RecordingStudioTermsAndConditions::Acceptance.where(terms_recording_id: recording.id).count
     }
@@ -39,6 +40,7 @@
     <% table.column(title: "Title") do |row|
       render FlatPack::Link::Component.new(href: row[:href]).with_content(row[:title])
     end %>
+    <% table.column(title: "Type") { |row| row[:kind] } %>
     <% table.column(title: "Status") do |row|
       render FlatPack::Badge::Component.new(
         text: row[:live] ? "Live" : "Draft",

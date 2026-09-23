@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-09-23
+
+### Added
+- Terms `kind` enum: `terms_and_condition` | `privacy_policy`. One document lineage per kind per workspace. Admin New is blocked when any recording of that kind already exists; later versions come from edit/fork only.
+- SoleLive is per kind: publishing Privacy Policy drafts other live privacy rows, not Terms.
+- Gate pending list is 0..2 (terms-only, privacy-only, or both). Accept / continue-notice / Agree accept every pending live version (one receipt row each).
+- Public Privacy Policy path `/privacy/:uuid/:slug` (Terms stay on `/terms/:uuid/:slug`). `published_url` for privacy rows uses the privacy path.
+- Continue-notice includes “and privacy policy” plus a Privacy modal when a privacy document is pending. Agree checkbox copy includes “and privacy policy”; the privacy link opens in a new tab (`target=_blank`). Terms links stay same-tab.
+- Admin Type column / select label **Privacy Policy**.
+
+### Upgrade notes (0.6.6 → 0.7.0)
+- Run `bin/rails generate recording_studio_terms_and_conditions:migrations` and `bin/rails db:migrate`. Existing Terms rows default to `terms_and_condition`.
+- Hosts that mount Publishable at `/` get `/privacy/:uuid/:slug` from this gem’s route append. Keep `/terms/:uuid/:slug`.
+- Accept and host Agree helpers now `accept!` every pending kind. Gate stays on until both live kinds (when present) have receipts.
+- No gate-flash revival. Users soft create-password slot is unchanged.
+
 ## [0.6.6] - 2026-09-23
 
 ### Changed

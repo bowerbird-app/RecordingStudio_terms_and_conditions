@@ -7,7 +7,7 @@ description: Published Terms, clickwrap acceptance, and the host gate for Record
 
 This is the kit gem for **published Terms** and **clickwrap acceptance**. Do not invent a second acceptance table, accept screen, or post-auth redirect.
 
-Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.6.6**.
+Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.7.0**.
 
 ## Need
 
@@ -41,15 +41,16 @@ The install generator mounts the engine, copies migrations, and writes the initi
 
 ```ruby
 terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
+privacy = RecordingStudioTermsAndConditions.current_published_for(workspace, kind: "privacy_policy")
 RecordingStudioTermsAndConditions.pending_published_list(user, workspace)
 RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace)
 RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap" })
 RecordingStudioTermsAndConditions.accepted?(user, workspace)
 ```
 
-Live means Publishable `currently_published?`. `accept!` raises `NotLive` for drafts and unpublished versions. Retrying the same actor and live snapshot returns the existing receipt. Saving live Terms forks a draft; the published copy stays live. Publishing the draft drafts the previous live version. A later published version still inserts a new receipt. The “You already agreed” Alert shows when the person has a receipt for older Terms in that workspace and the live snapshot is a different row. First-time Agree does not show it. Acceptance rows are receipts, not recordings. New receipts store `body_digest` (read via `receipt_contract`).
+Live means Publishable `currently_published?`. `kind` is `terms_and_condition` or `privacy_policy` — one lineage per kind per workspace. Admin New is blocked when that kind already exists; versions come from edit/fork. SoleLive drafts other live rows of the same kind only. `accept!` raises `NotLive` for drafts and unpublished versions. Retrying the same actor and live snapshot returns the existing receipt. Saving live Terms forks a draft; the published copy stays live. Publishing the draft drafts the previous live version of that kind. A later published version still inserts a new receipt. Acceptance rows are receipts, not recordings. New receipts store `body_digest` (read via `receipt_contract`).
 
-`pending_published_list` is the live Terms the actor still needs. The host gate (`ForcesAcceptance`) and Users Auth post-auth stay on until that set is empty.
+`pending_published_list` is the live Terms and/or Privacy Policy the actor still needs (0..2). The host gate (`ForcesAcceptance`) and Users Auth post-auth stay on until that set is empty.
 
 When Users `>= 0.12.1` is loaded, this gem overrides `recording_studio_user/auth/registrations/_extra_fields` on create-password signup. Pending live Terms render `recording_studio_terms_continue_notice`. After a successful `create_password`, `accept!` runs with `{ "source" => "continue_notice" }`. Continuing the form is the agreement. The gem still boots if Users Auth is absent.
 
@@ -66,7 +67,7 @@ Drop the host helper onto a form:
 
 The checkbox helper is HTML `required`, named `agreed`. Put it in a form. On submit call `accept!` for the pending live version. Do not add a second receipt table.
 
-`recording_studio_terms_continue_notice` is a second helper. Copy uses `config.app_name`. Default is `text-xs` plus muted Flatpack copy (`text-[var(--surface-muted-content-color)]`). `size:` is `:xs` (default) or `:sm`. Unknown sizes use `:xs`. The Terms & Conditions words are a Flatpack Link (primary + underline). They open a Flatpack Modal whose body is the standalone terms document (`published_terms/_document`: PageTitle, date, Flatpack Content). `link:` defaults to `true`. Pass `link: false` for the same sentence as plain text, with no link and no modal. Accept passes `link: false` because the Collapse already shows the terms. Signup keeps the link. On that host POST, call `accept!` with `{ "source" => "continue_notice" }`. Do not remove the checkbox helper. Dummy `/agree_helper` posts both helpers and then lets home load.
+`recording_studio_terms_continue_notice` is a second helper. Copy uses `config.app_name`. Default is `text-xs` plus muted Flatpack copy (`text-[var(--surface-muted-content-color)]`). `size:` is `:xs` (default) or `:sm`. Unknown sizes use `:xs`. The Terms & Conditions words are a Flatpack Link (primary + underline). They open a Flatpack Modal whose body is the standalone terms document (`published_terms/_document`: PageTitle, date, Flatpack Content). When a Privacy Policy is also pending, the sentence includes “and privacy policy” and a second modal. `link:` defaults to `true`. Pass `link: false` for the same sentence as plain text, with no link and no modal. Accept passes `link: false` because the Collapse already shows the documents. Signup keeps the link. Agree checkbox copy includes “and privacy policy” when privacy is pending; the privacy link uses `target=_blank`. Terms links stay same-tab. On that host POST, call `accept!` for each pending live version with `{ "source" => "continue_notice" }` (or `clickwrap`). Do not remove the checkbox helper. Dummy `/agree_helper` posts both helpers and then lets home load.
 
 The gem Agree screen does not apply scroll-to-end. Hosts that still want a scroll gate wrap their own copy:
 
@@ -81,6 +82,10 @@ Or wrap a host clickwrap with `recording_studio_terms_scroll_to_end(require_scro
 Set `config.capture_request_provenance = true` only if the gem Agree screen should store IP and user agent (default off). Product config is `mount_path`, `app_name`, `require_scroll_to_end`, and `capture_request_provenance`. There is no API key.
 
 Agree is still the post-auth destination. It has no PageNav. Live copy sits in a closed Flatpack Collapse wrapping Content. The Collapse title is the live Terms heading (`terms_agree_heading`). Accept PageTitle is “We have updated our terms and conditions.” on a first visit and a re-gate. No on-page re-accept Alert, and the gate does not flash. Continue-notice and **Continue** stay at the bottom (no checkbox). Signup continue-notice uses `root_for_signup`, which falls back when the current root has no live Terms.
+
+## Upgrade (0.6.6 → 0.7.0)
+
+Run the migrations generator and migrate. Existing Terms default to `terms_and_condition`. Add a Privacy Policy from Admin New when that kind is still free. Public privacy pages are `/privacy/:uuid/:slug`. Gate pending and Accept cover both kinds. Continue-notice and Agree checkbox mention privacy when pending.
 
 ## Upgrade (0.6.5 → 0.6.6)
 
