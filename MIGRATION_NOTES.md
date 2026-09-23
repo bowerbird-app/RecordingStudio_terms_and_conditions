@@ -20,7 +20,7 @@ The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` a
 
 ## Upgrade from 0.6.3 to 0.6.4
 
-No schema change. Accept **Continue** is already Flatpack primary (`data-fp-style="primary"`). The engine appends `flat_pack/application` so the filled CTA paints when the host only linked `flat_pack/variables`. Still load `flat_pack/application` from `_default_layout_head` and keep Tailwind last.
+No schema change. Accept **Continue** is already Flatpack primary (`data-fp-style="primary"`). The engine appends `flat_pack/application` so the filled CTA paints when the host only linked `flat_pack/variables`. Still load `flat_pack/application` from `_default_layout_head` and keep Tailwind last. Re-gate Accept PageTitle is “We have updated our terms and conditions.” Flash stays “We've updated our Terms and Conditions”.
 
 ## Upgrade from 0.6.2 to 0.6.3
 

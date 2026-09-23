@@ -72,12 +72,14 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert RecordingStudioTermsAndConditions.reaccepting?(@user, @workspace)
     refute RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
+    assert_includes response.body, "We have updated our terms and conditions."
     refute_includes response.body, "Terms updated"
     published_on = revised.current_publishable.publish_at.in_time_zone.strftime("%e %b %Y").squish
     assert_includes response.body, published_on
     refute_includes CGI.unescapeHTML(response.body), "You already agreed. This version is from #{published_on}."
     refute_includes response.body, "What changed"
     assert_select "button[type=submit]", text: "Continue"
+    assert_select 'button[type=submit][data-fp-style="primary"]', text: "Continue"
     assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
     assert_select "input[type=checkbox][name=agreed]", count: 0
     refute_includes response.body, "Agree again"

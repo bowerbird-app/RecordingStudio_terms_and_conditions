@@ -269,6 +269,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes agree, "mb-6"
     assert_includes agree, "pending: @pending_terms"
     assert_includes agree, "terms_agree_heading"
+    assert_includes agree, "terms_accept_page_title"
     assert_includes agree, "terms_heading_date"
     refute_includes agree, "FlatPack::SectionTitle::Component"
     refute_includes agree, "terms_version_date"
@@ -277,6 +278,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes agree, "terms_page_nav"
     assert_includes agree, "FlatPack::Collapse::Component"
     assert_includes agree, "open: false"
+    assert_includes agree, "terms_accept_page_title(@terms, reaccepting: @reaccepting)"
     assert_includes agree, "title: terms_agree_heading(@terms)"
     refute_includes agree, 'title: "Terms"'
     refute_includes agree, "-mt-5 mb-6"
@@ -305,6 +307,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes helper, "recording_studio_terms_agree_label"
     copy_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/agree_copy_helper.rb")
     assert_includes copy_helper, "def terms_agree_heading"
+    assert_includes copy_helper, "def terms_accept_page_title"
+    assert_includes copy_helper, "We have updated our terms and conditions."
     assert_includes copy_helper, "def terms_users_subtitle"
     refute_includes copy_helper, "def terms_agree_subtitle"
     assert_includes helper, "requires_acceptance?"
@@ -366,7 +370,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes agree, "terms_reaccept_notice"
     refute_includes agree, "terms_reaccept_alert_title"
     assert_includes agree, "space-y-4"
-    refute_includes agree, "@reaccepting"
+    assert_includes agree, "@reaccepting"
     assert_includes agree, 'text: "Continue"'
     refute_includes agree, "Agree again"
     refute_includes copy_helper, "def terms_reaccept_alert_title"

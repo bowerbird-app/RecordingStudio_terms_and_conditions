@@ -12,8 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Accept **Continue** (and other engine screens) append `flat_pack/application` via `content_for :head`. Helper already passes `style: :primary` / `data-fp-style="primary"`; without the kit sheet Flatpack only has a Tailwind `border`, so Continue looked outline/secondary on hosts that only loaded `flat_pack/variables` (Users dummy re-gate). Hosts should still load `flat_pack/application` from `_default_layout_head` with Tailwind last.
 
+### Changed
+- Re-gate Accept PageTitle is **We have updated our terms and conditions.** First-time Accept still uses the live Terms heading. Collapse title stays the Terms name.
+
 ### Upgrade notes (0.6.3 → 0.6.4)
-- No schema change. Pin this gem at `0.6.4`. Keep FlatPack `>= 0.1.195`. Prefer linking `flat_pack/application` in the host `_default_layout_head` (dummy already does); the engine also injects it for Agree/Accept/Admin so primary buttons paint if the host forgot.
+- No schema change. Pin this gem at `0.6.4`. Keep FlatPack `>= 0.1.195`. Prefer linking `flat_pack/application` in the host `_default_layout_head` (dummy already does); the engine also injects it for Agree/Accept/Admin so primary buttons paint if the host forgot. Re-gate Accept heading copy is the sentence above; flash stays “We've updated our Terms and Conditions”.
 
 ## [0.6.3] - 2026-09-22
 

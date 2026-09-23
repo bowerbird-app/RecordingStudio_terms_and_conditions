@@ -101,6 +101,15 @@ class TermsAgreeHelperTest < ActionView::TestCase
                     '<p class="text-xs text-[var(--surface-muted-content-color)]">'
   end
 
+  test "accept page title names the update on re-gate" do
+    terms = Struct.new(:title).new("Studio Terms")
+
+    assert_equal "We have updated our terms and conditions.",
+                 terms_accept_page_title(terms, reaccepting: true)
+    assert_equal "Studio Terms", terms_accept_page_title(terms, reaccepting: false)
+    assert_equal "Terms and Conditions", terms_accept_page_title(nil, reaccepting: false)
+  end
+
   test "continue notice drops the possessive when app_name is blank" do
     RecordingStudioTermsAndConditions.configuration.app_name = ""
     terms = Struct.new(:body, :title).new("<p>Be kind.</p>", "Studio Terms")

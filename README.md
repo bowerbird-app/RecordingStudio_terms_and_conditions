@@ -110,7 +110,7 @@ Bump to **0.5.0** and pin Publishable `v0.3.1`. No Terms schema change. Term sho
 
 ## Upgrading from 0.6.3
 
-Bump to **0.6.4**. No schema change. Accept **Continue** stays Flatpack primary. The engine appends `flat_pack/application` so primary buttons paint if the host only loaded `flat_pack/variables`. Prefer linking `flat_pack/application` from `_default_layout_head` with Tailwind last.
+Bump to **0.6.4**. No schema change. Accept **Continue** stays Flatpack primary. The engine appends `flat_pack/application` so primary buttons paint if the host only loaded `flat_pack/variables`. Prefer linking `flat_pack/application` from `_default_layout_head` with Tailwind last. Re-gate Accept PageTitle is “We have updated our terms and conditions.”
 
 ## Upgrading from 0.6.2
 
