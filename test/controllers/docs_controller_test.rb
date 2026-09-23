@@ -179,11 +179,9 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     workspace = Workspace.find_by(name: "Studio Workspace")
     return unless workspace
 
-    terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
-    return unless terms
-    return if RecordingStudioTermsAndConditions.accepted?(@user, workspace)
-
-    RecordingStudioTermsAndConditions.accept!(@user, terms, { "source" => "test" })
+    RecordingStudioTermsAndConditions.pending_published_list(@user, workspace).each do |terms|
+      RecordingStudioTermsAndConditions.accept!(@user, terms, { "source" => "test" })
+    end
   end
 
   def record_child(recordable, root_recording, parent_recording)

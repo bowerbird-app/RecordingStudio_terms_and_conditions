@@ -71,6 +71,19 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "already has Privacy Policy"
   end
 
+  test "trashed recordings do not block a new document of that kind" do
+    privacy = record_terms(
+      @root,
+      title: "Old Privacy",
+      body: "Gone.",
+      kind: RecordingStudioTermsAndConditions::Terms::KIND_PRIVACY
+    )
+    privacy.update_columns(trashed_at: Time.current)
+
+    refute RecordingStudioTermsAndConditions::KindPresence.exists?(@root, kind: "privacy_policy")
+    assert_includes RecordingStudioTermsAndConditions::KindPresence.available_kinds(@root), "privacy_policy"
+  end
+
   test "SoleLive is per kind" do
     terms_v1 = record_terms(@root, title: "Terms v1", body: "One.")
     publish_terms!(terms_v1, slug: "terms-v1-#{SecureRandom.hex(4)}")

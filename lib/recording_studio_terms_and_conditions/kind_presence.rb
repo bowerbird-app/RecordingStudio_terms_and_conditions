@@ -15,7 +15,7 @@ module RecordingStudioTermsAndConditions
 
         wanted = Terms.normalize_kind(kind)
         root_recording.recordings_query(include_children: true, type: Terms.name).select do |recording|
-          recording.recordable&.kind.to_s == wanted
+          recording.trashed_at.blank? && recording.recordable&.kind.to_s == wanted
         end
       end
 

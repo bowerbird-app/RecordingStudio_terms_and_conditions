@@ -43,6 +43,7 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     page = Page.find_by!(title: "Getting Started")
     admin_root = AdminRoot.find_by!(name: "Admin")
     terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
+    privacy = RecordingStudioTermsAndConditions.current_published_for(workspace, kind: "privacy_policy")
     root_recording = RecordingStudio::Recording.find_by!(recordable: workspace)
     accessible_root_recording = RecordingStudio::Recording.find_by!(recordable: accessible_workspace)
     private_root_recording = RecordingStudio::Recording.find_by!(recordable: private_workspace)
@@ -59,14 +60,18 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     assert_equal root_recording, page_recording.root_recording
     assert_equal 3, Workspace.count
     assert_equal "Terms and Conditions v1.0", terms.title
+    assert_equal "Privacy Policy v1.0", privacy.title
     terms_recording = RecordingStudio::Recording.find_by!(recordable: terms)
+    privacy_recording = RecordingStudio::Recording.find_by!(recordable: privacy)
     assert_equal "terms-and-conditions", terms_recording.try(:current_publishable)&.try(:slug)
+    assert_equal "privacy-policy", privacy_recording.try(:current_publishable)&.try(:slug)
     assert_includes RecordingStudioTermsAndConditions::SampleTerms::BODY, "Using the booth"
     assert_includes RecordingStudioTermsAndConditions::SampleTerms::BODY, "When something breaks"
     assert_equal "Terms and Conditions v1.0", RecordingStudioTermsAndConditions::SampleTerms::TITLE
     seeds_source = File.read(Rails.root.join("db/seeds.rb"))
     assert_includes seeds_source, "SampleTerms::BODY"
     assert_includes seeds_source, 'sample_slug = "terms-and-conditions"'
+    assert_includes seeds_source, 'slug: "privacy-policy"'
     refute_includes seeds_source, "studio-terms"
     assert RecordingStudio::Recording.find_by!(recordable: admin_root)
 
