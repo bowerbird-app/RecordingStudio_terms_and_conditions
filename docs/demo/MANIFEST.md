@@ -10,7 +10,7 @@ Stills retaken 2026-09-21 after continue-notice Modal and Agree Collapse restyle
 | `tnc-clickwrap-demo.mp4.b64.manifest` | original_bytes, sha256, ordered part paths |
 | `tnc-agree.png` | Agree: no PageNav, closed Collapse titled with the live Terms heading, pre-checked checkbox and Agree |
 | `tnc-agree.png.b64` | Base64 of the Agree still |
-| `tnc-agree-helper.png` | Dummy `/agree_helper` checkbox form plus continue notice |
+| `tnc-agree-helper.png` | Dummy `/agree_helper` checkbox + primary Accept with mb-6 gap (0.7.3) |
 | `tnc-agree-helper.png.b64` | Base64 of the helper still |
 | `tnc-continue-notice-modal.png` | Continue-notice Flatpack Modal with `FlatPack::Content` body |
 | `tnc-continue-notice-modal.png.b64` | Base64 of the modal still |
