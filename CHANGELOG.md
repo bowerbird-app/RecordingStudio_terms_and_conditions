@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.3] - 2026-09-24
+
+### Changed
+- Host checkbox helper (`recording_studio_terms_agree`) wraps in `mt-3 mb-6` so there is a comfortable gap before the host Agree / Accept button (was `my-3`).
+- Dummy `/agree_helper` clickwrap form uses `recording_studio_terms_agree_button` (Flatpack `style: :primary`) for Accept, same path as Accept Continue.
+
+### Upgrade notes (0.7.2 → 0.7.3)
+- No schema change. Pin this gem at `0.7.3`. Hosts that put a button under `recording_studio_terms_agree` get more space above it. Prefer `recording_studio_terms_agree_button` (or Flatpack Button `style: :primary`) so the CTA fills theme primary.
+
 ## [0.7.2] - 2026-09-23
 
 ### Changed

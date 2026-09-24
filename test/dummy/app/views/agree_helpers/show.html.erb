@@ -21,7 +21,10 @@
   <%= form_with url: agree_helper_path, method: :post do %>
     <%= hidden_field_tag :source, "clickwrap" %>
     <%= recording_studio_terms_agree(inside_form: true, link_terms: true) %>
-    <%= render FlatPack::Button::Component.new(text: "Accept", style: :primary, type: "submit") %>
+    <%= recording_studio_terms_agree_button(
+      require_scroll_to_end: false,
+      text: "Accept"
+    ) %>
   <% end %>
 
   <%= form_with url: agree_helper_path, method: :post do %>
