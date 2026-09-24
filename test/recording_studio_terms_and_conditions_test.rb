@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.7.2", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.7.3", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -230,6 +230,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes agree_helper_page, "FlatPack::Button::Component"
     assert_includes agree_helper_page, 'text: "Continue"'
     assert_includes agree_helper_page, 'text: "Accept"'
+    assert_includes agree_helper_page, "recording_studio_terms_agree_button"
     assert_includes agree_helper_page, 'source, "clickwrap"'
     assert_includes agree_helper_page, 'source, "continue_notice"'
   end
@@ -340,7 +341,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes controller_js, "shouldLockAgree"
     assert_includes controller_js, "sentinelIsObservable"
     assert_includes controller_js, "IntersectionObserver"
-    assert_includes helper, "class: \"my-3\""
+    assert_includes helper, "class: \"mt-3 mb-6\""
+    refute_includes helper, "class: \"my-3\""
     assert_includes helper, "with_content(\"terms\")"
     refute_includes helper, "Read the full terms"
     refute_includes helper, "form_with"
@@ -728,8 +730,10 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes File.read(skill), "Upgrade (0.6.6 → 0.7.0)"
     assert_includes File.read(skill), "Upgrade (0.7.0 → 0.7.1)"
     assert_includes File.read(skill), "Upgrade (0.7.1 → 0.7.2)"
+    assert_includes File.read(skill), "Upgrade (0.7.2 → 0.7.3)"
     assert_includes File.read(skill), "v0.12.2"
     assert_includes File.read(skill), "mt-3 mb-3"
+    assert_includes File.read(skill), "mt-3 mb-6"
     assert_includes File.read(skill), "link: false"
     extra_fields_source = File.read(File.join(engine_root, extra_fields))
     assert_includes extra_fields_source, "recording_studio_terms_continue_notice"
@@ -744,11 +748,13 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.7.3]"
     assert_includes changelog, "## [0.7.2]"
     assert_includes changelog, "## [0.7.1]"
     assert_includes changelog, "v0.12.2"
     assert_includes changelog, "## [0.7.0]"
     assert_includes changelog, "mt-3 mb-3"
+    assert_includes changelog, "mt-3 mb-6"
     assert_includes changelog, "## [0.6.6]"
     assert_includes changelog, "## [0.6.5]"
     assert_includes changelog, "## [0.6.4]"
@@ -756,6 +762,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "## [0.6.2]"
     assert_includes changelog, "## [0.6.1]"
     assert_includes changelog, "## [0.6.0]"
+    assert_includes changelog, "Upgrade notes (0.7.2 → 0.7.3)"
     assert_includes changelog, "Upgrade notes (0.7.1 → 0.7.2)"
     assert_includes changelog, "Upgrade notes (0.7.0 → 0.7.1)"
     assert_includes changelog, "Upgrade notes (0.6.6 → 0.7.0)"
@@ -781,10 +788,12 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "forks a new draft"
     assert_includes changelog, "Upgrade notes (0.4.0 → 0.4.1)"
     assert_includes changelog, "+ Access"
+    assert_includes notes, "Upgrade from 0.7.2 to 0.7.3"
     assert_includes notes, "Upgrade from 0.7.1 to 0.7.2"
     assert_includes notes, "v0.12.2"
     assert_includes notes, "Upgrade from 0.7.0 to 0.7.1"
     assert_includes notes, "mt-3 mb-3"
+    assert_includes notes, "mt-3 mb-6"
     assert_includes notes, "Upgrade from 0.6.6 to 0.7.0"
     assert_includes notes, "Upgrade from 0.6.5 to 0.6.6"
     assert_includes notes, "Upgrade from 0.6.4 to 0.6.5"
@@ -793,10 +802,12 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes notes, "Upgrade from 0.6.1 to 0.6.2"
     assert_includes notes, "Upgrade from 0.6.0 to 0.6.1"
     assert_includes notes, "Upgrade from 0.5.0 to 0.6.0"
+    assert_includes readme, "Upgrading from 0.7.2"
     assert_includes readme, "Upgrading from 0.7.1"
     assert_includes readme, "v0.12.2"
     assert_includes readme, "Upgrading from 0.7.0"
     assert_includes readme, "mt-3 mb-3"
+    assert_includes readme, "mt-3 mb-6"
     assert_includes readme, "Upgrading from 0.6.6"
     assert_includes readme, "Upgrading from 0.6.5"
     assert_includes readme, "Upgrading from 0.6.4"

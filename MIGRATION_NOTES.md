@@ -18,6 +18,10 @@ Then:
 
 The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
 
+## Upgrade from 0.7.2 to 0.7.3
+
+No schema change. `recording_studio_terms_agree` wraps in `mt-3 mb-6` (was `my-3`) so the gap before the host Agree / Accept button is more comfortable. Prefer `recording_studio_terms_agree_button` or Flatpack Button `style: :primary` for that CTA.
+
 ## Upgrade from 0.7.1 to 0.7.2
 
 No schema change. Pin `recording_studio_user` `>= 0.12.2` (dummy and root GitHub tag `v0.12.2`). Users auth layout loads `flat_pack/application`, so Sign in and Sign up primary buttons fill.

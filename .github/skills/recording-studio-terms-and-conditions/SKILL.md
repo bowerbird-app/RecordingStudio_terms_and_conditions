@@ -7,7 +7,7 @@ description: Published Terms, clickwrap acceptance, and the host gate for Record
 
 This is the kit gem for **published Terms** and **clickwrap acceptance**. Do not invent a second acceptance table, accept screen, or post-auth redirect.
 
-Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.7.2**.
+Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.7.3**.
 
 ## Need
 
@@ -65,7 +65,7 @@ Drop the host helper onto a form:
 <%= recording_studio_terms_continue_notice(link: false) %>
 ```
 
-The checkbox helper is HTML `required`, named `agreed`. Put it in a form. On submit call `accept!` for the pending live version. Do not add a second receipt table.
+The checkbox helper is HTML `required`, named `agreed`. It wraps in `mt-3 mb-6` so there is a comfortable gap before the host button. Put it in a form. Prefer `recording_studio_terms_agree_button` (Flatpack `style: :primary`) for Agree / Accept. On submit call `accept!` for the pending live version. Do not add a second receipt table.
 
 `recording_studio_terms_continue_notice` is a second helper. Copy uses `config.app_name`. Default is `text-xs` plus muted Flatpack copy (`text-[var(--surface-muted-content-color)]`). `size:` is `:xs` (default) or `:sm`. Unknown sizes use `:xs`. The Terms & Conditions words are a Flatpack Link (primary + underline). They open a Flatpack Modal whose body is the standalone terms document (`published_terms/_document`: PageTitle, date, Flatpack Content). When a Privacy Policy is also pending, the sentence includes “and privacy policy” and a second modal. `link:` defaults to `true`. Pass `link: false` for the same sentence as plain text, with no link and no modal. Accept passes `link: false` because the Collapse already shows the documents. Signup keeps the link. Agree checkbox copy includes “and privacy policy” when privacy is pending; the privacy link uses `target=_blank`. Terms links stay same-tab. On that host POST, call `accept!` for each pending live version with `{ "source" => "continue_notice" }` (or `clickwrap`). Do not remove the checkbox helper. Dummy `/agree_helper` posts both helpers and then lets home load.
 
@@ -82,6 +82,10 @@ Or wrap a host clickwrap with `recording_studio_terms_scroll_to_end(require_scro
 Set `config.capture_request_provenance = true` only if the gem Agree screen should store IP and user agent (default off). Product config is `mount_path`, `app_name`, `require_scroll_to_end`, and `capture_request_provenance`. There is no API key.
 
 Agree is still the post-auth destination. It has no PageNav. Live pending copy sits in closed Flatpack Collapse rows wrapping Content (one row per pending kind). Accept PageTitle follows the pending set: terms only, privacy only, or “We have updated our terms and conditions and privacy policy.” when both are pending. No on-page re-accept Alert, and the gate does not flash. Continue-notice (`link: false` on Accept) and **Continue** stay at the bottom (no checkbox). The notice wrapper is `mt-3 mb-3` on Accept and create-password. Signup continue-notice uses `root_for_signup`, which falls back when the current root has no live Terms.
+
+## Upgrade (0.7.2 → 0.7.3)
+
+No migrations. Checkbox helper wraps in `mt-3 mb-6` (was `my-3`). Prefer `recording_studio_terms_agree_button` or Flatpack Button `style: :primary` for the CTA under the checkbox.
 
 ## Upgrade (0.7.1 → 0.7.2)
 

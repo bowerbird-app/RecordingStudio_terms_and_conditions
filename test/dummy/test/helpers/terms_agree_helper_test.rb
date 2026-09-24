@@ -211,4 +211,31 @@ class TermsAgreeHelperTest < ActionView::TestCase
     assert_includes html, 'target="_blank"'
     assert_includes html, "privacy policy"
   end
+
+  test "agree checkbox wraps with comfortable gap before the host button" do
+    terms = Struct.new(:body, :title, :published_url).new(
+      "<p>Be kind.</p>",
+      "Studio Terms",
+      "/terms/1/studio"
+    )
+    def terms.terms_and_condition? = true
+    def terms.privacy_policy? = false
+
+    html = recording_studio_terms_agree(pending: [terms], link_terms: true)
+
+    assert_includes html, 'class="mt-3 mb-6"'
+    refute_includes html, 'class="my-3"'
+  end
+
+  test "agree button is Flatpack primary for Accept clickwrap" do
+    html = recording_studio_terms_agree_button(require_scroll_to_end: false, text: "Accept")
+
+    assert_includes html, 'data-fp-style="primary"'
+    assert_includes html, "fp-button"
+    assert_includes html, "fp-button-raised"
+    assert_includes html, "<span>Accept</span>"
+    refute_includes html, 'data-fp-style="secondary"'
+    refute_includes html, 'data-fp-style="ghost"'
+    refute_includes html, "fp-button-flat"
+  end
 end

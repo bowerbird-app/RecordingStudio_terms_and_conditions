@@ -17,7 +17,7 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, embed
 - **Acceptance** append-only table for clickwrap receipts (not a recordable). New rows store a SHA-256 body digest of the live copy at accept time
 - **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for` / `current_published_by_kind`, `pending_published_list` / `pending_published_for`, `accepted?`, `accept!`, `requires_acceptance?`, `reaccepting?`
 - **Agree screen** for pending live Terms and/or Privacy Policy (Continue + continue-notice, no checkbox on Accept). No PageNav. Each pending document sits in a Flatpack Collapse wrapping `FlatPack::Content`. Continue `accept!`s every pending live version
-- **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`. Pass `link_terms: true` to link “terms” (same tab) and “privacy policy” (`target=_blank`) when those documents are pending. On submit, call `accept!` for each pending live version
+- **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`. Wraps in `mt-3 mb-6` so there is a comfortable gap before the host Agree / Accept button. Pass `link_terms: true` to link “terms” (same tab) and “privacy policy” (`target=_blank`) when those documents are pending. Prefer `recording_studio_terms_agree_button` (Flatpack primary) for the CTA. On submit, call `accept!` for each pending live version
 - **Host helper** `recording_studio_terms_continue_notice` — “By continuing, you agree to [app name]'s Terms & Conditions” and, when privacy is pending, “and privacy policy”. Default size is `:xs` with muted Flatpack copy. The notice sits in `mt-3 mb-3` above the button that follows it (Accept **Continue**, create-password **Sign up**). Terms and privacy each open their own Flatpack Modal. Pass `link: false` for plain text (Accept does this). On the host POST, `accept!` each pending live version with `{ "source" => "continue_notice" }`
 - **Gate** on the host `ApplicationController`: redirects to Agree until every pending live kind is accepted (0..2), and again after a new publish of either kind
 - **Users hook** on `RecordingStudioUser::Auth::BaseController` so after sign in / sign up land on Agree when acceptance is still required
@@ -107,6 +107,10 @@ Bump to **0.4.1**. No schema change. The Admin Terms hub no longer shows Accessi
 ## Upgrading from 0.4.x
 
 Bump to **0.5.0** and pin Publishable `v0.3.1`. No Terms schema change. Term show uses the Publishable status dropdown instead of a **Publish** button to the old edit form. Preview is its own route. Saving live Terms forks a draft; the public copy stays until you publish. Full notes: `CHANGELOG.md` (0.5.0).
+
+## Upgrading from 0.7.2
+
+Bump to **0.7.3**. No schema change. `recording_studio_terms_agree` wraps in `mt-3 mb-6` (was `my-3`) for a comfortable gap before the host Agree / Accept button. Prefer `recording_studio_terms_agree_button` (or Flatpack Button `style: :primary`) for that CTA.
 
 ## Upgrading from 0.7.1
 
