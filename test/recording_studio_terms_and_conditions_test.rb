@@ -680,7 +680,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin, 'title "Users"'
     assert_includes admin, 'title "Terms and conditions"'
     assert_includes admin, 'title "Privacy Policy"'
-    assert_includes admin, "user agreed"
+    assert_includes admin, "users agreed"
     refute_includes admin, 'title "Live"'
     refute_includes admin, 'title "Agrees"'
     assert_includes admin, 'widget "widgets.terms.terms_agreed", view_variant: :card'

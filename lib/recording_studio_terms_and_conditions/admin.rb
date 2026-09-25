@@ -172,8 +172,8 @@ module RecordingStudioTermsAndConditions
       type :number
       title "Terms and conditions"
       info "People who agreed to Terms and Conditions."
-      value { |_context| AdminVersions.agreed_label(Terms::KIND_TERMS) }
-      hide_change
+      value { |_context| AdminVersions.people_count(Terms::KIND_TERMS) }
+      change { |_context| "users agreed" }
       hide_period
     end
 
@@ -181,8 +181,8 @@ module RecordingStudioTermsAndConditions
       type :number
       title "Privacy Policy"
       info "People who agreed to the Privacy Policy."
-      value { |_context| AdminVersions.agreed_label(Terms::KIND_PRIVACY) }
-      hide_change
+      value { |_context| AdminVersions.people_count(Terms::KIND_PRIVACY) }
+      change { |_context| "users agreed" }
       hide_period
     end
 
@@ -347,10 +347,6 @@ module RecordingStudioTermsAndConditions
       RecordingStudio::Recording.where(recordable_type: Terms.name, trashed_at: nil)
                                 .includes(:recordable)
                                 .order(Arel.sql(order_sql))
-    end
-
-    def agreed_label(kind)
-      "#{people_count(kind)} user agreed"
     end
 
     def people_count(kind)

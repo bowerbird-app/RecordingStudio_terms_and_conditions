@@ -422,14 +422,16 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
         headers: { "Sec-Fetch-Dest" => "empty", "Turbo-Frame" => "widget" }
     assert_response :success
     assert_includes response.body, "Terms and conditions"
-    assert_includes response.body, "1 user agreed"
+    assert_includes response.body, "users agreed"
+    assert_includes response.body, "text-5xl"
 
     get "/admin/sections/terms/widgets/widgets.terms.privacy_agreed",
         params: { widget_usage_index: 1, widget_view_variant: "card" },
         headers: { "Sec-Fetch-Dest" => "empty", "Turbo-Frame" => "widget" }
     assert_response :success
     assert_includes response.body, "Privacy Policy"
-    assert_includes response.body, "1 user agreed"
+    assert_includes response.body, "users agreed"
+    refute_includes response.body, "text-5xl font-bold\">users agreed"
   end
 
   test "who agreed search matches email or profile name" do

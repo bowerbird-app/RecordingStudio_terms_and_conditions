@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dummy `/admin/sections` redirects to `/admin`.
 - Dummy root switch uses the switch gem's PageNav only. The host layout no longer adds a second one.
 - Who agreed lists one row per person (name, terms date, privacy date, View), newest first, 25 per page. View opens that person's agreements, newest first. The list searches by name or email.
-- Hub cards are **Terms and conditions** and **Privacy Policy**. Each number reads `{count} user agreed`. The versions screen is the table only. Live rows sort above drafts, newest first in each group.
+- Hub cards are **Terms and conditions** and **Privacy Policy**. The count is the large number, with **users agreed** in smaller text under it. The versions screen is the table only. Live rows sort above drafts, newest first in each group.
 - The engine terms index redirects to `/admin/screens/recording_studio_terms`. Public Terms stay on `/terms/:uuid/:slug`. `/recording_studio_terms_and_conditions` is the signed-in Agree screen.
 - Dummy home and hub page links use the secondary button style. Dummy `/agree_helper` shows the checkbox and the “By continuing…” notice even after the signed-in person has already agreed.
 
