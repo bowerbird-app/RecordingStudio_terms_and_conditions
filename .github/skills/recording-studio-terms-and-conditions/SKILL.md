@@ -81,7 +81,7 @@ Or wrap a host clickwrap with `recording_studio_terms_scroll_to_end(require_scro
 
 Set `config.capture_request_provenance = true` only if the gem Agree screen should store IP and user agent (default off). Product config is `mount_path`, `app_name`, `require_scroll_to_end`, and `capture_request_provenance`. There is no API key.
 
-Agree is still the post-auth destination. It has no PageNav. Live pending copy sits in closed Flatpack Collapse rows wrapping Content (one row per pending kind). First-time Accept PageTitle names the pending set (“Terms and Conditions”, “Privacy Policy”, or both). After any prior receipt, it uses “We have updated our…” for those kinds. No on-page re-accept Alert, and the gate does not flash. Continue-notice (`link: false` on Accept) and **Continue** stay at the bottom (no checkbox). The notice wrapper is `mt-3 mb-3` on Accept and create-password. Signup continue-notice, the signed-in gate, and Accept all use `root_for_acceptance` (`root_for_signup` is the same helper), which falls back when the current root has no live Terms.
+Agree is still the post-auth destination. It has no PageNav. Live pending copy sits in closed Flatpack Collapse rows wrapping Content (one row per pending kind). First-time Accept PageTitle names the pending set (“Terms and Conditions”, “Privacy Policy”, or both). After any prior receipt, it uses “We have updated our…” for those kinds. No on-page re-accept Alert, and the gate does not flash. Continue-notice (`link: false` on Accept) and **Continue** stay at the bottom (no checkbox), including after someone has already agreed. Agreeing again to the same live copy keeps the original receipt time. The notice wrapper is `mt-3 mb-3` on Accept and create-password. Signup continue-notice, the signed-in gate, and Accept all use `root_for_acceptance` (`root_for_signup` is the same helper), which falls back when the current root has no live Terms.
 
 ## Upgrade (0.7.7 → 0.7.8)
 
@@ -93,7 +93,7 @@ No migrations. Continue-notice “Terms & Conditions” and “privacy policy”
 
 ## Upgrade (0.7.3 → 0.7.4)
 
-No migrations. Admin hub actions are the live Terms page, the live Privacy Policy page, **Edit Terms**, and **Edit Privacy Policy**, all secondary. Hub cards are **Terms and conditions** and **Privacy Policy** (large count, smaller **users agreed**). The versions screen is the table only (live first). The engine terms index redirects there. Who agreed searches name or email. Agree is `/recording_studio_terms_and_conditions/acceptance`. The engine root redirects there. Public Terms stay on `/terms/:uuid/:slug`.
+No migrations. Admin hub actions are the live Terms page, the live Privacy Policy page, **Edit Terms**, and **Edit Privacy Policy**, all secondary. Hub cards are **Terms and conditions** and **Privacy Policy** (large count, smaller **users agreed**). The versions screen is the table only (live first). The engine terms index redirects there. Who agreed searches name or email. Agree is `/recording_studio_terms_and_conditions/acceptance`. The engine root redirects there. Public Terms stay on `/terms/:uuid/:slug`. Agree keeps Flatpack Collapse rows. Continue and the “By continuing…” line stay on the page after someone has already agreed. A second continue does not change the receipt time.
 
 ## Upgrade (0.7.2 → 0.7.3)
 

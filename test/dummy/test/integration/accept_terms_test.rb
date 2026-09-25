@@ -117,12 +117,20 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     post recording_studio_terms_and_conditions.acceptance_path
     receipt = RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last
 
+    get recording_studio_terms_and_conditions.acceptance_path
+    assert_response :success
+    assert_select "button[type=submit]", text: "Continue"
+    assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
+    assert_select "[data-controller='flat-pack--collapse']", count: 1
+    assert_select "button[aria-expanded='false']", text: "Studio Terms"
+
     assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
       post recording_studio_terms_and_conditions.acceptance_path
     end
 
     assert_redirected_to "/"
     assert_equal receipt.id, RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last.id
+    assert_equal receipt.accepted_at, receipt.reload.accepted_at
     assert_equal receipt.body_digest, receipt.reload.body_digest
   end
 

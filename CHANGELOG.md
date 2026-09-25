@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Who agreed lists one row per person (name, terms date, privacy date, View), newest first, 25 per page. View opens that person's agreements, newest first. The list searches by name or email.
 - Hub cards are **Terms and conditions** and **Privacy Policy**. The count is the large number, with **users agreed** in smaller text under it. The versions screen is the table only. Live rows sort above drafts, newest first in each group.
 - The engine terms index redirects to `/admin/screens/recording_studio_terms`. Public Terms stay on `/terms/:uuid/:slug`. Agree is `/recording_studio_terms_and_conditions/acceptance`. The engine root redirects there. Dummy `/admin/sections/terms` redirects to `/admin`.
+- Agree keeps Flatpack Collapse rows for each live document, with the continue notice and **Continue** underneath. Continue and the “By continuing…” line stay after someone has already agreed. Agreeing again to the same live copy does not change the receipt time.
 - Dummy home and hub page links use the secondary button style. Dummy `/agree_helper` shows the checkbox and the “By continuing…” notice even after the signed-in person has already agreed.
 
 ## [0.7.8] - 2026-10-08

@@ -24,19 +24,17 @@
       <% end %>
     <% end %>
 
-    <% unless @already_accepted %>
-      <%= form_with url: acceptance_path, method: :post do %>
-        <%= recording_studio_terms_continue_notice(
-          actor: current_user,
-          root: @root,
-          pending: agree_documents,
-          link: false
-        ) %>
-        <%= recording_studio_terms_agree_button(
-          require_scroll_to_end: false,
-          text: "Continue"
-        ) %>
-      <% end %>
+    <%= form_with url: acceptance_path, method: :post do %>
+      <%= recording_studio_terms_continue_notice(
+        actor: current_user,
+        root: @root,
+        pending: agree_documents,
+        link: false
+      ) %>
+      <%= recording_studio_terms_agree_button(
+        require_scroll_to_end: false,
+        text: "Continue"
+      ) %>
     <% end %>
   </div>
 <% end %>
