@@ -4,7 +4,7 @@ module RecordingStudioTermsAndConditions
   # Admin screens force compact widgets (number beside title). Terms widgets
   # always stack title above the count via the card variant.
   module AdminWidgetCard
-    KEYS = %w[widgets.terms.live widgets.terms.agrees].freeze
+    KEYS = %w[widgets.terms.terms_agreed widgets.terms.privacy_agreed].freeze
 
     def render_recording_studio_widget(widget, variant: nil, link_policy: nil)
       super(widget, variant: stacked_card_variant(widget, variant), link_policy: link_policy)

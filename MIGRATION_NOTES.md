@@ -20,7 +20,7 @@ The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` a
 
 ## Upgrade from 0.7.3 to 0.7.4
 
-No schema change. The Admin Terms hub no longer shows **New** or **All versions**. The actions are the live Terms page, the live Privacy Policy page, **Edit Terms**, and **Edit Privacy Policy**.
+No schema change. The Admin Terms hub no longer shows **New** or **All versions**. The actions are the live Terms page, the live Privacy Policy page, **Edit Terms**, and **Edit Privacy Policy**. Those page links are secondary. Hub cards are **Terms and conditions** and **Privacy Policy**, each reading `{count} user agreed`. The versions screen is the table only, live rows first. `/recording_studio_terms_and_conditions/admin/terms` redirects to that screen. Who agreed searches name or email.
 
 ## Upgrade from 0.7.2 to 0.7.3
 

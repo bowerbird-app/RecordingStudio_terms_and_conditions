@@ -88,6 +88,16 @@ class AgreeHelperTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "helper still shows the checkbox and continue notice after acceptance" do
+    RecordingStudioTermsAndConditions.accept!(@user, @recording, { "source" => "clickwrap" })
+
+    get "/agree_helper"
+    assert_response :success
+    assert_includes response.body, "I agree to these"
+    assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree to Terms Dummy's"
+    assert_select "input[type=checkbox][name=agreed]", count: 1
+  end
+
   test "checkbox POST without a tick does not write a receipt" do
     assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
       post "/agree_helper", params: { source: "clickwrap", agreed: "0" }

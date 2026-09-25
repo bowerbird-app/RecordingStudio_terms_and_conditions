@@ -10,26 +10,26 @@
   <div class="flex flex-wrap items-center gap-3">
     <%= render FlatPack::Button::Component.new(
       text: "Admin",
-      style: :ghost,
+      style: :secondary,
       href: "/admin"
     ) %>
     <% if (terms_page = dummy_published_page_url(RecordingStudioTermsAndConditions::Terms::KIND_TERMS)) %>
       <%= render FlatPack::Button::Component.new(
         text: "Terms and Condition page",
-        style: :ghost,
+        style: :secondary,
         href: terms_page
       ) %>
     <% end %>
     <% if (privacy_page = dummy_published_page_url(RecordingStudioTermsAndConditions::Terms::KIND_PRIVACY)) %>
       <%= render FlatPack::Button::Component.new(
         text: "Privacy Policy page",
-        style: :ghost,
+        style: :secondary,
         href: privacy_page
       ) %>
     <% end %>
     <%= render FlatPack::Button::Component.new(
       text: "Helper",
-      style: :ghost,
+      style: :secondary,
       href: "/agree_helper"
     ) %>
   </div>

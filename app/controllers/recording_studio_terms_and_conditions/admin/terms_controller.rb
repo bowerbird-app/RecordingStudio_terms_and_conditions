@@ -8,7 +8,7 @@ module RecordingStudioTermsAndConditions
       before_action :authorize_terms_show!, only: :show
 
       def index
-        @pagy, @terms_recordings = paginate_table(terms_scope)
+        redirect_to RecordingStudioTermsAndConditions.versions_screen_path
       end
 
       def new

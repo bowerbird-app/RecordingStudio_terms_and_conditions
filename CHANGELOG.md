@@ -14,10 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dummy home is a single row of links: Admin, the live Terms page, the live Privacy Policy page, and Helper. The demo cards are gone.
 - Dummy `/admin/sections` redirects to `/admin`.
 - Dummy root switch uses the switch gem's PageNav only. The host layout no longer adds a second one.
-- Who agreed lists one row per person (name, terms date, privacy date, View), newest first, 25 per page. View opens that person's agreements, newest first.
+- Who agreed lists one row per person (name, terms date, privacy date, View), newest first, 25 per page. View opens that person's agreements, newest first. The list searches by name or email.
+- Hub cards are **Terms and conditions** and **Privacy Policy**. Each number reads `{count} user agreed`. The versions screen is the table only. Live rows sort above drafts, newest first in each group.
+- The engine terms index redirects to `/admin/screens/recording_studio_terms`. Public Terms stay on `/terms/:uuid/:slug`. `/recording_studio_terms_and_conditions` is the signed-in Agree screen.
+- Dummy home and hub page links use the secondary button style. Dummy `/agree_helper` shows the checkbox and the “By continuing…” notice even after the signed-in person has already agreed.
 
 ### Upgrade notes (0.7.3 → 0.7.4)
-- No schema change. Pin this gem at `0.7.4`. Hosts that linked the hub **New** or **All versions** actions should link **Edit Terms** and **Edit Privacy Policy** instead. The Agree stats screen is unchanged.
+- No schema change. Pin this gem at `0.7.4`. Hosts that linked the hub **New** or **All versions** actions should link **Edit Terms** and **Edit Privacy Policy** instead. The engine terms index now redirects to the versions screen. Hub **Live** and **Agrees** cards are **Terms and conditions** and **Privacy Policy**.
 
 ## [0.7.3] - 2026-09-24
 

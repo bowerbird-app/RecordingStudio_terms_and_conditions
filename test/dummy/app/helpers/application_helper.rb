@@ -22,6 +22,11 @@ module ApplicationHelper
     RecordingStudioTermsAndConditions::Admin.live_page_url(kind)
   end
 
+  def recording_studio_terms_demo_documents
+    root = recording_studio_terms_agree_root
+    RecordingStudioTermsAndConditions.current_published_by_kind(root).values.compact
+  end
+
   def dummy_admin_root_recording
     admin_root = AdminRoot.find_by(name: "Admin")
     RecordingStudio.root_recording_for(admin_root) if admin_root

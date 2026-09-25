@@ -85,7 +85,7 @@ Agree is still the post-auth destination. It has no PageNav. Live pending copy s
 
 ## Upgrade (0.7.3 → 0.7.4)
 
-No migrations. Admin hub actions are the live Terms page, the live Privacy Policy page, **Edit Terms**, and **Edit Privacy Policy**. Edit actions are secondary. Hub **New** and **All versions** are gone. The Agree stats screen stays.
+No migrations. Admin hub actions are the live Terms page, the live Privacy Policy page, **Edit Terms**, and **Edit Privacy Policy**, all secondary. Hub cards are **Terms and conditions** and **Privacy Policy** (`{count} user agreed`). The versions screen is the table only (live first). The engine terms index redirects there. Who agreed searches name or email. `/recording_studio_terms_and_conditions` is the signed-in Agree screen. Public Terms stay on `/terms/:uuid/:slug`.
 
 ## Upgrade (0.7.2 → 0.7.3)
 

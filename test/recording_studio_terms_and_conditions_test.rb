@@ -678,10 +678,15 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin, 'title "All versions"'
     refute_includes admin, "Old versions"
     assert_includes admin, 'title "Users"'
-    assert_includes admin, 'title "Live"'
-    refute_includes admin, 'title "Live terms"'
-    assert_includes admin, 'widget "widgets.terms.live", view_variant: :card'
-    assert_includes admin, 'widget "widgets.terms.agrees", view_variant: :card'
+    assert_includes admin, 'title "Terms and conditions"'
+    assert_includes admin, 'title "Privacy Policy"'
+    assert_includes admin, "user agreed"
+    refute_includes admin, 'title "Live"'
+    refute_includes admin, 'title "Agrees"'
+    assert_includes admin, 'widget "widgets.terms.terms_agreed", view_variant: :card'
+    assert_includes admin, 'widget "widgets.terms.privacy_agreed", view_variant: :card'
+    assert_includes admin, "filter :name_or_email"
+    assert_includes admin, "versions_screen_path"
     refute_includes admin, "view_variant: :compact"
     assert_includes admin, "class TermsResource"
     assert_includes admin, 'admin_action "terms.show"'

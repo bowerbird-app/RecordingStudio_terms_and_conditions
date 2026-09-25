@@ -71,7 +71,7 @@ Sign in at `/users/sign_in`: email first (**Continue with email**), then passwor
 - `/recording_studio_terms_and_conditions` — Agree (clickwrap) screen on the Recording Studio default layout
 - `/admin` — Recording Studio Admin Terms and Conditions hub (Edit Terms and Edit Privacy Policy)
 - `/admin/sections` — redirects to `/admin`
-- `/recording_studio_terms_and_conditions/admin/terms` — engine write/edit form (opened from Admin). Switch to the Admin root first. New Terms is titled **New Terms and Conditions**.
+- `/recording_studio_terms_and_conditions/admin/terms` — redirects to `/admin/screens/recording_studio_terms`. Show, edit, and new stay on the engine. Switch to the Admin root first.
 - `/terms/:uuid/:slug` — public published Terms
 - `/recording_studio` — redirect to `/` while the mounted Recording Studio engine remains data/API-focused
 - `/agree_helper` — dummy demo of the embeddable Agree helper (code example + checkbox)
@@ -111,7 +111,7 @@ Bump to **0.5.0** and pin Publishable `v0.3.1`. No Terms schema change. Term sho
 
 ## Upgrading from 0.7.3
 
-Bump to **0.7.4**. No schema change. The Admin hub no longer offers **New** or **All versions**. Use **Edit Terms** and **Edit Privacy Policy**.
+Bump to **0.7.4**. No schema change. The Admin hub no longer offers **New** or **All versions**. Use **Edit Terms** and **Edit Privacy Policy**. Hub cards count people who agreed. The engine terms index redirects to the versions screen.
 
 ## Upgrading from 0.7.2
 
