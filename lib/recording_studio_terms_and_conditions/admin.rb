@@ -48,7 +48,7 @@ module RecordingStudioTermsAndConditions
       title "All versions"
       subtitle "Drafts and live copies"
       blast_radius :site
-      query { |_context| Admin.versions_relation }
+      query { |_context| AdminVersions.relation }
 
       # rubocop:disable Metrics/BlockLength
       table do
@@ -172,7 +172,7 @@ module RecordingStudioTermsAndConditions
       type :number
       title "Terms and conditions"
       info "People who agreed to Terms and Conditions."
-      value { |_context| Admin.agreed_label(Terms::KIND_TERMS) }
+      value { |_context| AdminVersions.agreed_label(Terms::KIND_TERMS) }
       hide_change
       hide_period
     end
@@ -181,7 +181,7 @@ module RecordingStudioTermsAndConditions
       type :number
       title "Privacy Policy"
       info "People who agreed to the Privacy Policy."
-      value { |_context| Admin.agreed_label(Terms::KIND_PRIVACY) }
+      value { |_context| AdminVersions.agreed_label(Terms::KIND_PRIVACY) }
       hide_change
       hide_period
     end
@@ -262,40 +262,6 @@ module RecordingStudioTermsAndConditions
         RecordingStudioTermsAndConditions.edit_admin_term_path(recording)
       end
 
-      def versions_relation
-        RecordingStudio::Recording.where(recordable_type: Terms.name, trashed_at: nil)
-                                  .includes(:recordable)
-                                  .order(Arel.sql(versions_order_sql))
-      end
-
-      def agreed_label(kind)
-        "#{agreed_people_count(kind)} user agreed"
-      end
-
-      def agreed_people_count(kind)
-        terms = Terms.arel_table
-        Acceptance.joins(AgreedPeople.terms_join(terms))
-                  .where(terms[:kind].eq(kind))
-                  .distinct
-                  .count(Arel.sql("CONCAT(#{Acceptance.table_name}.actor_type, #{Acceptance.table_name}.actor_id)"))
-      end
-
-      def versions_order_sql
-        recordings = RecordingStudio::Recording.table_name
-        "CASE WHEN EXISTS (#{live_publishable_sql(recordings)}) THEN 0 ELSE 1 END, #{recordings}.updated_at DESC"
-      end
-
-      def live_publishable_sql(recordings)
-        publishables = "recording_studio_publishable_publishables"
-        "SELECT 1 FROM #{recordings} AS publishable_recordings " \
-          "INNER JOIN #{publishables} AS publishables ON publishables.id = publishable_recordings.recordable_id " \
-          "WHERE publishable_recordings.parent_recording_id = #{recordings}.id " \
-          "AND publishable_recordings.recordable_type = 'RecordingStudioPublishable::Publishable' " \
-          "AND publishable_recordings.trashed_at IS NULL AND publishables.status = 'published' " \
-          "AND (publishables.publish_at IS NULL OR publishables.publish_at <= CURRENT_TIMESTAMP) " \
-          "AND (publishables.unpublish_at IS NULL OR publishables.unpublish_at > CURRENT_TIMESTAMP)"
-      end
-
       def actor_name(actor)
         return "Someone" if actor.blank?
 
@@ -359,10 +325,6 @@ module RecordingStudioTermsAndConditions
     "#{admin_hub_path}/screens/recording_studio_terms_acceptances"
   end
 
-  def self.versions_screen_path
-    "#{admin_hub_path}/screens/recording_studio_terms"
-  end
-
   def self.engine_admin_path(helper, *)
     Engine.routes.url_helpers.public_send(
       helper,
@@ -373,10 +335,46 @@ module RecordingStudioTermsAndConditions
   private_class_method :engine_admin_path
 
   def self.admin_hub_path
-    if defined?(RecordingStudioAdmin)
-      RecordingStudioAdmin.configuration.default_mount_path.presence || "/admin"
-    else
-      admin_terms_path
+    return admin_terms_path unless defined?(RecordingStudioAdmin)
+
+    RecordingStudioAdmin.configuration.default_mount_path.presence || "/admin"
+  end
+
+  module AdminVersions
+    module_function
+
+    def relation
+      RecordingStudio::Recording.where(recordable_type: Terms.name, trashed_at: nil)
+                                .includes(:recordable)
+                                .order(Arel.sql(order_sql))
+    end
+
+    def agreed_label(kind)
+      "#{people_count(kind)} user agreed"
+    end
+
+    def people_count(kind)
+      terms = Terms.arel_table
+      Acceptance.joins(Admin::AgreedPeople.terms_join(terms))
+                .where(terms[:kind].eq(kind))
+                .distinct
+                .count(Arel.sql("CONCAT(#{Acceptance.table_name}.actor_type, #{Acceptance.table_name}.actor_id)"))
+    end
+
+    def order_sql
+      recordings = RecordingStudio::Recording.table_name
+      "CASE WHEN EXISTS (#{live_sql(recordings)}) THEN 0 ELSE 1 END, #{recordings}.updated_at DESC"
+    end
+
+    def live_sql(recordings)
+      publishables = "recording_studio_publishable_publishables"
+      "SELECT 1 FROM #{recordings} AS publishable_recordings " \
+        "INNER JOIN #{publishables} AS publishables ON publishables.id = publishable_recordings.recordable_id " \
+        "WHERE publishable_recordings.parent_recording_id = #{recordings}.id " \
+        "AND publishable_recordings.recordable_type = 'RecordingStudioPublishable::Publishable' " \
+        "AND publishable_recordings.trashed_at IS NULL AND publishables.status = 'published' " \
+        "AND (publishables.publish_at IS NULL OR publishables.publish_at <= CURRENT_TIMESTAMP) " \
+        "AND (publishables.unpublish_at IS NULL OR publishables.unpublish_at > CURRENT_TIMESTAMP)"
     end
   end
 end
