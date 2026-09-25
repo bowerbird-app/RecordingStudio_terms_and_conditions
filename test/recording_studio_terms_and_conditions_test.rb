@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.7.3", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.7.4", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -588,10 +588,14 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
 
     assert_includes view_source, 'title: "Terms demo"'
     assert_includes view_source, 'subtitle: "This dummy app is the browser-facing demo surface for the addon."'
-    assert_includes view_source, 'text: "Write terms"'
-    assert_includes view_source, "dummy_admin_hub_switch_href"
-    assert_includes view_source, "FlatPack::Card::Component"
+    assert_includes view_source, 'text: "Admin"'
+    assert_includes view_source, 'text: "Terms and Condition page"'
+    assert_includes view_source, 'text: "Privacy Policy page"'
+    assert_includes view_source, 'text: "Helper"'
+    assert_includes view_source, "dummy_published_page_url"
     assert_includes view_source, "dummy_page_nav"
+    refute_includes view_source, "FlatPack::Card::Component"
+    refute_includes view_source, 'text: "Write terms"'
     refute_includes view_source, 'title: "Demo"'
     refute_includes view_source, "FlatPack::Breadcrumb::Component"
   end
@@ -658,7 +662,14 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin, "paginate per_page: 25"
     assert_includes admin, 'text: "All versions"'
     assert_includes admin, 'text: "New"'
-    assert_includes admin, 'text: "Agree stats"'
+    assert_includes admin, 'title "Agree stats"'
+    assert_includes admin, 'text: "Terms and Condition page"'
+    assert_includes admin, 'text: "Privacy Policy page"'
+    assert_includes admin, 'text: "Edit Terms"'
+    assert_includes admin, 'text: "Edit Privacy Policy"'
+    assert_includes admin, "style: :secondary"
+    refute_includes admin, "link :write"
+    assert_includes admin, 'text: "Admin Sections"'
     assert_includes admin, 'title "Terms and Conditions"'
     assert_includes admin, 'title "All versions"'
     refute_includes admin, "Old versions"
@@ -730,6 +741,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes File.read(skill), "Upgrade (0.6.6 → 0.7.0)"
     assert_includes File.read(skill), "Upgrade (0.7.0 → 0.7.1)"
     assert_includes File.read(skill), "Upgrade (0.7.1 → 0.7.2)"
+    assert_includes File.read(skill), "Upgrade (0.7.3 → 0.7.4)"
     assert_includes File.read(skill), "Upgrade (0.7.2 → 0.7.3)"
     assert_includes File.read(skill), "v0.12.2"
     assert_includes File.read(skill), "mt-3 mb-3"
@@ -748,6 +760,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.7.4]"
     assert_includes changelog, "## [0.7.3]"
     assert_includes changelog, "## [0.7.2]"
     assert_includes changelog, "## [0.7.1]"
@@ -762,6 +775,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "## [0.6.2]"
     assert_includes changelog, "## [0.6.1]"
     assert_includes changelog, "## [0.6.0]"
+    assert_includes changelog, "Upgrade notes (0.7.3 → 0.7.4)"
     assert_includes changelog, "Upgrade notes (0.7.2 → 0.7.3)"
     assert_includes changelog, "Upgrade notes (0.7.1 → 0.7.2)"
     assert_includes changelog, "Upgrade notes (0.7.0 → 0.7.1)"
@@ -788,6 +802,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "forks a new draft"
     assert_includes changelog, "Upgrade notes (0.4.0 → 0.4.1)"
     assert_includes changelog, "+ Access"
+    assert_includes notes, "Upgrade from 0.7.3 to 0.7.4"
     assert_includes notes, "Upgrade from 0.7.2 to 0.7.3"
     assert_includes notes, "Upgrade from 0.7.1 to 0.7.2"
     assert_includes notes, "v0.12.2"
@@ -802,6 +817,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes notes, "Upgrade from 0.6.1 to 0.6.2"
     assert_includes notes, "Upgrade from 0.6.0 to 0.6.1"
     assert_includes notes, "Upgrade from 0.5.0 to 0.6.0"
+    assert_includes readme, "Upgrading from 0.7.3"
     assert_includes readme, "Upgrading from 0.7.2"
     assert_includes readme, "Upgrading from 0.7.1"
     assert_includes readme, "v0.12.2"
