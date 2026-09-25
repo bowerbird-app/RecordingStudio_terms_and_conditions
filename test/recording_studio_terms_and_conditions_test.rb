@@ -686,7 +686,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin, 'widget "widgets.terms.terms_agreed", view_variant: :card'
     assert_includes admin, 'widget "widgets.terms.privacy_agreed", view_variant: :card'
     assert_includes admin, "filter :name_or_email"
-    assert_includes admin, "versions_screen_path"
+    assert_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/terms_controller.rb"),
+                    "/screens/recording_studio_terms"
     refute_includes admin, "view_variant: :compact"
     assert_includes admin, "class TermsResource"
     assert_includes admin, 'admin_action "terms.show"'

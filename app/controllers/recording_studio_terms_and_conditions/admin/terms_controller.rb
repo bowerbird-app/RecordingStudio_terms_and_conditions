@@ -8,7 +8,8 @@ module RecordingStudioTermsAndConditions
       before_action :authorize_terms_show!, only: :show
 
       def index
-        redirect_to RecordingStudioTermsAndConditions.versions_screen_path
+        hub = RecordingStudioTermsAndConditions.admin_hub_path
+        redirect_to "#{hub}/screens/recording_studio_terms"
       end
 
       def new
