@@ -7,116 +7,30 @@
     variant: :h1
   ) %>
 
-  <%= render FlatPack::Button::Component.new(
-    text: "Agree to terms",
-    style: :primary,
-    href: recording_studio_terms_and_conditions.acceptance_path
-  ) %>
-  <%= render FlatPack::Button::Component.new(
-    text: "Write terms",
-    style: :secondary,
-    href: dummy_admin_hub_switch_href,
-    method: :patch
-  ) %>
-  <%= render FlatPack::Button::Component.new(
-    text: "Agree helper",
-    style: :ghost,
-    href: "/agree_helper"
-  ) %>
-  <%= render FlatPack::Button::Component.new(
-    text: "Admin",
-    style: :ghost,
-    href: "/admin"
-  ) %>
-
-  <div class="grid gap-6 lg:grid-cols-2">
-    <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
-      <% card.header do %>
-        <%= render FlatPack::PageTitle::Component.new(
-          title: "What's working",
-          subtitle: "Core host wiring already in the dummy app.",
-          variant: :h3,
-          class: "mb-0 pb-0"
-        ) %>
-      <% end %>
-
-      <% card.body do %>
-        <ul class="space-y-3 text-sm leading-6">
-          <li>Clickwrap Agree screen, a host gate after sign in, <code>recording_studio_terms_agree</code>, and <code>recording_studio_terms_continue_notice</code>.</li>
-          <li>Admin create, edit, and the Publishable status dropdown (Draft / Publish now / Preview).</li>
-          <li>Public Terms at <code>/terms/:uuid/:slug</code> and Privacy Policy at <code>/privacy/:uuid/:slug</code>.</li>
-          <li>The dummy app exercises authentication, the Recording Studio default layout, and FlatPack.</li>
-        </ul>
-      <% end %>
+  <div class="flex flex-wrap items-center gap-3">
+    <%= render FlatPack::Button::Component.new(
+      text: "Admin",
+      style: :ghost,
+      href: "/admin"
+    ) %>
+    <% if (terms_page = dummy_published_page_url(RecordingStudioTermsAndConditions::Terms::KIND_TERMS)) %>
+      <%= render FlatPack::Button::Component.new(
+        text: "Terms and Condition page",
+        style: :ghost,
+        href: terms_page
+      ) %>
     <% end %>
-
-    <%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
-      <% card.header do %>
-        <%= render FlatPack::PageTitle::Component.new(
-          title: "Next steps",
-          subtitle: "The usual first moves when installing this addon in a host app.",
-          variant: :h3,
-          class: "mb-0 pb-0"
-        ) %>
-      <% end %>
-
-      <% card.body do %>
-        <ol class="space-y-3 text-sm leading-6 list-decimal pl-5">
-          <li>Install the gem in a host app and mount the engine.</li>
-          <li>Replace the sample migration with your addon tables and install them into the host app.</li>
-          <li>Configure Recording Studio recordable types and capabilities in the host app initializer.</li>
-          <li>Use the dummy app to validate layout, asset scanning, and authentication flows.</li>
-        </ol>
-      <% end %>
+    <% if (privacy_page = dummy_published_page_url(RecordingStudioTermsAndConditions::Terms::KIND_PRIVACY)) %>
+      <%= render FlatPack::Button::Component.new(
+        text: "Privacy Policy page",
+        style: :ghost,
+        href: privacy_page
+      ) %>
     <% end %>
-
-    <%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
-      <% card.header do %>
-        <%= render FlatPack::PageTitle::Component.new(
-          title: "FlatPack usage",
-          subtitle: "This page uses FlatPack components for its primary UI structure.",
-          variant: :h3,
-          class: "mb-0 pb-0"
-        ) %>
-      <% end %>
-
-      <% card.body do %>
-        <p class="text-sm leading-6 text-(--surface-content-color)">
-          Use FlatPack cards, buttons, badges, inputs, and layout primitives as the default path for addon UI. Keep raw HTML for simple semantic content only.
-        </p>
-      <% end %>
-
-      <% card.footer do %>
-        <a href="https://github.com/bowerbird-app/flatpack"
-           target="_blank"
-           rel="noopener noreferrer"
-           class="inline-flex">
-          <%= render FlatPack::Button::Component.new(
-            text: "View FlatPack documentation",
-            style: :primary,
-            size: :md
-          ) %>
-        </a>
-      <% end %>
-    <% end %>
-
-    <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
-      <% card.header do %>
-        <%= render FlatPack::PageTitle::Component.new(
-          title: "Install flow",
-          subtitle: "What the host app generator path covers.",
-          variant: :h3,
-          class: "mb-0 pb-0"
-        ) %>
-      <% end %>
-
-      <% card.body do %>
-        <ul class="space-y-3 text-sm leading-6">
-          <li>Add the gem to your host app and run <code>bundle install</code>.</li>
-          <li>Run <code>rails generate recording_studio_terms_and_conditions:install</code> to mount the engine, copy migrations, and add configuration.</li>
-          <li>Rebuild Tailwind if needed with <code>bin/rails tailwindcss:build</code>.</li>
-        </ul>
-      <% end %>
-    <% end %>
+    <%= render FlatPack::Button::Component.new(
+      text: "Helper",
+      style: :ghost,
+      href: "/agree_helper"
+    ) %>
   </div>
 </div>

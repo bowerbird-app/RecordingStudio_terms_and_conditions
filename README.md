@@ -69,7 +69,8 @@ Sign in at `/users/sign_in`: email first (**Continue with email**), then passwor
 - `/` — dummy app home page
 - `/users/sign_in` — Users Auth sign-in (email, then password)
 - `/recording_studio_terms_and_conditions` — Agree (clickwrap) screen on the Recording Studio default layout
-- `/admin` — Recording Studio Admin Terms and Conditions hub (`New` parks here)
+- `/admin` — Recording Studio Admin Terms and Conditions hub (Edit Terms and Edit Privacy Policy)
+- `/admin/sections` — redirects to `/admin`
 - `/recording_studio_terms_and_conditions/admin/terms` — engine write/edit form (opened from Admin). Switch to the Admin root first. New Terms is titled **New Terms and Conditions**.
 - `/terms/:uuid/:slug` — public published Terms
 - `/recording_studio` — redirect to `/` while the mounted Recording Studio engine remains data/API-focused
@@ -107,6 +108,10 @@ Bump to **0.4.1**. No schema change. The Admin Terms hub no longer shows Accessi
 ## Upgrading from 0.4.x
 
 Bump to **0.5.0** and pin Publishable `v0.3.1`. No Terms schema change. Term show uses the Publishable status dropdown instead of a **Publish** button to the old edit form. Preview is its own route. Saving live Terms forks a draft; the public copy stays until you publish. Full notes: `CHANGELOG.md` (0.5.0).
+
+## Upgrading from 0.7.3
+
+Bump to **0.7.4**. No schema change. The Admin hub no longer offers **New** or **All versions**. Use **Edit Terms** and **Edit Privacy Policy**.
 
 ## Upgrading from 0.7.2
 

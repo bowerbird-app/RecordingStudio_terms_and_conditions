@@ -18,6 +18,10 @@ module ApplicationHelper
     "/recording_studio_root_switchable/v1/root_switch?#{query}"
   end
 
+  def dummy_published_page_url(kind)
+    RecordingStudioTermsAndConditions::Admin.live_page_url(kind)
+  end
+
   def dummy_admin_root_recording
     admin_root = AdminRoot.find_by(name: "Admin")
     RecordingStudio.root_recording_for(admin_root) if admin_root

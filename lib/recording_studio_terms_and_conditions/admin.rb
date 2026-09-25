@@ -11,18 +11,33 @@ module RecordingStudioTermsAndConditions
       subtitle "Write them, publish them, see who agreed"
       blast_radius :site
 
-      link :write,
-           text: "New",
-           url: ->(_context) { RecordingStudioTermsAndConditions.admin_write_path },
-           style: :primary
+      link :terms_page,
+           text: "Terms and Condition page",
+           url: ->(_context) { Admin.live_page_url(Terms::KIND_TERMS) },
+           style: :ghost,
+           visible_if: ->(_context) { Admin.live_page_url(Terms::KIND_TERMS).present? }
+      link :privacy_page,
+           text: "Privacy Policy page",
+           url: ->(_context) { Admin.live_page_url(Terms::KIND_PRIVACY) },
+           style: :ghost,
+           visible_if: ->(_context) { Admin.live_page_url(Terms::KIND_PRIVACY).present? }
+      link :edit_terms,
+           text: "Edit Terms",
+           url: ->(_context) { Admin.live_edit_url(Terms::KIND_TERMS) },
+           style: :secondary,
+           visible_if: ->(_context) { Admin.live_edit_url(Terms::KIND_TERMS).present? }
+      link :edit_privacy,
+           text: "Edit Privacy Policy",
+           url: ->(_context) { Admin.live_edit_url(Terms::KIND_PRIVACY) },
+           style: :secondary,
+           visible_if: ->(_context) { Admin.live_edit_url(Terms::KIND_PRIVACY).present? }
+      # Keeps the version and agree-stats screens enabled. The admin hub hides this label.
       link :versions,
-           text: "All versions",
-           url: ->(context) { context.admin_screen_path("recording_studio_terms") },
-           style: :secondary
+           text: "Admin Sections",
+           url: ->(context) { context.admin_screen_path("recording_studio_terms") }
       link :agrees,
-           text: "Agree stats",
-           url: ->(context) { context.admin_screen_path("recording_studio_terms_acceptances") },
-           style: :secondary
+           text: "Admin Sections",
+           url: ->(context) { context.admin_screen_path("recording_studio_terms_acceptances") }
       widget "widgets.terms.live", view_variant: :card
       widget "widgets.terms.agrees", view_variant: :card
     end
@@ -182,6 +197,32 @@ module RecordingStudioTermsAndConditions
     end
 
     class << self
+      def live_recording(kind)
+        return unless defined?(RecordingStudio::Recording)
+
+        RecordingStudio::Recording.where(recordable_type: Terms.name, trashed_at: nil)
+                                  .includes(:recordable)
+                                  .select { |recording| live_kind?(recording, kind) }
+                                  .max_by { |recording| recording.updated_at || Time.at(0) }
+      end
+
+      def live_page_url(kind)
+        live_recording(kind)&.recordable&.try(:published_url)
+      end
+
+      def live_edit_url(kind)
+        recording = live_recording(kind)
+        return if recording.blank?
+
+        RecordingStudioTermsAndConditions.edit_admin_term_path(recording)
+      end
+
+      def live_kind?(recording, kind)
+        recording.recordable&.kind.to_s == kind.to_s &&
+          recording.respond_to?(:currently_published?) &&
+          recording.currently_published?
+      end
+
       def reset_definition_constants!
         DEFINITION_CONSTANTS.each do |name|
           remove_const(name) if const_defined?(name, false)

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.4] - 2026-09-25
+
+### Changed
+- Admin Terms hub actions are **Terms and Condition page**, **Privacy Policy page**, **Edit Terms**, and **Edit Privacy Policy**. Edit actions use the secondary button style. **New**, **All versions**, and **Agree stats** are no longer hub actions.
+- Dummy home is a single row of links: Admin, the live Terms page, the live Privacy Policy page, and Helper. The demo cards are gone.
+- Dummy `/admin/sections` redirects to `/admin`.
+- Dummy root switch uses the switch gem's PageNav only. The host layout no longer adds a second one.
+
+### Upgrade notes (0.7.3 → 0.7.4)
+- No schema change. Pin this gem at `0.7.4`. Hosts that linked the hub **New** or **All versions** actions should link **Edit Terms** and **Edit Privacy Policy** instead. The Agree stats screen is unchanged.
+
 ## [0.7.3] - 2026-09-24
 
 ### Changed
