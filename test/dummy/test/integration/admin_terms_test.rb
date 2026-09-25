@@ -376,6 +376,9 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
     get "/admin/sections"
     assert_redirected_to "/admin"
+
+    get "/admin/sections/terms"
+    assert_redirected_to "/admin"
   end
 
   test "engine admin pages require the Admin root, not a workspace" do

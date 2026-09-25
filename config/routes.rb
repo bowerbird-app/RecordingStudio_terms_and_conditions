@@ -12,5 +12,5 @@ RecordingStudioTermsAndConditions::Engine.routes.draw do
         constraints: { actor_type: /[A-Za-z][A-Za-z0-9:]*/, actor_id: %r{[^/]+} }
   end
 
-  root "acceptances#show"
+  root to: redirect { |_params, request| "#{request.script_name}/acceptance" }
 end

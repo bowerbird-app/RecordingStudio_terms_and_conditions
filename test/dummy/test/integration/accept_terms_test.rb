@@ -21,6 +21,11 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     switch_to_workspace(@workspace)
   end
 
+  test "engine root redirects to the acceptance screen" do
+    get "/recording_studio_terms_and_conditions"
+    assert_redirected_to "/recording_studio_terms_and_conditions/acceptance"
+  end
+
   test "accept screen shows live terms with continue notice and Continue" do
     get recording_studio_terms_and_conditions.acceptance_path
 

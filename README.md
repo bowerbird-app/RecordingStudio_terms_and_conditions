@@ -68,9 +68,9 @@ Sign in at `/users/sign_in`: email first (**Continue with email**), then passwor
 
 - `/` — dummy app home page
 - `/users/sign_in` — Users Auth sign-in (email, then password)
-- `/recording_studio_terms_and_conditions` — Agree (clickwrap) screen on the Recording Studio default layout
+- `/recording_studio_terms_and_conditions/acceptance` — Agree (clickwrap) screen. The engine root redirects here.
 - `/admin` — Recording Studio Admin Terms and Conditions hub (Edit Terms and Edit Privacy Policy)
-- `/admin/sections` — redirects to `/admin`
+- `/admin/sections` and `/admin/sections/terms` — redirect to `/admin`
 - `/recording_studio_terms_and_conditions/admin/terms` — redirects to `/admin/screens/recording_studio_terms`. Show, edit, and new stay on the engine. Switch to the Admin root first.
 - `/terms/:uuid/:slug` — public published Terms
 - `/recording_studio` — redirect to `/` while the mounted Recording Studio engine remains data/API-focused

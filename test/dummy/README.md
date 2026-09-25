@@ -37,9 +37,9 @@ Then open `/users/sign_in`, continue with email, and sign in with:
 ## Useful Routes
 
 - `/` - dummy home: a row of links to Admin, the live Terms page, the live Privacy Policy page, and Helper
-- `/recording_studio_terms_and_conditions` - Agree screen (signed-in clickwrap, not the public page)
+- `/recording_studio_terms_and_conditions/acceptance` - Agree screen (signed-in clickwrap, not the public page). The engine root redirects here.
 - `/admin` - Terms hub. Actions are the live pages plus Edit Terms and Edit Privacy Policy
-- `/admin/sections` - redirects to `/admin`
+- `/admin/sections` and `/admin/sections/terms` - redirect to `/admin`
 - `/recording_studio_terms_and_conditions/admin/terms` - redirects to `/admin/screens/recording_studio_terms`. Show, edit, and new stay on the engine. Switch to the Admin root first.
 - `/terms/:uuid/:slug` - public published Terms
 - `/recordings/:id/publishable/preview` - signed-in Preview of draft or scheduled Terms

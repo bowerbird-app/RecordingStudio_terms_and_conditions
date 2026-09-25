@@ -656,6 +656,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert File.exist?(File.join(engine_root, views, "published_terms/_document.html.erb"))
     routes = File.read(File.join(engine_root, "config/routes.rb"))
     assert_includes routes, "resource :acceptance"
+    assert_includes routes, 'request.script_name}/acceptance"'
     assert_includes routes, "resources :terms"
     admin = File.read(File.join(engine_root, "lib/recording_studio_terms_and_conditions/admin.rb"))
     assert_includes admin, 'key "terms"'
