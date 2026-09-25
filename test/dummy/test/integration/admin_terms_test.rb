@@ -319,17 +319,23 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     sign_in @admin
     switch_to_workspace(@admin_root)
 
+    root = RecordingStudio.root_recording_for(@workspace)
+    publish_live_kind!(root, kind: "terms_and_condition", title: "House rules", slug: "house-rules-#{SecureRandom.hex(3)}")
+    publish_live_kind!(root, kind: "privacy_policy", title: "Quiet privacy", slug: "quiet-privacy-#{SecureRandom.hex(3)}")
+
     get "/admin"
     assert_response :success
     refute_select "header.fp-top-nav"
     assert_includes response.body, "Terms and Conditions"
-    assert_includes response.body, "All versions"
-    assert_includes response.body, "Agree stats"
-    write_path = RecordingStudioTermsAndConditions.admin_write_path
-    assert_includes response.body, write_path
-    assert_select "a[href=?]", write_path, text: "New"
-    assert_select "a[href*='/admin/screens/recording_studio_terms']", text: "All versions"
-    assert_select "a[href*='/admin/screens/recording_studio_terms_acceptances']", text: "Agree stats"
+    refute_includes response.body, "All versions"
+    refute_includes response.body, ">Agree stats<"
+    refute_select "a", text: "New"
+    refute_select "a", text: "All versions"
+    refute_select "a", text: "Agree stats"
+    assert_select "a", text: "Edit Terms"
+    assert_select "a", text: "Edit Privacy Policy"
+    assert_select "a", text: "Terms and Condition page"
+    assert_select "a", text: "Privacy Policy page"
     refute_select "button", text: "New"
     refute_includes response.body, "Write terms"
     refute_includes response.body, "Every version"
@@ -340,6 +346,9 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "+ Access"
     refute_includes response.body, "Terms demo"
     refute_select "a", text: "Sign out"
+
+    get "/admin/sections"
+    assert_redirected_to "/admin"
   end
 
   test "engine admin pages require the Admin root, not a workspace" do
@@ -404,6 +413,16 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     ).each do |recording|
       recording.update_columns(trashed_at: Time.current)
     end
+  end
+
+  def publish_live_kind!(root, kind:, title:, slug:)
+    recording = root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
+      terms.title = title
+      terms.body = "Bring headphones."
+      terms.kind = kind
+    end
+    publish_terms!(recording, slug: slug)
+    recording
   end
 
   def first_table_row_count

@@ -36,9 +36,10 @@ Then open `/users/sign_in`, continue with email, and sign in with:
 
 ## Useful Routes
 
-- `/` - dummy app home page and addon guidance
-- `/recording_studio_terms_and_conditions` - Agree screen
-- `/admin` - Recording Studio Admin Terms and Conditions hub (New parks here)
+- `/` - dummy home: a row of links to Admin, the live Terms page, the live Privacy Policy page, and Helper
+- `/recording_studio_terms_and_conditions` - Agree screen (signed-in clickwrap, not the public page)
+- `/admin` - Terms hub. Actions are the live pages plus Edit Terms and Edit Privacy Policy
+- `/admin/sections` - redirects to `/admin`
 - `/recording_studio_terms_and_conditions/admin/terms` - engine write/edit form (opened from Admin). Switch to the Admin root first. New Terms is titled New Terms and Conditions.
 - `/terms/:uuid/:slug` - public published Terms
 - `/recordings/:id/publishable/preview` - signed-in Preview of draft or scheduled Terms

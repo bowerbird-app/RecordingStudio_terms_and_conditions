@@ -91,6 +91,10 @@ No migrations. First-time Accept titles name the pending kinds. Re-accept after 
 
 No migrations. Continue-notice “Terms & Conditions” and “privacy policy” are `<button type="button">` with `data-modal-id` (no `href`). Signed-in gating uses `root_for_acceptance`, so OAuth visitors whose current workspace has no live Terms still reach Agree. Rebuild host Tailwind for the trigger classes.
 
+## Upgrade (0.7.3 → 0.7.4)
+
+No migrations. Admin hub actions are the live Terms page, the live Privacy Policy page, **Edit Terms**, and **Edit Privacy Policy**. Edit actions are secondary. Hub **New** and **All versions** are gone. The Agree stats screen stays.
+
 ## Upgrade (0.7.2 → 0.7.3)
 
 No migrations. Checkbox helper wraps in `mt-3 mb-6` (was `my-3`). Prefer `recording_studio_terms_agree_button` or Flatpack Button `style: :primary` for the CTA under the checkbox.

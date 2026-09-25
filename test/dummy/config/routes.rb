@@ -15,6 +15,8 @@ Rails.application.routes.draw do
   mount RecordingStudioTermsAndConditions::Engine, at: "/recording_studio_terms_and_conditions"
   mount RecordingStudioAccessible::Engine, at: "/admin/access"
   mount RecordingStudioPublishable::Engine, at: "/", as: :recording_studio_publishable
+  # The sections index is the admin gem's catalog. This host parks on the Terms hub.
+  get "/admin/sections", to: redirect("/admin")
   recording_studio_admin_for :admin, at: "/admin", root_section: :terms
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

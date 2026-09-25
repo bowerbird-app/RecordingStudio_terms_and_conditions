@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Gemspec requires Publishable `~> 0.4` (was `~> 0.3`). Accessible stays `~> 0.8` (covers `0.11`).
 - Dummy Accessible schema includes access invitations and stores access roles as strings (`view`, `edit`, `admin`). Dummy also copies Attachable `root_recording_id` / presentation columns and Users blank profile surname / time zone.
 - Gem tests restore `Object#stub` after Minitest 6 dropped `minitest/mock`.
+- Admin Terms hub actions are **Terms and Condition page**, **Privacy Policy page**, **Edit Terms**, and **Edit Privacy Policy**. Edit actions use the secondary button style. **New**, **All versions**, and **Agree stats** are no longer hub actions.
+- Dummy home is a single row of links: Admin, the live Terms page, the live Privacy Policy page, and Helper. The demo cards are gone.
+- Dummy `/admin/sections` redirects to `/admin`.
+- Dummy root switch uses the switch gem's PageNav only. The host layout no longer adds a second one.
 
 ## [0.7.8] - 2026-10-08
 
