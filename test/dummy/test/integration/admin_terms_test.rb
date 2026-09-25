@@ -315,6 +315,39 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_operator page_two, :<=, 25
   end
 
+  test "who agreed lists one row per person and view opens their receipts" do
+    sign_in @admin
+    switch_to_workspace(@admin_root)
+    root = RecordingStudio.root_recording_for(@workspace)
+    terms = publish_live_kind!(root, kind: "terms_and_condition", title: "House rules", slug: "house-#{SecureRandom.hex(3)}")
+    privacy = publish_live_kind!(root, kind: "privacy_policy", title: "Quiet privacy", slug: "quiet-#{SecureRandom.hex(3)}")
+    person = User.create!(
+      email: "agreed-#{SecureRandom.hex(3)}@example.com",
+      password: "Password",
+      password_confirmation: "Password"
+    )
+    RecordingStudioTermsAndConditions.accept!(person, privacy, { "source" => "clickwrap" })
+    RecordingStudioTermsAndConditions.accept!(person, terms, { "source" => "clickwrap" })
+
+    get "/admin/screens/recording_studio_terms_acceptances/table"
+    assert_response :success
+    assert_select "table tbody tr", count: 1
+    assert_includes response.body, person.email
+    assert_select "a", text: "View"
+
+    view_path = css_select("a").find { |link| link.text == "View" }["href"]
+    get view_path
+    assert_response :success
+    assert_includes response.body, person.email
+    assert_includes response.body, "House rules"
+    assert_includes response.body, "Quiet privacy"
+    assert_includes response.body, "Terms and Conditions"
+    assert_includes response.body, "Privacy Policy"
+    titles = css_select("table tbody tr").map { |row| row.text }
+    assert titles.first.include?("House rules")
+    assert titles.last.include?("Quiet privacy")
+  end
+
   test "recording studio admin terms hub is reachable and write parks there" do
     sign_in @admin
     switch_to_workspace(@admin_root)
@@ -385,8 +418,10 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
     get "/admin/screens/recording_studio_terms_acceptances"
     assert_response :success
-    assert_includes response.body, "Agree stats"
+    assert_includes response.body, "Who agreed"
     assert_includes response.body, "Users"
+    assert_includes response.body, "Agreed terms"
+    assert_includes response.body, "Agreed privacy"
     refute_includes response.body, "Table data"
     assert_includes response.body, "widget_view_variant=card"
     refute_includes response.body, "widget_view_variant=compact"
