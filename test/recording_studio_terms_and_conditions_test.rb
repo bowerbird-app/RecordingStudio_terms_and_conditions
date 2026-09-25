@@ -287,13 +287,15 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes agree, "terms_heading_date"
     refute_includes agree, "FlatPack::SectionTitle::Component"
     refute_includes agree, "terms_version_date"
-    assert_includes agree, "terms_content"
+    refute_includes agree, "terms_content"
     assert_includes agree, "terms_skip_page_nav"
     refute_includes agree, "terms_page_nav"
-    assert_includes agree, "FlatPack::Collapse::Component"
-    assert_includes agree, "open: false"
+    refute_includes agree, "FlatPack::Collapse::Component"
+    assert_includes agree, "max-w-md"
+    assert_includes agree, "style: :secondary"
+    assert_includes agree, 'class: "w-full"'
     assert_includes agree, "terms_accept_page_title(@terms, reaccepting: @reaccepting, pending: agree_documents)"
-    assert_includes agree, "title: terms_agree_heading(document)"
+    assert_includes agree, "text: terms_agree_heading(document)"
     refute_includes agree, 'title: "Terms"'
     refute_includes agree, "-mt-5 mb-6"
     helper = engine_source("app/helpers/recording_studio_terms_and_conditions/agree_helper.rb")
