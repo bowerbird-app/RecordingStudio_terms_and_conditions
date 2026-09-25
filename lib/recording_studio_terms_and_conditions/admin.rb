@@ -94,27 +94,64 @@ module RecordingStudioTermsAndConditions
     class AcceptancesScreen < RecordingStudioAdmin::Screen
       key "recording_studio_terms_acceptances"
       icon :check_circle
-      title "Agree stats"
-      subtitle "Receipts for the live clickwrap"
+      title "Who agreed"
+      subtitle "Newest agreement first"
       blast_radius :site
-      query { |_context| Acceptance.order(accepted_at: :desc) }
+      query { |_context| AgreedPeople.relation }
 
       table do
         title "Users"
         paginate per_page: 25
-        column :actor,
-               title: "Person",
+        column :name,
+               title: "Name",
                sortable: false,
-               value: ->(row, _context) { row.actor.try(:email) || "Someone" }
-        column :accepted_at, title: "Agreed"
-        column :terms,
-               title: "Terms",
+               value: ->(row, _context) { Admin.actor_name(row.actor) }
+        column :terms_accepted_at,
+               title: "Agreed terms",
                sortable: false,
-               value: lambda { |row, _context|
-                 Terms.find_by(id: row.terms_id)&.title || "A past version"
+               value: ->(row, _context) { row.read_attribute("terms_accepted_at") }
+        column :privacy_accepted_at,
+               title: "Agreed privacy",
+               sortable: false,
+               value: ->(row, _context) { row.read_attribute("privacy_accepted_at") }
+        column :actions,
+               title: "Actions",
+               sortable: false,
+               value: lambda { |row, context|
+                 context.view_context.render(
+                   FlatPack::Button::Component.new(
+                     text: "View",
+                     style: :secondary,
+                     size: :sm,
+                     href: RecordingStudioTermsAndConditions.admin_person_path(row.actor_type, row.actor_id)
+                   )
+                 )
                }
       end
       widget "widgets.terms.agrees", view_variant: :card
+    end
+
+    module AgreedPeople
+      module_function
+
+      def relation
+        terms = Terms.arel_table
+        Acceptance.joins("INNER JOIN #{terms.name} ON #{terms.name}.id = #{Acceptance.table_name}.terms_id")
+                  .select(
+                    "#{Acceptance.table_name}.actor_type",
+                    "#{Acceptance.table_name}.actor_id",
+                    "MAX(#{Acceptance.table_name}.accepted_at) AS latest_accepted_at",
+                    kind_date_sql(terms, Terms::KIND_TERMS, "terms_accepted_at"),
+                    kind_date_sql(terms, Terms::KIND_PRIVACY, "privacy_accepted_at")
+                  )
+                  .group("#{Acceptance.table_name}.actor_type", "#{Acceptance.table_name}.actor_id")
+                  .order(Arel.sql("MAX(#{Acceptance.table_name}.accepted_at) DESC"))
+      end
+
+      def kind_date_sql(terms, kind, alias_name)
+        "MAX(#{Acceptance.table_name}.accepted_at) FILTER " \
+          "(WHERE #{terms.name}.kind = #{Acceptance.connection.quote(kind)}) AS #{alias_name}"
+      end
     end
 
     LiveTermsWidget = RecordingStudioAdmin::Widget.new("widgets.terms.live", blast_radius: :site) do
@@ -217,6 +254,12 @@ module RecordingStudioTermsAndConditions
         RecordingStudioTermsAndConditions.edit_admin_term_path(recording)
       end
 
+      def actor_name(actor)
+        return "Someone" if actor.blank?
+
+        actor.try(:name).presence || actor.try(:email).presence || "Someone"
+      end
+
       def live_kind?(recording, kind)
         recording.recordable&.kind.to_s == kind.to_s &&
           recording.respond_to?(:currently_published?) &&
@@ -264,6 +307,14 @@ module RecordingStudioTermsAndConditions
 
   def self.admin_term_users_path(recording)
     engine_admin_path(:admin_term_users_path, recording)
+  end
+
+  def self.admin_person_path(actor_type, actor_id)
+    engine_admin_path(:admin_person_path, actor_type, actor_id)
+  end
+
+  def self.agreed_people_screen_path
+    "#{admin_hub_path}/screens/recording_studio_terms_acceptances"
   end
 
   def self.engine_admin_path(helper, *)

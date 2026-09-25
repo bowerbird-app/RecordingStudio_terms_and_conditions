@@ -662,7 +662,11 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin, "paginate per_page: 25"
     assert_includes admin, 'text: "All versions"'
     assert_includes admin, 'text: "New"'
-    assert_includes admin, 'title "Agree stats"'
+    assert_includes admin, 'title "Who agreed"'
+    assert_includes admin, 'text: "View"'
+    assert_includes admin, "admin_person_path"
+    assert_includes admin, 'title: "Agreed terms"'
+    assert_includes admin, 'title: "Agreed privacy"'
     assert_includes admin, 'text: "Terms and Condition page"'
     assert_includes admin, 'text: "Privacy Policy page"'
     assert_includes admin, 'text: "Edit Terms"'

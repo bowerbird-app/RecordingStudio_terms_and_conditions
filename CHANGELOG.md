@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dummy home is a single row of links: Admin, the live Terms page, the live Privacy Policy page, and Helper. The demo cards are gone.
 - Dummy `/admin/sections` redirects to `/admin`.
 - Dummy root switch uses the switch gem's PageNav only. The host layout no longer adds a second one.
+- Who agreed lists one row per person (name, terms date, privacy date, View), newest first, 25 per page. View opens that person's agreements, newest first.
 
 ### Upgrade notes (0.7.3 → 0.7.4)
 - No schema change. Pin this gem at `0.7.4`. Hosts that linked the hub **New** or **All versions** actions should link **Edit Terms** and **Edit Privacy Policy** instead. The Agree stats screen is unchanged.
