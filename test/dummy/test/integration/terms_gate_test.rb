@@ -120,6 +120,8 @@ class TermsGateTest < ActionDispatch::IntegrationTest
 
     switch_to_workspace(admin_root)
     get recording_studio_terms_and_conditions.admin_terms_path
+    assert_redirected_to "/admin/screens/recording_studio_terms"
+    follow_redirect!
     assert_response :success
 
     publishable = recording.publishable_child_recording

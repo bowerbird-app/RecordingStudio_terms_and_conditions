@@ -18,6 +18,10 @@ Then:
 
 The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
 
+## Upgrade from 0.7.3 to 0.7.4
+
+No schema change. The Admin Terms hub no longer shows **New** or **All versions**. The actions are the live Terms page, the live Privacy Policy page, **Edit Terms**, and **Edit Privacy Policy**. Those page links are secondary. Hub cards are **Terms and conditions** and **Privacy Policy**. The count is large, and **users agreed** sits under it in smaller text. The versions screen is the table only, live rows first. `/recording_studio_terms_and_conditions/admin/terms` redirects to that screen. Agree is `/acceptance` on the mount. The engine root redirects there. `/admin/sections/terms` redirects to `/admin`. Who agreed searches name or email. Agree is a narrow column: each live document is a full-width secondary **View {name}** button that opens the continue-notice modal, then the continue notice and **Continue**. A second agree on the same live copy does not change the receipt time.
+
 ## Upgrade from 0.7.2 to 0.7.3
 
 No schema change. `recording_studio_terms_agree` wraps in `mt-3 mb-6` (was `my-3`) so the gap before the host Agree / Accept button is more comfortable. Prefer `recording_studio_terms_agree_button` or Flatpack Button `style: :primary` for that CTA.

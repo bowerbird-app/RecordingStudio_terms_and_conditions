@@ -7,36 +7,28 @@
     description: "Someone still needs to publish terms for this workspace."
   ) %>
 <% else %>
-  <div class="space-y-4">
+  <div class="mx-auto w-full max-w-md space-y-4">
     <%= render FlatPack::PageTitle::Component.new(
       title: terms_accept_page_title(@terms, reaccepting: @reaccepting, pending: agree_documents),
       subtitle: terms_heading_date(agree_documents.first),
       variant: :h1
     ) %>
 
-    <% agree_documents.each_with_index do |document, index| %>
-      <%= render FlatPack::Collapse::Component.new(
-        id: agree_documents.size == 1 ? "agree-terms-body" : "agree-terms-body-#{index}",
-        title: terms_agree_heading(document),
-        open: false
-      ) do %>
-        <%= terms_content(document.body) %>
-      <% end %>
+    <% agree_documents.each do |document| %>
+      <%= recording_studio_terms_document_button(document) %>
     <% end %>
 
-    <% unless @already_accepted %>
-      <%= form_with url: acceptance_path, method: :post do %>
-        <%= recording_studio_terms_continue_notice(
-          actor: current_user,
-          root: @root,
-          pending: agree_documents,
-          link: false
-        ) %>
-        <%= recording_studio_terms_agree_button(
-          require_scroll_to_end: false,
-          text: "Continue"
-        ) %>
-      <% end %>
+    <%= form_with url: acceptance_path, method: :post do %>
+      <%= recording_studio_terms_continue_notice(
+        actor: current_user,
+        root: @root,
+        pending: agree_documents,
+        link: false
+      ) %>
+      <%= recording_studio_terms_agree_button(
+        require_scroll_to_end: false,
+        text: "Continue"
+      ) %>
     <% end %>
   </div>
 <% end %>

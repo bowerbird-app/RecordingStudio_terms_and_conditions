@@ -1,0 +1,18 @@
+<% person_name = RecordingStudioTermsAndConditions::Admin.actor_name(@actor) %>
+<% terms_page_nav(
+  title: person_name,
+  back_url: RecordingStudioTermsAndConditions.agreed_people_screen_path,
+  back_label: "Who agreed"
+) %>
+
+<%= render FlatPack::PageTitle::Component.new(
+  title: person_name,
+  subtitle: "What they agreed to, newest first.",
+  variant: :h1
+) %>
+
+<%= render FlatPack::Table::Component.new(data: @rows) do |table| %>
+  <% table.column(title: "Title") { |row| row[:title] } %>
+  <% table.column(title: "Type") { |row| row[:type] } %>
+  <% table.column(title: "Agreed") { |row| row[:agreed] } %>
+<% end %>

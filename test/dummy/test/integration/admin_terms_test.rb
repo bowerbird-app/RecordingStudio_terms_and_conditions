@@ -57,8 +57,10 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     clear_terms_on_write_workspace!
 
     get recording_studio_terms_and_conditions.admin_terms_path
+    assert_redirected_to "/admin/screens/recording_studio_terms"
+    follow_redirect!
     assert_response :success
-    assert_includes response.body, "New"
+    refute_includes response.body, ">New<"
     assert(
       response.body.include?("No terms yet") || response.body.include?("Title"),
       "expected an empty state or the Terms table"
@@ -146,6 +148,8 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Whisper, please."
 
     get recording_studio_terms_and_conditions.admin_terms_path
+    assert_redirected_to "/admin/screens/recording_studio_terms"
+    get "/admin/screens/recording_studio_terms/table"
     assert_response :success
     assert_includes response.body, "House rules"
     assert_select "table thead th", text: "Title"
@@ -155,10 +159,9 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_select "table thead th", text: "Status"
     assert_select "table thead th", text: "Published"
     assert_select "table thead th", text: "Agrees"
-    assert_select "table thead th", text: "Open"
-    assert_select "table tbody td a", text: "House rules"
+    assert_includes response.body, "House rules"
     assert_select "table tbody td", text: (recording.currently_published? ? "Live" : "Draft")
-    assert_select "table tbody td a", text: "Open"
+    assert_select "a", text: "Open"
   end
 
   test "admin section registers terms coverage widgets" do
@@ -173,17 +176,15 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert resource.action_for(:new)
     assert_equal :edit, resource.action_for(:edit).required_access_role
     assert_equal :edit, resource.action_for(:new).required_access_role
-    assert RecordingStudioAdmin.widget_for("widgets.terms.live")
-    assert RecordingStudioAdmin.widget_for("widgets.terms.agrees")
+    assert RecordingStudioAdmin.widget_for("widgets.terms.terms_agreed")
+    assert RecordingStudioAdmin.widget_for("widgets.terms.privacy_agreed")
+    refute RecordingStudioAdmin.widget_for("widgets.terms.live")
+    refute RecordingStudioAdmin.widget_for("widgets.terms.agrees")
     usages = RecordingStudioTermsAndConditions::Admin::TermsSection.widget_usages
-    assert_equal %w[widgets.terms.live widgets.terms.agrees], usages.map(&:key)
+    assert_equal %w[widgets.terms.terms_agreed widgets.terms.privacy_agreed], usages.map(&:key)
     assert usages.all? { |usage| usage.view_variant == :card }
-    screen_usages = RecordingStudioTermsAndConditions::Admin::TermsScreen.widget_usages
-    assert_equal %w[widgets.terms.live widgets.terms.agrees], screen_usages.map(&:key)
-    assert screen_usages.all? { |usage| usage.view_variant == :card }
-    agree_usages = RecordingStudioTermsAndConditions::Admin::AcceptancesScreen.widget_usages
-    assert_equal %w[widgets.terms.agrees], agree_usages.map(&:key)
-    assert_equal :card, agree_usages.first.view_variant
+    assert_empty RecordingStudioTermsAndConditions::Admin::TermsScreen.widget_usages
+    assert_empty RecordingStudioTermsAndConditions::Admin::AcceptancesScreen.widget_usages
     assert RecordingStudioAdmin::WidgetRenderingHelper.ancestors.include?(
       RecordingStudioTermsAndConditions::AdminWidgetCard
     )
@@ -199,12 +200,11 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
       admin.register!
     end
 
-    assert RecordingStudioAdmin.widget_for("widgets.terms.live")
+    assert RecordingStudioAdmin.widget_for("widgets.terms.terms_agreed")
     assert RecordingStudioAdmin.resource_for("terms")
-    assert_equal %w[widgets.terms.live widgets.terms.agrees],
+    assert_equal %w[widgets.terms.terms_agreed widgets.terms.privacy_agreed],
                  admin::TermsSection.widget_usages.map(&:key)
-    assert_equal %w[widgets.terms.live widgets.terms.agrees],
-                 admin::TermsScreen.widget_usages.map(&:key)
+    assert_empty admin::TermsScreen.widget_usages
   end
 
   test "admin terms index paginates like other kit tables" do
@@ -220,14 +220,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     end
 
     get recording_studio_terms_and_conditions.admin_terms_path
-    assert_response :success
-    assert_equal 25, first_table_row_count
-
-    get recording_studio_terms_and_conditions.admin_terms_path, params: { page: 2 }
-    assert_response :success
-    page_two = first_table_row_count
-    assert_operator page_two, :>, 0
-    assert_operator page_two, :<=, 25
+    assert_redirected_to "/admin/screens/recording_studio_terms"
   end
 
   test "term users paginates receipts" do
@@ -315,21 +308,61 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_operator page_two, :<=, 25
   end
 
+  test "who agreed lists one row per person and view opens their receipts" do
+    sign_in @admin
+    switch_to_workspace(@admin_root)
+    root = RecordingStudio.root_recording_for(@workspace)
+    terms = publish_live_kind!(root, kind: "terms_and_condition", title: "House rules", slug: "house-#{SecureRandom.hex(3)}")
+    privacy = publish_live_kind!(root, kind: "privacy_policy", title: "Quiet privacy", slug: "quiet-#{SecureRandom.hex(3)}")
+    person = User.create!(
+      email: "agreed-#{SecureRandom.hex(3)}@example.com",
+      password: "Password",
+      password_confirmation: "Password"
+    )
+    RecordingStudioTermsAndConditions.accept!(person, privacy, { "source" => "clickwrap" })
+    RecordingStudioTermsAndConditions.accept!(person, terms, { "source" => "clickwrap" })
+
+    get "/admin/screens/recording_studio_terms_acceptances/table"
+    assert_response :success
+    assert_select "table tbody tr", count: 1
+    assert_includes response.body, person.email
+    assert_select "a", text: "View"
+
+    view_path = css_select("a").find { |link| link.text == "View" }["href"]
+    get view_path
+    assert_response :success
+    assert_includes response.body, person.email
+    assert_includes response.body, "House rules"
+    assert_includes response.body, "Quiet privacy"
+    assert_includes response.body, "Terms and Conditions"
+    assert_includes response.body, "Privacy Policy"
+    titles = css_select("table tbody tr").map { |row| row.text }
+    assert titles.first.include?("House rules")
+    assert titles.last.include?("Quiet privacy")
+  end
+
   test "recording studio admin terms hub is reachable and write parks there" do
     sign_in @admin
     switch_to_workspace(@admin_root)
+
+    root = RecordingStudio.root_recording_for(@workspace)
+    publish_live_kind!(root, kind: "terms_and_condition", title: "House rules", slug: "house-rules-#{SecureRandom.hex(3)}")
+    publish_live_kind!(root, kind: "privacy_policy", title: "Quiet privacy", slug: "quiet-privacy-#{SecureRandom.hex(3)}")
 
     get "/admin"
     assert_response :success
     refute_select "header.fp-top-nav"
     assert_includes response.body, "Terms and Conditions"
-    assert_includes response.body, "All versions"
-    assert_includes response.body, "Agree stats"
-    write_path = RecordingStudioTermsAndConditions.admin_write_path
-    assert_includes response.body, write_path
-    assert_select "a[href=?]", write_path, text: "New"
-    assert_select "a[href*='/admin/screens/recording_studio_terms']", text: "All versions"
-    assert_select "a[href*='/admin/screens/recording_studio_terms_acceptances']", text: "Agree stats"
+    refute_includes response.body, "All versions"
+    refute_includes response.body, ">Agree stats<"
+    refute_select "a", text: "New"
+    refute_select "a", text: "All versions"
+    refute_select "a", text: "Agree stats"
+    assert_select "a", text: "Edit Terms"
+    assert_select "a", text: "Edit Privacy Policy"
+    assert_select "a[data-fp-style=secondary]", text: "Terms and Condition page"
+    assert_select "a[data-fp-style=secondary]", text: "Privacy Policy page"
+    assert_select "a[data-fp-style=secondary]", text: "Edit Terms"
     refute_select "button", text: "New"
     refute_includes response.body, "Write terms"
     refute_includes response.body, "Every version"
@@ -340,6 +373,12 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "+ Access"
     refute_includes response.body, "Terms demo"
     refute_select "a", text: "Sign out"
+
+    get "/admin/sections"
+    assert_redirected_to "/admin"
+
+    get "/admin/sections/terms"
+    assert_redirected_to "/admin"
   end
 
   test "engine admin pages require the Admin root, not a workspace" do
@@ -353,42 +392,84 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
   end
 
-  test "admin terms and who agreed screens stack widget title above the count" do
+  test "admin hub cards count people who agreed and versions stay a table" do
     sign_in @admin
     switch_to_workspace(@admin_root)
+    root = RecordingStudio.root_recording_for(@workspace)
+    terms = publish_live_kind!(root, kind: "terms_and_condition", title: "Live rules", slug: "live-#{SecureRandom.hex(3)}")
+    privacy = publish_live_kind!(root, kind: "privacy_policy", title: "Live privacy", slug: "priv-#{SecureRandom.hex(3)}")
+    draft = root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |record|
+      record.title = "Older draft"
+      record.body = "Not live."
+    end
+    draft.update_columns(updated_at: 2.days.ago)
+    person = User.create!(
+      email: "counted-#{SecureRandom.hex(3)}@example.com",
+      password: "Password",
+      password_confirmation: "Password"
+    )
+    RecordingStudioTermsAndConditions.accept!(person, terms, { "source" => "clickwrap" })
+    RecordingStudioTermsAndConditions.accept!(person, privacy, { "source" => "clickwrap" })
 
     get "/admin/screens/recording_studio_terms"
     assert_response :success
     assert_includes response.body, "All versions"
-    refute_includes response.body, "Old versions"
-    refute_includes response.body, "Table data"
-    assert_includes response.body, "widget_view_variant=card"
-    refute_includes response.body, "widget_view_variant=compact"
+    refute_includes response.body, "widget_view_variant"
 
-    get "/admin/screens/recording_studio_terms/widgets/widgets.terms.live",
+    get "/admin/screens/recording_studio_terms/table"
+    titles = css_select("table tbody tr td:first-child").map { |cell| cell.text.strip }
+    assert_operator titles.index("Live rules"), :<, titles.index("Older draft")
+
+    get "/admin/sections/terms/widgets/widgets.terms.terms_agreed",
         params: { widget_usage_index: 0, widget_view_variant: "card" },
         headers: { "Sec-Fetch-Dest" => "empty", "Turbo-Frame" => "widget" }
     assert_response :success
-    assert_includes response.body, "Live"
-    refute_includes response.body, "Live terms"
+    assert_includes response.body, "Terms and conditions"
+    assert_includes response.body, "users agreed"
     assert_includes response.body, "text-5xl"
-    refute_includes response.body, "min-h-28"
 
-    get "/admin/screens/recording_studio_terms_acceptances"
-    assert_response :success
-    assert_includes response.body, "Agree stats"
-    assert_includes response.body, "Users"
-    refute_includes response.body, "Table data"
-    assert_includes response.body, "widget_view_variant=card"
-    refute_includes response.body, "widget_view_variant=compact"
-
-    get "/admin/screens/recording_studio_terms_acceptances/widgets/widgets.terms.agrees",
-        params: { widget_usage_index: 0, widget_view_variant: "card" },
+    get "/admin/sections/terms/widgets/widgets.terms.privacy_agreed",
+        params: { widget_usage_index: 1, widget_view_variant: "card" },
         headers: { "Sec-Fetch-Dest" => "empty", "Turbo-Frame" => "widget" }
     assert_response :success
-    assert_includes response.body, "Agrees"
-    assert_includes response.body, "text-5xl"
-    refute_includes response.body, "min-h-28"
+    assert_includes response.body, "Privacy Policy"
+    assert_includes response.body, "users agreed"
+    refute_includes response.body, "text-5xl font-bold\">users agreed"
+  end
+
+  test "who agreed search matches email or profile name" do
+    sign_in @admin
+    switch_to_workspace(@admin_root)
+    recording = publish_live_kind!(
+      RecordingStudio.root_recording_for(@workspace),
+      kind: "terms_and_condition",
+      title: "Searchable",
+      slug: "search-#{SecureRandom.hex(3)}"
+    )
+    match = User.create!(
+      email: "ada-#{SecureRandom.hex(3)}@example.com",
+      password: "Password",
+      password_confirmation: "Password"
+    )
+    other = User.create!(
+      email: "other-#{SecureRandom.hex(3)}@example.com",
+      password: "Password",
+      password_confirmation: "Password"
+    )
+    RecordingStudioUser::Profile.create!(
+      user: match, first_name: "Ada", last_name: "Lovelace", time_zone: "UTC"
+    )
+    RecordingStudioTermsAndConditions.accept!(match, recording, { "source" => "clickwrap" })
+    RecordingStudioTermsAndConditions.accept!(other, recording, { "source" => "clickwrap" })
+
+    get "/admin/screens/recording_studio_terms_acceptances/table", params: { name_or_email: "Ada" }
+    assert_response :success
+    assert_includes response.body, match.email
+    refute_includes response.body, other.email
+
+    get "/admin/screens/recording_studio_terms_acceptances/table", params: { name_or_email: match.email }
+    assert_includes response.body, match.email
+    refute_includes response.body, other.email
   end
 
   private
@@ -404,6 +485,16 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     ).each do |recording|
       recording.update_columns(trashed_at: Time.current)
     end
+  end
+
+  def publish_live_kind!(root, kind:, title:, slug:)
+    recording = root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
+      terms.title = title
+      terms.body = "Bring headphones."
+      terms.kind = kind
+    end
+    publish_terms!(recording, slug: slug)
+    recording
   end
 
   def first_table_row_count

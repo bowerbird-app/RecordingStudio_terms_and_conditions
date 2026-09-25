@@ -21,6 +21,11 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     switch_to_workspace(@workspace)
   end
 
+  test "engine root redirects to the acceptance screen" do
+    get "/recording_studio_terms_and_conditions"
+    assert_redirected_to "/recording_studio_terms_and_conditions/acceptance"
+  end
+
   test "accept screen shows live terms with continue notice and Continue" do
     get recording_studio_terms_and_conditions.acceptance_path
 
@@ -31,10 +36,12 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     assert_select "h1", text: "We have updated our terms and conditions."
     assert_includes response.body, "Studio Terms"
     assert_includes response.body, "Be kind"
+    assert_select "a[href^='#agree-document-']", text: "View Studio Terms"
+    assert_select "a.w-full[data-modal-id][data-fp-style=secondary]", text: "View Studio Terms"
+    assert_select "[data-controller='flat-pack--modal']", count: 1
     assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
     assert_includes response.body, "Terms &amp; Conditions"
     assert_select "a.flat-pack-link[data-modal-id]", count: 0
-    assert_select "[data-controller='flat-pack--modal']", count: 0
     assert_select "div.mt-3.mb-3"
     assert_select "div.mt-3.mb-6", count: 0
     refute_includes response.body, "I agree to these terms"
@@ -53,9 +60,9 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     assert_select "[data-recording-studio-terms-and-conditions--scroll-to-end-target='agree']", count: 0
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
     assert_select "nav[aria-label='Page navigation']", count: 0
-    assert_select "[data-controller='flat-pack--collapse']", count: 1
-    assert_select "button[aria-expanded='false']", text: "Studio Terms"
-    assert_select "#agree-terms-body-content[hidden]", count: 1
+    assert_select "[data-controller='flat-pack--collapse']", count: 0
+    assert_select "a.w-full[data-fp-style=secondary]", text: "View Studio Terms"
+    assert_select "div.max-w-md"
     assert_match %r{flat_pack/application}, response.body
     assert_select 'link[rel="stylesheet"][href*="flat_pack/application"]', minimum: 1
     refute_includes response.body, "Read them, tick the box"
@@ -111,12 +118,19 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     post recording_studio_terms_and_conditions.acceptance_path
     receipt = RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last
 
+    get recording_studio_terms_and_conditions.acceptance_path
+    assert_response :success
+    assert_select "button[type=submit]", text: "Continue"
+    assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
+    assert_select "a.w-full[data-fp-style=secondary]", text: "View Studio Terms"
+
     assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
       post recording_studio_terms_and_conditions.acceptance_path
     end
 
     assert_redirected_to "/"
     assert_equal receipt.id, RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last.id
+    assert_equal receipt.accepted_at, receipt.reload.accepted_at
     assert_equal receipt.body_digest, receipt.reload.body_digest
   end
 

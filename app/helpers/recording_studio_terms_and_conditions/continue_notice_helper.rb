@@ -4,6 +4,7 @@ module RecordingStudioTermsAndConditions
   module ContinueNoticeHelper
     include TermsContextHelper
     include AgreeCopyHelper
+    include DocumentButtonHelper
 
     CONTINUE_NOTICE_SIZES = { xs: "text-xs", sm: "text-sm" }.freeze
 
