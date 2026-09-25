@@ -10,6 +10,10 @@ module RecordingStudioTermsAndConditions
       terms&.title.presence || "Terms and Conditions"
     end
 
+    def terms_view_button_label(terms)
+      "View #{terms_agree_heading(terms)}"
+    end
+
     def terms_accept_page_title(terms = nil, reaccepting: false, pending: nil) # rubocop:disable Lint/UnusedMethodArgument
       documents = accept_page_title_documents(terms, pending)
       has_terms = accept_page_has_terms?(documents)

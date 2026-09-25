@@ -15,12 +15,7 @@
     ) %>
 
     <% agree_documents.each do |document| %>
-      <%= render FlatPack::Button::Component.new(
-        text: terms_agree_heading(document),
-        style: :secondary,
-        href: document.published_url,
-        class: "w-full"
-      ) %>
+      <%= recording_studio_terms_document_button(document) %>
     <% end %>
 
     <%= form_with url: acceptance_path, method: :post do %>

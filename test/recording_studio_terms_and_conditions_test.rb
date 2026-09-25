@@ -282,7 +282,6 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes agree, "mb-6"
     assert_includes agree, "pending: agree_documents"
     assert_includes agree, "link: false"
-    assert_includes agree, "terms_agree_heading"
     assert_includes agree, "terms_accept_page_title"
     assert_includes agree, "terms_heading_date"
     refute_includes agree, "FlatPack::SectionTitle::Component"
@@ -292,10 +291,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes agree, "terms_page_nav"
     refute_includes agree, "FlatPack::Collapse::Component"
     assert_includes agree, "max-w-md"
-    assert_includes agree, "style: :secondary"
-    assert_includes agree, 'class: "w-full"'
     assert_includes agree, "terms_accept_page_title(@terms, reaccepting: @reaccepting, pending: agree_documents)"
-    assert_includes agree, "text: terms_agree_heading(document)"
+    assert_includes agree, "recording_studio_terms_document_button(document)"
     refute_includes agree, 'title: "Terms"'
     refute_includes agree, "-mt-5 mb-6"
     helper = engine_source("app/helpers/recording_studio_terms_and_conditions/agree_helper.rb")
@@ -312,7 +309,13 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes continue_helper, "text-xs"
     assert_includes continue_helper, "surface-muted-content-color"
     assert_includes continue_helper, "continue_notice"
+    assert_includes continue_helper, "include DocumentButtonHelper"
     assert_includes continue_helper, "FlatPack::Modal::Component"
+    document_button = engine_source("app/helpers/recording_studio_terms_and_conditions/document_button_helper.rb")
+    assert_includes document_button, "def recording_studio_terms_document_button"
+    assert_includes document_button, "continue_notice_modal(terms, modal_id)"
+    assert_includes document_button, "style: :secondary"
+    assert_includes document_button, 'class: "w-full"'
     assert_includes continue_helper, "terms_standalone_document"
     assert_includes continue_helper, "color-primary"
     assert_includes continue_helper, "underline"
@@ -325,6 +328,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes helper, "pending: nil"
     assert_includes helper, "recording_studio_terms_agree_label"
     copy_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/agree_copy_helper.rb")
+    assert_includes copy_helper, "def terms_view_button_label"
     assert_includes copy_helper, "def terms_agree_heading"
     assert_includes copy_helper, "def terms_accept_page_title"
     assert_includes copy_helper, "We have updated our terms and conditions."

@@ -134,8 +134,9 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Studio Terms"
     assert_includes response.body, "Studio Privacy"
     assert_match(/and privacy policy/, CGI.unescapeHTML(response.body).gsub(/<[^>]+>/, ""))
-    assert_select "a.w-full[data-fp-style=secondary]", count: 2
-    refute_includes response.body, "data-modal-id"
+    assert_select "a.w-full[data-fp-style=secondary]", text: "View Studio Terms"
+    assert_select "a.w-full[data-fp-style=secondary]", text: "View Studio Privacy"
+    assert_select "[data-controller='flat-pack--modal']", count: 2
     assert_select "div.mt-3.mb-3"
     assert_select "div.mt-3.mb-6", count: 0
 
@@ -174,7 +175,7 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
     assert_select "h1", text: "We have updated our privacy policy."
     assert_includes response.body, "Studio Privacy"
     refute_includes response.body, "Studio Terms"
-    assert_select "a.w-full[data-fp-style=secondary]", text: "Studio Privacy"
+    assert_select "a.w-full[data-fp-style=secondary]", text: "View Studio Privacy"
     assert_includes CGI.unescapeHTML(response.body), "privacy policy"
     refute_match(/Terms & Conditions and privacy policy/, CGI.unescapeHTML(response.body))
   end
