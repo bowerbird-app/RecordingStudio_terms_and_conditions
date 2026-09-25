@@ -35,8 +35,8 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
-    assert_select "a", text: "Admin"
-    assert_select "a", text: "Helper"
+    assert_select "a[data-fp-style=secondary]", text: "Admin"
+    assert_select "a[data-fp-style=secondary]", text: "Helper"
     refute_select ".fp-card"
     refute_includes response.body, "What's working"
     refute_select "header.fp-top-nav"

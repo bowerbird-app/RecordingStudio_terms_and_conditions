@@ -14,12 +14,12 @@ module RecordingStudioTermsAndConditions
       link :terms_page,
            text: "Terms and Condition page",
            url: ->(_context) { Admin.live_page_url(Terms::KIND_TERMS) },
-           style: :ghost,
+           style: :secondary,
            visible_if: ->(_context) { Admin.live_page_url(Terms::KIND_TERMS).present? }
       link :privacy_page,
            text: "Privacy Policy page",
            url: ->(_context) { Admin.live_page_url(Terms::KIND_PRIVACY) },
-           style: :ghost,
+           style: :secondary,
            visible_if: ->(_context) { Admin.live_page_url(Terms::KIND_PRIVACY).present? }
       link :edit_terms,
            text: "Edit Terms",
@@ -38,8 +38,8 @@ module RecordingStudioTermsAndConditions
       link :agrees,
            text: "Admin Sections",
            url: ->(context) { context.admin_screen_path("recording_studio_terms_acceptances") }
-      widget "widgets.terms.live", view_variant: :card
-      widget "widgets.terms.agrees", view_variant: :card
+      widget "widgets.terms.terms_agreed", view_variant: :card
+      widget "widgets.terms.privacy_agreed", view_variant: :card
     end
 
     class TermsScreen < RecordingStudioAdmin::Screen
@@ -48,11 +48,7 @@ module RecordingStudioTermsAndConditions
       title "All versions"
       subtitle "Drafts and live copies"
       blast_radius :site
-      query do |_context|
-        RecordingStudio::Recording.where(recordable_type: Terms.name, trashed_at: nil)
-                                  .includes(:recordable)
-                                  .order(updated_at: :desc)
-      end
+      query { |_context| Admin.versions_relation }
 
       # rubocop:disable Metrics/BlockLength
       table do
@@ -87,8 +83,6 @@ module RecordingStudioTermsAndConditions
         admin_action "terms.users"
       end
       # rubocop:enable Metrics/BlockLength
-      widget "widgets.terms.live", view_variant: :card
-      widget "widgets.terms.agrees", view_variant: :card
     end
 
     class AcceptancesScreen < RecordingStudioAdmin::Screen
@@ -98,6 +92,10 @@ module RecordingStudioTermsAndConditions
       subtitle "Newest agreement first"
       blast_radius :site
       query { |_context| AgreedPeople.relation }
+      filter_presentation :inline
+      filter :name_or_email, apply: lambda { |relation, value, _context|
+        AgreedPeople.matching_name_or_email(relation, value)
+      }
 
       table do
         title "Users"
@@ -114,7 +112,6 @@ module RecordingStudioTermsAndConditions
           )
         }
       end
-      widget "widgets.terms.agrees", view_variant: :card
     end
 
     module AgreedPeople
@@ -147,22 +144,44 @@ module RecordingStudioTermsAndConditions
         Arel.sql("MAX(#{Acceptance.table_name}.accepted_at) DESC")
       end
 
+      def matching_name_or_email(relation, raw)
+        term = "%#{Acceptance.sanitize_sql_like(raw.to_s.strip)}%"
+        relation.joins(people_join).where(people_match_sql, term: term)
+      end
+
+      def people_join
+        acceptances = Acceptance.table_name
+        "LEFT JOIN users ON users.id = #{acceptances}.actor_id " \
+          "AND #{acceptances}.actor_type = 'User' " \
+          "LEFT JOIN recording_studio_user_profiles profiles ON profiles.user_id = users.id"
+      end
+
+      def people_match_sql
+        "users.email ILIKE :term OR profiles.first_name ILIKE :term OR " \
+          "profiles.last_name ILIKE :term OR " \
+          "(profiles.first_name || ' ' || profiles.last_name) ILIKE :term"
+      end
+
       def kind_date_sql(terms, kind, alias_name)
         "MAX(#{Acceptance.table_name}.accepted_at) FILTER " \
           "(WHERE #{terms.name}.kind = #{Acceptance.connection.quote(kind)}) AS #{alias_name}"
       end
     end
 
-    LiveTermsWidget = RecordingStudioAdmin::Widget.new("widgets.terms.live", blast_radius: :site) do
+    TermsAgreedWidget = RecordingStudioAdmin::Widget.new("widgets.terms.terms_agreed", blast_radius: :site) do
       type :number
-      title "Live"
-      info "Published terms people can agree to right now."
-      value do |_context|
-        RecordingStudio::Recording.where(recordable_type: Terms.name, trashed_at: nil).to_a.count do |recording|
-          recording.respond_to?(:currently_published?) && recording.currently_published?
-        end
-      end
-      link_to { |context| context.admin_screen_path("recording_studio_terms") }
+      title "Terms and conditions"
+      info "People who agreed to Terms and Conditions."
+      value { |_context| Admin.agreed_label(Terms::KIND_TERMS) }
+      hide_change
+      hide_period
+    end
+
+    PrivacyAgreedWidget = RecordingStudioAdmin::Widget.new("widgets.terms.privacy_agreed", blast_radius: :site) do
+      type :number
+      title "Privacy Policy"
+      info "People who agreed to the Privacy Policy."
+      value { |_context| Admin.agreed_label(Terms::KIND_PRIVACY) }
       hide_change
       hide_period
     end
@@ -211,24 +230,14 @@ module RecordingStudioTermsAndConditions
              url: ->(_recording, _context) { RecordingStudioTermsAndConditions.admin_write_path }
     end
 
-    AgreesWidget = RecordingStudioAdmin::Widget.new("widgets.terms.agrees", blast_radius: :site) do
-      type :number
-      title "Agrees"
-      info "Clickwrap receipts, all versions."
-      value { |_context| Acceptance.count }
-      link_to { |context| context.admin_screen_path("recording_studio_terms_acceptances") }
-      hide_change
-      hide_period
-    end
-
     unless const_defined?(:DEFINITION_CONSTANTS, false)
       DEFINITION_CONSTANTS = %i[
         TermsSection
         TermsScreen
         AcceptancesScreen
         TermsResource
-        LiveTermsWidget
-        AgreesWidget
+        TermsAgreedWidget
+        PrivacyAgreedWidget
       ].freeze
     end
 
@@ -251,6 +260,40 @@ module RecordingStudioTermsAndConditions
         return if recording.blank?
 
         RecordingStudioTermsAndConditions.edit_admin_term_path(recording)
+      end
+
+      def versions_relation
+        RecordingStudio::Recording.where(recordable_type: Terms.name, trashed_at: nil)
+                                  .includes(:recordable)
+                                  .order(Arel.sql(versions_order_sql))
+      end
+
+      def agreed_label(kind)
+        "#{agreed_people_count(kind)} user agreed"
+      end
+
+      def agreed_people_count(kind)
+        terms = Terms.arel_table
+        Acceptance.joins(AgreedPeople.terms_join(terms))
+                  .where(terms[:kind].eq(kind))
+                  .distinct
+                  .count(Arel.sql("CONCAT(#{Acceptance.table_name}.actor_type, #{Acceptance.table_name}.actor_id)"))
+      end
+
+      def versions_order_sql
+        recordings = RecordingStudio::Recording.table_name
+        "CASE WHEN EXISTS (#{live_publishable_sql(recordings)}) THEN 0 ELSE 1 END, #{recordings}.updated_at DESC"
+      end
+
+      def live_publishable_sql(recordings)
+        publishables = "recording_studio_publishable_publishables"
+        "SELECT 1 FROM #{recordings} AS publishable_recordings " \
+          "INNER JOIN #{publishables} AS publishables ON publishables.id = publishable_recordings.recordable_id " \
+          "WHERE publishable_recordings.parent_recording_id = #{recordings}.id " \
+          "AND publishable_recordings.recordable_type = 'RecordingStudioPublishable::Publishable' " \
+          "AND publishable_recordings.trashed_at IS NULL AND publishables.status = 'published' " \
+          "AND (publishables.publish_at IS NULL OR publishables.publish_at <= CURRENT_TIMESTAMP) " \
+          "AND (publishables.unpublish_at IS NULL OR publishables.unpublish_at > CURRENT_TIMESTAMP)"
       end
 
       def actor_name(actor)
@@ -276,8 +319,8 @@ module RecordingStudioTermsAndConditions
         RecordingStudioAdmin.register_screen(TermsScreen)
         RecordingStudioAdmin.register_screen(AcceptancesScreen)
         RecordingStudioAdmin.register_resource(TermsResource)
-        register_widget!(LiveTermsWidget)
-        register_widget!(AgreesWidget)
+        register_widget!(TermsAgreedWidget)
+        register_widget!(PrivacyAgreedWidget)
       end
 
       def register_widget!(widget)
@@ -314,6 +357,10 @@ module RecordingStudioTermsAndConditions
 
   def self.agreed_people_screen_path
     "#{admin_hub_path}/screens/recording_studio_terms_acceptances"
+  end
+
+  def self.versions_screen_path
+    "#{admin_hub_path}/screens/recording_studio_terms"
   end
 
   def self.engine_admin_path(helper, *)

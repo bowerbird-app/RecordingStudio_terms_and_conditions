@@ -22,9 +22,9 @@ class AdminWidgetCardTest < Minitest::Test
 
   def test_terms_widgets_stack_as_card_even_when_admin_asks_for_compact
     helper = FakeHelper.new
-    helper.render_recording_studio_widget(Widget.new("widgets.terms.live"), variant: :compact)
+    helper.render_recording_studio_widget(Widget.new("widgets.terms.terms_agreed"), variant: :compact)
     helper.render_recording_studio_async_widget_frame(
-      Widget.new("widgets.terms.agrees"),
+      Widget.new("widgets.terms.privacy_agreed"),
       parent: :screen,
       parent_key: "recording_studio_terms",
       variant: :compact
