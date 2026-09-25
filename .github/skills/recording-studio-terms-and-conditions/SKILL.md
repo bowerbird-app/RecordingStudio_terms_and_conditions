@@ -93,7 +93,7 @@ No migrations. Continue-notice “Terms & Conditions” and “privacy policy”
 
 ## Upgrade (0.7.3 → 0.7.4)
 
-No migrations. Admin hub actions are the live Terms page, the live Privacy Policy page, **Edit Terms**, and **Edit Privacy Policy**, all secondary. Hub cards are **Terms and conditions** and **Privacy Policy** (`{count} user agreed`). The versions screen is the table only (live first). The engine terms index redirects there. Who agreed searches name or email. `/recording_studio_terms_and_conditions` is the signed-in Agree screen. Public Terms stay on `/terms/:uuid/:slug`.
+No migrations. Admin hub actions are the live Terms page, the live Privacy Policy page, **Edit Terms**, and **Edit Privacy Policy**, all secondary. Hub cards are **Terms and conditions** and **Privacy Policy** (large count, smaller **users agreed**). The versions screen is the table only (live first). The engine terms index redirects there. Who agreed searches name or email. `/recording_studio_terms_and_conditions` is the signed-in Agree screen. Public Terms stay on `/terms/:uuid/:slug`.
 
 ## Upgrade (0.7.2 → 0.7.3)
 
