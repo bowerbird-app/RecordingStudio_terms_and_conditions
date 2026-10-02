@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Root and dummy Gemfiles pin `recording_studio` at GitHub tag `v4.2.2`.
+
 ## [0.7.3] - 2026-09-24
 
 ### Changed
