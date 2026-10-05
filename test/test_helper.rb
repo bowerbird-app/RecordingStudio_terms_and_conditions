@@ -15,8 +15,8 @@ rescue LoadError
       original = if metaclass.method_defined?(name, false) ||
                     metaclass.private_method_defined?(name, false) ||
                     metaclass.protected_method_defined?(name, false)
-        metaclass.instance_method(name)
-      end
+                   metaclass.instance_method(name)
+                 end
 
       metaclass.define_method(name) do |*args, **kwargs, &block|
         if val_or_callable.respond_to?(:call)
