@@ -118,10 +118,10 @@ Product config after 0.4.0 is `mount_path`, `require_scroll_to_end` (default off
 - Ruby 3.3 or newer
 - Rails 8.1 or newer
 - Recording Studio 4.x (`~> 4.2` in the gemspec; dummy GitHub tag `v4.2.2`)
-- Accessible dummy tag `v0.9.1` and Root Switchable dummy tag `v0.5.0`
-- FlatPack dummy tag `v0.1.186`
-- Publishable dummy tag `v0.3.1` (gemspec `~> 0.3`)
-- Users `>= 0.12.1` (dummy GitHub tag `v0.12.1`)
+- Accessible dummy tag `v0.11.1` and Root Switchable dummy tag `v0.5.3`
+- FlatPack dummy tag `v0.1.196`
+- Publishable dummy tag `v0.4.2` (gemspec `~> 0.4`)
+- Users `>= 0.12.2` (dummy GitHub tag `v0.12.5`)
 - Public RubyGems and GitHub access for dependency installation
 
 ## Verification

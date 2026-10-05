@@ -18,7 +18,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.196"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", "~> 0.8"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_admin", "~> 2.0"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_publishable", "~> 0.3"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_publishable", "~> 0.4"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_user", ">= 0.12.2"'
   end
 
@@ -52,15 +52,15 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
 
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v4.2.2"'
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v4.2.2"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.9.1"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.5.1"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_publishable", tag: "v0.3.1"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.0.2"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.12.2"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.12.2"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.11.1"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.7.1"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_publishable", tag: "v0.4.2"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.0.4"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.12.5"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.12.5"'
     refute_includes gemfile, "0b1d229693041093200420b318154ff07acca33e"
     refute_includes root_gemfile, "0b1d229693041093200420b318154ff07acca33e"
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.5.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.5.3"'
     assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.196"'
     refute_includes gemfile, "recording_studio/v3.0.0"
     refute_includes gemfile, 'tag: "v0.1.133"'
@@ -79,6 +79,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
 
     assert_includes schema, 't.uuid "depends_on_recording_id"'
     assert_includes schema, "index_recording_studio_accesses_on_depends_on_recording_id"
+    assert_includes schema, 't.string "role", default: "view", null: false'
+    assert_includes schema, "create_table \"recording_studio_access_invitations\""
     refute_includes schema, 't.string "category"'
     refute_includes schema, "index_rstac_terms_on_category"
     refute_includes schema, "change_note"
@@ -558,7 +560,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes readme, "v4.2.2"
     assert_includes readme, "v0.1.196"
     assert_includes readme, "v0.3.1"
-    assert_includes readme, "v0.9.1"
+    assert_includes readme, "v0.4.2"
+    assert_includes readme, "v0.11.1"
     refute_includes readme, "Internal template"
     refute_includes readme, old_module
     refute_includes readme, "v0.1.133"

@@ -32,6 +32,16 @@ Metrics/AbcSize:
     - 'test/**/*'
     - 'lib/generators/**/*'
 
+Metrics/CyclomaticComplexity:
+  Exclude:
+    - 'test/**/*'
+    - 'lib/generators/**/*'
+
+Metrics/PerceivedComplexity:
+  Exclude:
+    - 'test/**/*'
+    - 'lib/generators/**/*'
+
 # Allow empty blocks in tests (common for stubs/mocks)
 Lint/EmptyBlock:
   Exclude:

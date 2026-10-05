@@ -8,7 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
-- Root and dummy Gemfiles pin `recording_studio` at GitHub tag `v4.2.2`.
+- Dummy and development pins Accessible `v0.11.1`, Admin `v2.0.4`, Attachable `v0.7.1`, Publishable `v0.4.2`, Users `v0.12.5`, and Root Switchable `v0.5.3`. Recording Studio stays `v4.2.2`. FlatPack stays `v0.1.196`.
+- Gemspec requires Publishable `~> 0.4` (was `~> 0.3`). Accessible stays `~> 0.8` (covers `0.11`).
+- Dummy Accessible schema includes access invitations and stores access roles as strings (`view`, `edit`, `admin`). Dummy also copies Attachable `root_recording_id` / presentation columns and Users blank profile surname / time zone.
+- Gem tests restore `Object#stub` after Minitest 6 dropped `minitest/mock`.
 
 ## [0.7.3] - 2026-09-24
 
