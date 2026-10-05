@@ -55,6 +55,8 @@ Open port 3000 and sign in at `/users/sign_in`. No environment variables are req
 
 The dummy app is a host-app validation surface for authentication, FlatPack rendering, Tailwind source scanning, and Recording Studio route wiring.
 
+Dummy credentials (`test/dummy/config/credentials.yml.enc`) are encrypted with the shared RecordingStudio_* development master key. Set `RAILS_MASTER_KEY` or put that key in `test/dummy/config/master.key` (gitignored). Keep the encrypted file; do not generate a per-repo dummy key.
+
 ### Login credentials
 
 | Field    | Value             |
