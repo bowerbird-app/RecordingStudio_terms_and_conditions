@@ -12,15 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Gemspec requires Publishable `~> 0.4` (was `~> 0.3`). Accessible stays `~> 0.8` (covers `0.11`).
 - Dummy Accessible schema includes access invitations and stores access roles as strings (`view`, `edit`, `admin`). Dummy also copies Attachable `root_recording_id` / presentation columns and Users blank profile surname / time zone.
 - Gem tests restore `Object#stub` after Minitest 6 dropped `minitest/mock`.
-- Admin Terms hub actions are **Terms and Condition page**, **Privacy Policy page**, **Edit Terms**, and **Edit Privacy Policy**. Edit actions use the secondary button style. **New**, **All versions**, and **Agree stats** are no longer hub actions.
-- Dummy home is a single row of links: Admin, the live Terms page, the live Privacy Policy page, and Helper. The demo cards are gone.
-- Dummy `/admin/sections` redirects to `/admin`.
-- Dummy root switch uses the switch gem's PageNav only. The host layout no longer adds a second one.
-- Who agreed lists one row per person (name, terms date, privacy date, View), newest first, 25 per page. View opens that person's agreements, newest first. The list searches by name or email.
+
+## [0.8.0] - 2026-10-08
+
+### Changed
+- Admin Terms hub actions are **Terms and Condition page**, **Privacy Policy page**, **Edit Terms**, and **Edit Privacy Policy**. Edit and page links use the secondary button style. **New**, **All versions**, and **Agree stats** are no longer hub actions.
 - Hub cards are **Terms and conditions** and **Privacy Policy**. The count is the large number, with **users agreed** in smaller text under it. The versions screen is the table only. Live rows sort above drafts, newest first in each group.
-- The engine terms index redirects to `/admin/screens/recording_studio_terms`. Public Terms stay on `/terms/:uuid/:slug`. Agree is `/recording_studio_terms_and_conditions/acceptance`. The engine root redirects there. Dummy `/admin/sections/terms` redirects to `/admin`.
-- Agree keeps Flatpack Collapse rows for each live document, with the continue notice and **Continue** underneath. Continue and the “By continuing…” line stay after someone has already agreed. Agreeing again to the same live copy does not change the receipt time.
-- Dummy home and hub page links use the secondary button style. Dummy `/agree_helper` shows the checkbox and the “By continuing…” notice even after the signed-in person has already agreed.
+- Who agreed lists one row per person (name, terms date, privacy date, View), newest first, 25 per page. View opens that person's agreements, newest first. The list searches by name or email.
+- The engine terms index redirects to `/admin/screens/recording_studio_terms`. Agree is `/recording_studio_terms_and_conditions/acceptance`. The engine root redirects there. Dummy `/admin/sections` and `/admin/sections/terms` redirect to `/admin`.
+- Agree keeps main’s Flatpack Collapse rows for each live document, with the continue notice and **Continue** underneath. Continue and the “By continuing…” line stay after someone has already agreed. Agreeing again to the same live copy does not change the receipt time.
+- Dummy home is a single row of secondary links: Admin, the live Terms page, the live Privacy Policy page, and Helper. Dummy root switch uses the switch gem's PageNav only. Dummy `/agree_helper` shows the checkbox and the “By continuing…” notice even after the signed-in person has already agreed.
+
+### Upgrade notes (0.7.8 → 0.8.0)
+- No schema change. Pin this gem at `0.8.0`. Hosts that linked the hub **New**, **All versions**, or **Agree stats** actions should link **Edit Terms**, **Edit Privacy Policy**, and the live page links instead. The engine terms index now redirects to the versions screen. Hub **Live** and **Agrees** cards are **Terms and conditions** and **Privacy Policy**. Agree still uses Collapse rows; Continue stays available after a prior agreement.
 
 ## [0.7.8] - 2026-10-08
 

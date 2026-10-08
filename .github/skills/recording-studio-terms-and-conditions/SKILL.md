@@ -7,7 +7,7 @@ description: Published Terms, clickwrap acceptance, and the host gate for Record
 
 This is the kit gem for **published Terms** and **clickwrap acceptance**. Do not invent a second acceptance table, accept screen, or post-auth redirect.
 
-Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.7.8**.
+Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.8.0**.
 
 ## Need
 
@@ -83,6 +83,10 @@ Set `config.capture_request_provenance = true` only if the gem Agree screen shou
 
 Agree is still the post-auth destination. It has no PageNav. Live pending copy sits in closed Flatpack Collapse rows wrapping Content (one row per pending kind). First-time Accept PageTitle names the pending set (“Terms and Conditions”, “Privacy Policy”, or both). After any prior receipt, it uses “We have updated our…” for those kinds. No on-page re-accept Alert, and the gate does not flash. Continue-notice (`link: false` on Accept) and **Continue** stay at the bottom (no checkbox), including after someone has already agreed. Agreeing again to the same live copy keeps the original receipt time. The notice wrapper is `mt-3 mb-3` on Accept and create-password. Signup continue-notice, the signed-in gate, and Accept all use `root_for_acceptance` (`root_for_signup` is the same helper), which falls back when the current root has no live Terms.
 
+## Upgrade (0.7.8 → 0.8.0)
+
+No migrations. Admin hub actions are the live Terms page, the live Privacy Policy page, **Edit Terms**, and **Edit Privacy Policy**, all secondary. Hub cards are **Terms and conditions** and **Privacy Policy** (large count, smaller **users agreed**). The versions screen is the table only (live first). The engine terms index redirects there. Who agreed searches name or email. Agree is `/recording_studio_terms_and_conditions/acceptance`. The engine root redirects there. Public Terms stay on `/terms/:uuid/:slug`. Agree keeps Flatpack Collapse rows. Continue and the “By continuing…” line stay on the page after someone has already agreed. A second continue does not change the receipt time.
+
 ## Upgrade (0.7.7 → 0.7.8)
 
 No migrations. First-time Accept titles name the pending kinds. Re-accept after a new live version still uses “We have updated our…”.
@@ -90,10 +94,6 @@ No migrations. First-time Accept titles name the pending kinds. Re-accept after 
 ## Upgrade (0.7.3 → 0.7.7)
 
 No migrations. Continue-notice “Terms & Conditions” and “privacy policy” are `<button type="button">` with `data-modal-id` (no `href`). Signed-in gating uses `root_for_acceptance`, so OAuth visitors whose current workspace has no live Terms still reach Agree. Rebuild host Tailwind for the trigger classes.
-
-## Upgrade (0.7.3 → 0.7.4)
-
-No migrations. Admin hub actions are the live Terms page, the live Privacy Policy page, **Edit Terms**, and **Edit Privacy Policy**, all secondary. Hub cards are **Terms and conditions** and **Privacy Policy** (large count, smaller **users agreed**). The versions screen is the table only (live first). The engine terms index redirects there. Who agreed searches name or email. Agree is `/recording_studio_terms_and_conditions/acceptance`. The engine root redirects there. Public Terms stay on `/terms/:uuid/:slug`. Agree keeps Flatpack Collapse rows. Continue and the “By continuing…” line stay on the page after someone has already agreed. A second continue does not change the receipt time.
 
 ## Upgrade (0.7.2 → 0.7.3)
 

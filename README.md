@@ -111,13 +111,17 @@ Bump to **0.4.1**. No schema change. The Admin Terms hub no longer shows Accessi
 
 Bump to **0.5.0** and pin Publishable `v0.3.1`. No Terms schema change. Term show uses the Publishable status dropdown instead of a **Publish** button to the old edit form. Preview is its own route. Saving live Terms forks a draft; the public copy stays until you publish. Full notes: `CHANGELOG.md` (0.5.0).
 
+## Upgrading from 0.7.8
+
+Bump to **0.8.0**. No schema change. The Admin hub no longer offers **New**, **All versions**, or **Agree stats**. Use **Edit Terms**, **Edit Privacy Policy**, and the live page links. Hub cards are **Terms and conditions** and **Privacy Policy**. The engine terms index redirects to the versions screen. Agree keeps Flatpack Collapse rows; Continue stays after a prior agreement.
+
 ## Upgrading from 0.7.7
 
 Bump to **0.7.8**. No schema change. First-time Accept titles are “Terms and Conditions”, “Privacy Policy”, or “Terms and Conditions and Privacy Policy”. Re-accept after a new live version still says “We have updated our…”.
 
 ## Upgrading from 0.7.3
 
-Bump to **0.7.7**. No schema change. Continue-notice “Terms & Conditions” and “privacy policy” are `<button type="button">` with `data-modal-id` (no `href`), so the Flatpack modal stays open. Signed-in gating uses the same `root_for_acceptance` fallback as signup. Rebuild host Tailwind for the unstyled button classes. The Admin hub no longer offers **New** or **All versions**. Use **Edit Terms** and **Edit Privacy Policy**. Hub cards count people who agreed. The engine terms index redirects to the versions screen.
+Bump to **0.7.7**. No schema change. Continue-notice “Terms & Conditions” and “privacy policy” are `<button type="button">` with `data-modal-id` (no `href`), so the Flatpack modal stays open. Signed-in gating uses the same `root_for_acceptance` fallback as signup. Rebuild host Tailwind for the unstyled button classes.
 
 ## Upgrading from 0.7.2
 
