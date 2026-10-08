@@ -155,10 +155,24 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     empty = Workspace.create!(name: "Empty #{SecureRandom.hex(4)}")
     switch_to_workspace(empty)
 
+    without_live_terms_fallback do
+      get recording_studio_terms_and_conditions.acceptance_path
+
+      assert_response :success
+      assert_includes response.body, "Nothing to agree to yet"
+    end
+  end
+
+  test "accept screen falls back to live terms from another root" do
+    empty = Workspace.create!(name: "Empty #{SecureRandom.hex(4)}")
+    switch_to_workspace(empty)
+
     get recording_studio_terms_and_conditions.acceptance_path
 
     assert_response :success
-    assert_includes response.body, "Nothing to agree to yet"
+    refute_includes response.body, "Nothing to agree to yet"
+    assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
+    assert_select "button[type=submit]", text: "Continue"
   end
 
   test "continuing when the workspace only has a draft does not write a receipt" do
@@ -167,8 +181,10 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     record_terms(draft_root, title: "Draft terms", body: "Not live.")
     switch_to_workspace(draft_workspace)
 
-    assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
-      post recording_studio_terms_and_conditions.acceptance_path
+    without_live_terms_fallback do
+      assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
+        post recording_studio_terms_and_conditions.acceptance_path
+      end
     end
 
     assert_response :unprocessable_entity

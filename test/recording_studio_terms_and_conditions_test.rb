@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.7.4", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.7.5", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -737,7 +737,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes File.read(skill), "Upgrade (0.7.0 → 0.7.1)"
     assert_includes File.read(skill), "Upgrade (0.7.1 → 0.7.2)"
     assert_includes File.read(skill), "Upgrade (0.7.2 → 0.7.3)"
-    assert_includes File.read(skill), "Upgrade (0.7.3 → 0.7.4)"
+    assert_includes File.read(skill), "Upgrade (0.7.3 → 0.7.5)"
     assert_includes File.read(skill), "v0.12.2"
     assert_includes File.read(skill), "mt-3 mb-3"
     assert_includes File.read(skill), "mt-3 mb-6"
@@ -755,7 +755,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
-    assert_includes changelog, "## [0.7.4]"
+    assert_includes changelog, "## [0.7.5]"
     assert_includes changelog, "## [0.7.3]"
     assert_includes changelog, "## [0.7.2]"
     assert_includes changelog, "## [0.7.1]"
@@ -770,7 +770,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "## [0.6.2]"
     assert_includes changelog, "## [0.6.1]"
     assert_includes changelog, "## [0.6.0]"
-    assert_includes changelog, "Upgrade notes (0.7.3 → 0.7.4)"
+    assert_includes changelog, "Upgrade notes (0.7.3 → 0.7.5)"
     assert_includes changelog, "Upgrade notes (0.7.2 → 0.7.3)"
     assert_includes changelog, "Upgrade notes (0.7.1 → 0.7.2)"
     assert_includes changelog, "Upgrade notes (0.7.0 → 0.7.1)"
@@ -797,7 +797,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "forks a new draft"
     assert_includes changelog, "Upgrade notes (0.4.0 → 0.4.1)"
     assert_includes changelog, "+ Access"
-    assert_includes notes, "Upgrade from 0.7.3 to 0.7.4"
+    assert_includes notes, "Upgrade from 0.7.3 to 0.7.5"
     assert_includes notes, "Upgrade from 0.7.2 to 0.7.3"
     assert_includes notes, "Upgrade from 0.7.1 to 0.7.2"
     assert_includes notes, "v0.12.2"

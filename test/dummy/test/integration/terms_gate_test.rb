@@ -20,15 +20,62 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     switch_to_workspace(@workspace)
   end
 
-  test "unpublished workspace leaves home and docs free" do
+  test "unpublished workspace leaves home and docs free when no root has live terms" do
     record_terms(@root, title: "Draft only", body: "Not live.")
+
+    without_live_terms_fallback do
+      get "/"
+      assert_response :success
+      refute_redirected_to_acceptance
+
+      get "/docs/install"
+      assert_response :success
+    end
+  end
+
+  test "current root without live terms still gates when another root has them" do
+    live_workspace = Workspace.create!(name: "Live #{SecureRandom.hex(4)}")
+    live_root = RecordingStudio.root_recording_for(live_workspace)
+    live = record_terms(live_root, title: "Host Terms", body: "Be kind everywhere.")
+    publish_terms!(live, slug: "host-terms-#{SecureRandom.hex(4)}")
+
+    get "/"
+    assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
+    follow_redirect!
+    assert_response :success
+    assert_includes response.body, "Host Terms"
+    assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
+  end
+
+  test "accepting fallback live terms clears the gate for that actor" do
+    live_workspace = Workspace.create!(name: "Live #{SecureRandom.hex(4)}")
+    live_root = RecordingStudio.root_recording_for(live_workspace)
+    live = record_terms(live_root, title: "Host Terms", body: "Be kind everywhere.")
+    publish_terms!(live, slug: "host-terms-#{SecureRandom.hex(4)}")
+
+    get "/docs/install"
+    assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
+
+    post recording_studio_terms_and_conditions.acceptance_path
+    assert_redirected_to "/docs/install"
+    follow_redirect!
+    assert_response :success
 
     get "/"
     assert_response :success
     refute_redirected_to_acceptance
+  end
 
-    get "/docs/install"
+  test "already accepted fallback terms are not gated again" do
+    live_workspace = Workspace.create!(name: "Live #{SecureRandom.hex(4)}")
+    live_root = RecordingStudio.root_recording_for(live_workspace)
+    live = record_terms(live_root, title: "Host Terms", body: "Be kind everywhere.")
+    publish_terms!(live, slug: "host-terms-#{SecureRandom.hex(4)}")
+    RecordingStudioTermsAndConditions.accept!(@user, live, { "source" => "continue_notice" })
+
+    get "/"
     assert_response :success
+    refute_redirected_to_acceptance
   end
 
   test "published terms send signed-in people to the clickwrap" do

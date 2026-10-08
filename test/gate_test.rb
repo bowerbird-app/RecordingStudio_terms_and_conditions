@@ -38,8 +38,10 @@ class GateTest < Minitest::Test
       nil
     end
 
-    assert_nil RecordingStudioTermsAndConditions::Gate.after_auth_path(controller, :actor)
-    assert_nil RecordingStudioTermsAndConditions::Gate.after_auth_path(controller, nil)
+    RecordingStudioTermsAndConditions::Gate.stub(:first_root_with_live_terms, nil) do
+      assert_nil RecordingStudioTermsAndConditions::Gate.after_auth_path(controller, :actor)
+      assert_nil RecordingStudioTermsAndConditions::Gate.after_auth_path(controller, nil)
+    end
   end
 
   def test_acceptance_path_prefers_the_mounted_engine_helper
@@ -78,6 +80,38 @@ class GateTest < Minitest::Test
 
     assert_equal :workspace, RecordingStudioTermsAndConditions::Gate.root_for(both)
     assert_equal :recording, RecordingStudioTermsAndConditions::Gate.root_for(recording_only)
+  end
+
+  def test_root_for_signup_is_the_shared_acceptance_root
+    controller = Object.new
+    def controller.current_root_recordable
+      :workspace
+    end
+
+    RecordingStudioTermsAndConditions.stub(:current_published_for, :terms) do
+      RecordingStudioTermsAndConditions.stub(:pending_published_list, ->(*) { [] }) do
+        assert_equal RecordingStudioTermsAndConditions::Gate.root_for_acceptance(controller),
+                     RecordingStudioTermsAndConditions::Gate.root_for_signup(controller)
+      end
+    end
+  end
+
+  def test_pending_for_falls_back_when_current_root_has_no_live_terms
+    controller = Object.new
+    def controller.current_root_recordable
+      :empty_workspace
+    end
+
+    RecordingStudioTermsAndConditions.stub(:current_published_for, ->(*) {}) do
+      RecordingStudioTermsAndConditions.stub(:pending_published_list, lambda { |_actor, root|
+        root == :live_workspace ? [:terms] : []
+      }) do
+        RecordingStudioTermsAndConditions::Gate.stub(:first_root_with_live_terms, :live_workspace) do
+          assert_equal [:terms], RecordingStudioTermsAndConditions::Gate.pending_for(controller, :actor)
+          assert RecordingStudioTermsAndConditions::Gate.required?(controller, :actor)
+        end
+      end
+    end
   end
 
   def test_root_for_signup_stays_on_current_when_it_has_live_terms
@@ -172,6 +206,8 @@ class GateTest < Minitest::Test
 
     assert_includes gate, "pending_published_list"
     assert_includes gate, "def pending_for"
+    assert_includes gate, "root_for_acceptance"
+    refute_includes gate, "root = root_for(controller)"
     assert_includes forces, "force_terms_acceptance"
     assert_includes forces, "Gate.pending_for"
     refute_includes forces, "terms_gate_notice"
@@ -181,5 +217,11 @@ class GateTest < Minitest::Test
     assert_includes users, "Gate.after_auth_path"
     refute_includes forces, "Acceptance.create"
     refute_includes gate, "accepted?"
+    acceptance = File.read(
+      File.expand_path("../app/controllers/recording_studio_terms_and_conditions/acceptances_controller.rb", __dir__)
+    )
+    assert_includes acceptance, "Gate.root_for_acceptance"
+    signup = File.read(File.expand_path("../lib/recording_studio_terms_and_conditions/signup_acceptance.rb", __dir__))
+    assert_includes signup, "Gate.root_for_acceptance"
   end
 end
