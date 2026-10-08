@@ -18,6 +18,10 @@ Then:
 
 The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
 
+## Upgrade from 0.7.7 to 0.7.8
+
+No schema change. Accept PageTitle for a first-time accepter (no receipt on record) is “Terms and Conditions”, “Privacy Policy”, or “Terms and Conditions and Privacy Policy”. A later live version still uses “We have updated our…”.
+
 ## Upgrade from 0.7.3 to 0.7.7
 
 No schema change. Continue-notice “Terms & Conditions” and “privacy policy” are `<button type="button">` with `data-modal-id` (no `href`). Signed-in gating uses the same `root_for_acceptance` fallback as signup, so OAuth users whose current workspace has no live Terms still see the Agree screen. Rebuild host Tailwind for the trigger classes.

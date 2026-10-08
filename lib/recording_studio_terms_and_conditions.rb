@@ -67,5 +67,9 @@ module RecordingStudioTermsAndConditions
     def reaccepting?(actor, root)
       TermsAcceptance.reaccepting?(actor, root)
     end
+
+    def accepted_any?(actor)
+      TermsAcceptance.accepted_any?(actor)
+    end
   end
 end

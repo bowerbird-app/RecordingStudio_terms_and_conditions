@@ -221,6 +221,7 @@ class GateTest < Minitest::Test
       File.expand_path("../app/controllers/recording_studio_terms_and_conditions/acceptances_controller.rb", __dir__)
     )
     assert_includes acceptance, "Gate.root_for_acceptance"
+    assert_includes acceptance, "accepted_any?"
     signup = File.read(File.expand_path("../lib/recording_studio_terms_and_conditions/signup_acceptance.rb", __dir__))
     assert_includes signup, "Gate.root_for_acceptance"
   end

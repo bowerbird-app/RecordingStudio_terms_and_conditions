@@ -217,6 +217,18 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     refute RecordingStudioTermsAndConditions.accepted?(@actor, @workspace)
   end
 
+  test "accepted_any? is true after any Terms or Privacy Policy receipt" do
+    refute RecordingStudioTermsAndConditions.accepted_any?(@actor)
+    refute RecordingStudioTermsAndConditions.accepted_any?(nil)
+
+    recording = record_terms("v1", "First.")
+    publish_terms!(recording, slug: "any-#{SecureRandom.hex(4)}")
+    RecordingStudioTermsAndConditions.accept!(@actor, recording, source: "clickwrap")
+
+    assert RecordingStudioTermsAndConditions.accepted_any?(@actor)
+    refute RecordingStudioTermsAndConditions.accepted_any?(@other_actor)
+  end
+
   test "editing live Terms leaves agreed people on the old copy until the draft is published" do
     recording = record_terms("Booth rules", "ABC")
     publish_terms!(recording, slug: "booth-rules-#{SecureRandom.hex(4)}")
