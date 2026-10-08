@@ -285,12 +285,12 @@ See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full do
 | TailwindCSS     | 4       |
 | RecordingStudio | 4.x (`~> 4.2` in the gemspec; dummy GitHub tag `v4.2.2`) |
 | Accessible      | gemspec `~> 0.8`; dummy GitHub tag `v0.11.1` |
-| Admin           | gemspec `~> 2.0`; dummy GitHub tag `v2.0.4` |
+| Admin           | gemspec `~> 2.0`; dummy GitHub tag `v2.0.6` |
 | Users           | gemspec `recording_studio_user >= 0.12.2`; dummy GitHub tag `v0.12.5` |
 | Publishable     | gemspec `~> 0.4`; dummy GitHub tag `v0.4.2` |
 | Attachable      | dummy GitHub tag `v0.7.1` (Users Profile needs it) |
 | Root Switchable | dummy GitHub tag `v0.5.3` |
-| FlatPack        | gemspec `>= 0.1.196`; dummy GitHub tag `v0.1.196` |
+| FlatPack        | gemspec `>= 0.1.196`; dummy GitHub tag `v0.1.207` |
 | Devise          | latest  |
 
 The dummy Gemfile keeps `github:` sources so Bundler can fetch those gems. Hosts also need Publishable (and Users/Attachable) migrations from those gems — this addon only ships Terms and Acceptance migrations.
