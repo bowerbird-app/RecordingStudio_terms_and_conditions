@@ -26,6 +26,7 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
     end
 
     sign_in user
+    accept_pending_live_terms!(user)
 
     workspace = Workspace.create!(name: "Dropdown Workspace")
     RecordingStudio.root_recording_for(workspace)
@@ -110,5 +111,16 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
     }
 
     assert_redirected_to "/"
+  end
+
+  private
+
+  def accept_pending_live_terms!(user)
+    studio = Workspace.find_by(name: "Studio Workspace")
+    return unless studio
+
+    RecordingStudioTermsAndConditions.pending_published_list(user, studio).each do |terms|
+      RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "continue_notice" })
+    end
   end
 end
