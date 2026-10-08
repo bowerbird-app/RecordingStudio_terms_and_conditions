@@ -36,7 +36,12 @@ class AgreeHelperTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "I agree to these"
     assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree to Terms Dummy's"
     assert_select "a.flat-pack-link[href*='/terms/']", text: "terms"
-    assert_select "a.flat-pack-link[data-modal-id]", text: "Terms & Conditions"
+    assert_select "button[type=button][data-modal-id]", text: "Terms & Conditions" do |buttons|
+      buttons.each do |button|
+        assert_nil button["href"]
+        assert_select "[id=?]", button["data-modal-id"]
+      end
+    end
     assert_select "[data-controller='flat-pack--modal']", count: 1
     assert_includes response.body, "fp-content"
     refute_includes response.body, "Join"

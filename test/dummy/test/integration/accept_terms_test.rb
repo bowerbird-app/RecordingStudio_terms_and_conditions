@@ -34,6 +34,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
     assert_includes response.body, "Terms &amp; Conditions"
     assert_select "a.flat-pack-link[data-modal-id]", count: 0
+    assert_select "button[type=button][data-modal-id]", count: 0
     assert_select "[data-controller='flat-pack--modal']", count: 0
     assert_select "div.mt-3.mb-3"
     assert_select "div.mt-3.mb-6", count: 0

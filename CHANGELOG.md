@@ -13,6 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dummy Accessible schema includes access invitations and stores access roles as strings (`view`, `edit`, `admin`). Dummy also copies Attachable `root_recording_id` / presentation columns and Users blank profile surname / time zone.
 - Gem tests restore `Object#stub` after Minitest 6 dropped `minitest/mock`.
 
+## [0.7.4] - 2026-10-08
+
+### Fixed
+- Continue-notice “Terms & Conditions” and “privacy policy” triggers are `<button type="button">` with `data-modal-id` (no `href`). FlatPack’s modal controller opens on `[data-modal-id]` without `preventDefault`, so the previous `href="#…"` link let Turbo re-GET the page and the modal closed immediately.
+
+### Upgrade notes (0.7.3 → 0.7.4)
+- No schema change. Pin this gem at `0.7.4`. Rebuild host Tailwind so the unstyled button classes (inline, no chrome, primary underline, focus-visible ring) are generated.
+
 ## [0.7.3] - 2026-09-24
 
 ### Changed

@@ -110,6 +110,10 @@ Bump to **0.4.1**. No schema change. The Admin Terms hub no longer shows Accessi
 
 Bump to **0.5.0** and pin Publishable `v0.3.1`. No Terms schema change. Term show uses the Publishable status dropdown instead of a **Publish** button to the old edit form. Preview is its own route. Saving live Terms forks a draft; the public copy stays until you publish. Full notes: `CHANGELOG.md` (0.5.0).
 
+## Upgrading from 0.7.3
+
+Bump to **0.7.4**. No schema change. Continue-notice “Terms & Conditions” and “privacy policy” are `<button type="button">` with `data-modal-id` (no `href`), so the Flatpack modal stays open. Rebuild host Tailwind for the unstyled button classes.
+
 ## Upgrading from 0.7.2
 
 Bump to **0.7.3**. No schema change. `recording_studio_terms_agree` wraps in `mt-3 mb-6` (was `my-3`) for a comfortable gap before the host Agree / Accept button. Prefer `recording_studio_terms_agree_button` (or Flatpack Button `style: :primary`) for that CTA.
