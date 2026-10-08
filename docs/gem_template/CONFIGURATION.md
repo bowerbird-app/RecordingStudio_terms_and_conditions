@@ -41,7 +41,7 @@ This addon does not ship template knobs (`api_key`, `enable_feature_x`, `timeout
 
 ### RecordingStudio Host-App Declarations
 
-The dummy host app pins RecordingStudio to GitHub tag `v4.2.2` (`~> 4.2` in the gemspec) and keeps strict recordable declarations enabled:
+The dummy host app pins RecordingStudio to GitHub tag `v4.3.0` (`~> 4.2` in the gemspec) and keeps strict recordable declarations enabled:
 
 ```ruby
 RecordingStudio.configure do |config|
