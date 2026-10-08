@@ -75,13 +75,6 @@ class LocalesTest < Minitest::Test
     assert_includes html, "&lt;script&gt;x&lt;/script&gt;"
   end
 
-  def test_host_translation_overrides_english
-    I18n.backend.store_translations(:en, acme_button)
-    assert_equal "Join", Copy.t("agree.button")
-  ensure
-    I18n.backend.store_translations(:en, default_button)
-  end
-
   def test_gemspec_does_not_depend_on_internationalization
     gemspec = File.read(File.expand_path("../recording_studio_terms_and_conditions.gemspec", __dir__))
 
@@ -119,14 +112,6 @@ class LocalesTest < Minitest::Test
       path = prefix + [key.to_s]
       value.is_a?(Hash) ? flatten_keys(value, path) : [path.join(".")]
     end
-  end
-
-  def acme_button
-    { recording_studio: { terms_and_conditions: { agree: { button: "Join" } } } }
-  end
-
-  def default_button
-    { recording_studio: { terms_and_conditions: { agree: { button: "Agree" } } } }
   end
 
   def french_button

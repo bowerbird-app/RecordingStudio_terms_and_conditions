@@ -412,7 +412,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes agree, "terms_reaccept_alert_title"
     assert_includes agree, "space-y-4"
     assert_includes agree, "@reaccepting"
-    assert_includes agree, 'text: "Continue"'
+    assert_includes agree, 'text: terms_copy("accept.continue")'
     refute_includes agree, "Agree again"
     refute_includes copy_helper, "def terms_reaccept_alert_title"
     refute_includes public_show, "FlatPack::Card::Component"
