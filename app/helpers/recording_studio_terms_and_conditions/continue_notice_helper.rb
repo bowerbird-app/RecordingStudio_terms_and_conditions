@@ -81,7 +81,6 @@ module RecordingStudioTermsAndConditions
 
       parts << Copy.t("continue_notice.and").html_safe if has_terms
       parts << continue_notice_privacy_words(privacy_modal_id, link: link)
-      parts
     end
 
     def continue_notice_terms_words(modal_id, link:)

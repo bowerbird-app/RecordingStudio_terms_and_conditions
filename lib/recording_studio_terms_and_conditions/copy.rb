@@ -10,11 +10,11 @@ module RecordingStudioTermsAndConditions
 
     module_function
 
-    def t(key, **options)
+    def t(key, **)
       full_key = "#{PREFIX}.#{key}"
-      return I18n.t(full_key, **options) unless key.to_s.end_with?("_html")
+      return I18n.t(full_key, **) unless key.to_s.end_with?("_html")
 
-      interpolate_html(key, **options)
+      interpolate_html(key, **)
     end
 
     def interpolate_html(key, **options)
