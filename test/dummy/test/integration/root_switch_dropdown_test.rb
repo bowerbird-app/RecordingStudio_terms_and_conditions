@@ -26,15 +26,20 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
     end
 
     sign_in user
+    accept_pending_live_terms!(user)
 
     workspace = Workspace.create!(name: "Dropdown Workspace")
     RecordingStudio.root_recording_for(workspace)
     switch_to_workspace(workspace)
 
-    get root_path
+    get "/"
 
     assert_response :success
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
+    assert_select "a[data-fp-style=secondary]", text: "Admin"
+    assert_select "a[data-fp-style=secondary]", text: "Helper"
+    refute_select ".fp-card"
+    refute_includes response.body, "What's working"
     refute_select "header.fp-top-nav"
     refute_includes response.body, "Terms demo</a>"
     refute_includes response.body, "recording_studio_root_switch_dropdown"
@@ -55,6 +60,7 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
+    assert_select "nav[aria-label='Page navigation']", count: 1
     refute_select "header.fp-top-nav"
     refute_includes response.body, "flat-pack-sidebar-layout"
   end
@@ -105,5 +111,16 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
     }
 
     assert_redirected_to "/"
+  end
+
+  private
+
+  def accept_pending_live_terms!(user)
+    studio = Workspace.find_by(name: "Studio Workspace")
+    return unless studio
+
+    RecordingStudioTermsAndConditions.pending_published_list(user, studio).each do |terms|
+      RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "continue_notice" })
+    end
   end
 end

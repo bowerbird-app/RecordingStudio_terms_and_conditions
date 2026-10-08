@@ -16,7 +16,7 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, embed
 - **Terms** recordable (`RecordingStudioTermsAndConditions::Terms`, product label `"Terms"`) with Publishable opted in on the type
 - **Acceptance** append-only table for clickwrap receipts (not a recordable). New rows store a SHA-256 body digest of the live copy at accept time
 - **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for` / `current_published_by_kind`, `pending_published_list` / `pending_published_for`, `accepted?`, `accepted_any?`, `accept!`, `requires_acceptance?`, `reaccepting?`
-- **Agree screen** for pending live Terms and/or Privacy Policy (Continue + continue-notice, no checkbox on Accept). No PageNav. Each pending document sits in a Flatpack Collapse wrapping `FlatPack::Content`. Continue `accept!`s every pending live version. First-time Accept titles name the pending kinds; a later live version still uses “We have updated our…”
+- **Agree screen** for pending live Terms and/or Privacy Policy (Continue + continue-notice, no checkbox on Accept). No PageNav. Each pending document sits in a Flatpack Collapse wrapping `FlatPack::Content`. Continue and the “By continuing…” line stay after someone has already agreed, and a second continue does not change the receipt time. Continue `accept!`s every pending live version. First-time Accept titles name the pending kinds; a later live version still uses “We have updated our…”
 - **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`. Wraps in `mt-3 mb-6` so there is a comfortable gap before the host Agree / Accept button. Pass `link_terms: true` to link “terms” (same tab) and “privacy policy” (`target=_blank`) when those documents are pending. Prefer `recording_studio_terms_agree_button` (Flatpack primary) for the CTA. On submit, call `accept!` for each pending live version
 - **Host helper** `recording_studio_terms_continue_notice` — “By continuing, you agree to [app name]'s Terms & Conditions” and, when privacy is pending, “and privacy policy”. Default size is `:xs` with muted Flatpack copy. The notice sits in `mt-3 mb-3` above the button that follows it (Accept **Continue**, create-password **Sign up**). Terms and privacy each open their own Flatpack Modal. Pass `link: false` for plain text (Accept does this). On the host POST, `accept!` each pending live version with `{ "source" => "continue_notice" }`
 - **Gate** on the host `ApplicationController`: redirects to Agree until every pending live kind is accepted (0..2), and again after a new publish of either kind
@@ -70,9 +70,10 @@ Sign in at `/users/sign_in`: email first (**Continue with email**), then passwor
 
 - `/` — dummy app home page
 - `/users/sign_in` — Users Auth sign-in (email, then password)
-- `/recording_studio_terms_and_conditions` — Agree (clickwrap) screen on the Recording Studio default layout
-- `/admin` — Recording Studio Admin Terms and Conditions hub (`New` parks here)
-- `/recording_studio_terms_and_conditions/admin/terms` — engine write/edit form (opened from Admin). Switch to the Admin root first. New Terms is titled **New Terms and Conditions**.
+- `/recording_studio_terms_and_conditions/acceptance` — Agree (clickwrap) screen. The engine root redirects here.
+- `/admin` — Recording Studio Admin Terms and Conditions hub (Edit Terms and Edit Privacy Policy)
+- `/admin/sections` and `/admin/sections/terms` — redirect to `/admin`
+- `/recording_studio_terms_and_conditions/admin/terms` — redirects to `/admin/screens/recording_studio_terms`. Show, edit, and new stay on the engine. Switch to the Admin root first.
 - `/terms/:uuid/:slug` — public published Terms
 - `/recording_studio` — redirect to `/` while the mounted Recording Studio engine remains data/API-focused
 - `/agree_helper` — dummy demo of the embeddable Agree helper (code example + checkbox)
@@ -109,6 +110,10 @@ Bump to **0.4.1**. No schema change. The Admin Terms hub no longer shows Accessi
 ## Upgrading from 0.4.x
 
 Bump to **0.5.0** and pin Publishable `v0.3.1`. No Terms schema change. Term show uses the Publishable status dropdown instead of a **Publish** button to the old edit form. Preview is its own route. Saving live Terms forks a draft; the public copy stays until you publish. Full notes: `CHANGELOG.md` (0.5.0).
+
+## Upgrading from 0.7.8
+
+Bump to **0.8.0**. No schema change. The Admin hub no longer offers **New**, **All versions**, or **Agree stats**. Use **Edit Terms**, **Edit Privacy Policy**, and the live page links. Hub cards are **Terms and conditions** and **Privacy Policy**. The engine terms index redirects to the versions screen. Agree keeps Flatpack Collapse rows; Continue stays after a prior agreement.
 
 ## Upgrading from 0.7.7
 

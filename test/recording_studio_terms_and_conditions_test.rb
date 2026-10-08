@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.7.8", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.8.0", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -599,10 +599,14 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
 
     assert_includes view_source, 'title: "Terms demo"'
     assert_includes view_source, 'subtitle: "This dummy app is the browser-facing demo surface for the addon."'
-    assert_includes view_source, 'text: "Write terms"'
-    assert_includes view_source, "dummy_admin_hub_switch_href"
-    assert_includes view_source, "FlatPack::Card::Component"
+    assert_includes view_source, 'text: "Admin"'
+    assert_includes view_source, 'text: "Terms and Condition page"'
+    assert_includes view_source, 'text: "Privacy Policy page"'
+    assert_includes view_source, 'text: "Helper"'
+    assert_includes view_source, "dummy_published_page_url"
     assert_includes view_source, "dummy_page_nav"
+    refute_includes view_source, "FlatPack::Card::Component"
+    refute_includes view_source, 'text: "Write terms"'
     refute_includes view_source, 'title: "Demo"'
     refute_includes view_source, "FlatPack::Breadcrumb::Component"
   end
@@ -663,21 +667,39 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert File.exist?(File.join(engine_root, views, "published_terms/_document.html.erb"))
     routes = File.read(File.join(engine_root, "config/routes.rb"))
     assert_includes routes, "resource :acceptance"
+    assert_includes routes, 'request.script_name}/acceptance"'
     assert_includes routes, "resources :terms"
     admin = File.read(File.join(engine_root, "lib/recording_studio_terms_and_conditions/admin.rb"))
     assert_includes admin, 'key "terms"'
     assert_includes admin, "paginate per_page: 25"
     assert_includes admin, 'text: "All versions"'
     assert_includes admin, 'text: "New"'
-    assert_includes admin, 'text: "Agree stats"'
+    assert_includes admin, 'title "Who agreed"'
+    assert_includes admin, 'text: "View"'
+    assert_includes admin, "admin_person_path"
+    assert_includes admin, 'title: "Agreed terms"'
+    assert_includes admin, 'title: "Agreed privacy"'
+    assert_includes admin, 'text: "Terms and Condition page"'
+    assert_includes admin, 'text: "Privacy Policy page"'
+    assert_includes admin, 'text: "Edit Terms"'
+    assert_includes admin, 'text: "Edit Privacy Policy"'
+    assert_includes admin, "style: :secondary"
+    refute_includes admin, "link :write"
+    assert_includes admin, 'text: "Admin Sections"'
     assert_includes admin, 'title "Terms and Conditions"'
     assert_includes admin, 'title "All versions"'
     refute_includes admin, "Old versions"
     assert_includes admin, 'title "Users"'
-    assert_includes admin, 'title "Live"'
-    refute_includes admin, 'title "Live terms"'
-    assert_includes admin, 'widget "widgets.terms.live", view_variant: :card'
-    assert_includes admin, 'widget "widgets.terms.agrees", view_variant: :card'
+    assert_includes admin, 'title "Terms and conditions"'
+    assert_includes admin, 'title "Privacy Policy"'
+    assert_includes admin, "users agreed"
+    refute_includes admin, 'title "Live"'
+    refute_includes admin, 'title "Agrees"'
+    assert_includes admin, 'widget "widgets.terms.terms_agreed", view_variant: :card'
+    assert_includes admin, 'widget "widgets.terms.privacy_agreed", view_variant: :card'
+    assert_includes admin, "filter :name_or_email"
+    assert_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/terms_controller.rb"),
+                    "/screens/recording_studio_terms"
     refute_includes admin, "view_variant: :compact"
     assert_includes admin, "class TermsResource"
     assert_includes admin, 'admin_action "terms.show"'
@@ -744,6 +766,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes File.read(skill), "Upgrade (0.7.2 → 0.7.3)"
     assert_includes File.read(skill), "Upgrade (0.7.3 → 0.7.7)"
     assert_includes File.read(skill), "Upgrade (0.7.7 → 0.7.8)"
+    assert_includes File.read(skill), "Upgrade (0.7.8 → 0.8.0)"
     assert_includes File.read(skill), "v0.12.2"
     assert_includes File.read(skill), "mt-3 mb-3"
     assert_includes File.read(skill), "mt-3 mb-6"
@@ -761,6 +784,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.8.0]"
     assert_includes changelog, "## [0.7.8]"
     assert_includes changelog, "## [0.7.7]"
     assert_includes changelog, "## [0.7.3]"
@@ -777,6 +801,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "## [0.6.2]"
     assert_includes changelog, "## [0.6.1]"
     assert_includes changelog, "## [0.6.0]"
+    assert_includes changelog, "Upgrade notes (0.7.8 → 0.8.0)"
     assert_includes changelog, "Upgrade notes (0.7.7 → 0.7.8)"
     assert_includes changelog, "Upgrade notes (0.7.3 → 0.7.7)"
     assert_includes changelog, "Upgrade notes (0.7.2 → 0.7.3)"
@@ -805,6 +830,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "forks a new draft"
     assert_includes changelog, "Upgrade notes (0.4.0 → 0.4.1)"
     assert_includes changelog, "+ Access"
+    assert_includes notes, "Upgrade from 0.7.8 to 0.8.0"
     assert_includes notes, "Upgrade from 0.7.7 to 0.7.8"
     assert_includes notes, "Upgrade from 0.7.3 to 0.7.7"
     assert_includes notes, "Upgrade from 0.7.2 to 0.7.3"
@@ -821,6 +847,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes notes, "Upgrade from 0.6.1 to 0.6.2"
     assert_includes notes, "Upgrade from 0.6.0 to 0.6.1"
     assert_includes notes, "Upgrade from 0.5.0 to 0.6.0"
+    assert_includes readme, "Upgrading from 0.7.8"
     assert_includes readme, "Upgrading from 0.7.7"
     assert_includes readme, "Upgrading from 0.7.3"
     assert_includes readme, "Upgrading from 0.7.2"
