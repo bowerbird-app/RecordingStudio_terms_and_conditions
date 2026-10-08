@@ -599,10 +599,14 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
 
     assert_includes view_source, 'title: "Terms demo"'
     assert_includes view_source, 'subtitle: "This dummy app is the browser-facing demo surface for the addon."'
-    assert_includes view_source, 'text: "Write terms"'
-    assert_includes view_source, "dummy_admin_hub_switch_href"
-    assert_includes view_source, "FlatPack::Card::Component"
+    assert_includes view_source, 'text: "Admin"'
+    assert_includes view_source, 'text: "Terms and Condition page"'
+    assert_includes view_source, 'text: "Privacy Policy page"'
+    assert_includes view_source, 'text: "Helper"'
+    assert_includes view_source, "dummy_published_page_url"
     assert_includes view_source, "dummy_page_nav"
+    refute_includes view_source, "FlatPack::Card::Component"
+    refute_includes view_source, 'text: "Write terms"'
     refute_includes view_source, 'title: "Demo"'
     refute_includes view_source, "FlatPack::Breadcrumb::Component"
   end
