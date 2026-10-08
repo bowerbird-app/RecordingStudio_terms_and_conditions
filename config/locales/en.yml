@@ -1,0 +1,42 @@
+# frozen_string_literal: true
+#
+# English defaults for customer-facing Terms copy. Hosts add other languages
+# under the same recording_studio.terms_and_conditions.* keys. Stored Terms
+# bodies and version titles are data and stay untranslated.
+
+en:
+  recording_studio:
+    terms_and_conditions:
+      accept:
+        first:
+          terms: "Terms and Conditions"
+          privacy: "Privacy Policy"
+          both: "Terms and Conditions and Privacy Policy"
+        updated:
+          terms: "We have updated our terms and conditions."
+          privacy: "We have updated our privacy policy."
+          both: "We have updated our terms and conditions and privacy policy."
+        continue: "Continue"
+        empty_title: "Nothing to agree to yet"
+        empty_description: "Someone still needs to publish terms for this workspace."
+        heading_fallback: "Terms and Conditions"
+      continue_notice:
+        with_app_html: "By continuing, you agree to %{app_name}'s %{documents}."
+        without_app_html: "By continuing, you agree to the %{documents}."
+        terms: "Terms & Conditions"
+        privacy: "privacy policy"
+        and: " and "
+      agree:
+        label: "I agree to these terms"
+        label_with_privacy: "I agree to these terms and privacy policy"
+        prefix: "I agree to these "
+        terms: "terms"
+        privacy: "privacy policy"
+        and: " and "
+        button: "Agree"
+      flashes:
+        no_live_terms: "There are no live terms to agree to."
+        not_live: "Those terms aren't live. Refresh and agree to the current ones."
+      errors:
+        not_live: "Only live terms can be accepted."
+        must_agree: "Tick the box if you agree."

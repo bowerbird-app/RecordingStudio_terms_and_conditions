@@ -18,6 +18,14 @@ Then:
 
 The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
 
+## Upgrade from 0.8.1 to 0.9.0
+
+No schema change. Customer-facing Agree, signup continue-notice, checkbox, flashes, and `NotLive` copy now look up `recording_studio.terms_and_conditions.*`. The gem ships English only. Copy a host locale file from `config/locales/en.yml` (or dummy `fr.yml`) to offer another language. Do not add `RecordingStudio_Internationalization` to this gemspec. Passed helper text such as `recording_studio_terms_agree_button(text: "Accept")` still wins. Stored Terms bodies and version titles stay untranslated. Staff Admin, dummy demo pages, and developer errors stay English.
+
+## Upgrade from 0.8.0 to 0.8.1
+
+No schema change. Dummy and development pin Admin `v2.0.6` and FlatPack `v0.1.207`.
+
 ## Upgrade from 0.7.8 to 0.8.0
 
 No schema change. The Admin Terms hub no longer shows **New**, **All versions**, or **Agree stats**. The actions are the live Terms page, the live Privacy Policy page, **Edit Terms**, and **Edit Privacy Policy**. Those page links are secondary. Hub cards are **Terms and conditions** and **Privacy Policy**. The count is large, and **users agreed** sits under it in smaller text. The versions screen is the table only, live rows first. `/recording_studio_terms_and_conditions/admin/terms` redirects to that screen. Agree is `/acceptance` on the mount. The engine root redirects there. `/admin/sections/terms` redirects to `/admin`. Who agreed searches name or email. Agree keeps Flatpack Collapse rows for each live document, then the continue notice and **Continue**. Continue and the “By continuing…” line stay after someone has already agreed. A second agree on the same live copy does not change the receipt time.

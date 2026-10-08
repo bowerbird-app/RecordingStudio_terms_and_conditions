@@ -15,6 +15,7 @@ This Rails app exists to validate the Recording Studio Terms and Conditions addo
 - Create-password signup shows the continue-notice in the Users extra_fields slot when live Terms are pending; submitting the form writes a `continue_notice` receipt
 - Dummy does **not** turn on `require_scroll_to_end`. The gem Accept screen uses continue-notice with `link: false` (plain text, no modal; the Collapse already shows the terms) plus **Continue** (no checkbox).
 - Dummy sets `config.app_name = "Terms Dummy"`
+- Dummy offers English and French via Recording Studio Internationalization (`v0.1.2`, dummy Gemfile only). The language selector sits in PageNav. French keys live in `config/locales/fr.yml`. The engine does not ship French.
 - Dummy `/agree_helper` posts the checkbox path (`clickwrap`) and the continue-notice path. Either one writes a receipt and clears the gate.
 - Hosts install with `recording_studio_terms_and_conditions:install` (mount, migrations, initializer, importmap pin)
 

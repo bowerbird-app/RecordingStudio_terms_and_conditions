@@ -10,7 +10,7 @@ module RecordingStudioTermsAndConditions
 
     def create
       load_acceptance_context
-      return reject_agreement("There are no live terms to agree to.") if documents_to_accept.blank?
+      return reject_agreement(Copy.t("flashes.no_live_terms")) if documents_to_accept.blank?
 
       accept_current_terms!
     end
@@ -37,7 +37,7 @@ module RecordingStudioTermsAndConditions
       end
       redirect_to next_path_after_acceptance
     rescue RecordingStudioTermsAndConditions::NotLive
-      reject_agreement("Those terms aren't live. Refresh and agree to the current ones.")
+      reject_agreement(Copy.t("flashes.not_live"))
     end
 
     def documents_to_accept

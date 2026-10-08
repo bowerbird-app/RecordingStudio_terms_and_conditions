@@ -67,7 +67,7 @@ module RecordingStudioTermsAndConditions
 
         recording, terms = resolve_version(version)
         raise ArgumentError, "version must be Terms or a Terms recording" if recording.blank? || terms.blank?
-        raise NotLive, "Only live terms can be accepted." unless live_version?(recording)
+        raise NotLive, Copy.t("errors.not_live") unless live_version?(recording)
 
         create_receipt!(actor: actor, recording: recording, terms: terms, provenance: provenance)
       end

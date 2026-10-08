@@ -1,5 +1,5 @@
 <%= render FlatPack::PageTitle::Component.new(
-  title: terms&.title.presence || "Terms and Conditions",
+  title: terms&.title.presence || terms_copy("accept.heading_fallback"),
   subtitle: terms_heading_date(terms),
   variant: :h1
 ) do |page_title| %>

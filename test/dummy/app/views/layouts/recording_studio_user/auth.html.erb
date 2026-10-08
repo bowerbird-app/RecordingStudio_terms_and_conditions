@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<%# Dummy override of Users Auth layout so html lang follows the locale and
+    the language selector sits in the top bar. Theme stays Flatpack rounded. %>
+<html <%= tag.attributes(dummy_document_attributes) %>>
+  <head>
+    <title><%= content_for(:title).presence || t("recording_studio_user.auth.sign_in") %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "flat_pack/variables", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "flat_pack/application", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "flat_pack/rich_text", "data-turbo-track": "reload" %>
+    <%= yield :head %>
+    <%= javascript_importmap_tags if respond_to?(:javascript_importmap_tags) %>
+  </head>
+
+  <body class="bg-[var(--surface-page-background-color)] text-[var(--surface-content-color)]">
+    <div class="absolute right-6 top-6 flex items-center gap-3">
+      <%= dummy_language_selector %>
+    </div>
+    <main class="flex min-h-dvh items-center justify-center p-6">
+      <%= yield %>
+    </main>
+  </body>
+</html>

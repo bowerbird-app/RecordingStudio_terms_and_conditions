@@ -3,8 +3,8 @@
 
 <% if agree_documents.blank? %>
   <%= render FlatPack::EmptyState::Component.new(
-    title: "Nothing to agree to yet",
-    description: "Someone still needs to publish terms for this workspace."
+    title: terms_copy("accept.empty_title"),
+    description: terms_copy("accept.empty_description")
   ) %>
 <% else %>
   <div class="space-y-4">
@@ -33,7 +33,7 @@
       ) %>
       <%= recording_studio_terms_agree_button(
         require_scroll_to_end: false,
-        text: "Continue"
+        text: terms_copy("accept.continue")
       ) %>
     <% end %>
   </div>

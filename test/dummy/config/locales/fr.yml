@@ -1,0 +1,125 @@
+# Dummy-only host translations. The engine ships English defaults; other
+# languages belong to the host. This file covers every engine
+# recording_studio.terms_and_conditions key plus dummy chrome and Flatpack kit copy.
+fr:
+  recording_studio:
+    internationalization:
+      selector:
+        label: Langue
+        submit: Changer de langue
+    terms_and_conditions:
+      accept:
+        first:
+          terms: "Conditions générales"
+          privacy: "Politique de confidentialité"
+          both: "Conditions générales et politique de confidentialité"
+        updated:
+          terms: "Nous avons mis à jour nos conditions générales."
+          privacy: "Nous avons mis à jour notre politique de confidentialité."
+          both: "Nous avons mis à jour nos conditions générales et notre politique de confidentialité."
+        continue: "Continuer"
+        empty_title: "Rien à accepter pour le moment"
+        empty_description: "Il reste à publier des conditions pour cet espace."
+        heading_fallback: "Conditions générales"
+      continue_notice:
+        with_app_html: "En continuant, vous acceptez les %{documents} de %{app_name}."
+        without_app_html: "En continuant, vous acceptez les %{documents}."
+        terms: "Conditions générales"
+        privacy: "politique de confidentialité"
+        and: " et "
+      agree:
+        label: "J’accepte ces conditions"
+        label_with_privacy: "J’accepte ces conditions et la politique de confidentialité"
+        prefix: "J’accepte ces "
+        terms: "conditions"
+        privacy: "politique de confidentialité"
+        and: " et "
+        button: "J’accepte"
+      flashes:
+        no_live_terms: "Il n’y a pas de conditions en vigueur à accepter."
+        not_live: "Ces conditions ne sont pas en vigueur. Actualisez et acceptez la version actuelle."
+      errors:
+        not_live: "Seules les conditions en vigueur peuvent être acceptées."
+        must_agree: "Cochez la case si vous acceptez."
+  dummy:
+    nav:
+      toggle_sidebar: "Afficher le menu"
+  flatpack:
+    chat:
+      placeholder: Écrire un message…
+      send: Envoyer
+      back: Retour
+      back_to_conversations: Retour aux conversations
+      loading_older: Chargement des messages plus anciens…
+      jump_to_latest: Aller au plus récent
+      jump_to_latest_message: Aller au message le plus récent
+      sending: Envoi…
+      failed: Échec
+      edit: Modifier
+      delete: Supprimer
+      typing: Quelqu’un écrit
+      outgoing_images: Images envoyées
+      incoming_images: Images reçues
+      image: Image
+      you: Vous
+      attachment: Pièce jointe
+    timestamp:
+      fallback: "-"
+      in: Dans %{distance}
+      ago: "il y a %{distance}"
+      just_now: À l’instant
+      a_min_ago: il y a 1 min
+      minutes_ago: "il y a %{count} minutes"
+      hours_ago: "il y a %{count} heures"
+      yesterday: Hier
+      days_ago: "il y a %{count} jours"
+      weeks_ago: "il y a %{count} semaines"
+      months_ago: "il y a %{count} mois"
+      short_a_min_ago: il y a 1 min
+      short_min_ago: "il y a %{count} min"
+      short_hr_ago: "il y a %{count} h"
+      short_yesterday: il y a 1 j
+      short_d_ago: "il y a %{count} j"
+      short_wk_ago: "il y a %{count} sem"
+      short_mo_ago: "il y a %{count} mois"
+    page_nav:
+      back: Retour
+      close: Fermer
+      previous: Page précédente
+      label: Navigation de page
+    search:
+      placeholder: Rechercher…
+      no_results: Aucun résultat
+      clear: Effacer la recherche
+      searching: Recherche…
+      result_fallback: Résultat
+    search_input:
+      clear: Effacer la recherche
+    select:
+      placeholder: Choisir
+      search: Rechercher…
+      remove: Retirer %{label}
+      type_to_search: Tapez au moins %{count} caractères
+      searching: Recherche…
+      empty: Aucune option
+    common:
+      close: Fermer
+      search: Rechercher
+      previous: Préc.
+      next: Suiv.
+      back: Retour
+      save: Enregistrer
+    modal:
+      close: Fermer
+    alert:
+      dismiss: Fermer
+    button:
+      loading: Chargement
+    notification:
+      bell: Notifications
+      empty: Aucune notification récente
+      fallback: Notification
+      see_all: Voir toutes les notifications
+      overflow: 9+
+    checkbox:
+      required: Obligatoire

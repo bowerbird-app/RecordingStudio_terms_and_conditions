@@ -2,15 +2,8 @@
 
 module RecordingStudioTermsAndConditions
   module AgreeCopyHelper
-    TERMS_UPDATED_PAGE_TITLE = "We have updated our terms and conditions."
-    PRIVACY_UPDATED_PAGE_TITLE = "We have updated our privacy policy."
-    BOTH_UPDATED_PAGE_TITLE = "We have updated our terms and conditions and privacy policy."
-    TERMS_FIRST_PAGE_TITLE = "Terms and Conditions"
-    PRIVACY_FIRST_PAGE_TITLE = "Privacy Policy"
-    BOTH_FIRST_PAGE_TITLE = "Terms and Conditions and Privacy Policy"
-
     def terms_agree_heading(terms)
-      terms&.title.presence || "Terms and Conditions"
+      terms&.title.presence || Copy.t("accept.heading_fallback")
     end
 
     def terms_accept_page_title(terms = nil, reaccepting: false, pending: nil)
@@ -38,6 +31,10 @@ module RecordingStudioTermsAndConditions
       Array(documents).find { |doc| doc.try(:privacy_policy?) }
     end
 
+    def terms_copy(key, **)
+      Copy.t(key, **)
+    end
+
     private
 
     def accept_page_title_documents(terms, pending)
@@ -58,21 +55,21 @@ module RecordingStudioTermsAndConditions
 
     def updated_accept_page_title(has_terms:, has_privacy:)
       if has_terms && has_privacy
-        BOTH_UPDATED_PAGE_TITLE
+        Copy.t("accept.updated.both")
       elsif has_privacy
-        PRIVACY_UPDATED_PAGE_TITLE
+        Copy.t("accept.updated.privacy")
       else
-        TERMS_UPDATED_PAGE_TITLE
+        Copy.t("accept.updated.terms")
       end
     end
 
     def first_accept_page_title(has_terms:, has_privacy:)
       if has_terms && has_privacy
-        BOTH_FIRST_PAGE_TITLE
+        Copy.t("accept.first.both")
       elsif has_privacy
-        PRIVACY_FIRST_PAGE_TITLE
+        Copy.t("accept.first.privacy")
       else
-        TERMS_FIRST_PAGE_TITLE
+        Copy.t("accept.first.terms")
       end
     end
   end

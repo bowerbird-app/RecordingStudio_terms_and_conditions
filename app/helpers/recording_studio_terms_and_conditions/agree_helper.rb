@@ -55,9 +55,9 @@ module RecordingStudioTermsAndConditions
 
     def recording_studio_terms_agree_label(terms_list)
       if terms_list_includes_privacy?(terms_list)
-        "I agree to these terms and privacy policy"
+        Copy.t("agree.label_with_privacy")
       else
-        "I agree to these terms"
+        Copy.t("agree.label")
       end
     end
 
@@ -73,7 +73,7 @@ module RecordingStudioTermsAndConditions
     def recording_studio_terms_agree_linked_label(terms_list, checkbox_id)
       label_tag(
         checkbox_id,
-        safe_join(["I agree to these ".html_safe, recording_studio_terms_agree_linked_words(terms_list)]),
+        safe_join([Copy.t("agree.prefix").html_safe, recording_studio_terms_agree_linked_words(terms_list)]),
         class: "ml-[var(--checkbox-label-gap)] text-sm font-medium " \
                "text-[var(--surface-content-color)] cursor-pointer"
       )
@@ -85,7 +85,7 @@ module RecordingStudioTermsAndConditions
 
       words = [recording_studio_terms_word_link(terms_doc)]
       if privacy_doc
-        words << " and ".html_safe
+        words << Copy.t("agree.and").html_safe
         words << recording_studio_privacy_word_link(privacy_doc)
       end
       safe_join(words)
@@ -93,17 +93,19 @@ module RecordingStudioTermsAndConditions
 
     def recording_studio_terms_word_link(terms)
       url = terms.try(:published_url)
-      return "terms" if url.blank?
+      label = Copy.t("agree.terms")
+      return label if url.blank?
 
-      render(FlatPack::Link::Component.new(href: url).with_content("terms"))
+      render(FlatPack::Link::Component.new(href: url).with_content(label))
     end
 
     def recording_studio_privacy_word_link(terms)
       url = terms.try(:published_url)
-      return "privacy policy" if url.blank?
+      label = Copy.t("agree.privacy")
+      return label if url.blank?
 
       render(
-        FlatPack::Link::Component.new(href: url, target: "_blank").with_content("privacy policy")
+        FlatPack::Link::Component.new(href: url, target: "_blank").with_content(label)
       )
     end
 

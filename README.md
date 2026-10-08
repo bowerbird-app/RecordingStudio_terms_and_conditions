@@ -53,7 +53,7 @@ Open port 3000 and sign in at `/users/sign_in`. No environment variables are req
    ```
 4. Open port 3000 — you'll land on the dummy app home page and can sign in at `/users/sign_in`
 
-The dummy app is a host-app validation surface for authentication, FlatPack rendering, Tailwind source scanning, and Recording Studio route wiring.
+The dummy app is a host-app validation surface for authentication, FlatPack rendering, Tailwind source scanning, and Recording Studio route wiring. It offers English and French through Recording Studio Internationalization. The language selector sits in PageNav. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French.
 
 Dummy credentials (`test/dummy/config/credentials.yml.enc`) are encrypted with the shared RecordingStudio_* development master key. Set `RAILS_MASTER_KEY` or put that key in `test/dummy/config/master.key` (gitignored). Keep the encrypted file; do not generate a per-repo dummy key.
 
@@ -98,6 +98,34 @@ bin/rails tailwindcss:build
 `recording_studio_terms_and_conditions:install` mounts the engine, copies this gem's migrations, and writes the initializer. Then register `RecordingStudioTermsAndConditions::Terms` in `recordable_types`, mount Publishable at `/`, and enable Admin `section :terms` on an Admin root with Accessible access.
 
 This is the kit gem for published Terms and clickwrap. Add it to the approved list in `recording-studio-gems`. Do not hand-roll acceptances.
+
+## Translating customer screens
+
+Customer Agree, signup continue-notice, checkbox, flashes, and `NotLive` copy live under `recording_studio.terms_and_conditions.*`. This gem ships English only, in `config/locales/en.yml`. The host lists languages and supplies the translations. Put a host file at `config/locales/fr.yml` (or Japanese, or whatever you offer) with the same nested keys. Host files load after the engine, so they override English too.
+
+```erb
+<%= t("recording_studio.terms_and_conditions.accept.continue") %>
+```
+
+```yaml
+fr:
+  recording_studio:
+    terms_and_conditions:
+      accept:
+        continue: "Continuer"
+```
+
+Do not translate stored Terms bodies or version titles. Those are data. Buttons, page titles, continue-notice chrome, checkbox labels, flashes, and other interface copy follow I18n.
+
+`recording_studio_terms_agree_button(text:)` still takes an override. A passed string (including `nil`) wins over the translation. Leave `text:` unset, or pass the English default `"Agree"`, to follow the locale.
+
+Add [Recording Studio Internationalization](https://github.com/bowerbird-app/RecordingStudio_Internationalization) on the host when you want a language selector. This gem does not declare the host's languages.
+
+Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
+
+## Upgrading from 0.8.x
+
+Bump to **0.9.0**. No schema change. English screens stay the same. To offer another language, copy `recording_studio.terms_and_conditions.*` from `config/locales/en.yml` into the host. Do not add `RecordingStudio_Internationalization` as a dependency of this engine.
 
 ## Upgrading from 0.3.x
 
@@ -295,7 +323,8 @@ See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full do
 | Publishable     | gemspec `~> 0.4`; dummy GitHub tag `v0.4.2` |
 | Attachable      | dummy GitHub tag `v0.7.1` (Users Profile needs it) |
 | Root Switchable | dummy GitHub tag `v0.5.3` |
-| FlatPack        | gemspec `>= 0.1.196`; dummy GitHub tag `v0.1.207` |
+| FlatPack        | gemspec `>= 0.1.196`; dummy GitHub tag `v0.1.209` |
+| Internationalization | dummy GitHub tag `v0.1.2` (not in the gemspec) |
 | Devise          | latest  |
 
 The dummy Gemfile keeps `github:` sources so Bundler can fetch those gems. Hosts also need Publishable (and Users/Attachable) migrations from those gems — this addon only ships Terms and Acceptance migrations.
