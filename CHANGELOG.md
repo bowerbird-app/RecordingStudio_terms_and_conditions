@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Dummy FlatPack moves to `v0.1.209` so kit chrome can follow the locale.
-- Dummy and development pin Recording Studio `v4.3.0` (from main).
+- Dummy and development pin Recording Studio `v4.3.0`, Admin `v2.0.7`, and Users `v0.16.0` (from main).
 - Helper `text:` on `recording_studio_terms_agree_button` and other copy arguments still win over locale defaults. Stored Terms bodies and version titles stay data.
 
 ### Upgrade notes (0.8.1 → 0.9.0)
