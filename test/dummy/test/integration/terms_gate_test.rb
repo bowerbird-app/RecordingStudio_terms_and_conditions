@@ -39,12 +39,14 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     live = record_terms(live_root, title: "Host Terms", body: "Be kind everywhere.")
     publish_terms!(live, slug: "host-terms-#{SecureRandom.hex(4)}")
 
-    get "/"
-    assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
-    follow_redirect!
-    assert_response :success
-    assert_includes response.body, "Host Terms"
-    assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
+    with_fallback_terms_root(live_workspace) do
+      get "/"
+      assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
+      follow_redirect!
+      assert_response :success
+      assert_includes response.body, "Host Terms"
+      assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
+    end
   end
 
   test "accepting fallback live terms clears the gate for that actor" do
@@ -53,20 +55,23 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     live = record_terms(live_root, title: "Host Terms", body: "Be kind everywhere.")
     publish_terms!(live, slug: "host-terms-#{SecureRandom.hex(4)}")
 
-    get "/docs/install"
-    assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
+    with_fallback_terms_root(live_workspace) do
+      get "/docs/install"
+      assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
 
-    post recording_studio_terms_and_conditions.acceptance_path
-    assert_redirected_to "/docs/install"
-    follow_redirect!
-    assert_response :success
+      post recording_studio_terms_and_conditions.acceptance_path
+      assert_redirected_to "/docs/install"
+      follow_redirect!
+      assert_response :success
 
-    get "/"
-    assert_response :success
-    refute_redirected_to_acceptance
+      get "/"
+      assert_response :success
+      refute_redirected_to_acceptance
+    end
   end
 
   test "already accepted fallback terms are not gated again" do
+    accept_seeded_studio_terms!
     live_workspace = Workspace.create!(name: "Live #{SecureRandom.hex(4)}")
     live_root = RecordingStudio.root_recording_for(live_workspace)
     live = record_terms(live_root, title: "Host Terms", body: "Be kind everywhere.")
@@ -175,6 +180,24 @@ class TermsGateTest < ActionDispatch::IntegrationTest
   end
 
   private
+
+  def accept_seeded_studio_terms!
+    studio = Workspace.find_by(name: "Studio Workspace")
+    return unless studio
+
+    RecordingStudioTermsAndConditions.pending_published_list(@user, studio).each do |terms|
+      RecordingStudioTermsAndConditions.accept!(@user, terms, { "source" => "continue_notice" })
+    end
+  end
+
+  def with_fallback_terms_root(workspace)
+    gate = RecordingStudioTermsAndConditions::Gate
+    original = gate.method(:first_root_with_live_terms)
+    gate.define_singleton_method(:first_root_with_live_terms) { workspace }
+    yield
+  ensure
+    gate.define_singleton_method(:first_root_with_live_terms, original)
+  end
 
   def ensure_default_workspace_requires_acceptance!
     workspace = Workspace.find_or_create_by!(name: "Studio Workspace")

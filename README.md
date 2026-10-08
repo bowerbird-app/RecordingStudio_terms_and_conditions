@@ -112,7 +112,7 @@ Bump to **0.5.0** and pin Publishable `v0.3.1`. No Terms schema change. Term sho
 
 ## Upgrading from 0.7.3
 
-Bump to **0.7.5**. No schema change. Continue-notice “Terms & Conditions” and “privacy policy” are `<button type="button">` with `data-modal-id` (no `href`), so the Flatpack modal stays open. Signed-in gating uses the same `root_for_acceptance` fallback as signup. Rebuild host Tailwind for the unstyled button classes.
+Bump to **0.7.7**. No schema change. Continue-notice “Terms & Conditions” and “privacy policy” are `<button type="button">` with `data-modal-id` (no `href`), so the Flatpack modal stays open. Signed-in gating uses the same `root_for_acceptance` fallback as signup. Rebuild host Tailwind for the unstyled button classes.
 
 ## Upgrading from 0.7.2
 
