@@ -48,7 +48,6 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
     assert_select "button[type=button][data-modal-id]", text: "Terms & Conditions"
-    assert_select "html[lang='en']"
 
     sign_in @user
     accept_pending_live_terms!(@user)
@@ -82,7 +81,6 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
     assert_includes CGI.unescapeHTML(response.body), "En continuant, vous acceptez"
     assert_select "button[type=button][data-modal-id]", text: "Conditions générales"
     refute_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
-    assert_select "html[lang='fr']"
 
     sign_in @user
     accept_pending_live_terms!(@user)

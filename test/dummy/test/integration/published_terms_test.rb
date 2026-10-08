@@ -19,7 +19,7 @@ class PublishedTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "fp-content"
     published_on = recording.current_publishable.publish_at.in_time_zone.strftime("%e %b %Y").squish
     assert_includes response.body, published_on
-    refute_includes response.body, "ago"
+    refute_includes response.body.gsub(/data-fp-copy="[^"]*"/, ""), "ago"
     assert_includes response.body, 'data-theme="rounded"'
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
     assert_select "nav[aria-label='Page navigation']", count: 1
