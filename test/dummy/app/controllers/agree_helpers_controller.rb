@@ -7,13 +7,13 @@ class AgreeHelpersController < ApplicationController
   def create
     pending = RecordingStudioTermsAndConditions.pending_published_list(current_user, current_root_recordable)
     if pending.blank?
-      redirect_to agree_helper_path, alert: "There are no live terms to agree to."
+      redirect_to agree_helper_path, alert: RecordingStudioTermsAndConditions::Copy.t("flashes.no_live_terms")
       return
     end
 
     source = acceptance_source
     if source == "clickwrap" && !agreed?
-      redirect_to agree_helper_path, alert: "Tick the box if you agree."
+      redirect_to agree_helper_path, alert: RecordingStudioTermsAndConditions::Copy.t("errors.must_agree")
       return
     end
 

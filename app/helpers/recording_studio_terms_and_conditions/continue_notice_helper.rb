@@ -58,14 +58,12 @@ module RecordingStudioTermsAndConditions
 
     def continue_notice_sentence(documents, terms_modal_id, privacy_modal_id, link:)
       app_name = RecordingStudioTermsAndConditions.configuration.app_name
-      prefix = if app_name.present?
-                 safe_join(["By continuing, you agree to ", app_name, "'s "])
-               else
-                 "By continuing, you agree to the "
-               end
-
       words = continue_notice_document_words(documents, terms_modal_id, privacy_modal_id, link: link)
-      safe_join([prefix, words, "."])
+      if app_name.present?
+        Copy.interpolate_html("continue_notice.with_app_html", app_name: app_name, documents: words)
+      else
+        Copy.interpolate_html("continue_notice.without_app_html", documents: words)
+      end
     end
 
     def continue_notice_document_words(documents, terms_modal_id, privacy_modal_id, link:)
@@ -81,21 +79,22 @@ module RecordingStudioTermsAndConditions
       parts << continue_notice_terms_words(terms_modal_id, link: link) if has_terms
       return parts unless has_privacy
 
-      parts << " and ".html_safe if has_terms
+      parts << Copy.t("continue_notice.and").html_safe if has_terms
       parts << continue_notice_privacy_words(privacy_modal_id, link: link)
-      parts
     end
 
     def continue_notice_terms_words(modal_id, link:)
-      return "Terms & Conditions" unless link
+      label = Copy.t("continue_notice.terms")
+      return label unless link
 
-      continue_notice_link(modal_id, "Terms & Conditions")
+      continue_notice_link(modal_id, label)
     end
 
     def continue_notice_privacy_words(modal_id, link:)
-      return "privacy policy" unless link
+      label = Copy.t("continue_notice.privacy")
+      return label unless link
 
-      continue_notice_link(modal_id, "privacy policy")
+      continue_notice_link(modal_id, label)
     end
 
     def continue_notice_link(modal_id, text)

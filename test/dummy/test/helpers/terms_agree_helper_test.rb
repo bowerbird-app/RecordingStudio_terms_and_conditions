@@ -248,6 +248,18 @@ class TermsAgreeHelperTest < ActionView::TestCase
     refute_includes html, 'class="my-3"'
   end
 
+  test "agree button default label follows the locale until a host override wins" do
+    I18n.with_locale(:fr) do
+      html = recording_studio_terms_agree_button(require_scroll_to_end: false)
+
+      assert_includes html, "<span>J’accepte</span>"
+    end
+
+    html = recording_studio_terms_agree_button(require_scroll_to_end: false, text: "Accept")
+
+    assert_includes html, "<span>Accept</span>"
+  end
+
   test "agree button is Flatpack primary for Accept clickwrap" do
     html = recording_studio_terms_agree_button(require_scroll_to_end: false, text: "Accept")
 

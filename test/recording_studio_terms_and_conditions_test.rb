@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.8.0", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.9.0", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -62,8 +62,11 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes gemfile, "0b1d229693041093200420b318154ff07acca33e"
     refute_includes root_gemfile, "0b1d229693041093200420b318154ff07acca33e"
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.5.3"'
-    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.207"'
+    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.209"'
     assert_includes root_gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.207"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_Internationalization", tag: "v0.1.2"'
+    refute_includes File.read(File.expand_path("../recording_studio_terms_and_conditions.gemspec", __dir__)),
+                    "recording_studio_internationalization"
     refute_includes gemfile, "recording_studio/v3.0.0"
     refute_includes gemfile, 'tag: "v0.1.133"'
     refute_includes gemfile, 'tag: "v0.6.0"'
@@ -236,8 +239,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes agree_helper_page, "recording_studio_terms_continue_notice"
     refute_includes agree_helper_page, "Join"
     assert_includes agree_helper_page, "FlatPack::Button::Component"
-    assert_includes agree_helper_page, 'text: "Continue"'
-    assert_includes agree_helper_page, 'text: "Accept"'
+    assert_includes agree_helper_page, 't("dummy.agree_helper.continue", default: "Continue")'
+    assert_includes agree_helper_page, 't("dummy.agree_helper.accept", default: "Accept")'
     assert_includes agree_helper_page, "recording_studio_terms_agree_button"
     assert_includes agree_helper_page, 'source, "clickwrap"'
     assert_includes agree_helper_page, 'source, "continue_notice"'
@@ -250,7 +253,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes head, 'stylesheet_link_tag "flat_pack/application"'
     assert_includes layout, 'stylesheet_link_tag "flat_pack/application"'
     assert_includes layout, 'stylesheet_link_tag "tailwind"'
-    assert_includes layout, '<html data-theme="rounded">'
+    assert_includes layout, "dummy_document_attributes"
+    assert_includes layout, "dummy_language_selector"
     refute_includes layout, "dummy_top_nav"
     refute_includes layout, "skip_top_nav"
     assert_includes layout, "anchor_href"
@@ -330,16 +334,21 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes document, "FlatPack::PageTitle::Component"
     assert_includes document, "terms_heading_date"
     assert_includes document, "terms_content"
+    assert_includes document, 'terms_copy("accept.heading_fallback")'
     assert_includes helper, "pending: nil"
     assert_includes helper, "recording_studio_terms_agree_label"
     copy_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/agree_copy_helper.rb")
     assert_includes copy_helper, "def terms_agree_heading"
     assert_includes copy_helper, "def terms_accept_page_title"
-    assert_includes copy_helper, "We have updated our terms and conditions."
-    assert_includes copy_helper, "We have updated our privacy policy."
-    assert_includes copy_helper, "We have updated our terms and conditions and privacy policy."
-    assert_includes copy_helper, "Terms and Conditions and Privacy Policy"
-    assert_includes copy_helper, "PRIVACY_FIRST_PAGE_TITLE"
+    assert_includes copy_helper, 'Copy.t("accept.updated.terms")'
+    assert_includes copy_helper, 'Copy.t("accept.updated.privacy")'
+    assert_includes copy_helper, 'Copy.t("accept.updated.both")'
+    assert_includes copy_helper, 'Copy.t("accept.first.both")'
+    locales = engine_source("config/locales/en.yml")
+    assert_includes locales, "We have updated our terms and conditions."
+    assert_includes locales, "We have updated our privacy policy."
+    assert_includes locales, "We have updated our terms and conditions and privacy policy."
+    assert_includes locales, "Terms and Conditions and Privacy Policy"
     assert_includes copy_helper, "def terms_users_subtitle"
     refute_includes copy_helper, "def terms_agree_subtitle"
     assert_includes helper, "requires_acceptance?"
@@ -355,7 +364,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes controller_js, "IntersectionObserver"
     assert_includes helper, "class: \"mt-3 mb-6\""
     refute_includes helper, "class: \"my-3\""
-    assert_includes helper, "with_content(\"terms\")"
+    assert_includes helper, "Copy.t(\"agree.terms\")"
     refute_includes helper, "Read the full terms"
     refute_includes helper, "form_with"
     application_helper = engine_source("app/helpers/recording_studio_terms_and_conditions/application_helper.rb")
@@ -403,7 +412,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes agree, "terms_reaccept_alert_title"
     assert_includes agree, "space-y-4"
     assert_includes agree, "@reaccepting"
-    assert_includes agree, 'text: "Continue"'
+    assert_includes agree, 'text: terms_copy("accept.continue")'
     refute_includes agree, "Agree again"
     refute_includes copy_helper, "def terms_reaccept_alert_title"
     refute_includes public_show, "FlatPack::Card::Component"
@@ -504,7 +513,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_dummy_login_layout_keeps_flatpack_assets_without_tight_main_offset
     application_layout = File.read(File.expand_path("dummy/app/views/layouts/application.html.erb", __dir__))
 
-    assert_includes application_layout, '<html data-theme="rounded">'
+    assert_includes application_layout, "dummy_document_attributes"
     assert_includes application_layout, 'stylesheet_link_tag "flat_pack/variables"'
     assert_includes application_layout, "javascript_importmap_tags"
     assert_includes application_layout, "min-h-screen"
@@ -564,10 +573,11 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes readme, "Upgrading from 0.3.x"
     assert_includes readme, "pending_published_list"
     assert_includes readme, "MIGRATION_NOTES.md"
+    assert_includes readme, "recording_studio.terms_and_conditions"
     refute_includes readme, "come later"
     assert_includes readme, "#{internals_docs}/"
     assert_includes readme, "v4.3.0"
-    assert_includes readme, "v0.1.207"
+    assert_includes readme, "v0.1.209"
     assert_includes readme, "v2.0.7"
     assert_includes readme, "v0.3.1"
     assert_includes readme, "v0.4.2"
@@ -769,6 +779,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes File.read(skill), "Upgrade (0.7.2 → 0.7.3)"
     assert_includes File.read(skill), "Upgrade (0.7.3 → 0.7.7)"
     assert_includes File.read(skill), "Upgrade (0.7.7 → 0.7.8)"
+    assert_includes File.read(skill), "Upgrade (0.8.1 → 0.9.0)"
     assert_includes File.read(skill), "Upgrade (0.7.8 → 0.8.0)"
     assert_includes File.read(skill), "v0.12.2"
     assert_includes File.read(skill), "mt-3 mb-3"
@@ -787,6 +798,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.9.0]"
+    assert_includes changelog, "## [0.8.1]"
     assert_includes changelog, "## [0.8.0]"
     assert_includes changelog, "## [0.7.8]"
     assert_includes changelog, "## [0.7.7]"
@@ -804,6 +817,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "## [0.6.2]"
     assert_includes changelog, "## [0.6.1]"
     assert_includes changelog, "## [0.6.0]"
+    assert_includes changelog, "Upgrade notes (0.8.1 → 0.9.0)"
+    assert_includes changelog, "Upgrade notes (0.8.0 → 0.8.1)"
     assert_includes changelog, "Upgrade notes (0.7.8 → 0.8.0)"
     assert_includes changelog, "Upgrade notes (0.7.7 → 0.7.8)"
     assert_includes changelog, "Upgrade notes (0.7.3 → 0.7.7)"
@@ -833,6 +848,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "forks a new draft"
     assert_includes changelog, "Upgrade notes (0.4.0 → 0.4.1)"
     assert_includes changelog, "+ Access"
+    assert_includes notes, "Upgrade from 0.8.1 to 0.9.0"
     assert_includes notes, "Upgrade from 0.7.8 to 0.8.0"
     assert_includes notes, "Upgrade from 0.7.7 to 0.7.8"
     assert_includes notes, "Upgrade from 0.7.3 to 0.7.7"

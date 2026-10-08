@@ -12,6 +12,7 @@ Rails.application.routes.draw do
   mount RecordingStudioUser::Engine => RecordingStudioUser.config.mount_path, as: :recording_studio_users
   mount RecordingStudio::Engine, at: "/recording_studio"
   mount RecordingStudioRootSwitchable::Engine, at: "/recording_studio_root_switchable"
+  mount RecordingStudioInternationalization::Engine, at: "/recording_studio_internationalization"
   mount RecordingStudioTermsAndConditions::Engine, at: "/recording_studio_terms_and_conditions"
   mount RecordingStudioAccessible::Engine, at: "/admin/access"
   mount RecordingStudioPublishable::Engine, at: "/", as: :recording_studio_publishable

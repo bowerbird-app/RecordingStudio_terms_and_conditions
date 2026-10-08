@@ -7,11 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-08
+
+### Added
+- Customer-facing Agree, signup continue-notice, checkbox, flashes, and `NotLive` copy live under `recording_studio.terms_and_conditions.*`. The gem ships English only in `config/locales/en.yml`. Hosts add other languages.
+- Dummy demos English and French via Recording Studio Internationalization (`v0.1.2`, dummy Gemfile only). A language selector sits in PageNav. Dummy `fr.yml` covers every engine key. Dummy `/agree_helper` Accept and Continue labels follow the dummy locale. French checkbox and continue-notice copy uses natural articles (`les conditions générales`, `la politique de confidentialité`).
+
 ### Changed
-- Dummy and development pins Accessible `v0.11.1`, Admin `v2.0.4`, Attachable `v0.7.1`, Publishable `v0.4.2`, Users `v0.12.5`, and Root Switchable `v0.5.3`. Recording Studio stays `v4.2.2`. FlatPack stays `v0.1.196`.
-- Gemspec requires Publishable `~> 0.4` (was `~> 0.3`). Accessible stays `~> 0.8` (covers `0.11`).
-- Dummy Accessible schema includes access invitations and stores access roles as strings (`view`, `edit`, `admin`). Dummy also copies Attachable `root_recording_id` / presentation columns and Users blank profile surname / time zone.
-- Gem tests restore `Object#stub` after Minitest 6 dropped `minitest/mock`.
+- Dummy FlatPack moves to `v0.1.209` so kit chrome can follow the locale.
+- Dummy and development pin Recording Studio `v4.3.0`, Admin `v2.0.7`, and Users `v0.16.0` (from main).
+- Helper `text:` on `recording_studio_terms_agree_button` and other copy arguments still win over locale defaults. Stored Terms bodies and version titles stay data.
+
+### Upgrade notes (0.8.1 → 0.9.0)
+- No schema change. Pin this gem at `0.9.0`. English screens stay the same.
+- To offer another language, copy `recording_studio.terms_and_conditions.*` from `config/locales/en.yml` into the host (`config/locales/<locale>.yml`) and list that locale in `config.i18n.available_locales`. Dummy `test/dummy/config/locales/fr.yml` is a complete starting point.
+- Do not add `RecordingStudio_Internationalization` as a gem dependency of this engine. Use plain Rails I18n. Internationalization is a host (and dummy) concern.
+- `recording_studio_terms_agree_button(text: "Accept")` and other passed strings still override the locale. Leave the English default (`"Agree"`) to follow I18n.
+- Staff Admin screens, dummy page titles, and developer `ArgumentError`s stay English. Dummy `/agree_helper` Accept and Continue follow the dummy locale.
+
+## [0.8.1] - 2026-10-08
+
+### Changed
+- Dummy and development pin Admin `v2.0.6` and FlatPack `v0.1.207`.
+
+### Upgrade notes (0.8.0 → 0.8.1)
+- No schema change. Pin this gem at `0.8.1` if you want those dummy/dev pins. `version.rb` stayed `0.8.0` on that tag.
 
 ## [0.8.0] - 2026-10-08
 

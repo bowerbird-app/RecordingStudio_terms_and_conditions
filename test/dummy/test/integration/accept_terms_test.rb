@@ -48,7 +48,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "fp-content"
     published_on = @recording.current_publishable.publish_at.in_time_zone.strftime("%e %b %Y").squish
     assert_includes response.body, published_on
-    refute_includes response.body, "ago"
+    refute_includes response.body.gsub(/data-fp-copy="[^"]*"/, ""), "ago"
     refute_includes response.body, "Read the full terms"
     assert_select "button[type=submit]", text: "Continue"
     assert_select 'button[type=submit][data-fp-style="primary"]', text: "Continue"

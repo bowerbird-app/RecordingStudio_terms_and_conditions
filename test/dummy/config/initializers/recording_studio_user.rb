@@ -7,4 +7,5 @@ RecordingStudioUser.configure do |config|
   config.otp_enabled = false
   # Dummy User is not Devise :confirmable. Skip Users' existing-policy confirm write.
   config.password_registration_confirmation = :skip
+  config.additional_profile_attributes |= [:locale] if config.respond_to?(:additional_profile_attributes)
 end
