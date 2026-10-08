@@ -24,13 +24,17 @@
     <%= recording_studio_terms_agree(inside_form: true, link_terms: true, pending: demo_documents) %>
     <%= recording_studio_terms_agree_button(
       require_scroll_to_end: false,
-      text: "Accept"
+      text: t("dummy.agree_helper.accept", default: "Accept")
     ) %>
   <% end %>
 
   <%= form_with url: agree_helper_path, method: :post do %>
     <%= hidden_field_tag :source, "continue_notice" %>
     <%= recording_studio_terms_continue_notice(pending: demo_documents) %>
-    <%= render FlatPack::Button::Component.new(text: "Continue", style: :primary, type: "submit") %>
+    <%= render FlatPack::Button::Component.new(
+      text: t("dummy.agree_helper.continue", default: "Continue"),
+      style: :primary,
+      type: "submit"
+    ) %>
   <% end %>
 </div>

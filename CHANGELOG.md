@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Customer-facing Agree, signup continue-notice, checkbox, flashes, and `NotLive` copy live under `recording_studio.terms_and_conditions.*`. The gem ships English only in `config/locales/en.yml`. Hosts add other languages.
-- Dummy demos English and French via Recording Studio Internationalization (`v0.1.2`, dummy Gemfile only). A language selector sits in PageNav. Dummy `fr.yml` covers every engine key.
+- Dummy demos English and French via Recording Studio Internationalization (`v0.1.2`, dummy Gemfile only). A language selector sits in PageNav. Dummy `fr.yml` covers every engine key. Dummy `/agree_helper` Accept and Continue labels follow the dummy locale. French checkbox and continue-notice copy uses natural articles (`les conditions générales`, `la politique de confidentialité`).
 
 ### Changed
 - Dummy FlatPack moves to `v0.1.209` so kit chrome can follow the locale.
@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - To offer another language, copy `recording_studio.terms_and_conditions.*` from `config/locales/en.yml` into the host (`config/locales/<locale>.yml`) and list that locale in `config.i18n.available_locales`. Dummy `test/dummy/config/locales/fr.yml` is a complete starting point.
 - Do not add `RecordingStudio_Internationalization` as a gem dependency of this engine. Use plain Rails I18n. Internationalization is a host (and dummy) concern.
 - `recording_studio_terms_agree_button(text: "Accept")` and other passed strings still override the locale. Leave the English default (`"Agree"`) to follow I18n.
-- Staff Admin screens, dummy demo pages, and developer `ArgumentError`s stay English.
+- Staff Admin screens, dummy page titles, and developer `ArgumentError`s stay English. Dummy `/agree_helper` Accept and Continue follow the dummy locale.
 
 ## [0.8.1] - 2026-10-08
 

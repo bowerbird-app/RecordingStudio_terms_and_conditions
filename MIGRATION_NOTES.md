@@ -20,7 +20,7 @@ The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` a
 
 ## Upgrade from 0.8.1 to 0.9.0
 
-No schema change. Customer-facing Agree, signup continue-notice, checkbox, flashes, and `NotLive` copy now look up `recording_studio.terms_and_conditions.*`. The gem ships English only. Copy a host locale file from `config/locales/en.yml` (or dummy `fr.yml`) to offer another language. Do not add `RecordingStudio_Internationalization` to this gemspec. Passed helper text such as `recording_studio_terms_agree_button(text: "Accept")` still wins. Stored Terms bodies and version titles stay untranslated. Staff Admin, dummy demo pages, and developer errors stay English.
+No schema change. Customer-facing Agree, signup continue-notice, checkbox, flashes, and `NotLive` copy now look up `recording_studio.terms_and_conditions.*`. The gem ships English only. Copy a host locale file from `config/locales/en.yml` (or dummy `fr.yml`) to offer another language. Do not add `RecordingStudio_Internationalization` to this gemspec. Passed helper text such as `recording_studio_terms_agree_button(text: "Accept")` still wins. Stored Terms bodies and version titles stay untranslated. Staff Admin, dummy page titles, and developer errors stay English. Dummy `/agree_helper` Accept and Continue labels follow the dummy locale.
 
 ## Upgrade from 0.8.0 to 0.8.1
 

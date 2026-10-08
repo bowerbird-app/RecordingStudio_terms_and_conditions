@@ -22,17 +22,17 @@ fr:
         empty_description: "Il reste à publier des conditions pour cet espace."
         heading_fallback: "Conditions générales"
       continue_notice:
-        with_app_html: "En continuant, vous acceptez les %{documents} de %{app_name}."
-        without_app_html: "En continuant, vous acceptez les %{documents}."
-        terms: "Conditions générales"
-        privacy: "politique de confidentialité"
+        with_app_html: "En continuant, vous acceptez %{documents} de %{app_name}."
+        without_app_html: "En continuant, vous acceptez %{documents}."
+        terms: "les conditions générales"
+        privacy: "la politique de confidentialité"
         and: " et "
       agree:
-        label: "J’accepte ces conditions"
-        label_with_privacy: "J’accepte ces conditions et la politique de confidentialité"
-        prefix: "J’accepte ces "
-        terms: "conditions"
-        privacy: "politique de confidentialité"
+        label: "J’accepte les conditions générales"
+        label_with_privacy: "J’accepte les conditions générales et la politique de confidentialité"
+        prefix: "J’accepte "
+        terms: "les conditions générales"
+        privacy: "la politique de confidentialité"
         and: " et "
         button: "J’accepte"
       flashes:
@@ -44,6 +44,9 @@ fr:
   dummy:
     nav:
       toggle_sidebar: "Afficher le menu"
+    agree_helper:
+      accept: "Accepter"
+      continue: "Continuer"
   flatpack:
     chat:
       placeholder: Écrire un message…

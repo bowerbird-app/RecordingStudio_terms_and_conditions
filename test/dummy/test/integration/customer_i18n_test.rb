@@ -67,6 +67,8 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h1", text: /Conditions générales/
     assert_includes CGI.unescapeHTML(response.body), "En continuant, vous acceptez"
+    assert_includes CGI.unescapeHTML(response.body), "les conditions générales"
+    assert_includes CGI.unescapeHTML(response.body), "la politique de confidentialité"
     assert_select "button", text: "Continuer"
     refute_includes response.body, "We have updated our terms and conditions."
     refute_select "button", text: "Continue"
@@ -79,7 +81,9 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes CGI.unescapeHTML(response.body), "En continuant, vous acceptez"
-    assert_select "button[type=button][data-modal-id]", text: "Conditions générales"
+    assert_includes CGI.unescapeHTML(response.body), "les conditions générales"
+    assert_includes CGI.unescapeHTML(response.body), "la politique de confidentialité"
+    assert_select "button[type=button][data-modal-id]", text: "les conditions générales"
     refute_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
 
     sign_in @user
@@ -87,20 +91,14 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
     get "/agree_helper"
 
     assert_response :success
-    assert_includes response.body, "J’accepte ces"
-    assert_select "a.flat-pack-link", text: "conditions"
+    assert_includes CGI.unescapeHTML(response.body), "J’accepte"
+    assert_select "a.flat-pack-link", text: "les conditions générales"
+    assert_select "a.flat-pack-link", text: "la politique de confidentialité"
+    assert_select "button", text: "Accepter"
+    assert_select "button", text: "Continuer"
+    refute_select "button", text: "Accept"
     refute_includes response.body, "I agree to these"
-  end
-
-  test "agree button text override still wins over French locale" do
-    sign_in @user
-    switch_to_french
-    accept_pending_live_terms!(@user)
-    get "/agree_helper"
-
-    assert_response :success
-    assert_select "button", text: "Accept"
-    assert_includes CGI.unescapeHTML(response.body), "En continuant, vous acceptez"
+    refute_includes response.body, "J’accepte ces conditions"
   end
 
   test "checkbox validation error follows the locale" do
@@ -126,14 +124,25 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
   end
 
   def ensure_live_terms!
-    return if RecordingStudioTermsAndConditions.current_published_for(@workspace)
-
-    recording = record_terms(
-      @root,
+    ensure_live_kind!(
+      RecordingStudioTermsAndConditions::Terms::KIND_TERMS,
       title: "Terms and Conditions v1.0",
-      body: "Be kind in the booth."
+      body: "Be kind in the booth.",
+      slug_prefix: "i18n-terms"
     )
-    publish_terms!(recording, slug: "i18n-terms-#{SecureRandom.hex(4)}")
+    ensure_live_kind!(
+      RecordingStudioTermsAndConditions::Terms::KIND_PRIVACY,
+      title: "Privacy Policy v1.0",
+      body: "We keep a receipt of when you agreed.",
+      slug_prefix: "i18n-privacy"
+    )
+  end
+
+  def ensure_live_kind!(kind, title:, body:, slug_prefix:)
+    return if RecordingStudioTermsAndConditions.current_published_for(@workspace, kind: kind)
+
+    recording = record_terms(@root, title: title, body: body, kind: kind)
+    publish_terms!(recording, slug: "#{slug_prefix}-#{SecureRandom.hex(4)}")
   end
 
   def fresh_user
