@@ -39,6 +39,15 @@ module RecordingStudioTermsAndConditions
         end
       end
 
+      def accepted_any?(actor)
+        return false if actor.blank?
+
+        Acceptance.where(
+          actor_type: actor.class.base_class.name,
+          actor_id: actor.id
+        ).exists?
+      end
+
       def pending_published_for(actor, root)
         pending_published_list(actor, root).first
       end

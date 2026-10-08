@@ -22,7 +22,7 @@ module RecordingStudioTermsAndConditions
       @pending_terms = RecordingStudioTermsAndConditions.pending_published_list(current_actor, @root)
       @terms = @pending_terms.first || RecordingStudioTermsAndConditions.current_published_for(@root)
       @already_accepted = @pending_terms.empty? && @terms.present?
-      @reaccepting = RecordingStudioTermsAndConditions.reaccepting?(current_actor, @root)
+      @reaccepting = RecordingStudioTermsAndConditions.accepted_any?(current_actor)
     end
 
     def reject_agreement(message)

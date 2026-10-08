@@ -102,7 +102,25 @@ class TermsAgreeHelperTest < ActionView::TestCase
                     '<p class="text-xs text-[var(--surface-muted-content-color)]">'
   end
 
-  test "accept page title names the update from pending kinds" do
+  test "accept page title names first-time pending kinds" do
+    terms = Struct.new(:title, :kind).new("Studio Terms", "terms_and_condition")
+    privacy = Struct.new(:title, :kind).new("Studio Privacy", "privacy_policy")
+    def terms.terms_and_condition? = true
+    def terms.privacy_policy? = false
+    def privacy.terms_and_condition? = false
+    def privacy.privacy_policy? = true
+
+    assert_equal "Terms and Conditions",
+                 terms_accept_page_title(terms, pending: [terms])
+    assert_equal "Privacy Policy",
+                 terms_accept_page_title(privacy, pending: [privacy])
+    assert_equal "Terms and Conditions and Privacy Policy",
+                 terms_accept_page_title(terms, pending: [terms, privacy])
+    assert_equal "Terms and Conditions",
+                 terms_accept_page_title(nil)
+  end
+
+  test "accept page title names the update when reaccepting" do
     terms = Struct.new(:title, :kind).new("Studio Terms", "terms_and_condition")
     privacy = Struct.new(:title, :kind).new("Studio Privacy", "privacy_policy")
     def terms.terms_and_condition? = true
@@ -111,13 +129,13 @@ class TermsAgreeHelperTest < ActionView::TestCase
     def privacy.privacy_policy? = true
 
     assert_equal "We have updated our terms and conditions.",
-                 terms_accept_page_title(terms, pending: [terms])
+                 terms_accept_page_title(terms, reaccepting: true, pending: [terms])
     assert_equal "We have updated our privacy policy.",
-                 terms_accept_page_title(privacy, pending: [privacy])
+                 terms_accept_page_title(privacy, reaccepting: true, pending: [privacy])
     assert_equal "We have updated our terms and conditions and privacy policy.",
-                 terms_accept_page_title(terms, pending: [terms, privacy])
+                 terms_accept_page_title(terms, reaccepting: true, pending: [terms, privacy])
     assert_equal "We have updated our terms and conditions.",
-                 terms_accept_page_title(nil)
+                 terms_accept_page_title(nil, reaccepting: true)
   end
 
   test "continue notice wraps with vertical spacing" do

@@ -130,7 +130,7 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
 
     get recording_studio_terms_and_conditions.acceptance_path
     assert_response :success
-    assert_select "h1", text: "We have updated our terms and conditions and privacy policy."
+    assert_select "h1", text: "Terms and Conditions and Privacy Policy"
     assert_includes response.body, "Studio Terms"
     assert_includes response.body, "Studio Privacy"
     assert_match(/and privacy policy/, CGI.unescapeHTML(response.body).gsub(/<[^>]+>/, ""))
@@ -152,6 +152,49 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
       RecordingStudioTermsAndConditions.accept!(@user, privacy.recordable, { "source" => "continue_notice" })
       post recording_studio_terms_and_conditions.acceptance_path
     end
+  end
+
+  test "re-accept after new live versions keeps the updated titles" do
+    terms = record_terms(@root, title: "Studio Terms", body: "Be kind.")
+    publish_terms!(terms, slug: "re-terms-#{SecureRandom.hex(4)}")
+    privacy = record_terms(
+      @root,
+      title: "Studio Privacy",
+      body: "We keep receipts.",
+      kind: RecordingStudioTermsAndConditions::Terms::KIND_PRIVACY
+    )
+    publish_terms!(privacy, slug: "re-privacy-#{SecureRandom.hex(4)}")
+    RecordingStudioTermsAndConditions.accept!(@user, terms, { "source" => "clickwrap" })
+    RecordingStudioTermsAndConditions.accept!(@user, privacy, { "source" => "clickwrap" })
+
+    revised_terms = @root.revise(terms) { |doc| doc.body = "Be kinder." }
+    publish_terms!(revised_terms, slug: "re-terms-v2-#{SecureRandom.hex(4)}")
+    revised_privacy = @root.revise(privacy) { |doc| doc.body = "We keep more receipts." }
+    publish_terms!(revised_privacy, slug: "re-privacy-v2-#{SecureRandom.hex(4)}")
+
+    sign_in @user
+    switch_to_workspace(@workspace)
+
+    get recording_studio_terms_and_conditions.acceptance_path
+    assert_response :success
+    assert_select "h1", text: "We have updated our terms and conditions and privacy policy."
+  end
+
+  test "first-time privacy-only accept page names Privacy Policy" do
+    privacy = record_terms(
+      @root,
+      title: "Studio Privacy",
+      body: "We keep receipts.",
+      kind: RecordingStudioTermsAndConditions::Terms::KIND_PRIVACY
+    )
+    publish_terms!(privacy, slug: "first-privacy-#{SecureRandom.hex(4)}")
+
+    sign_in @user
+    switch_to_workspace(@workspace)
+
+    get recording_studio_terms_and_conditions.acceptance_path
+    assert_response :success
+    assert_select "h1", text: "Privacy Policy"
   end
 
   test "accept page shows only the pending kind and titles it" do

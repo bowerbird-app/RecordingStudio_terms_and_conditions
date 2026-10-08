@@ -13,6 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dummy Accessible schema includes access invitations and stores access roles as strings (`view`, `edit`, `admin`). Dummy also copies Attachable `root_recording_id` / presentation columns and Users blank profile surname / time zone.
 - Gem tests restore `Object#stub` after Minitest 6 dropped `minitest/mock`.
 
+## [0.7.8] - 2026-10-08
+
+### Changed
+- Accept page title is first-time copy when the signed-in person has no acceptance receipts yet: **Terms and Conditions**, **Privacy Policy**, or **Terms and Conditions and Privacy Policy**. Anyone who has accepted a version before still sees **We have updated our…** for the pending kinds.
+
+### Upgrade notes (0.7.7 → 0.7.8)
+- No schema change. Pin this gem at `0.7.8`. First-time Accept titles no longer say the documents were updated.
+
 ## [0.7.7] - 2026-10-08
 
 ### Fixed
