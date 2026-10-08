@@ -33,7 +33,7 @@ module RecordingStudioTermsAndConditions
     end
 
     def pending_for(controller, actor)
-      root = root_for(controller)
+      root = root_for_acceptance(controller)
       return [] if actor.blank? || root.blank?
 
       RecordingStudioTermsAndConditions.pending_published_list(actor, root)
@@ -76,6 +76,10 @@ module RecordingStudioTermsAndConditions
     end
 
     def root_for_signup(controller)
+      root_for_acceptance(controller)
+    end
+
+    def root_for_acceptance(controller)
       current = root_for(controller)
       return current if current.present? && live_terms_on?(current)
 

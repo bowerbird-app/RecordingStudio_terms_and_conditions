@@ -54,6 +54,15 @@ module TermsDemoTestHelper
       }
     }
   end
+
+  def without_live_terms_fallback
+    gate = RecordingStudioTermsAndConditions::Gate
+    original = gate.method(:first_root_with_live_terms)
+    gate.define_singleton_method(:first_root_with_live_terms) { nil }
+    yield
+  ensure
+    gate.define_singleton_method(:first_root_with_live_terms, original)
+  end
 end
 
 class ActionDispatch::IntegrationTest

@@ -219,8 +219,12 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "I agree to these"
     assert_select "a.flat-pack-link[href*='/terms/']", text: "terms"
     assert_select "a.flat-pack-link[href*='/privacy/'][target=_blank]", text: "privacy policy"
-    assert_select "a.flat-pack-link[data-modal-id]", text: "Terms & Conditions"
-    assert_select "a.flat-pack-link[data-modal-id]", text: "privacy policy"
+    assert_select "button[type=button][data-modal-id]", text: "Terms & Conditions"
+    assert_select "button[type=button][data-modal-id]", text: "privacy policy"
+    css_select("button[type=button][data-modal-id]").each do |button|
+      assert_nil button["href"]
+      assert_select "[id=?]", button["data-modal-id"]
+    end
     assert_select "[data-controller='flat-pack--modal']", count: 2
   end
 end

@@ -28,8 +28,12 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
     assert_includes response.body, '<p class="text-xs text-[var(--surface-muted-content-color)]">'
     assert_select "div.mt-3.mb-3"
     assert_select "div.mt-3.mb-6", count: 0
-    assert_select "a.flat-pack-link[data-modal-id]", text: "Terms & Conditions"
-    assert_select "a.flat-pack-link[data-modal-id]", text: "privacy policy"
+    assert_select "button[type=button][data-modal-id]", text: "Terms & Conditions"
+    assert_select "button[type=button][data-modal-id]", text: "privacy policy"
+    css_select("button[type=button][data-modal-id]").each do |button|
+      assert_nil button["href"]
+      assert_select "[id=?]", button["data-modal-id"]
+    end
     assert_includes response.body, "text-[var(--color-primary)]"
     assert_includes response.body, "underline"
     assert_includes response.body, "page-title"

@@ -18,7 +18,7 @@ module RecordingStudioTermsAndConditions
     def accept_signup_terms!(actor)
       return if actor.blank?
 
-      root = Gate.root_for_signup(self)
+      root = Gate.root_for_acceptance(self)
       RecordingStudioTermsAndConditions.pending_published_list(actor, root).each do |terms|
         RecordingStudioTermsAndConditions.accept!(actor, terms, { "source" => "continue_notice" })
       end

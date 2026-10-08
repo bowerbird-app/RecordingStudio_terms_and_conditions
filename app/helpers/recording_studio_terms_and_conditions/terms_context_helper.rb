@@ -16,7 +16,7 @@ module RecordingStudioTermsAndConditions
     end
 
     def recording_studio_terms_signup_root
-      Gate.root_for_signup(controller)
+      Gate.root_for_acceptance(controller)
     end
 
     def recording_studio_terms_agree_actor

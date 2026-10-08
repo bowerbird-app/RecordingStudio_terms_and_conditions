@@ -63,9 +63,7 @@ module RecordingStudioTermsAndConditions
     end
 
     def acceptance_root
-      return current_root_recordable if respond_to?(:current_root_recordable, true) && current_root_recordable
-
-      current_root_recording if respond_to?(:current_root_recording, true)
+      Gate.root_for_acceptance(self)
     end
 
     def current_actor

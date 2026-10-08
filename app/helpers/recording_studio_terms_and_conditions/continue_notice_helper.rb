@@ -99,12 +99,14 @@ module RecordingStudioTermsAndConditions
     end
 
     def continue_notice_link(modal_id, text)
-      render(
-        FlatPack::Link::Component.new(
-          href: "##{modal_id}",
-          class: "text-[var(--color-primary)] underline underline-offset-[0.15em]",
-          data: { modal_id: modal_id }
-        ).with_content(text)
+      content_tag(
+        :button,
+        text,
+        type: "button",
+        class: "inline cursor-pointer border-0 bg-transparent p-0 text-[length:inherit] " \
+               "leading-[inherit] text-[var(--color-primary)] underline underline-offset-[0.15em] " \
+               "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+        data: { modal_id: }
       )
     end
 

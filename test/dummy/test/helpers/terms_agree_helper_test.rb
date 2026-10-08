@@ -71,14 +71,15 @@ class TermsAgreeHelperTest < ActionView::TestCase
 
     assert_includes CGI.unescapeHTML(html), "By continuing, you agree to Terms Dummy's"
     assert_includes html, "Terms &amp; Conditions"
-    assert_includes html, "data-modal-id"
     assert_includes html, "data-controller=\"flat-pack--modal\""
     assert_includes html, "fp-content"
     assert_includes html, "Be kind in the booth."
     assert_includes html, "Studio Terms"
     assert_includes html, "page-title"
     refute_includes html, "--modal-title-color"
-    assert_includes html, "flat-pack-link"
+    refute_includes html, "flat-pack-link"
+    refute_includes html, 'href="#'
+    assert_continue_notice_modal_button html, "Terms & Conditions"
     assert_includes html, "text-[var(--color-primary)]"
     assert_includes html, "underline"
     assert_includes html, '<p class="text-xs text-[var(--surface-muted-content-color)]">'
@@ -181,10 +182,12 @@ class TermsAgreeHelperTest < ActionView::TestCase
 
     html = recording_studio_terms_continue_notice(pending: [terms, privacy])
 
-    assert_match(/and <a[^>]*>privacy policy<\/a>/, html)
+    assert_match(/and <button[^>]*>privacy policy<\/button>/, html)
     assert_includes html, "Terms &amp; Conditions"
     assert_equal 2, html.scan('data-controller="flat-pack--modal"').size
     assert_includes html, "We keep receipts"
+    assert_continue_notice_modal_button html, "Terms & Conditions"
+    assert_continue_notice_modal_button html, "privacy policy"
   end
 
   test "agree checkbox includes privacy link with target blank" do
@@ -237,5 +240,18 @@ class TermsAgreeHelperTest < ActionView::TestCase
     refute_includes html, 'data-fp-style="secondary"'
     refute_includes html, 'data-fp-style="ghost"'
     refute_includes html, "fp-button-flat"
+  end
+
+  private
+
+  def assert_continue_notice_modal_button(html, text)
+    doc = Nokogiri::HTML.fragment(html)
+    button = doc.css("button[type='button'][data-modal-id]").find { |node| node.text == text }
+
+    assert button, "expected button[type=button][data-modal-id] with text #{text.inspect}"
+    refute button["href"]
+    modal_id = button["data-modal-id"]
+    assert modal_id.present?
+    assert_includes html, "id=\"#{modal_id}\""
   end
 end

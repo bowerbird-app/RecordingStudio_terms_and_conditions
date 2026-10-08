@@ -13,6 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dummy Accessible schema includes access invitations and stores access roles as strings (`view`, `edit`, `admin`). Dummy also copies Attachable `root_recording_id` / presentation columns and Users blank profile surname / time zone.
 - Gem tests restore `Object#stub` after Minitest 6 dropped `minitest/mock`.
 
+## [0.7.5] - 2026-10-08
+
+### Fixed
+- Continue-notice “Terms & Conditions” and “privacy policy” triggers are `<button type="button">` with `data-modal-id` (no `href`). FlatPack’s modal controller opens on `[data-modal-id]` without `preventDefault`, so the previous `href="#…"` link let Turbo re-GET the page and the modal closed immediately.
+- Signed-in `Gate.pending_for` / `required?` / `after_auth_path` and `AcceptancesController` use the same `root_for_acceptance` helper as signup (`root_for_signup`). A current root with no live Terms falls back to the first root that has them, so OAuth (and anyone who skipped create-password) still land on the full-page Agree screen.
+
+### Upgrade notes (0.7.3 → 0.7.5)
+- No schema change. Pin this gem at `0.7.5`. Rebuild host Tailwind so the unstyled continue-notice button classes are generated. OAuth and other signed-in visitors whose current workspace has no live Terms are gated against the host’s published Terms.
+
 ## [0.7.3] - 2026-09-24
 
 ### Changed
