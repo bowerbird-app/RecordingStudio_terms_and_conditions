@@ -320,7 +320,7 @@ See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full do
 | Accessible      | gemspec `~> 0.8`; dummy GitHub tag `v0.13.0` |
 | Admin           | gemspec `~> 2.0`; dummy GitHub tag `v2.1.0` |
 | Users           | gemspec `recording_studio_user >= 0.12.2`; dummy GitHub tag `v0.16.0` |
-| Publishable     | gemspec `~> 0.4`; dummy GitHub tag `v0.4.2` |
+| Publishable     | gemspec `~> 0.6`; dummy GitHub tag `v0.6.0` |
 | Attachable      | dummy GitHub tag `v0.13.0` (Users Profile needs it) |
 | Root Switchable | dummy GitHub tag `v0.6.0` |
 | FlatPack        | gemspec `>= 0.1.196`; dummy GitHub tag `v0.1.213` |
