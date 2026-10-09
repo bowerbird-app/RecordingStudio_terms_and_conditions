@@ -143,6 +143,10 @@ module RecordingStudioTermsAndConditions
       end
     end
 
+    initializer "recording_studio_terms_and_conditions.metrics" do
+      config.to_prepare { RecordingStudioTermsAndConditions::Metrics.register! }
+    end
+
     initializer "recording_studio_terms_and_conditions.admin_definitions" do
       config.to_prepare do
         next unless defined?(RecordingStudioAdmin)

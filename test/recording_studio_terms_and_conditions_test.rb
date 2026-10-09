@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.9.0", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.10.0", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -18,6 +18,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.196"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", "~> 0.8"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_admin", "~> 2.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_metrics", "~> 0.2"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_publishable", "~> 0.6"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_user", ">= 0.12.2"'
   end
@@ -59,6 +60,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_publishable", tag: "v0.6.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.1.0"'
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.1.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v0.6.11"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.2.0"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.2.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.16.0"'
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.16.0"'
     refute_includes gemfile, "0b1d229693041093200420b318154ff07acca33e"
@@ -586,6 +590,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes readme, "v0.3.1"
     assert_includes readme, "v0.6.0"
     assert_includes readme, "v0.13.0"
+    assert_includes readme, "recording_studio_metrics"
+    assert_includes readme, "v0.2.0"
+    assert_includes readme, "/recording_studio_api/apis/operations/v1/metrics/terms_acceptances/total"
     refute_includes readme, "Internal template"
     refute_includes readme, old_module
     refute_includes readme, "v0.1.133"
@@ -802,6 +809,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.10.0]"
     assert_includes changelog, "## [0.9.0]"
     assert_includes changelog, "## [0.8.1]"
     assert_includes changelog, "## [0.8.0]"
@@ -821,6 +829,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "## [0.6.2]"
     assert_includes changelog, "## [0.6.1]"
     assert_includes changelog, "## [0.6.0]"
+    assert_includes changelog, "Upgrade notes (0.9.0 → 0.10.0)"
     assert_includes changelog, "Upgrade notes (0.8.1 → 0.9.0)"
     assert_includes changelog, "Upgrade notes (0.8.0 → 0.8.1)"
     assert_includes changelog, "Upgrade notes (0.7.8 → 0.8.0)"
@@ -852,6 +861,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "forks a new draft"
     assert_includes changelog, "Upgrade notes (0.4.0 → 0.4.1)"
     assert_includes changelog, "+ Access"
+    assert_includes notes, "Upgrade from 0.9.0 to 0.10.0"
     assert_includes notes, "Upgrade from 0.8.1 to 0.9.0"
     assert_includes notes, "Upgrade from 0.7.8 to 0.8.0"
     assert_includes notes, "Upgrade from 0.7.7 to 0.7.8"

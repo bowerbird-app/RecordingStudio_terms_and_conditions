@@ -3,4 +3,5 @@ class Workspace < ApplicationRecord
   include RecordingStudio::Capabilities::Example.to(label: "dummy workspace")
   RecordingStudio.enable_capability(:accessible, on: self) if defined?(RecordingStudioAccessible)
   include RecordingStudio::Capabilities::ImageLibrary.to
+  RecordingStudio.enable_capability(:api_access_point, on: self) if defined?(RecordingStudioApi)
 end

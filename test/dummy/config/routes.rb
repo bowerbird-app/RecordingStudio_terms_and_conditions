@@ -15,6 +15,7 @@ Rails.application.routes.draw do
   mount RecordingStudioInternationalization::Engine, at: "/recording_studio_internationalization"
   mount RecordingStudioTermsAndConditions::Engine, at: "/recording_studio_terms_and_conditions"
   mount RecordingStudioAccessible::Engine, at: "/admin/access"
+  mount RecordingStudioApi::Engine, at: "/recording_studio_api"
   mount RecordingStudioPublishable::Engine, at: "/", as: :recording_studio_publishable
   # The sections index is the admin gem's catalog. This host parks on the Terms hub.
   get "/admin/sections/terms", to: redirect("/admin")

@@ -23,6 +23,7 @@ require "recording_studio_terms_and_conditions/admin_widget_card"
 require "recording_studio_terms_and_conditions/flatpack_button_href_from_url"
 require "recording_studio_terms_and_conditions/hide_admin_access_avatars"
 require "recording_studio_terms_and_conditions/admin" if defined?(RecordingStudioAdmin)
+require "recording_studio_terms_and_conditions/metrics"
 require "recording_studio_terms_and_conditions/capabilities/example"
 
 module RecordingStudioTermsAndConditions
