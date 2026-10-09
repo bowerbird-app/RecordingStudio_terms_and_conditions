@@ -63,7 +63,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.16.0"'
     refute_includes gemfile, "0b1d229693041093200420b318154ff07acca33e"
     refute_includes root_gemfile, "0b1d229693041093200420b318154ff07acca33e"
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.5.3"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.6.0"'
     assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.213"'
     assert_includes root_gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.213"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_Internationalization", tag: "v0.1.2"'
@@ -71,7 +71,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
                     "recording_studio_internationalization"
     refute_includes gemfile, "recording_studio/v3.0.0"
     refute_includes gemfile, 'tag: "v0.1.133"'
-    refute_includes gemfile, 'tag: "v0.6.0"'
+    refute_includes gemfile, 'tag: "v0.5.3"'
     refute_includes gemfile, 'tag: "0.3.1"'
   end
 
