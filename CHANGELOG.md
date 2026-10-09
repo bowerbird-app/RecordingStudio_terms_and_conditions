@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-10-09
+
+Site-wide Terms acceptance metrics register with Recording Studio Metrics for the operations API.
+
+### Added
+- `RecordingStudioTermsAndConditions::Metrics.register!` registers `:terms_acceptances`
+  (`blast_radius: :site`) with RecordingStudioMetrics. Metrics:
+  `terms_acceptances.total` (receipt count),   `terms_acceptances.over_time`
+  (`accepted_at` series), and `terms_acceptances.by_version` (breakdown on
+  `terms_recording_id`, including receipts for trashed Terms recordings).
+  Each metric is exposed on `:operations` only. `api_authorize` uses
+  `RecordingStudioTermsAndConditions::Api::Access.can_view?` (AdminRoot `:view`,
+  the same Accessible check Admin screens use).
+- Runtime dependency `recording_studio_metrics` `~> 0.2` (GitHub tag `v0.2.0`).
+
+### Upgrade notes (0.9.0 → 0.10.0)
+- Bump to `0.10.0`. No migration.
+- Add `recording_studio_metrics` at tag `v0.2.0`.
+- This gem does not call `RecordingStudioMetrics::Api.register!`. When
+  RecordingStudio API is present, the host registers Metrics endpoints once:
+
+```ruby
+RecordingStudioMetrics::Api.register!(api: :operations)
+```
+
 ## [0.9.0] - 2026-10-08
 
 ### Added
