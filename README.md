@@ -318,7 +318,7 @@ See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full do
 | TailwindCSS     | 4       |
 | RecordingStudio | 4.x (`~> 4.2` in the gemspec; dummy GitHub tag `v4.4.0`) |
 | Accessible      | gemspec `~> 0.8`; dummy GitHub tag `v0.13.0` |
-| Admin           | gemspec `~> 2.0`; dummy GitHub tag `v2.0.7` |
+| Admin           | gemspec `~> 2.0`; dummy GitHub tag `v2.1.0` |
 | Users           | gemspec `recording_studio_user >= 0.12.2`; dummy GitHub tag `v0.16.0` |
 | Publishable     | gemspec `~> 0.4`; dummy GitHub tag `v0.4.2` |
 | Attachable      | dummy GitHub tag `v0.13.0` (Users Profile needs it) |
