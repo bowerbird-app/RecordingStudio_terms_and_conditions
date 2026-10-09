@@ -93,6 +93,10 @@ class RecordingStudioDeclarationsTest < ActiveSupport::TestCase
     refute RecordingStudio.capability_enabled?(:example, for: "Folder")
     refute RecordingStudio.capability_enabled?(:example, for: "Page")
     assert_equal({ label: "dummy workspace" }, RecordingStudio.capability_options(:example, for: "Workspace"))
+
+    assert RecordingStudio.capability_enabled?(:image_library, for: "Workspace")
+    refute RecordingStudio.capability_enabled?(:image_library, for: "Folder")
+    refute RecordingStudio.capability_enabled?(:image_library, for: "Page")
   end
 
   private
