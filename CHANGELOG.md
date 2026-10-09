@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-10-09
+
+### Fixed
+- Site-wide Terms metrics resolve the admin root with `site_admin_recording_resolver`, falling back to `access_recording_resolver`. If that resolver raises, `can_view?` denies access instead of failing metrics discovery.
+
+### Upgrade notes (0.10.0 → 0.10.1)
+- No schema change. Pin this gem at `0.10.1`.
+
 ## [0.10.0] - 2026-10-09
 
 Site-wide Terms acceptance metrics register with Recording Studio Metrics for the operations API.
