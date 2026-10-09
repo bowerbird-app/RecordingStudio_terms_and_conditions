@@ -78,18 +78,14 @@ Sign in at `/users/sign_in`: email first (**Continue with email**), then passwor
 - `/recording_studio` — redirect to `/` while the mounted Recording Studio engine remains data/API-focused
 - `/agree_helper` — dummy demo of the embeddable Agree helper (code example + checkbox)
 - `/docs/install`, `/docs/config`, `/docs/recordable_types`, `/docs/recordings_tree`, `/docs/gem_views`, `/docs/methods` — dummy-only starter pages
-- `/recording_studio_api/apis/operations/v1/metrics` — operations metrics index (host-registered)
-- `/recording_studio_api/apis/operations/v1/metrics/terms_acceptances/total`
-- `/recording_studio_api/apis/operations/v1/metrics/terms_acceptances/over_time`
-- `/recording_studio_api/apis/operations/v1/metrics/terms_acceptances/by_version`
 
-This gem registers those metrics. The host exposes them once:
+This gem registers `:terms_acceptances` metrics (`total`, `over_time`, `by_version`). It does not call `RecordingStudioMetrics::Api.register!`. When RecordingStudio API is present, the host exposes them once:
 
 ```ruby
 RecordingStudioMetrics::Api.register!(api: :operations)
 ```
 
-Staff with AdminRoot `:view` can read them. A public token or a non-admin operations token is denied. `by_version` groups receipts by `terms_recording_id` (the Terms recording), including trashed versions. It does not count immutable Terms snapshots as separate versions.
+Staff with AdminRoot `:view` can read them. `by_version` groups receipts by `terms_recording_id` (the Terms recording), including trashed versions. It does not count immutable Terms snapshots as separate versions. Hosts that mount the operations API serve `/recording_studio_api/apis/operations/v1/metrics/terms_acceptances/total` (and the matching `over_time` / `by_version` paths).
 
 The home page in `test/dummy/app/views/home/index.html.erb` is a starting point for a minimal demo of the gem's primary behavior. Keep deeper explanations on the dummy docs pages, not in this README.
 
@@ -137,7 +133,7 @@ Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay Engli
 
 ## Upgrading from 0.9.0
 
-Bump to **0.10.0**. No schema change. Add `recording_studio_metrics` at tag `v0.2.0`. This gem registers `:terms_acceptances` metrics. The host calls `RecordingStudioMetrics::Api.register!(api: :operations)`.
+Bump to **0.10.0**. No schema change. Add `recording_studio_metrics` at tag `v0.2.0`. This gem registers `:terms_acceptances` metrics. When RecordingStudio API is present, the host calls `RecordingStudioMetrics::Api.register!(api: :operations)`.
 
 ## Upgrading from 0.8.x
 

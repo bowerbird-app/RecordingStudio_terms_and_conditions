@@ -13,12 +13,7 @@ RecordingStudio.configure do |config|
     "RecordingStudioPublishable::Publishable",
     "RecordingStudioAttachable::Attachment",
     "RecordingStudioAttachable::Library",
-    "RecordingStudioAttachable::Placement",
-    "RecordingStudio::Access",
-    "RecordingStudioApi::ApiClient",
-    "RecordingStudioApi::ApiCredential",
-    "RecordingStudioApi::ApiAccessToken",
-    "RecordingStudioApi::AdminApi"
+    "RecordingStudioAttachable::Placement"
   ]
 
   # Require each configured ActiveRecord type to call recording_studio_recordable.

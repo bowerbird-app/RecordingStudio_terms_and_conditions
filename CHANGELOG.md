@@ -25,8 +25,8 @@ Site-wide Terms acceptance metrics register with Recording Studio Metrics for th
 ### Upgrade notes (0.9.0 → 0.10.0)
 - Bump to `0.10.0`. No migration.
 - Add `recording_studio_metrics` at tag `v0.2.0`.
-- This gem does not call `RecordingStudioMetrics::Api.register!`. The host
-  registers Metrics endpoints once:
+- This gem does not call `RecordingStudioMetrics::Api.register!`. When
+  RecordingStudio API is present, the host registers Metrics endpoints once:
 
 ```ruby
 RecordingStudioMetrics::Api.register!(api: :operations)
