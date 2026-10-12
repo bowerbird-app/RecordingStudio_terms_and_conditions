@@ -328,13 +328,13 @@ See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full do
 | Rails           | 8.1+    |
 | PostgreSQL      | 16      |
 | TailwindCSS     | 4       |
-| RecordingStudio | 4.x (`~> 4.2` in the gemspec; dummy GitHub tag `v4.4.0`) |
+| RecordingStudio | 4.x (`~> 4.2` in the gemspec; dummy GitHub tag `v4.5.0`) |
 | Accessible      | gemspec `~> 0.8`; dummy GitHub tag `v0.13.0` |
 | Admin           | gemspec `~> 2.0`; dummy GitHub tag `v2.1.0` |
 | Users           | gemspec `recording_studio_user >= 0.12.2`; dummy GitHub tag `v0.16.0` |
 | Publishable     | gemspec `~> 0.6`; dummy GitHub tag `v0.6.0` |
 | Attachable      | dummy GitHub tag `v0.13.0` (Users Profile needs it) |
-| Root Switchable | dummy GitHub tag `v0.6.0` |
+| Root Switchable | dummy GitHub tag `v0.8.0` |
 | FlatPack        | gemspec `>= 0.1.196`; dummy GitHub tag `v0.1.213` |
 | Internationalization | dummy GitHub tag `v0.1.2` (not in the gemspec) |
 | Devise          | latest  |
