@@ -55,8 +55,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v4.5.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.15.0"'
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.15.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.13.0"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.13.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.15.0"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.15.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_publishable", tag: "v0.6.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.1.0"'
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.1.0"'
@@ -589,7 +589,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes readme, "v2.1.0"
     assert_includes readme, "v0.3.1"
     assert_includes readme, "v0.6.0"
-    assert_includes readme, "v0.13.0"
+    assert_includes readme, "v0.15.0"
     assert_includes readme, "recording_studio_metrics"
     assert_includes readme, "v0.2.0"
     assert_includes readme, "/recording_studio_api/apis/operations/v1/metrics/terms_acceptances/total"
