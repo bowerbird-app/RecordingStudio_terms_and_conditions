@@ -334,7 +334,7 @@ See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full do
 | Users           | gemspec `recording_studio_user >= 0.12.2`; dummy GitHub tag `v0.16.0` |
 | Publishable     | gemspec `~> 0.6`; dummy GitHub tag `v0.6.0` |
 | Attachable      | dummy GitHub tag `v0.13.0` (Users Profile needs it) |
-| Root Switchable | dummy GitHub tag `v0.6.0` |
+| Root Switchable | dummy GitHub tag `v0.8.0` |
 | FlatPack        | gemspec `>= 0.1.196`; dummy GitHub tag `v0.1.213` |
 | Internationalization | dummy GitHub tag `v0.1.2` (not in the gemspec) |
 | Devise          | latest  |
