@@ -64,14 +64,10 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes gemfile, "recording_studio_api"
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.2.0"'
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.2.0"'
-    assert_match(
-      /recording_studio_trashable".*tag: "v0\.10\.0".*require: false/m,
-      gemfile
-    )
-    assert_match(
-      /recording_studio_trashable".*tag: "v0\.10\.0".*require: false/m,
-      root_gemfile
-    )
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.10.0"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.10.0"'
+    assert_match(/recording_studio_trashable.*,\n\s+require: false/, gemfile)
+    assert_match(/recording_studio_trashable.*,\n\s+require: false/, root_gemfile)
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.21.0"'
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.21.0"'
     refute_includes gemfile, "0b1d229693041093200420b318154ff07acca33e"
