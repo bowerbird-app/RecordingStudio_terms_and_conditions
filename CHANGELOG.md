@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-10-14
+
+### Added
+- `terms_acceptances.over_time` accepts `group_by=kind` (`terms_and_condition` / `privacy_policy`, from the accepted Terms snapshot) and now carries unit `count` and a description. Ungrouped counts are unchanged. No migration.
+
+### Changed
+- Require `recording_studio_metrics ~> 0.3`. Development and dummy Gemfiles pin `v0.3.1`.
+
 ## [0.10.1] - 2026-10-09
 
 ### Fixed

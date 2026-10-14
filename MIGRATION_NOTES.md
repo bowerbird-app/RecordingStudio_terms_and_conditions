@@ -18,6 +18,10 @@ Then:
 
 The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
 
+## Upgrade from 0.10.x to 0.11.0
+
+No schema change. Require `recording_studio_metrics` `~> 0.3` (tag `v0.3.1`). `terms_acceptances.over_time` accepts `group_by=kind`.
+
 ## Upgrade from 0.9.0 to 0.10.0
 
 No schema change. Pin this gem at `0.10.0` and add `recording_studio_metrics` at tag `v0.2.0`. The gem registers `:terms_acceptances` metrics. When RecordingStudio API is present, the host calls `RecordingStudioMetrics::Api.register!(api: :operations)`. Staff with AdminRoot `:view` can read them.

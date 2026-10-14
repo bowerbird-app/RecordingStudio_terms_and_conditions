@@ -131,6 +131,10 @@ Add [Recording Studio Internationalization](https://github.com/bowerbird-app/Rec
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
 
+## Upgrading from 0.10.x
+
+Bump to **0.11.0**. No schema change. Require `recording_studio_metrics` `~> 0.3` (tag `v0.3.1`). `terms_acceptances.over_time` accepts `group_by=kind` (the accepted Terms snapshot's kind; groups under 5 receipts fold into `other`).
+
 ## Upgrading from 0.9.0
 
 Bump to **0.10.0**. No schema change. Add `recording_studio_metrics` at tag `v0.2.0`. This gem registers `:terms_acceptances` metrics. When RecordingStudio API is present, the host calls `RecordingStudioMetrics::Api.register!(api: :operations)`.

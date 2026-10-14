@@ -74,6 +74,38 @@ class TermsMetricsTest < ActiveSupport::TestCase
     assert_operator opened["2026-10-07"], :>=, 2
   end
 
+  test "over_time groups acceptances by the accepted snapshot kind" do
+    Current.actor = @staff
+    terms = record_terms(@root, title: "Kind terms", body: "Kind terms copy.")
+    publish_terms!(terms, slug: "kind-terms-#{SecureRandom.hex(4)}")
+    privacy = record_terms(@root, title: "Kind privacy", body: "Kind privacy copy.",
+                                  kind: RecordingStudioTermsAndConditions::Terms::KIND_PRIVACY)
+    publish_terms!(privacy, slug: "kind-privacy-#{SecureRandom.hex(4)}")
+    Current.actor = nil
+    # A far-past window keeps receipts from other tests out of the groups.
+    6.times { |index| accept!(kind_user(index), terms, at: Time.utc(2025, 3, 5, 9 + index)) }
+    5.times { |index| accept!(kind_user(index + 10), privacy, at: Time.utc(2025, 3, 6, 9 + index)) }
+    window = { interval: "day", start_at: Time.utc(2025, 3, 5), end_at: Time.utc(2025, 3, 7) }
+
+    ungrouped = timeseries_counts(execute("terms_acceptances.over_time", **window))
+    assert_equal 6, ungrouped["2025-03-05"]
+    assert_equal 5, ungrouped["2025-03-06"]
+
+    grouped = execute("terms_acceptances.over_time", **window, group_by: "kind")
+    groups = grouped.groups.to_h { |group| [group[:key].to_s, group[:data].to_h { |row| [row[:date], row[:value]] }] }
+    assert_equal 6, groups.dig(RecordingStudioTermsAndConditions::Terms::KIND_TERMS, "2025-03-05")
+    assert_equal 5, groups.dig(RecordingStudioTermsAndConditions::Terms::KIND_PRIVACY, "2025-03-06")
+    assert_equal 0, groups.dig(RecordingStudioTermsAndConditions::Terms::KIND_PRIVACY, "2025-03-05").to_i
+
+    assert_raises(RecordingStudioMetrics::Errors::InvalidGroupBy) do
+      execute("terms_acceptances.over_time", **window, group_by: "actor_id")
+    end
+    metadata = RecordingStudioMetrics.find("terms_acceptances.over_time").catalog_metadata
+    assert_equal "count", metadata[:unit]
+    assert_equal [:kind], metadata[:group_by]
+    assert metadata[:description].present?
+  end
+
   test "by_version includes a trashed terms recording without raising" do
     extra = User.create!(
       email: "metrics-trashed-#{SecureRandom.hex(4)}@example.com",
@@ -139,6 +171,11 @@ class TermsMetricsTest < ActiveSupport::TestCase
     publish_terms!(@v2, slug: "terms-v2-#{SecureRandom.hex(4)}")
     accept!(@patron, @v2, at: Time.utc(2026, 10, 7, 9))
     accept!(extra, @v2, at: Time.utc(2026, 10, 7, 15))
+  end
+
+  def kind_user(index)
+    User.create!(email: "metrics-kind-#{index}-#{SecureRandom.hex(4)}@example.com",
+                 password: "Password", password_confirmation: "Password")
   end
 
   def accept!(actor, recording, at:)
