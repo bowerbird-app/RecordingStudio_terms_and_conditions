@@ -148,33 +148,71 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
       title: "v2",
       body: "Second."
     )
+    reports = []
     boom = RecordingStudioTermsAndConditions::Published.subscribe do
       raise "subscriber boom"
     end
 
-    result = RecordingStudioPublishable::Services::Publishables::Update.call(
-      parent_recording: draft,
-      attributes: { slug: "boom-v2-#{SecureRandom.hex(4)}", status: "published" }
-    )
+    result = with_error_reports(reports) do
+      RecordingStudioPublishable::Services::Publishables::Update.call(
+        parent_recording: draft,
+        attributes: { slug: "boom-v2-#{SecureRandom.hex(4)}", status: "published" }
+      )
+    end
 
     assert_predicate result, :success?
     refute first.reload.currently_published?
     assert draft.reload.currently_published?
+    assert(reports.any? { |error| error.message == "subscriber boom" })
   ensure
     ActiveSupport::Notifications.unsubscribe(boom) if boom
   end
 
-  test "WindowTransitionJob is idempotent after a second run and a raise" do
+  test "WindowTransitionJob retries the subscriber after a raise" do
     recording = record_terms(title: "Later", body: "Wait.")
     publish_at = 1.hour.from_now.change(usec: 0)
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: recording,
-      attributes: { slug: "idemp-#{SecureRandom.hex(4)}", status: "published", publish_at: publish_at }
+      attributes: { slug: "retry-#{SecureRandom.hex(4)}", status: "published", publish_at: publish_at }
     ).value!
     @events.clear
+    calls = 0
+    reports = []
     boom = RecordingStudioTermsAndConditions::Published.subscribe do
+      calls += 1
       raise "retry boom"
     end
+
+    travel_to publish_at do
+      with_error_reports(reports) do
+        RecordingStudioPublishable::WindowTransitionJob.perform_now(
+          recording.id.to_s,
+          "publish",
+          publish_at.iso8601
+        )
+        RecordingStudioPublishable::WindowTransitionJob.perform_now(
+          recording.id.to_s,
+          "publish",
+          publish_at.iso8601
+        )
+      end
+    end
+
+    assert_equal 2, calls
+    assert_equal 2, @events.size
+    assert(reports.any? { |error| error.message == "retry boom" })
+  ensure
+    ActiveSupport::Notifications.unsubscribe(boom) if boom
+  end
+
+  test "a second successful WindowTransitionJob does not emit again" do
+    recording = record_terms(title: "Later", body: "Wait.")
+    publish_at = 1.hour.from_now.change(usec: 0)
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: recording,
+      attributes: { slug: "once-#{SecureRandom.hex(4)}", status: "published", publish_at: publish_at }
+    ).value!
+    @events.clear
 
     travel_to publish_at do
       RecordingStudioPublishable::WindowTransitionJob.perform_now(
@@ -190,8 +228,30 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
     end
 
     assert_equal 1, @events.size
-  ensure
-    ActiveSupport::Notifications.unsubscribe(boom) if boom
+  end
+
+  test "a raising find_by does not emit the Terms event" do
+    recording = record_terms(title: "v1", body: "First.")
+    publish_terms!(recording, slug: "lookup-#{SecureRandom.hex(4)}")
+    @events.clear
+    reports = []
+
+    with_error_reports(reports) do
+      recordings = RecordingStudio::Recording.singleton_class
+      original = recordings.instance_method(:find_by)
+      recordings.define_method(:find_by) { |*| raise ActiveRecord::StatementInvalid, "lookup boom" }
+      ActiveSupport::Notifications.instrument(
+        "published.recording_studio_publishable",
+        recordable_type: RecordingStudioTermsAndConditions::Published::TERMS_TYPE,
+        recording_id: recording.id,
+        recordable_id: recording.recordable.id
+      )
+    ensure
+      recordings.define_method(:find_by, original)
+    end
+
+    assert_empty @events
+    assert(reports.any? { |error| error.message == "lookup boom" })
   end
 
   test "SoleLive draft of the previous live emits no second Terms event" do
@@ -237,5 +297,16 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
       parent_recording: recording,
       attributes: { slug: slug, status: "published" }
     ).value!
+  end
+
+  def with_error_reports(reports)
+    reporter = Object.new
+    reporter.define_singleton_method(:report) { |error, **_kwargs| reports << error }
+    rails = Rails.singleton_class
+    original = rails.instance_method(:error)
+    rails.define_method(:error) { reporter }
+    yield
+  ensure
+    rails.define_method(:error, original)
   end
 end

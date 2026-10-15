@@ -595,6 +595,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes readme, "reaccepting_actors_for"
     assert_includes readme, "Rails.error.report"
     assert_includes readme, "no foreign key to users"
+    assert_includes readme, "host's N+1"
+    assert_includes readme, "authorize_write"
     assert_includes readme, "MIGRATION_NOTES.md"
     assert_includes readme, "recording_studio.terms_and_conditions"
     refute_includes readme, "come later"
@@ -767,6 +769,12 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes published, "SoleLive.call"
     assert_includes published, "Rails.error.report"
     assert_includes published, "idempotency_key"
+    assert_includes published, "created_claim?"
+    assert_includes published, "instrument_terms_event"
+    refute_includes engine_source("lib/recording_studio_terms_and_conditions/terms_acceptance.rb"),
+                    "def terms_recordings_for"
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/sole_live.rb"),
+                    "def self.terms_recordings_for"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/terms_write.rb"), "fork_draft"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/sole_live.rb"), "status: \"draft\""
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/terms_acceptance.rb"),

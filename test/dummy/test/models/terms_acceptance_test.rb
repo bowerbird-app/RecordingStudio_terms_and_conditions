@@ -342,6 +342,9 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
       body: "Second."
     )
     publish_terms!(draft, slug: "batch-v2-#{SecureRandom.hex(4)}")
+    10.times do |index|
+      record_terms("extra #{index}", "Draft #{index}.")
+    end
 
     found = nil
     count = count_sql_queries do
@@ -352,7 +355,7 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     end
 
     assert_equal [[@actor.class.base_class.name, @actor.id]], found
-    assert_operator count, :<, 16
+    assert_operator count, :<=, 12
   end
 
   test "reaccepting_actors_for keeps a destroyed actor id" do

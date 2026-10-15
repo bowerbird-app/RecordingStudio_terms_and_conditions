@@ -17,8 +17,6 @@ module RecordingStudioTermsAndConditions
           next unless installed?
 
           emit_from(event.payload)
-        rescue StandardError => e
-          report_failure(e)
         end
       end
 
@@ -42,9 +40,15 @@ module RecordingStudioTermsAndConditions
       def emit_from(publishable_payload)
         recording_id, terms_id = terms_ids_from(publishable_payload)
         return if recording_id.blank? || terms_id.blank?
-        return if skip_persisted_emit?(recording_id, terms_id)
 
-        ActiveSupport::Notifications.instrument(EVENT, recording_id: recording_id, terms_id: terms_id)
+        recording = lookup_terms_recording(recording_id)
+        return if recording == :failed
+
+        if recording
+          emit_for_recording(recording, terms_id)
+        else
+          instrument_terms_event(recording_id, terms_id)
+        end
       end
 
       def terms_ids_from(publishable_payload)
@@ -54,30 +58,57 @@ module RecordingStudioTermsAndConditions
         [payload[:recording_id], payload[:recordable_id]]
       end
 
-      def skip_persisted_emit?(recording_id, terms_id)
-        recording = find_terms_recording(recording_id)
-        return false unless recording
-
+      def emit_for_recording(recording, terms_id)
         SoleLive.call(recording)
-        !claim_emit?(recording, terms_id)
+        recording.with_lock do
+          next if claimed?(recording, terms_id)
+          next unless instrument_terms_event(recording.id, terms_id)
+
+          take_claim?(recording, idempotency_key(recording, terms_id))
+        end
       end
 
-      def find_terms_recording(recording_id)
-        return unless defined?(RecordingStudio::Recording)
+      def lookup_terms_recording(recording_id)
+        return unless lookup_ready?
 
         RecordingStudio::Recording.find_by(id: recording_id)
-      rescue StandardError
-        nil
+      rescue StandardError => e
+        report_failure(e)
+        :failed
+      end
+
+      def lookup_ready?
+        defined?(RecordingStudio::Recording) &&
+          RecordingStudio::Recording.respond_to?(:connected?) &&
+          RecordingStudio::Recording.connected?
+      end
+
+      def instrument_terms_event(recording_id, terms_id)
+        ActiveSupport::Notifications.instrument(EVENT, recording_id: recording_id, terms_id: terms_id)
+        true
+      rescue StandardError => e
+        report_failure(e)
+        false
       end
 
       def claim_emit?(recording, terms_id)
-        key = idempotency_key(recording, terms_id)
-        return false if recording.event_by_idempotency_key(key)
-
-        recording.log_event!(action: "published", idempotency_key: key)
-        true
+        recording.with_lock { take_claim?(recording, idempotency_key(recording, terms_id)) }
       rescue RecordingStudio::IdempotencyError
         false
+      end
+
+      def take_claim?(recording, key)
+        existing = recording.event_by_idempotency_key(key)
+        event = recording.log_event!(action: "published", idempotency_key: key)
+        created_claim?(existing, event)
+      end
+
+      def created_claim?(existing, event)
+        event.present? && existing.blank?
+      end
+
+      def claimed?(recording, terms_id)
+        recording.event_by_idempotency_key(idempotency_key(recording, terms_id)).present?
       end
 
       def idempotency_key(recording, terms_id)

@@ -176,16 +176,7 @@ module RecordingStudioTermsAndConditions
         wanted = Terms.normalize_kind(kind)
         return [] if Terms::KINDS.exclude?(wanted)
 
-        terms_recordings_for(recording, kind: wanted).pluck(:id)
-      end
-
-      def terms_recordings_for(recording, kind:)
-        root = recording.root_recording || recording
-        root.recordings_query(
-          include_children: true,
-          type: Terms.name,
-          recordable_filters: { kind: kind }
-        )
+        SoleLive.terms_recordings_for(recording, kind: wanted).pluck(:id)
       end
 
       def published_recordables_by_kind(root_recording)
@@ -217,7 +208,7 @@ module RecordingStudioTermsAndConditions
         wanted = Terms.normalize_kind(kind)
         return if Terms::KINDS.exclude?(wanted)
 
-        siblings = terms_recordings_for(recording, kind: wanted)
+        siblings = SoleLive.terms_recordings_for(recording, kind: wanted)
         live_ids = live_recording_ids(siblings)
         return if live_ids.empty?
 

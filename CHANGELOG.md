@@ -29,9 +29,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Scheduled `WindowTransitionJob` go-live drafts the previous live row of
   that kind (SoleLive) before the host query runs.
 - A subscriber exception is reported with `Rails.error` and does not fail
-  Publishable `Update` or skip SoleLive.
-- A second job run for the same window (including a retry) does not emit
-  the Terms event again (`log_event!` idempotency key).
+  Publishable `Update` or skip SoleLive. The emit claim is written only
+  after the instrument returns, so a retry can notify again.
+- A second successful job run for the same window does not emit again.
+  Concurrent claimants compare against a fresh create so only one wins
+  when `idempotency_mode` is `:return_existing`.
+- A lookup failure is reported and skips the Terms event. Subscriber
+  errors no longer swallow SoleLive or claim failures.
 - `reaccepting_actors_for` loads sibling ids with a kind-scoped relation
   and a batched live check instead of per-recording `currently_published?`.
 
