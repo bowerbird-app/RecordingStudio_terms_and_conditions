@@ -15,7 +15,8 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, embed
 - **Workspace**, **Folder**, and **Page** recordables seeded into the dummy host app
 - **Terms** recordable (`RecordingStudioTermsAndConditions::Terms`, product label `"Terms"`) with Publishable opted in on the type
 - **Acceptance** append-only table for clickwrap receipts (not a recordable). New rows store a SHA-256 body digest of the live copy at accept time
-- **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for` / `current_published_by_kind`, `pending_published_list` / `pending_published_for`, `accepted?`, `accepted_any?`, `accept!`, `requires_acceptance?`, `reaccepting?`
+- **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for` / `current_published_by_kind`, `pending_published_list` / `pending_published_for`, `accepted?`, `accepted_any?`, `accept!`, `requires_acceptance?`, `reaccepting?`, `reaccepting_actors_for`
+- **Published hook** `published.recording_studio_terms_and_conditions` after a Terms recording becomes currently published. Payload is `recording_id` and `terms_id` only. Hosts subscribe, call `reaccepting_actors_for`, drop staff, and send their own mail. The gate still redirects the next signed-in request.
 - **Agree screen** for pending live Terms and/or Privacy Policy (Continue + continue-notice, no checkbox on Accept). No PageNav. Each pending document sits in a Flatpack Collapse wrapping `FlatPack::Content`. Continue and the “By continuing…” line stay after someone has already agreed, and a second continue does not change the receipt time. Continue `accept!`s every pending live version. First-time Accept titles name the pending kinds; a later live version still uses “We have updated our…”
 - **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`. Wraps in `mt-3 mb-6` so there is a comfortable gap before the host Agree / Accept button. Pass `link_terms: true` to link “terms” (same tab) and “privacy policy” (`target=_blank`) when those documents are pending. Prefer `recording_studio_terms_agree_button` (Flatpack primary) for the CTA. On submit, call `accept!` for each pending live version
 - **Host helper** `recording_studio_terms_continue_notice` — “By continuing, you agree to [app name]'s Terms & Conditions” and, when privacy is pending, “and privacy policy”. Default size is `:xs` with muted Flatpack copy. The notice sits in `mt-3 mb-3` above the button that follows it (Accept **Continue**, create-password **Sign up**). Terms and privacy each open their own Flatpack Modal. Pass `link: false` for plain text (Accept does this). On the host POST, `accept!` each pending live version with `{ "source" => "continue_notice" }`
@@ -131,6 +132,10 @@ Add [Recording Studio Internationalization](https://github.com/bowerbird-app/Rec
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
 
+## Upgrading from 0.10.1
+
+Bump to **0.11.0**. No schema change. Subscribe to `published.recording_studio_terms_and_conditions` if the host should notify people who already agreed. Call `reaccepting_actors_for` with the payload `recording_id` and `terms_id`. The gate is unchanged.
+
 ## Upgrading from 0.9.0
 
 Bump to **0.10.0**. No schema change. Add `recording_studio_metrics` at tag `v0.2.0`. This gem registers `:terms_acceptances` metrics. When RecordingStudio API is present, the host calls `RecordingStudioMetrics::Api.register!(api: :operations)`.
@@ -224,7 +229,27 @@ The dummy host follows Recording Studio's root recording pattern:
   RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace)
   RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap" })
   RecordingStudioTermsAndConditions.accepted?(user, workspace)
+  RecordingStudioTermsAndConditions.reaccepting_actors_for(
+    recording_id: recording.id,
+    terms_id: terms.id
+  )
   ```
+
+A host that needs to notify people who already agreed (not first-time visitors) subscribes after commit:
+
+```ruby
+RecordingStudioTermsAndConditions::Published.subscribe do |event|
+  payload = event.payload
+  RecordingStudioTermsAndConditions.reaccepting_actors_for(
+    recording_id: payload.fetch(:recording_id),
+    terms_id: payload.fetch(:terms_id)
+  ).each do |actor_type, actor_id|
+    # Load the actor, drop staff with Accessible, send host mail.
+  end
+end
+```
+
+The event name is `published.recording_studio_terms_and_conditions`. It fires when Publishable marks a Terms parent currently published, including a scheduled window. It does not fire for a `TermsWrite` draft, `accept!`, or SoleLive drafting the previous live copy. Use this event, not raw `published.recording_studio_publishable`.
   Live means Publishable `currently_published?` (scheduled-in-the-future is not current). `accept!` raises `RecordingStudioTermsAndConditions::NotLive` for drafts and unpublished versions and does not write a receipt. `indexable` is SEO and is not used for clickwrap. Retrying `accept!` for the same actor and snapshot returns the existing receipt. Saving live Terms forks a draft; people who already agreed stay agreed until that draft is published. A new published version still needs a new tick. The “You already agreed” Alert shows when Agree lists live Terms the person has not accepted yet and they already have a receipt for an older Terms version in that workspace. First-time Agree never shows it.
 - The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends `UsersAuthRedirect` on Users Auth. Both reuse `pending_published_list` / `requires_acceptance?` and the mounted Agree screen. Auth, Agree, Admin, public Terms, and root switch stay reachable so people can sign in, accept, publish, or switch workspace.
 - With Users `>= 0.12.1`, the gem fills the create-password `extra_fields` slot with `recording_studio_terms_continue_notice` and accepts pending live Terms on that POST (`source` `continue_notice`). Continuing the form is the agreement. `root_for_signup` falls back to another root when the current workspace has no live Terms. `NotLive` does not fail signup.

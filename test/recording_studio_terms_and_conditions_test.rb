@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.10.1", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.11.0", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -198,6 +198,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes source, "def accepted?(actor, root"
     assert_includes source, "def requires_acceptance?(actor, root)"
     assert_includes source, "def reaccepting?(actor, root)"
+    assert_includes source, "def reaccepting_actors_for(recording_id:, terms_id:)"
     assert_includes source, "def accepted_any?(actor)"
     assert_includes source, "class NotLive < StandardError"
     helpers = %i[
@@ -209,6 +210,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
       requires_acceptance?
       accept!
       reaccepting?
+      reaccepting_actors_for
       accepted_any?
     ]
     helpers.each do |helper|
@@ -587,6 +589,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes readme, "require_scroll_to_end"
     assert_includes readme, "Upgrading from 0.3.x"
     assert_includes readme, "pending_published_list"
+    assert_includes readme, "published.recording_studio_terms_and_conditions"
+    assert_includes readme, "reaccepting_actors_for"
     assert_includes readme, "MIGRATION_NOTES.md"
     assert_includes readme, "recording_studio.terms_and_conditions"
     refute_includes readme, "come later"
@@ -754,6 +758,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
                     "TermsWrite.call"
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/terms_write.rb"))
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/sole_live.rb"))
+    assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/published.rb"))
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/terms_write.rb"), "fork_draft"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/sole_live.rb"), "status: \"draft\""
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/terms_acceptance.rb"),
@@ -821,6 +826,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.11.0]"
+    assert_includes changelog, "Upgrade notes (0.10.1 → 0.11.0)"
     assert_includes changelog, "## [0.10.0]"
     assert_includes changelog, "## [0.9.0]"
     assert_includes changelog, "## [0.8.1]"
@@ -873,6 +880,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "forks a new draft"
     assert_includes changelog, "Upgrade notes (0.4.0 → 0.4.1)"
     assert_includes changelog, "+ Access"
+    assert_includes notes, "Upgrade from 0.10.1 to 0.11.0"
     assert_includes notes, "Upgrade from 0.9.0 to 0.10.0"
     assert_includes notes, "Upgrade from 0.8.1 to 0.9.0"
     assert_includes notes, "Upgrade from 0.7.8 to 0.8.0"

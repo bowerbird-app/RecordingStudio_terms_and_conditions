@@ -197,6 +197,57 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     assert_equal "First.", RecordingStudioTermsAndConditions::Terms.find(first.terms_id).body
   end
 
+  test "reaccepting_actors_for lists older receipts and skips first-time and current" do
+    recording = record_terms("v1", "First.")
+    publish_terms!(recording, slug: "actors-#{SecureRandom.hex(4)}")
+    RecordingStudioTermsAndConditions.accept!(@actor, recording, source: "clickwrap")
+
+    assert_empty RecordingStudioTermsAndConditions.reaccepting_actors_for(
+      recording_id: recording.id,
+      terms_id: recording.recordable.id
+    )
+
+    draft = RecordingStudioTermsAndConditions::TermsWrite.call(
+      recording: recording,
+      actor: @actor,
+      title: "v2",
+      body: "Second."
+    )
+    publish_terms!(draft, slug: "actors-v2-#{SecureRandom.hex(4)}")
+
+    assert_equal(
+      [[@actor.class.base_class.name, @actor.id]],
+      RecordingStudioTermsAndConditions.reaccepting_actors_for(
+        recording_id: draft.id,
+        terms_id: draft.recordable.id
+      )
+    )
+
+    RecordingStudioTermsAndConditions.accept!(@actor, draft, source: "clickwrap")
+    assert_empty RecordingStudioTermsAndConditions.reaccepting_actors_for(
+      recording_id: draft.id,
+      terms_id: draft.recordable.id
+    )
+  end
+
+  test "reaccepting_actors_for is empty when the snapshot is not the current live" do
+    recording = record_terms("v1", "First.")
+    publish_terms!(recording, slug: "loser-#{SecureRandom.hex(4)}")
+    RecordingStudioTermsAndConditions.accept!(@actor, recording, source: "clickwrap")
+    draft = RecordingStudioTermsAndConditions::TermsWrite.call(
+      recording: recording,
+      actor: @actor,
+      title: "v2",
+      body: "Second."
+    )
+    publish_terms!(draft, slug: "winner-#{SecureRandom.hex(4)}")
+
+    assert_empty RecordingStudioTermsAndConditions.reaccepting_actors_for(
+      recording_id: recording.id,
+      terms_id: recording.recordable.id
+    )
+  end
+
   test "reaccepting? is true only after an older snapshot and a new live version" do
     recording = record_terms("v1", "First.")
     publish_terms!(recording, slug: "reaccept-#{SecureRandom.hex(4)}")

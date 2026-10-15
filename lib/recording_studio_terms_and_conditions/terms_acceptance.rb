@@ -39,6 +39,20 @@ module RecordingStudioTermsAndConditions
         end
       end
 
+      def reaccepting_actors_for(recording_id:, terms_id:)
+        recording, terms = live_current_version(recording_id, terms_id)
+        return [] if recording.blank? || terms.blank?
+
+        older = Acceptance.where(terms_recording_id: sibling_terms_recording_ids(recording))
+                          .where.not(terms_id: terms.id)
+                          .distinct
+                          .pluck(:actor_type, :actor_id)
+        done = Acceptance.where(terms_recording_id: recording.id, terms_id: terms.id)
+                         .distinct
+                         .pluck(:actor_type, :actor_id)
+        older - done
+      end
+
       def accepted_any?(actor)
         return false if actor.blank?
 
@@ -83,6 +97,16 @@ module RecordingStudioTermsAndConditions
           actor_id: actor.id,
           terms_recording_id: sibling_terms_recording_ids(recording)
         ).where.not(terms_id: terms.id).exists?
+      end
+
+      def live_current_version(recording_id, terms_id)
+        recording = RecordingStudio::Recording.find_by(id: recording_id)
+        terms = recording&.recordable
+        return unless terms.is_a?(Terms) && terms.id == terms_id
+        return unless live_version?(recording)
+        return unless current_published_for(recording, kind: terms.kind)&.id == terms_id
+
+        [recording, terms]
       end
 
       def create_receipt!(actor:, recording:, terms:, provenance:)
