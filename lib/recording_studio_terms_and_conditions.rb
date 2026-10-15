@@ -11,6 +11,7 @@ require "recording_studio_terms_and_conditions/engine"
 require "recording_studio_terms_and_conditions/terms_acceptance"
 require "recording_studio_terms_and_conditions/terms_write"
 require "recording_studio_terms_and_conditions/sole_live"
+require "recording_studio_terms_and_conditions/published"
 require "recording_studio_terms_and_conditions/kind_presence"
 require "recording_studio_terms_and_conditions/privacy_route"
 require "recording_studio_terms_and_conditions/table_page"
@@ -68,6 +69,10 @@ module RecordingStudioTermsAndConditions
 
     def reaccepting?(actor, root)
       TermsAcceptance.reaccepting?(actor, root)
+    end
+
+    def reaccepting_actors_for(recording_id:, terms_id:)
+      TermsAcceptance.reaccepting_actors_for(recording_id: recording_id, terms_id: terms_id)
     end
 
     def accepted_any?(actor)
