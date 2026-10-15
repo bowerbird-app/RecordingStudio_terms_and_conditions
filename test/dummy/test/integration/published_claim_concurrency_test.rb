@@ -10,6 +10,10 @@ class PublishedClaimConcurrencyTest < ActiveSupport::TestCase
     @root = RecordingStudio.root_recording_for(@workspace)
   end
 
+  teardown do
+    Workspace.where(id: @workspace.id).delete_all if @workspace
+  end
+
   test "two concurrent claimants yield one win and one notification" do
     claim_recording = publish_without_terms_event("Claim body")
     notify_recording = publish_without_terms_event("Notify body")
