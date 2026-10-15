@@ -17,8 +17,8 @@ module RecordingStudioTermsAndConditions
           next unless installed?
 
           emit_from(event.payload)
-        rescue StandardError => error
-          report_failure(error)
+        rescue StandardError => e
+          report_failure(e)
         end
       end
 
@@ -40,20 +40,26 @@ module RecordingStudioTermsAndConditions
       private
 
       def emit_from(publishable_payload)
-        payload = publishable_payload.to_h.symbolize_keys
-        return unless payload[:recordable_type] == TERMS_TYPE
-
-        recording_id = payload[:recording_id]
-        terms_id = payload[:recordable_id]
+        recording_id, terms_id = terms_ids_from(publishable_payload)
         return if recording_id.blank? || terms_id.blank?
-
-        recording = find_terms_recording(recording_id)
-        if recording
-          SoleLive.call(recording)
-          return unless claim_emit?(recording, terms_id)
-        end
+        return if skip_persisted_emit?(recording_id, terms_id)
 
         ActiveSupport::Notifications.instrument(EVENT, recording_id: recording_id, terms_id: terms_id)
+      end
+
+      def terms_ids_from(publishable_payload)
+        payload = publishable_payload.to_h.symbolize_keys
+        return [nil, nil] unless payload[:recordable_type] == TERMS_TYPE
+
+        [payload[:recording_id], payload[:recordable_id]]
+      end
+
+      def skip_persisted_emit?(recording_id, terms_id)
+        recording = find_terms_recording(recording_id)
+        return false unless recording
+
+        SoleLive.call(recording)
+        !claim_emit?(recording, terms_id)
       end
 
       def find_terms_recording(recording_id)

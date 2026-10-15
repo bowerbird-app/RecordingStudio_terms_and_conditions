@@ -43,14 +43,7 @@ module RecordingStudioTermsAndConditions
         recording, terms = live_current_version(recording_id, terms_id)
         return [] if recording.blank? || terms.blank?
 
-        older = Acceptance.where(terms_recording_id: sibling_terms_recording_ids(recording, kind: terms.kind))
-                          .where.not(terms_id: terms.id)
-                          .distinct
-                          .pluck(:actor_type, :actor_id)
-        done = Acceptance.where(terms_recording_id: recording.id, terms_id: terms.id)
-                         .distinct
-                         .pluck(:actor_type, :actor_id)
-        older - done
+        older_actors_for(recording, terms) - current_actors_for(recording, terms)
       end
 
       def accepted_any?(actor)
@@ -100,15 +93,38 @@ module RecordingStudioTermsAndConditions
       end
 
       def live_current_version(recording_id, terms_id)
+        recording = terms_recording_for(recording_id, terms_id)
+        terms = Terms.find_by(id: terms_id) if recording
+        return unless recording && terms && live_current?(recording, terms)
+
+        [recording, terms]
+      end
+
+      def terms_recording_for(recording_id, terms_id)
         recording = RecordingStudio::Recording.find_by(id: recording_id)
         return unless recording&.recordable_type == Terms.name && recording.recordable_id == terms_id
 
-        terms = Terms.find_by(id: terms_id)
-        return unless terms
-        return unless live_recording_ids([recording.id]).include?(recording.id)
-        return unless latest_live_recording_for(recording, kind: terms.kind)&.id == recording.id
+        recording
+      end
 
-        [recording, terms]
+      def live_current?(recording, terms)
+        live_recording_ids([recording.id]).include?(recording.id) &&
+          latest_live_recording_for(recording, kind: terms.kind)&.id == recording.id
+      end
+
+      def older_actors_for(recording, terms)
+        actor_pairs(
+          Acceptance.where(terms_recording_id: sibling_terms_recording_ids(recording, kind: terms.kind))
+                    .where.not(terms_id: terms.id)
+        )
+      end
+
+      def current_actors_for(recording, terms)
+        actor_pairs(Acceptance.where(terms_recording_id: recording.id, terms_id: terms.id))
+      end
+
+      def actor_pairs(scope)
+        scope.distinct.pluck(:actor_type, :actor_id)
       end
 
       def create_receipt!(actor:, recording:, terms:, provenance:)
@@ -184,8 +200,12 @@ module RecordingStudioTermsAndConditions
         live_ids = live_recording_ids(recordings)
         return {} if live_ids.empty?
 
-        terms_by_id = Terms.where(id: recordings.where(id: live_ids).select(:recordable_id)).index_by(&:id)
-        recordings.where(id: live_ids).each_with_object({}) do |recording, chosen|
+        choose_live_by_kind(recordings.where(id: live_ids))
+      end
+
+      def choose_live_by_kind(live_recordings)
+        terms_by_id = Terms.where(id: live_recordings.select(:recordable_id)).index_by(&:id)
+        live_recordings.each_with_object({}) do |recording, chosen|
           kind = terms_by_id[recording.recordable_id]&.kind.to_s
           next if Terms::KINDS.exclude?(kind) || keep_existing_recording?(chosen[kind], recording)
 
