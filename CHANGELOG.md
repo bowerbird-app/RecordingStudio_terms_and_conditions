@@ -15,10 +15,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Require `recording_studio_metrics` `>= 0.3.0, < 0.4`. Development and dummy Gemfiles pin `v0.3.1`. Each metric's `catalog_metadata` is what Metrics 0.3 discovery (and MCP 0.17) lists. Permission stays in `api_authorize` (`Api::Access.can_view?`). This gem still does not call `RecordingStudioMetrics::Api.register!`.
 
-### Upgrade notes (0.10.1 → 0.12.0)
+### Upgrade notes (0.11.0 → 0.12.0)
 - No schema change. Pin this gem at `0.12.0`.
 - Pin `recording_studio_metrics` to `>= 0.3.0, < 0.4` (tag `v0.3.1`).
 - When RecordingStudio API is present, the host still calls `RecordingStudioMetrics::Api.register!(api: :operations)` once.
+
+## [0.11.0] - 2026-10-15
+
+### Added
+- After a Terms recording becomes currently published, the gem emits
+  `published.recording_studio_terms_and_conditions` with `recording_id` and
+  `terms_id`. The event is after commit. It follows Publishable
+  `published.recording_studio_publishable`, including scheduled
+  `WindowTransitionJob` go-live. The payload has no actors, emails, or body.
+- `RecordingStudioTermsAndConditions.reaccepting_actors_for(recording_id:, terms_id:)`
+  returns distinct `[actor_type, actor_id]` pairs for people who accepted an
+  older snapshot of that kind and have not accepted this one. First-time
+  users are omitted. Hosts drop staff and send their own mail.
+- `RecordingStudioTermsAndConditions::Published.subscribe` wraps the event
+  name the same way `RecordingStudioPublishable.subscribe` does.
+
+### Fixed
+- Live-version comparison uses `<=>` so two live rows of one kind no longer
+  raise `NoMethodError` on `Array#<=` during `current_published_for`, the
+  clickwrap gate, or `reaccepting_actors_for`.
+- Scheduled `WindowTransitionJob` go-live drafts the previous live row of
+  that kind (SoleLive) before the host query runs.
+- A subscriber exception is reported with `Rails.error` and does not fail
+  Publishable `Update` or skip SoleLive. The emit claim is written only
+  after the instrument returns, so a retry can notify again.
+- A second successful job run for the same window does not emit again.
+  Concurrent claimants compare against a fresh create so only one wins
+  when `idempotency_mode` is `:return_existing`.
+- A lookup failure is reported and skips the Terms event. Subscriber
+  errors no longer swallow SoleLive or claim failures.
+- `reaccepting_actors_for` loads sibling ids with a kind-scoped relation
+  and a batched live check instead of per-recording `currently_published?`.
+
+### Upgrade notes (0.10.1 → 0.11.0)
+- No schema change. Pin this gem at `0.11.0`.
+- Subscribe to `RecordingStudioTermsAndConditions::Published::EVENT` when a
+  new live Terms or Privacy Policy version should notify people who already
+  agreed. Then call `reaccepting_actors_for` with the payload ids. Do not
+  subscribe to raw Publishable `published` for this job.
+- The clickwrap gate is unchanged. This event does not send mail.
 
 ## [0.10.1] - 2026-10-09
 

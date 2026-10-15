@@ -18,9 +18,13 @@ Then:
 
 The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
 
-## Upgrade from 0.10.x to 0.12.0
+## Upgrade from 0.11.0 to 0.12.0
 
 No schema change. Pin this gem at `0.12.0`. Require `recording_studio_metrics` `>= 0.3.0, < 0.4` (tag `v0.3.1`). `terms_acceptances.over_time` accepts `group_by=kind`. Permission stays in `api_authorize`. When RecordingStudio API is present, the host still calls `RecordingStudioMetrics::Api.register!(api: :operations)`.
+
+## Upgrade from 0.10.1 to 0.11.0
+
+No schema change. Pin this gem at `0.11.0`. After a Terms recording becomes currently published, subscribe to `published.recording_studio_terms_and_conditions` and call `reaccepting_actors_for(recording_id:, terms_id:)`. The payload is those two ids. Hosts drop staff and send their own mail. Rescue subscriber errors; the gem already reports them and still drafts the previous live row. A later job can notify again if the subscriber raised before the emit was claimed. The claim is `log_event!` (`record!`); a denying `authorize_write` drops it. A destroyed user can still appear in the list (no FK from acceptances to users). The clickwrap gate is unchanged.
 
 ## Upgrade from 0.9.0 to 0.10.0
 

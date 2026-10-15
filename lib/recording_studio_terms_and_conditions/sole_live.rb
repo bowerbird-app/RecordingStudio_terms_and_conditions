@@ -54,7 +54,7 @@ module RecordingStudioTermsAndConditions
       return recordings if kind.blank?
 
       wanted = Terms.normalize_kind(kind)
-      recordings.select { |candidate| candidate.recordable&.kind.to_s == wanted }
+      recordings.where(recordable_id: Terms.where(kind: wanted).select(:id))
     end
   end
 end

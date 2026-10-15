@@ -197,6 +197,208 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     assert_equal "First.", RecordingStudioTermsAndConditions::Terms.find(first.terms_id).body
   end
 
+  test "reaccepting_actors_for lists older receipts and skips first-time and current" do
+    recording = record_terms("v1", "First.")
+    publish_terms!(recording, slug: "actors-#{SecureRandom.hex(4)}")
+    RecordingStudioTermsAndConditions.accept!(@actor, recording, source: "clickwrap")
+
+    assert_empty RecordingStudioTermsAndConditions.reaccepting_actors_for(
+      recording_id: recording.id,
+      terms_id: recording.recordable.id
+    )
+
+    draft = RecordingStudioTermsAndConditions::TermsWrite.call(
+      recording: recording,
+      actor: @actor,
+      title: "v2",
+      body: "Second."
+    )
+    publish_terms!(draft, slug: "actors-v2-#{SecureRandom.hex(4)}")
+
+    assert_equal(
+      [[@actor.class.base_class.name, @actor.id]],
+      RecordingStudioTermsAndConditions.reaccepting_actors_for(
+        recording_id: draft.id,
+        terms_id: draft.recordable.id
+      )
+    )
+
+    RecordingStudioTermsAndConditions.accept!(@actor, draft, source: "clickwrap")
+    assert_empty RecordingStudioTermsAndConditions.reaccepting_actors_for(
+      recording_id: draft.id,
+      terms_id: draft.recordable.id
+    )
+  end
+
+  test "reaccepting_actors_for stays on one workspace root" do
+    home = record_terms("Home v1", "Home first.")
+    publish_terms!(home, slug: "home-#{SecureRandom.hex(4)}")
+    RecordingStudioTermsAndConditions.accept!(@actor, home, source: "clickwrap")
+    away = @other_root.record(RecordingStudioTermsAndConditions::Terms) do |terms|
+      terms.title = "Away v1"
+      terms.body = "Away first."
+    end
+    publish_terms!(away, slug: "away-#{SecureRandom.hex(4)}")
+    RecordingStudioTermsAndConditions.accept!(@other_actor, away, source: "clickwrap")
+
+    home_v2 = RecordingStudioTermsAndConditions::TermsWrite.call(
+      recording: home,
+      actor: @actor,
+      title: "Home v2",
+      body: "Home second."
+    )
+    away_v2 = RecordingStudioTermsAndConditions::TermsWrite.call(
+      recording: away,
+      actor: @other_actor,
+      title: "Away v2",
+      body: "Away second."
+    )
+    publish_terms!(home_v2, slug: "home-v2-#{SecureRandom.hex(4)}")
+    publish_terms!(away_v2, slug: "away-v2-#{SecureRandom.hex(4)}")
+
+    assert_equal(
+      [[@actor.class.base_class.name, @actor.id]],
+      RecordingStudioTermsAndConditions.reaccepting_actors_for(
+        recording_id: home_v2.id,
+        terms_id: home_v2.recordable.id
+      )
+    )
+    assert_equal(
+      [[@other_actor.class.base_class.name, @other_actor.id]],
+      RecordingStudioTermsAndConditions.reaccepting_actors_for(
+        recording_id: away_v2.id,
+        terms_id: away_v2.recordable.id
+      )
+    )
+  end
+
+  test "reaccepting_actors_for stays on one kind" do
+    terms = record_terms("Terms v1", "Terms first.")
+    publish_terms!(terms, slug: "kind-terms-#{SecureRandom.hex(4)}")
+    RecordingStudioTermsAndConditions.accept!(@actor, terms, source: "clickwrap")
+    privacy = @root.record(RecordingStudioTermsAndConditions::Terms) do |row|
+      row.title = "Privacy v1"
+      row.body = "Privacy first."
+      row.kind = RecordingStudioTermsAndConditions::Terms::KIND_PRIVACY
+    end
+    publish_terms!(privacy, slug: "kind-privacy-#{SecureRandom.hex(4)}")
+    RecordingStudioTermsAndConditions.accept!(@other_actor, privacy, source: "clickwrap")
+
+    terms_v2 = RecordingStudioTermsAndConditions::TermsWrite.call(
+      recording: terms,
+      actor: @actor,
+      title: "Terms v2",
+      body: "Terms second."
+    )
+    publish_terms!(terms_v2, slug: "kind-terms-v2-#{SecureRandom.hex(4)}")
+
+    assert_equal(
+      [[@actor.class.base_class.name, @actor.id]],
+      RecordingStudioTermsAndConditions.reaccepting_actors_for(
+        recording_id: terms_v2.id,
+        terms_id: terms_v2.recordable.id
+      )
+    )
+    assert_empty RecordingStudioTermsAndConditions.reaccepting_actors_for(
+      recording_id: privacy.id,
+      terms_id: privacy.recordable.id
+    )
+  end
+
+  test "reaccepting_actors_for does not raise when two versions of one kind are live" do
+    first = record_terms("v1", "First.")
+    publish_terms!(first, slug: "overlap-#{SecureRandom.hex(4)}")
+    RecordingStudioTermsAndConditions.accept!(@actor, first, source: "clickwrap")
+    draft = RecordingStudioTermsAndConditions::TermsWrite.call(
+      recording: first,
+      actor: @actor,
+      title: "v2",
+      body: "Second."
+    )
+    without_sole_live do
+      publish_terms!(draft, slug: "overlap-v2-#{SecureRandom.hex(4)}")
+    end
+
+    assert first.reload.currently_published?
+    assert draft.reload.currently_published?
+    assert_equal draft.recordable, RecordingStudioTermsAndConditions.current_published_for(@workspace)
+    assert_equal(
+      [[@actor.class.base_class.name, @actor.id]],
+      RecordingStudioTermsAndConditions.reaccepting_actors_for(
+        recording_id: draft.id,
+        terms_id: draft.recordable.id
+      )
+    )
+  end
+
+  test "reaccepting_actors_for batches sibling and live checks" do
+    first = record_terms("v1", "First.")
+    publish_terms!(first, slug: "batch-#{SecureRandom.hex(4)}")
+    RecordingStudioTermsAndConditions.accept!(@actor, first, source: "clickwrap")
+    draft = RecordingStudioTermsAndConditions::TermsWrite.call(
+      recording: first,
+      actor: @actor,
+      title: "v2",
+      body: "Second."
+    )
+    publish_terms!(draft, slug: "batch-v2-#{SecureRandom.hex(4)}")
+    20.times do |index|
+      record_terms("extra #{index}", "Draft #{index}.")
+    end
+
+    found = nil
+    count = count_sql_queries do
+      found = RecordingStudioTermsAndConditions.reaccepting_actors_for(
+        recording_id: draft.id,
+        terms_id: draft.recordable.id
+      )
+    end
+
+    assert_equal [[@actor.class.base_class.name, @actor.id]], found
+    assert_operator count, :<=, 12
+  end
+
+  test "reaccepting_actors_for keeps a destroyed actor id" do
+    first = record_terms("v1", "First.")
+    publish_terms!(first, slug: "gone-#{SecureRandom.hex(4)}")
+    RecordingStudioTermsAndConditions.accept!(@actor, first, source: "clickwrap")
+    actor_id = @actor.id
+    @actor.destroy!
+    draft = RecordingStudioTermsAndConditions::TermsWrite.call(
+      recording: first,
+      actor: @other_actor,
+      title: "v2",
+      body: "Second."
+    )
+    publish_terms!(draft, slug: "gone-v2-#{SecureRandom.hex(4)}")
+
+    assert_equal(
+      [[User.base_class.name, actor_id]],
+      RecordingStudioTermsAndConditions.reaccepting_actors_for(
+        recording_id: draft.id,
+        terms_id: draft.recordable.id
+      )
+    )
+  end
+
+  test "reaccepting_actors_for is empty when the snapshot is not the current live" do
+    recording = record_terms("v1", "First.")
+    publish_terms!(recording, slug: "loser-#{SecureRandom.hex(4)}")
+    RecordingStudioTermsAndConditions.accept!(@actor, recording, source: "clickwrap")
+    draft = RecordingStudioTermsAndConditions::TermsWrite.call(
+      recording: recording,
+      actor: @actor,
+      title: "v2",
+      body: "Second."
+    )
+    publish_terms!(draft, slug: "winner-#{SecureRandom.hex(4)}")
+
+    assert_empty RecordingStudioTermsAndConditions.reaccepting_actors_for(
+      recording_id: recording.id,
+      terms_id: recording.recordable.id
+    )
+  end
+
   test "reaccepting? is true only after an older snapshot and a new live version" do
     recording = record_terms("v1", "First.")
     publish_terms!(recording, slug: "reaccept-#{SecureRandom.hex(4)}")
@@ -307,5 +509,32 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
 
   def unique_name(prefix)
     "#{prefix} #{SecureRandom.hex(4)}"
+  end
+
+  def without_sole_live
+    singleton = RecordingStudioTermsAndConditions::SoleLive.singleton_class
+    original_call = singleton.instance_method(:call)
+    original_after = singleton.instance_method(:call_after_publishable_update)
+    singleton.define_method(:call) { |*| }
+    singleton.define_method(:call_after_publishable_update) { |*| }
+    yield
+  ensure
+    singleton.define_method(:call, original_call)
+    singleton.define_method(:call_after_publishable_update, original_after)
+  end
+
+  def count_sql_queries
+    count = 0
+    callback = lambda do |_name, _started, _finished, _id, payload|
+      next if payload[:cached]
+      next if payload[:name].to_s == "SCHEMA"
+
+      sql = payload[:sql].to_s
+      next if sql.match?(/\A(BEGIN|COMMIT|ROLLBACK|SAVEPOINT|RELEASE)/i)
+
+      count += 1
+    end
+    ActiveSupport::Notifications.subscribed(callback, "sql.active_record") { yield }
+    count
   end
 end

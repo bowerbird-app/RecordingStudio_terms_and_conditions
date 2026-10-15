@@ -15,7 +15,8 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, embed
 - **Workspace**, **Folder**, and **Page** recordables seeded into the dummy host app
 - **Terms** recordable (`RecordingStudioTermsAndConditions::Terms`, product label `"Terms"`) with Publishable opted in on the type
 - **Acceptance** append-only table for clickwrap receipts (not a recordable). New rows store a SHA-256 body digest of the live copy at accept time
-- **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for` / `current_published_by_kind`, `pending_published_list` / `pending_published_for`, `accepted?`, `accepted_any?`, `accept!`, `requires_acceptance?`, `reaccepting?`
+- **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for` / `current_published_by_kind`, `pending_published_list` / `pending_published_for`, `accepted?`, `accepted_any?`, `accept!`, `requires_acceptance?`, `reaccepting?`, `reaccepting_actors_for`
+- **Published hook** `published.recording_studio_terms_and_conditions` after a Terms recording becomes currently published. Payload is `recording_id` and `terms_id` only. Hosts subscribe, call `reaccepting_actors_for`, drop staff, and send their own mail. The gate still redirects the next signed-in request.
 - **Agree screen** for pending live Terms and/or Privacy Policy (Continue + continue-notice, no checkbox on Accept). No PageNav. Each pending document sits in a Flatpack Collapse wrapping `FlatPack::Content`. Continue and the “By continuing…” line stay after someone has already agreed, and a second continue does not change the receipt time. Continue `accept!`s every pending live version. First-time Accept titles name the pending kinds; a later live version still uses “We have updated our…”
 - **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`. Wraps in `mt-3 mb-6` so there is a comfortable gap before the host Agree / Accept button. Pass `link_terms: true` to link “terms” (same tab) and “privacy policy” (`target=_blank`) when those documents are pending. Prefer `recording_studio_terms_agree_button` (Flatpack primary) for the CTA. On submit, call `accept!` for each pending live version
 - **Host helper** `recording_studio_terms_continue_notice` — “By continuing, you agree to [app name]'s Terms & Conditions” and, when privacy is pending, “and privacy policy”. Default size is `:xs` with muted Flatpack copy. The notice sits in `mt-3 mb-3` above the button that follows it (Accept **Continue**, create-password **Sign up**). Terms and privacy each open their own Flatpack Modal. Pass `link: false` for plain text (Accept does this). On the host POST, `accept!` each pending live version with `{ "source" => "continue_notice" }`
@@ -131,9 +132,13 @@ Add [Recording Studio Internationalization](https://github.com/bowerbird-app/Rec
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
 
-## Upgrading from 0.10.x
+## Upgrading from 0.11.0
 
 Bump to **0.12.0**. No schema change. Require `recording_studio_metrics` `>= 0.3.0, < 0.4` (tag `v0.3.1`). `terms_acceptances.over_time` accepts `group_by=kind` (the accepted Terms snapshot's kind; groups under 5 receipts fold into `other`). Permission stays in `api_authorize`. The host still calls `RecordingStudioMetrics::Api.register!(api: :operations)` when the API gem is present.
+
+## Upgrading from 0.10.1
+
+Bump to **0.11.0**. No schema change. Subscribe to `published.recording_studio_terms_and_conditions` if the host should notify people who already agreed. Call `reaccepting_actors_for` with the payload `recording_id` and `terms_id`. The gate is unchanged.
 
 ## Upgrading from 0.9.0
 
@@ -228,8 +233,38 @@ The dummy host follows Recording Studio's root recording pattern:
   RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace)
   RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap" })
   RecordingStudioTermsAndConditions.accepted?(user, workspace)
+  terms_recording = RecordingStudio::Recording.find_by(
+    recordable_type: RecordingStudioTermsAndConditions::Terms.name,
+    recordable_id: terms.id
+  )
+  RecordingStudioTermsAndConditions.reaccepting_actors_for(
+    recording_id: terms_recording.id,
+    terms_id: terms.id
+  )
   ```
-  Live means Publishable `currently_published?` (scheduled-in-the-future is not current). `accept!` raises `RecordingStudioTermsAndConditions::NotLive` for drafts and unpublished versions and does not write a receipt. `indexable` is SEO and is not used for clickwrap. Retrying `accept!` for the same actor and snapshot returns the existing receipt. Saving live Terms forks a draft; people who already agreed stay agreed until that draft is published. A new published version still needs a new tick. The “You already agreed” Alert shows when Agree lists live Terms the person has not accepted yet and they already have a receipt for an older Terms version in that workspace. First-time Agree never shows it.
+
+A host that needs to notify people who already agreed (not first-time visitors) subscribes after commit:
+
+```ruby
+RecordingStudioTermsAndConditions::Published.subscribe do |event|
+  payload = event.payload
+  RecordingStudioTermsAndConditions.reaccepting_actors_for(
+    recording_id: payload.fetch(:recording_id),
+    terms_id: payload.fetch(:terms_id)
+  ).each do |actor_type, actor_id|
+    actor = actor_type.safe_constantize&.find_by(id: actor_id)
+    next if actor.blank?
+    # Drop staff with Accessible, send host mail.
+  end
+rescue StandardError => error
+  Rails.error.report(error, handled: true)
+end
+```
+
+That `find_by` loop is the host's N+1. The gem returns actor ids and does not load users. Batch the load in the host if the list is large.
+
+The event name is `published.recording_studio_terms_and_conditions`. It fires when Publishable marks a Terms parent currently published, including a scheduled window. It does not fire for a `TermsWrite` draft, `accept!`, or SoleLive drafting the previous live copy. Use this event, not raw `published.recording_studio_publishable`. A subscriber exception is reported with `Rails.error` and does not fail the publish or skip SoleLive; a later `WindowTransitionJob` can notify again. A successful emit is claimed with `recording.log_event!` (`record!`), so `authorize_write` and record hooks run. A denying authorizer drops or fails that claim. A second successful job for the same window does not emit again.
+- Live means Publishable `currently_published?` (scheduled-in-the-future is not current). `accept!` raises `RecordingStudioTermsAndConditions::NotLive` for drafts and unpublished versions and does not write a receipt. `indexable` is SEO and is not used for clickwrap. Retrying `accept!` for the same actor and snapshot returns the existing receipt. Saving live Terms forks a draft; people who already agreed stay agreed until that draft is published. A new published version still needs a new tick. The “You already agreed” Alert shows when Agree lists live Terms the person has not accepted yet and they already have a receipt for an older Terms version in that workspace. First-time Agree never shows it. `reaccepting_actors_for` is scoped to that workspace root and kind. A destroyed user can still appear: acceptances have no foreign key to users, so the host must tolerate a missing actor.
 - The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends `UsersAuthRedirect` on Users Auth. Both reuse `pending_published_list` / `requires_acceptance?` and the mounted Agree screen. Auth, Agree, Admin, public Terms, and root switch stay reachable so people can sign in, accept, publish, or switch workspace.
 - With Users `>= 0.12.1`, the gem fills the create-password `extra_fields` slot with `recording_studio_terms_continue_notice` and accepts pending live Terms on that POST (`source` `continue_notice`). Continuing the form is the agreement. `root_for_signup` falls back to another root when the current workspace has no live Terms. `NotLive` does not fail signup.
 - Hosts can render `recording_studio_terms_agree` or `recording_studio_terms_agree(inside_form: true)` inside signup or similar. The helper is the `required` `agreed` checkbox only. On the host POST, call `accept!` for the pending live version — do not invent a second receipt.
