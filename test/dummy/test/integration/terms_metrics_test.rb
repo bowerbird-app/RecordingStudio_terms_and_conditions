@@ -167,7 +167,12 @@ class TermsMetricsTest < ActiveSupport::TestCase
       resource: :terms_acceptances
     ).map { |row| row[:identifier].to_s }
     denied_ids = RecordingStudioMetrics.discover(
-      context: unauthorized_site_context,
+      context: RecordingStudioMetrics::Context.new(
+        scope: :root,
+        actor: @outsider,
+        workspace_id: @workspace.id,
+        timezone: "UTC"
+      ),
       api: :operations,
       resource: :terms_acceptances
     ).map { |row| row[:identifier].to_s }
@@ -194,15 +199,6 @@ class TermsMetricsTest < ActiveSupport::TestCase
       scope: :site,
       actor: @staff,
       site_authorized: true,
-      timezone: "UTC"
-    )
-  end
-
-  def unauthorized_site_context
-    RecordingStudioMetrics::Context.new(
-      scope: :site,
-      actor: @outsider,
-      site_authorized: false,
       timezone: "UTC"
     )
   end
