@@ -53,12 +53,15 @@ class PublishedTest < Minitest::Test
   end
 
   def test_removing_install_stops_the_event
-    source = File.read(File.expand_path("../lib/recording_studio_terms_and_conditions/published.rb", __dir__))
-    engine = File.read(File.expand_path("../lib/recording_studio_terms_and_conditions/engine.rb", __dir__))
+    hooks = RecordingStudioPublishable.configuration.hooks
+    hooks.clear(RecordingStudioTermsAndConditions::Published::LATCH)
 
-    assert_includes source, "published.recording_studio_terms_and_conditions"
-    assert_includes source, "RecordingStudioPublishable.subscribe(:published)"
-    assert_includes engine, "RecordingStudioTermsAndConditions::Published.install!"
+    refute RecordingStudioTermsAndConditions::Published.installed?
+    instrument_publishable(recordable_type: RecordingStudioTermsAndConditions::Published::TERMS_TYPE)
+
+    assert_empty @events
+  ensure
+    hooks.on(RecordingStudioTermsAndConditions::Published::LATCH) { true }
   end
 
   private

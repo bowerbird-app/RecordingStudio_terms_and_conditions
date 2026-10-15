@@ -14,7 +14,11 @@ module RecordingStudioTermsAndConditions
 
         RecordingStudioPublishable.configuration.hooks.on(LATCH) { true }
         RecordingStudioPublishable.subscribe(:published) do |event|
+          next unless installed?
+
           emit_from(event.payload)
+        rescue StandardError => error
+          report_failure(error)
         end
       end
 
@@ -28,6 +32,11 @@ module RecordingStudioTermsAndConditions
         end
       end
 
+      def installed?
+        defined?(RecordingStudioPublishable) &&
+          RecordingStudioPublishable.configuration.hooks.registered?(LATCH)
+      end
+
       private
 
       def emit_from(publishable_payload)
@@ -38,7 +47,47 @@ module RecordingStudioTermsAndConditions
         terms_id = payload[:recordable_id]
         return if recording_id.blank? || terms_id.blank?
 
+        recording = find_terms_recording(recording_id)
+        if recording
+          SoleLive.call(recording)
+          return unless claim_emit?(recording, terms_id)
+        end
+
         ActiveSupport::Notifications.instrument(EVENT, recording_id: recording_id, terms_id: terms_id)
+      end
+
+      def find_terms_recording(recording_id)
+        return unless defined?(RecordingStudio::Recording)
+
+        RecordingStudio::Recording.find_by(id: recording_id)
+      rescue StandardError
+        nil
+      end
+
+      def claim_emit?(recording, terms_id)
+        key = idempotency_key(recording, terms_id)
+        return false if recording.event_by_idempotency_key(key)
+
+        recording.log_event!(action: "published", idempotency_key: key)
+        true
+      rescue RecordingStudio::IdempotencyError
+        false
+      end
+
+      def idempotency_key(recording, terms_id)
+        "#{EVENT}:#{recording.id}:#{terms_id}"
+      end
+
+      def report_failure(error)
+        if defined?(Rails) && Rails.respond_to?(:logger) && Rails.logger
+          Rails.logger.error(
+            "[RecordingStudioTermsAndConditions] published subscriber failed: " \
+            "#{error.class}: #{error.message}"
+          )
+        end
+        return unless defined?(Rails) && Rails.respond_to?(:error) && Rails.error
+
+        Rails.error.report(error, handled: true)
       end
     end
   end

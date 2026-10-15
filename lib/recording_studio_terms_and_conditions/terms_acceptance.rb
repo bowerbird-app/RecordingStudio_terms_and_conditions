@@ -43,7 +43,7 @@ module RecordingStudioTermsAndConditions
         recording, terms = live_current_version(recording_id, terms_id)
         return [] if recording.blank? || terms.blank?
 
-        older = Acceptance.where(terms_recording_id: sibling_terms_recording_ids(recording))
+        older = Acceptance.where(terms_recording_id: sibling_terms_recording_ids(recording, kind: terms.kind))
                           .where.not(terms_id: terms.id)
                           .distinct
                           .pluck(:actor_type, :actor_id)
@@ -95,16 +95,18 @@ module RecordingStudioTermsAndConditions
         Acceptance.where(
           actor_type: actor.class.base_class.name,
           actor_id: actor.id,
-          terms_recording_id: sibling_terms_recording_ids(recording)
+          terms_recording_id: sibling_terms_recording_ids(recording, kind: terms.kind)
         ).where.not(terms_id: terms.id).exists?
       end
 
       def live_current_version(recording_id, terms_id)
         recording = RecordingStudio::Recording.find_by(id: recording_id)
-        terms = recording&.recordable
-        return unless terms.is_a?(Terms) && terms.id == terms_id
-        return unless live_version?(recording)
-        return unless current_published_for(recording, kind: terms.kind)&.id == terms_id
+        return unless recording&.recordable_type == Terms.name && recording.recordable_id == terms_id
+
+        terms = Terms.find_by(id: terms_id)
+        return unless terms
+        return unless live_recording_ids([recording.id]).include?(recording.id)
+        return unless latest_live_recording_for(recording, kind: terms.kind)&.id == recording.id
 
         [recording, terms]
       end
@@ -154,9 +156,20 @@ module RecordingStudioTermsAndConditions
         root.respond_to?(:id) && root.id.present? && RecordingStudio.root_allowed?(root.class.name)
       end
 
-      def sibling_terms_recording_ids(recording)
-        kind = recording.recordable&.kind
-        SoleLive.terms_recordings_for(recording, kind: kind).map(&:id)
+      def sibling_terms_recording_ids(recording, kind:)
+        wanted = Terms.normalize_kind(kind)
+        return [] if Terms::KINDS.exclude?(wanted)
+
+        terms_recordings_for(recording, kind: wanted).pluck(:id)
+      end
+
+      def terms_recordings_for(recording, kind:)
+        root = recording.root_recording || recording
+        root.recordings_query(
+          include_children: true,
+          type: Terms.name,
+          recordable_filters: { kind: kind }
+        )
       end
 
       def published_recordables_by_kind(root_recording)
@@ -168,23 +181,52 @@ module RecordingStudioTermsAndConditions
 
       def latest_live_recordings_by_kind(root_recording)
         recordings = root_recording.recordings_query(include_children: true, type: Terms.name)
-        recordings.each_with_object({}) do |recording, chosen|
-          kind = live_terms_kind(recording)
-          next if kind.blank? || keep_existing_recording?(chosen[kind], recording)
+        live_ids = live_recording_ids(recordings)
+        return {} if live_ids.empty?
+
+        terms_by_id = Terms.where(id: recordings.where(id: live_ids).select(:recordable_id)).index_by(&:id)
+        recordings.where(id: live_ids).each_with_object({}) do |recording, chosen|
+          kind = terms_by_id[recording.recordable_id]&.kind.to_s
+          next if Terms::KINDS.exclude?(kind) || keep_existing_recording?(chosen[kind], recording)
 
           chosen[kind] = recording
         end
       end
 
-      def live_terms_kind(recording)
-        return unless recording.currently_published?
+      def latest_live_recording_for(recording, kind:)
+        wanted = Terms.normalize_kind(kind)
+        return if Terms::KINDS.exclude?(wanted)
 
-        kind = recording.recordable&.kind.to_s
-        kind if Terms::KINDS.include?(kind)
+        siblings = terms_recordings_for(recording, kind: wanted)
+        live_ids = live_recording_ids(siblings)
+        return if live_ids.empty?
+
+        siblings.where(id: live_ids).max_by { |candidate| publish_sort_key(candidate) }
+      end
+
+      def live_recording_ids(recordings)
+        scope = if recordings.is_a?(ActiveRecord::Relation)
+                  recordings
+                else
+                  RecordingStudio::Recording.where(id: recordings)
+                end
+        table = RecordingStudio::Recording.table_name
+        scope.where("EXISTS (#{live_parent_sql(table)})").pluck(:id)
+      end
+
+      def live_parent_sql(recordings)
+        publishables = "recording_studio_publishable_publishables"
+        "SELECT 1 FROM #{recordings} AS publishable_recordings " \
+          "INNER JOIN #{publishables} AS publishables ON publishables.id = publishable_recordings.recordable_id " \
+          "WHERE publishable_recordings.parent_recording_id = #{recordings}.id " \
+          "AND publishable_recordings.recordable_type = 'RecordingStudioPublishable::Publishable' " \
+          "AND publishable_recordings.trashed_at IS NULL AND publishables.status = 'published' " \
+          "AND (publishables.publish_at IS NULL OR publishables.publish_at <= CURRENT_TIMESTAMP) " \
+          "AND (publishables.unpublish_at IS NULL OR publishables.unpublish_at > CURRENT_TIMESTAMP)"
       end
 
       def keep_existing_recording?(winner, recording)
-        winner.present? && publish_sort_key(recording) <= publish_sort_key(winner)
+        winner.present? && (publish_sort_key(recording) <=> publish_sort_key(winner)) != 1
       end
 
       def publish_sort_key(recording)

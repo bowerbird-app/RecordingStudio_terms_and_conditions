@@ -222,6 +222,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
       File.expand_path("../lib/recording_studio_terms_and_conditions/terms_acceptance.rb", __dir__)
     )
     assert_includes acceptance, "currently_published?"
+    assert_includes acceptance, "(publish_sort_key(recording) <=> publish_sort_key(winner)) != 1"
+    refute_includes acceptance, "publish_sort_key(recording) <= publish_sort_key(winner)"
     assert_includes acceptance, "raise NotLive"
     refute_includes acceptance, "category:"
     refute_includes acceptance, "def current_published_by_category"
@@ -591,6 +593,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes readme, "pending_published_list"
     assert_includes readme, "published.recording_studio_terms_and_conditions"
     assert_includes readme, "reaccepting_actors_for"
+    assert_includes readme, "Rails.error.report"
+    assert_includes readme, "no foreign key to users"
     assert_includes readme, "MIGRATION_NOTES.md"
     assert_includes readme, "recording_studio.terms_and_conditions"
     refute_includes readme, "come later"
@@ -759,6 +763,10 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/terms_write.rb"))
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/sole_live.rb"))
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/published.rb"))
+    published = engine_source("lib/recording_studio_terms_and_conditions/published.rb")
+    assert_includes published, "SoleLive.call"
+    assert_includes published, "Rails.error.report"
+    assert_includes published, "idempotency_key"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/terms_write.rb"), "fork_draft"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/sole_live.rb"), "status: \"draft\""
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/terms_acceptance.rb"),

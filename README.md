@@ -229,8 +229,12 @@ The dummy host follows Recording Studio's root recording pattern:
   RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace)
   RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap" })
   RecordingStudioTermsAndConditions.accepted?(user, workspace)
+  terms_recording = RecordingStudio::Recording.find_by(
+    recordable_type: RecordingStudioTermsAndConditions::Terms.name,
+    recordable_id: terms.id
+  )
   RecordingStudioTermsAndConditions.reaccepting_actors_for(
-    recording_id: recording.id,
+    recording_id: terms_recording.id,
     terms_id: terms.id
   )
   ```
@@ -244,13 +248,17 @@ RecordingStudioTermsAndConditions::Published.subscribe do |event|
     recording_id: payload.fetch(:recording_id),
     terms_id: payload.fetch(:terms_id)
   ).each do |actor_type, actor_id|
-    # Load the actor, drop staff with Accessible, send host mail.
+    actor = actor_type.safe_constantize&.find_by(id: actor_id)
+    next if actor.blank?
+    # Drop staff with Accessible, send host mail.
   end
+rescue StandardError => error
+  Rails.error.report(error, handled: true)
 end
 ```
 
-The event name is `published.recording_studio_terms_and_conditions`. It fires when Publishable marks a Terms parent currently published, including a scheduled window. It does not fire for a `TermsWrite` draft, `accept!`, or SoleLive drafting the previous live copy. Use this event, not raw `published.recording_studio_publishable`.
-  Live means Publishable `currently_published?` (scheduled-in-the-future is not current). `accept!` raises `RecordingStudioTermsAndConditions::NotLive` for drafts and unpublished versions and does not write a receipt. `indexable` is SEO and is not used for clickwrap. Retrying `accept!` for the same actor and snapshot returns the existing receipt. Saving live Terms forks a draft; people who already agreed stay agreed until that draft is published. A new published version still needs a new tick. The “You already agreed” Alert shows when Agree lists live Terms the person has not accepted yet and they already have a receipt for an older Terms version in that workspace. First-time Agree never shows it.
+The event name is `published.recording_studio_terms_and_conditions`. It fires when Publishable marks a Terms parent currently published, including a scheduled window. It does not fire for a `TermsWrite` draft, `accept!`, or SoleLive drafting the previous live copy. Use this event, not raw `published.recording_studio_publishable`. A subscriber exception is reported with `Rails.error` and does not fail the publish or skip SoleLive. A second `WindowTransitionJob` for the same window does not emit again.
+- Live means Publishable `currently_published?` (scheduled-in-the-future is not current). `accept!` raises `RecordingStudioTermsAndConditions::NotLive` for drafts and unpublished versions and does not write a receipt. `indexable` is SEO and is not used for clickwrap. Retrying `accept!` for the same actor and snapshot returns the existing receipt. Saving live Terms forks a draft; people who already agreed stay agreed until that draft is published. A new published version still needs a new tick. The “You already agreed” Alert shows when Agree lists live Terms the person has not accepted yet and they already have a receipt for an older Terms version in that workspace. First-time Agree never shows it. `reaccepting_actors_for` is scoped to that workspace root and kind. A destroyed user can still appear: acceptances have no foreign key to users, so the host must tolerate a missing actor.
 - The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends `UsersAuthRedirect` on Users Auth. Both reuse `pending_published_list` / `requires_acceptance?` and the mounted Agree screen. Auth, Agree, Admin, public Terms, and root switch stay reachable so people can sign in, accept, publish, or switch workspace.
 - With Users `>= 0.12.1`, the gem fills the create-password `extra_fields` slot with `recording_studio_terms_continue_notice` and accepts pending live Terms on that POST (`source` `continue_notice`). Continuing the form is the agreement. `root_for_signup` falls back to another root when the current workspace has no live Terms. `NotLive` does not fail signup.
 - Hosts can render `recording_studio_terms_agree` or `recording_studio_terms_agree(inside_form: true)` inside signup or similar. The helper is the `required` `agreed` checkbox only. On the host POST, call `accept!` for the pending live version — do not invent a second receipt.

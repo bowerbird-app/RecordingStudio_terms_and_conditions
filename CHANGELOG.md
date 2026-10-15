@@ -22,6 +22,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `RecordingStudioTermsAndConditions::Published.subscribe` wraps the event
   name the same way `RecordingStudioPublishable.subscribe` does.
 
+### Fixed
+- Live-version comparison uses `<=>` so two live rows of one kind no longer
+  raise `NoMethodError` on `Array#<=` during `current_published_for`, the
+  clickwrap gate, or `reaccepting_actors_for`.
+- Scheduled `WindowTransitionJob` go-live drafts the previous live row of
+  that kind (SoleLive) before the host query runs.
+- A subscriber exception is reported with `Rails.error` and does not fail
+  Publishable `Update` or skip SoleLive.
+- A second job run for the same window (including a retry) does not emit
+  the Terms event again (`log_event!` idempotency key).
+- `reaccepting_actors_for` loads sibling ids with a kind-scoped relation
+  and a batched live check instead of per-recording `currently_published?`.
+
 ### Upgrade notes (0.10.1 → 0.11.0)
 - No schema change. Pin this gem at `0.11.0`.
 - Subscribe to `RecordingStudioTermsAndConditions::Published::EVENT` when a

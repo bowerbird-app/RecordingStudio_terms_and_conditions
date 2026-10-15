@@ -71,6 +71,129 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
     assert_empty @events
   end
 
+  test "reaccepting_actors_for inside subscribe returns the v1 acceptor" do
+    first = record_terms(title: "v1", body: "First.")
+    publish_terms!(first, slug: "inside-#{SecureRandom.hex(4)}")
+    actor = create_actor("inside")
+    RecordingStudioTermsAndConditions.accept!(actor, first, source: "clickwrap")
+    draft = RecordingStudioTermsAndConditions::TermsWrite.call(
+      recording: first,
+      actor: actor,
+      title: "v2",
+      body: "Second."
+    )
+    found = nil
+
+    inner = RecordingStudioTermsAndConditions::Published.subscribe do |event|
+      found = RecordingStudioTermsAndConditions.reaccepting_actors_for(
+        recording_id: event.payload.fetch(:recording_id),
+        terms_id: event.payload.fetch(:terms_id)
+      )
+    end
+
+    publish_terms!(draft, slug: "inside-v2-#{SecureRandom.hex(4)}")
+
+    assert_equal [[actor.class.base_class.name, actor.id]], found
+  ensure
+    ActiveSupport::Notifications.unsubscribe(inner) if inner
+  end
+
+  test "scheduled go-live drafts the previous live row before the host query" do
+    first = record_terms(title: "v1", body: "First.")
+    publish_terms!(first, slug: "sched-#{SecureRandom.hex(4)}")
+    actor = create_actor("sched")
+    RecordingStudioTermsAndConditions.accept!(actor, first, source: "clickwrap")
+    draft = RecordingStudioTermsAndConditions::TermsWrite.call(
+      recording: first,
+      actor: actor,
+      title: "v2",
+      body: "Later."
+    )
+    publish_at = 1.hour.from_now.change(usec: 0)
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: draft,
+      attributes: { slug: "sched-v2-#{SecureRandom.hex(4)}", status: "published", publish_at: publish_at }
+    ).value!
+
+    found = nil
+    inner = RecordingStudioTermsAndConditions::Published.subscribe do |event|
+      found = RecordingStudioTermsAndConditions.reaccepting_actors_for(
+        recording_id: event.payload.fetch(:recording_id),
+        terms_id: event.payload.fetch(:terms_id)
+      )
+    end
+
+    travel_to publish_at do
+      RecordingStudioPublishable::WindowTransitionJob.perform_now(
+        draft.id.to_s,
+        "publish",
+        publish_at.iso8601
+      )
+    end
+
+    refute first.reload.currently_published?
+    assert draft.reload.currently_published?
+    assert_equal [[actor.class.base_class.name, actor.id]], found
+  ensure
+    ActiveSupport::Notifications.unsubscribe(inner) if inner
+  end
+
+  test "a raising subscriber does not fail publish or skip SoleLive" do
+    first = record_terms(title: "v1", body: "First.")
+    publish_terms!(first, slug: "boom-#{SecureRandom.hex(4)}")
+    actor = create_actor("boom")
+    draft = RecordingStudioTermsAndConditions::TermsWrite.call(
+      recording: first,
+      actor: actor,
+      title: "v2",
+      body: "Second."
+    )
+    boom = RecordingStudioTermsAndConditions::Published.subscribe do
+      raise "subscriber boom"
+    end
+
+    result = RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: draft,
+      attributes: { slug: "boom-v2-#{SecureRandom.hex(4)}", status: "published" }
+    )
+
+    assert_predicate result, :success?
+    refute first.reload.currently_published?
+    assert draft.reload.currently_published?
+  ensure
+    ActiveSupport::Notifications.unsubscribe(boom) if boom
+  end
+
+  test "WindowTransitionJob is idempotent after a second run and a raise" do
+    recording = record_terms(title: "Later", body: "Wait.")
+    publish_at = 1.hour.from_now.change(usec: 0)
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: recording,
+      attributes: { slug: "idemp-#{SecureRandom.hex(4)}", status: "published", publish_at: publish_at }
+    ).value!
+    @events.clear
+    boom = RecordingStudioTermsAndConditions::Published.subscribe do
+      raise "retry boom"
+    end
+
+    travel_to publish_at do
+      RecordingStudioPublishable::WindowTransitionJob.perform_now(
+        recording.id.to_s,
+        "publish",
+        publish_at.iso8601
+      )
+      RecordingStudioPublishable::WindowTransitionJob.perform_now(
+        recording.id.to_s,
+        "publish",
+        publish_at.iso8601
+      )
+    end
+
+    assert_equal 1, @events.size
+  ensure
+    ActiveSupport::Notifications.unsubscribe(boom) if boom
+  end
+
   test "SoleLive draft of the previous live emits no second Terms event" do
     first = record_terms(title: "v1", body: "First.")
     publish_terms!(first, slug: "sole-#{SecureRandom.hex(4)}")
@@ -93,6 +216,14 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
   end
 
   private
+
+  def create_actor(prefix)
+    User.create!(
+      email: "#{prefix}-#{SecureRandom.hex(4)}@example.com",
+      password: "Password",
+      password_confirmation: "Password"
+    )
+  end
 
   def record_terms(title:, body:)
     @root.record(RecordingStudioTermsAndConditions::Terms) do |terms|
