@@ -98,13 +98,13 @@ module RecordingStudioTermsAndConditions
       end
 
       def take_claim?(recording, key)
-        existing = recording.event_by_idempotency_key(key)
+        before_ids = recording.events.where(idempotency_key: key).pluck(:id)
         event = recording.log_event!(action: "published", idempotency_key: key)
-        created_claim?(existing, event)
+        created_claim?(before_ids, event)
       end
 
-      def created_claim?(existing, event)
-        event.present? && existing.blank?
+      def created_claim?(before_ids, event)
+        event.present? && before_ids.exclude?(event.id)
       end
 
       def claimed?(recording, terms_id)

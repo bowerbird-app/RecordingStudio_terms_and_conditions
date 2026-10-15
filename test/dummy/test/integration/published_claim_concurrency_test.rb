@@ -11,7 +11,7 @@ class PublishedClaimConcurrencyTest < ActiveSupport::TestCase
   end
 
   teardown do
-    Workspace.where(id: @workspace.id).delete_all if @workspace
+    cleanup_claim_workspace(@workspace)
   end
 
   test "two concurrent claimants yield one win and one notification" do
@@ -50,6 +50,18 @@ class PublishedClaimConcurrencyTest < ActiveSupport::TestCase
   end
 
   private
+
+  def cleanup_claim_workspace(workspace)
+    return if workspace.blank?
+
+    root = RecordingStudio::Recording.find_by(recordable: workspace)
+    if root
+      ids = RecordingStudio::Recording.where(root_recording_id: root.id).pluck(:id) + [root.id]
+      RecordingStudio::Event.where(recording_id: ids).delete_all
+      RecordingStudio::Recording.where(id: ids).delete_all
+    end
+    workspace.delete
+  end
 
   def publish_without_terms_event(body)
     hooks = RecordingStudioPublishable.configuration.hooks
