@@ -342,7 +342,7 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
       body: "Second."
     )
     publish_terms!(draft, slug: "batch-v2-#{SecureRandom.hex(4)}")
-    10.times do |index|
+    20.times do |index|
       record_terms("extra #{index}", "Draft #{index}.")
     end
 
