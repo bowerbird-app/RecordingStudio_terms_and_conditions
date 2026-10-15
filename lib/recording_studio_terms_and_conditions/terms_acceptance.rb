@@ -211,7 +211,8 @@ module RecordingStudioTermsAndConditions
                   RecordingStudio::Recording.where(id: recordings)
                 end
         table = RecordingStudio::Recording.table_name
-        scope.where("EXISTS (#{live_parent_sql(table)})").pluck(:id)
+        now = Time.current
+        scope.where("EXISTS (#{live_parent_sql(table)})", now, now).pluck(:id)
       end
 
       def live_parent_sql(recordings)
@@ -221,8 +222,8 @@ module RecordingStudioTermsAndConditions
           "WHERE publishable_recordings.parent_recording_id = #{recordings}.id " \
           "AND publishable_recordings.recordable_type = 'RecordingStudioPublishable::Publishable' " \
           "AND publishable_recordings.trashed_at IS NULL AND publishables.status = 'published' " \
-          "AND (publishables.publish_at IS NULL OR publishables.publish_at <= CURRENT_TIMESTAMP) " \
-          "AND (publishables.unpublish_at IS NULL OR publishables.unpublish_at > CURRENT_TIMESTAMP)"
+          "AND (publishables.publish_at IS NULL OR publishables.publish_at <= ?) " \
+          "AND (publishables.unpublish_at IS NULL OR publishables.unpublish_at > ?)"
       end
 
       def keep_existing_recording?(winner, recording)

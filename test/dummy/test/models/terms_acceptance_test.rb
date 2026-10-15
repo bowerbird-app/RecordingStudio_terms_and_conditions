@@ -315,10 +315,8 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
       title: "v2",
       body: "Second."
     )
-    RecordingStudioTermsAndConditions::SoleLive.stub(:call, nil) do
-      RecordingStudioTermsAndConditions::SoleLive.stub(:call_after_publishable_update, nil) do
-        publish_terms!(draft, slug: "overlap-v2-#{SecureRandom.hex(4)}")
-      end
+    without_sole_live do
+      publish_terms!(draft, slug: "overlap-v2-#{SecureRandom.hex(4)}")
     end
 
     assert first.reload.currently_published?
@@ -345,13 +343,15 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     )
     publish_terms!(draft, slug: "batch-v2-#{SecureRandom.hex(4)}")
 
+    found = nil
     count = count_sql_queries do
-      RecordingStudioTermsAndConditions.reaccepting_actors_for(
+      found = RecordingStudioTermsAndConditions.reaccepting_actors_for(
         recording_id: draft.id,
         terms_id: draft.recordable.id
       )
     end
 
+    assert_equal [[@actor.class.base_class.name, @actor.id]], found
     assert_operator count, :<, 16
   end
 
@@ -506,6 +506,18 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
 
   def unique_name(prefix)
     "#{prefix} #{SecureRandom.hex(4)}"
+  end
+
+  def without_sole_live
+    singleton = RecordingStudioTermsAndConditions::SoleLive.singleton_class
+    original_call = singleton.instance_method(:call)
+    original_after = singleton.instance_method(:call_after_publishable_update)
+    singleton.define_method(:call) { |*| }
+    singleton.define_method(:call_after_publishable_update) { |*| }
+    yield
+  ensure
+    singleton.define_method(:call, original_call)
+    singleton.define_method(:call_after_publishable_update, original_after)
   end
 
   def count_sql_queries

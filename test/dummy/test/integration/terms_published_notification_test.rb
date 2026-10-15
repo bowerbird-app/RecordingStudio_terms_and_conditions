@@ -129,10 +129,10 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
         "publish",
         publish_at.iso8601
       )
+      refute first.reload.currently_published?
+      assert draft.reload.currently_published?
     end
 
-    refute first.reload.currently_published?
-    assert draft.reload.currently_published?
     assert_equal [[actor.class.base_class.name, actor.id]], found
   ensure
     ActiveSupport::Notifications.unsubscribe(inner) if inner
