@@ -79,7 +79,7 @@ Sign in at `/users/sign_in`: email first (**Continue with email**), then passwor
 - `/agree_helper` — dummy demo of the embeddable Agree helper (code example + checkbox)
 - `/docs/install`, `/docs/config`, `/docs/recordable_types`, `/docs/recordings_tree`, `/docs/gem_views`, `/docs/methods` — dummy-only starter pages
 
-This gem registers `:terms_acceptances` metrics (`total`, `over_time`, `by_version`). It does not call `RecordingStudioMetrics::Api.register!`. When RecordingStudio API is present, the host exposes them once:
+This gem registers `:terms_acceptances` metrics (`total`, `over_time`, `by_version`) with `RecordingStudioMetrics.register` and `api_authorize`. MCP 0.17 and the operations API list them from Metrics 0.3 `catalog_metadata`. This gem does not call `RecordingStudioMetrics::Api.register!`. When RecordingStudio API is present, the host exposes them once:
 
 ```ruby
 RecordingStudioMetrics::Api.register!(api: :operations)
@@ -133,7 +133,7 @@ Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay Engli
 
 ## Upgrading from 0.10.x
 
-Bump to **0.11.0**. No schema change. Require `recording_studio_metrics` `~> 0.3` (tag `v0.3.1`). `terms_acceptances.over_time` accepts `group_by=kind` (the accepted Terms snapshot's kind; groups under 5 receipts fold into `other`).
+Bump to **0.12.0**. No schema change. Require `recording_studio_metrics` `>= 0.3.0, < 0.4` (tag `v0.3.1`). `terms_acceptances.over_time` accepts `group_by=kind` (the accepted Terms snapshot's kind; groups under 5 receipts fold into `other`). Permission stays in `api_authorize`. The host still calls `RecordingStudioMetrics::Api.register!(api: :operations)` when the API gem is present.
 
 ## Upgrading from 0.9.0
 

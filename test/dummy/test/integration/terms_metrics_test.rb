@@ -103,7 +103,11 @@ class TermsMetricsTest < ActiveSupport::TestCase
     metadata = RecordingStudioMetrics.find("terms_acceptances.over_time").catalog_metadata
     assert_equal "count", metadata[:unit]
     assert_equal [:kind], metadata[:group_by]
-    assert metadata[:description].present?
+    assert_equal(
+      "Acceptance receipts by accepted_at. Group by kind (terms_and_condition or " \
+      "privacy_policy) of the accepted Terms snapshot.",
+      metadata[:description]
+    )
   end
 
   test "by_version includes a trashed terms recording without raising" do
@@ -126,13 +130,52 @@ class TermsMetricsTest < ActiveSupport::TestCase
     refute_equal trashed.id.to_s, @v1.id.to_s
   end
 
-  test "api_authorize allows AdminRoot staff and denies non-admins" do
+  test "each terms metric authorizes staff, denies others, and appears in discovery" do
+    identifiers = %w[
+      terms_acceptances.total
+      terms_acceptances.over_time
+      terms_acceptances.by_version
+    ]
     authorize = RecordingStudioMetrics.registry.api_authorize_for(:terms_acceptances)
-    assert_equal RecordingStudioTermsAndConditions::Metrics::AUTHORIZE, authorize
+    staff = GrantContext.new(Grant.new(@staff))
+    outsider = GrantContext.new(Grant.new(@outsider))
+    missing = GrantContext.new(Grant.new(nil))
 
-    assert authorize.call(GrantContext.new(Grant.new(@staff)))
-    refute authorize.call(GrantContext.new(Grant.new(@outsider)))
-    refute authorize.call(GrantContext.new(Grant.new(nil)))
+    catalog_group_by = {
+      "terms_acceptances.total" => [],
+      "terms_acceptances.over_time" => [:kind],
+      "terms_acceptances.by_version" => []
+    }
+    identifiers.each do |identifier|
+      definition = RecordingStudioMetrics.find(identifier)
+      metadata = definition.catalog_metadata
+      assert_equal [:operations], definition.exposed_apis
+      assert_equal identifier, metadata[:identifier].to_s
+      assert_equal "count", metadata[:unit]
+      assert_equal catalog_group_by.fetch(identifier), metadata[:group_by]
+      assert_equal identifier.end_with?("over_time"), metadata[:date_range].fetch(:supported)
+      assert_equal RecordingStudioMetrics.configuration.default_timezone, metadata[:timezone]
+      assert metadata[:freshness].key?(:cached)
+      assert authorize.call(staff), "#{identifier} allows AdminRoot staff"
+      refute authorize.call(outsider), "#{identifier} denies a non-admin"
+      refute authorize.call(missing), "#{identifier} denies a missing actor"
+    end
+
+    allowed_ids = RecordingStudioMetrics.discover(
+      context: site_context,
+      api: :operations,
+      resource: :terms_acceptances
+    ).map { |row| row[:identifier].to_s }
+    denied_ids = RecordingStudioMetrics.discover(
+      context: unauthorized_site_context,
+      api: :operations,
+      resource: :terms_acceptances
+    ).map { |row| row[:identifier].to_s }
+
+    identifiers.each do |identifier|
+      assert_includes allowed_ids, identifier
+      refute_includes denied_ids, identifier
+    end
   end
 
   private
@@ -151,6 +194,15 @@ class TermsMetricsTest < ActiveSupport::TestCase
       scope: :site,
       actor: @staff,
       site_authorized: true,
+      timezone: "UTC"
+    )
+  end
+
+  def unauthorized_site_context
+    RecordingStudioMetrics::Context.new(
+      scope: :site,
+      actor: @outsider,
+      site_authorized: false,
       timezone: "UTC"
     )
   end

@@ -7,13 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.11.0] - 2026-10-14
+## [0.12.0] - 2026-10-15
 
 ### Added
 - `terms_acceptances.over_time` accepts `group_by=kind` (`terms_and_condition` / `privacy_policy`, from the accepted Terms snapshot) and now carries unit `count` and a description. Ungrouped counts are unchanged. No migration.
 
 ### Changed
-- Require `recording_studio_metrics ~> 0.3`. Development and dummy Gemfiles pin `v0.3.1`.
+- Require `recording_studio_metrics` `>= 0.3.0, < 0.4`. Development and dummy Gemfiles pin `v0.3.1`. Each metric's `catalog_metadata` is what Metrics 0.3 discovery (and MCP 0.17) lists. Permission stays in `api_authorize` (`Api::Access.can_view?`). This gem still does not call `RecordingStudioMetrics::Api.register!`.
+
+### Upgrade notes (0.10.1 → 0.12.0)
+- No schema change. Pin this gem at `0.12.0`.
+- Pin `recording_studio_metrics` to `>= 0.3.0, < 0.4` (tag `v0.3.1`).
+- When RecordingStudio API is present, the host still calls `RecordingStudioMetrics::Api.register!(api: :operations)` once.
 
 ## [0.10.1] - 2026-10-09
 
