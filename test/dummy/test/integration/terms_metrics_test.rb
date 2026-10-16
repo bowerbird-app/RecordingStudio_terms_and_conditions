@@ -74,6 +74,42 @@ class TermsMetricsTest < ActiveSupport::TestCase
     assert_operator opened["2026-10-07"], :>=, 2
   end
 
+  test "over_time groups acceptances by the accepted snapshot kind" do
+    Current.actor = @staff
+    terms = record_terms(@root, title: "Kind terms", body: "Kind terms copy.")
+    publish_terms!(terms, slug: "kind-terms-#{SecureRandom.hex(4)}")
+    privacy = record_terms(@root, title: "Kind privacy", body: "Kind privacy copy.",
+                                  kind: RecordingStudioTermsAndConditions::Terms::KIND_PRIVACY)
+    publish_terms!(privacy, slug: "kind-privacy-#{SecureRandom.hex(4)}")
+    Current.actor = nil
+    # A far-past window keeps receipts from other tests out of the groups.
+    6.times { |index| accept!(kind_user(index), terms, at: Time.utc(2025, 3, 5, 9 + index)) }
+    5.times { |index| accept!(kind_user(index + 10), privacy, at: Time.utc(2025, 3, 6, 9 + index)) }
+    window = { interval: "day", start_at: Time.utc(2025, 3, 5), end_at: Time.utc(2025, 3, 7) }
+
+    ungrouped = timeseries_counts(execute("terms_acceptances.over_time", **window))
+    assert_equal 6, ungrouped["2025-03-05"]
+    assert_equal 5, ungrouped["2025-03-06"]
+
+    grouped = execute("terms_acceptances.over_time", **window, group_by: "kind")
+    groups = grouped.groups.to_h { |group| [group[:key].to_s, group[:data].to_h { |row| [row[:date], row[:value]] }] }
+    assert_equal 6, groups.dig(RecordingStudioTermsAndConditions::Terms::KIND_TERMS, "2025-03-05")
+    assert_equal 5, groups.dig(RecordingStudioTermsAndConditions::Terms::KIND_PRIVACY, "2025-03-06")
+    assert_equal 0, groups.dig(RecordingStudioTermsAndConditions::Terms::KIND_PRIVACY, "2025-03-05").to_i
+
+    assert_raises(RecordingStudioMetrics::Errors::InvalidGroupBy) do
+      execute("terms_acceptances.over_time", **window, group_by: "actor_id")
+    end
+    metadata = RecordingStudioMetrics.find("terms_acceptances.over_time").catalog_metadata
+    assert_equal "count", metadata[:unit]
+    assert_equal [:kind], metadata[:group_by]
+    assert_equal(
+      "Acceptance receipts by accepted_at. Group by kind (terms_and_condition or " \
+      "privacy_policy) of the accepted Terms snapshot.",
+      metadata[:description]
+    )
+  end
+
   test "by_version includes a trashed terms recording without raising" do
     extra = User.create!(
       email: "metrics-trashed-#{SecureRandom.hex(4)}@example.com",
@@ -94,13 +130,57 @@ class TermsMetricsTest < ActiveSupport::TestCase
     refute_equal trashed.id.to_s, @v1.id.to_s
   end
 
-  test "api_authorize allows AdminRoot staff and denies non-admins" do
+  test "each terms metric authorizes staff, denies others, and appears in discovery" do
+    identifiers = %w[
+      terms_acceptances.total
+      terms_acceptances.over_time
+      terms_acceptances.by_version
+    ]
     authorize = RecordingStudioMetrics.registry.api_authorize_for(:terms_acceptances)
-    assert_equal RecordingStudioTermsAndConditions::Metrics::AUTHORIZE, authorize
+    staff = GrantContext.new(Grant.new(@staff))
+    outsider = GrantContext.new(Grant.new(@outsider))
+    missing = GrantContext.new(Grant.new(nil))
 
-    assert authorize.call(GrantContext.new(Grant.new(@staff)))
-    refute authorize.call(GrantContext.new(Grant.new(@outsider)))
-    refute authorize.call(GrantContext.new(Grant.new(nil)))
+    catalog_group_by = {
+      "terms_acceptances.total" => [],
+      "terms_acceptances.over_time" => [:kind],
+      "terms_acceptances.by_version" => []
+    }
+    identifiers.each do |identifier|
+      definition = RecordingStudioMetrics.find(identifier)
+      metadata = definition.catalog_metadata
+      assert_equal [:operations], definition.exposed_apis
+      assert_equal identifier, metadata[:identifier].to_s
+      assert_equal "count", metadata[:unit]
+      assert_equal catalog_group_by.fetch(identifier), metadata[:group_by]
+      assert_equal identifier.end_with?("over_time"), metadata[:date_range].fetch(:supported)
+      assert_equal RecordingStudioMetrics.configuration.default_timezone, metadata[:timezone]
+      assert metadata[:freshness].key?(:cached)
+      assert authorize.call(staff), "#{identifier} allows AdminRoot staff"
+      refute authorize.call(outsider), "#{identifier} denies a non-admin"
+      refute authorize.call(missing), "#{identifier} denies a missing actor"
+    end
+
+    allowed_ids = RecordingStudioMetrics.discover(
+      context: site_context,
+      api: :operations,
+      resource: :terms_acceptances
+    ).map { |row| row[:identifier].to_s }
+    denied_ids = RecordingStudioMetrics.discover(
+      context: RecordingStudioMetrics::Context.new(
+        scope: :root,
+        actor: @outsider,
+        workspace_id: @workspace.id,
+        timezone: "UTC"
+      ),
+      api: :operations,
+      resource: :terms_acceptances
+    ).map { |row| row[:identifier].to_s }
+
+    identifiers.each do |identifier|
+      assert_includes allowed_ids, identifier
+      refute_includes denied_ids, identifier
+    end
   end
 
   private
@@ -139,6 +219,11 @@ class TermsMetricsTest < ActiveSupport::TestCase
     publish_terms!(@v2, slug: "terms-v2-#{SecureRandom.hex(4)}")
     accept!(@patron, @v2, at: Time.utc(2026, 10, 7, 9))
     accept!(extra, @v2, at: Time.utc(2026, 10, 7, 15))
+  end
+
+  def kind_user(index)
+    User.create!(email: "metrics-kind-#{index}-#{SecureRandom.hex(4)}@example.com",
+                 password: "Password", password_confirmation: "Password")
   end
 
   def accept!(actor, recording, at:)
