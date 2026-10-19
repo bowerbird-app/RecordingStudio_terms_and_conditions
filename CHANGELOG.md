@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Terms Admin hub chart widget `widgets.terms.acceptances_over_time` reads `terms_acceptances.over_time` through `RecordingStudioMetrics::Admin` and links to the Who agreed screen.
+- Who agreed (`recording_studio_terms_acceptances`) has an Admin `date_range` filter on acceptance `accepted_at`.
 
 ### Upgrade notes (0.12.0 → 0.13.0)
 - No schema change. Pin this gem at `0.13.0`.

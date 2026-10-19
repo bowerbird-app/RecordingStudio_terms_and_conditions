@@ -96,6 +96,7 @@ module RecordingStudioTermsAndConditions
       blast_radius :site
       query { |_context| AgreedPeople.relation }
       filter_presentation :inline
+      filter :date_range, field: "recording_studio_terms_and_conditions_acceptances.accepted_at"
       filter :name_or_email, apply: lambda { |relation, value, _context|
         AgreedPeople.matching_name_or_email(relation, value)
       }

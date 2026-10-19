@@ -457,6 +457,19 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, 'data-controller="flat-pack--chart"'
     body = CGI.unescapeHTML(response.body)
     assert_includes body, '"name":"Agrees"'
+    series_json = body[/'data-flat-pack--chart-series-value="(\[\{.*?\}\])"/, 1]
+    series_json ||= body[/data-flat-pack--chart-series-value="(\[\{.*?\}\])"/, 1]
+    assert series_json, "chart series payload missing"
+    series = JSON.parse(series_json.gsub("&quot;", '"'))
+    points = series.dig(0, "data")
+    chart_total = Array(points).sum { |point| point.is_a?(Array) ? point[1].to_i : point.fetch("y", 0).to_i }
+    window_total = RecordingStudioTermsAndConditions::Acceptance.where(
+      "accepted_at >= ? AND accepted_at <= ?",
+      Time.current.beginning_of_week,
+      Time.current.end_of_week
+    ).count
+    assert_operator chart_total, :>=, 2
+    assert_equal window_total, chart_total
   end
 
   test "who agreed search matches email or profile name" do
@@ -494,6 +507,46 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     refute_includes response.body, other.email
   end
 
+  test "who agreed date range keeps people who agreed in the window" do
+    sign_in @admin
+    switch_to_workspace(@admin_root)
+    recording = publish_live_kind!(
+      RecordingStudio.root_recording_for(@workspace),
+      kind: "terms_and_condition",
+      title: "Dated rules",
+      slug: "dated-#{SecureRandom.hex(3)}"
+    )
+    old_person = User.create!(
+      email: "old-agree-#{SecureRandom.hex(3)}@example.com",
+      password: "Password",
+      password_confirmation: "Password"
+    )
+    new_person = User.create!(
+      email: "new-agree-#{SecureRandom.hex(3)}@example.com",
+      password: "Password",
+      password_confirmation: "Password"
+    )
+    stamp_acceptance!(old_person, recording, at: Time.utc(2026, 8, 1, 12))
+    stamp_acceptance!(new_person, recording, at: Time.utc(2026, 10, 18, 12))
+
+    get "/admin/screens/recording_studio_terms_acceptances"
+    assert_response :success
+    assert_includes response.body, 'name="date_range_preset"'
+    assert_includes response.body, 'name="start_date"'
+    assert_includes response.body, 'name="end_date"'
+
+    get "/admin/screens/recording_studio_terms_acceptances/table",
+        params: { start_date: "2026-10-01", end_date: "2026-10-19" }
+    assert_response :success
+    assert_includes response.body, new_person.email
+    refute_includes response.body, old_person.email
+
+    get "/admin/screens/recording_studio_terms_acceptances/table",
+        params: { start_date: "2026-08-01", end_date: "2026-08-31", name_or_email: old_person.email }
+    assert_includes response.body, old_person.email
+    refute_includes response.body, new_person.email
+  end
+
   private
 
   def clear_terms_on_write_workspace!
@@ -507,6 +560,18 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     ).each do |recording|
       recording.update_columns(trashed_at: Time.current)
     end
+  end
+
+  def stamp_acceptance!(actor, recording, at:)
+    terms = recording.recordable
+    RecordingStudioTermsAndConditions::Acceptance.create!(
+      actor: actor,
+      terms_recording_id: recording.id,
+      terms_id: terms.id,
+      accepted_at: at,
+      body_digest: RecordingStudioTermsAndConditions::BodyDigest.call(terms.body),
+      provenance: { "source" => "admin_terms_test" }
+    )
   end
 
   def publish_live_kind!(root, kind:, title:, slug:)

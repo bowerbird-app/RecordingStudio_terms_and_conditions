@@ -750,6 +750,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin, 'link_label "Who agreed"'
     assert_includes admin, 'title "Agrees over time"'
     assert_includes admin, "filter :name_or_email"
+    assert_includes admin, "filter :date_range, field:"
+    assert_includes admin, ".accepted_at"
     assert_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/terms_controller.rb"),
                     "/screens/recording_studio_terms"
     refute_includes admin, "view_variant: :compact"

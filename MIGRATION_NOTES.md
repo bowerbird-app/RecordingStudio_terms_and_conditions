@@ -20,7 +20,7 @@ The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` a
 
 ## Upgrade from 0.12.0 to 0.13.0
 
-No schema change. Pin this gem at `0.13.0`. The Terms Admin hub adds an Agrees over time chart from `terms_acceptances.over_time`. It links to Who agreed. Metrics stay registered as they were in 0.12.0.
+No schema change. Pin this gem at `0.13.0`. The Terms Admin hub adds an Agrees over time chart from `terms_acceptances.over_time`. It links to Who agreed. Who agreed filters by `accepted_at` date range. Metrics stay registered as they were in 0.12.0.
 
 ## Upgrade from 0.11.0 to 0.12.0
 
