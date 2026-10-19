@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "cgi"
 require "devise/test/integration_helpers"
 
 class AdminTermsTest < ActionDispatch::IntegrationTest
@@ -178,10 +179,15 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_equal :edit, resource.action_for(:new).required_access_role
     assert RecordingStudioAdmin.widget_for("widgets.terms.terms_agreed")
     assert RecordingStudioAdmin.widget_for("widgets.terms.privacy_agreed")
+    assert RecordingStudioAdmin.widget_for("widgets.terms.acceptances_over_time")
     refute RecordingStudioAdmin.widget_for("widgets.terms.live")
     refute RecordingStudioAdmin.widget_for("widgets.terms.agrees")
     usages = RecordingStudioTermsAndConditions::Admin::TermsSection.widget_usages
-    assert_equal %w[widgets.terms.terms_agreed widgets.terms.privacy_agreed], usages.map(&:key)
+    assert_equal %w[
+      widgets.terms.terms_agreed
+      widgets.terms.privacy_agreed
+      widgets.terms.acceptances_over_time
+    ], usages.map(&:key)
     assert usages.all? { |usage| usage.view_variant == :card }
     assert_empty RecordingStudioTermsAndConditions::Admin::TermsScreen.widget_usages
     assert_empty RecordingStudioTermsAndConditions::Admin::AcceptancesScreen.widget_usages
@@ -201,9 +207,13 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     end
 
     assert RecordingStudioAdmin.widget_for("widgets.terms.terms_agreed")
+    assert RecordingStudioAdmin.widget_for("widgets.terms.acceptances_over_time")
     assert RecordingStudioAdmin.resource_for("terms")
-    assert_equal %w[widgets.terms.terms_agreed widgets.terms.privacy_agreed],
-                 admin::TermsSection.widget_usages.map(&:key)
+    assert_equal %w[
+      widgets.terms.terms_agreed
+      widgets.terms.privacy_agreed
+      widgets.terms.acceptances_over_time
+    ], admin::TermsSection.widget_usages.map(&:key)
     assert_empty admin::TermsScreen.widget_usages
   end
 
@@ -435,6 +445,17 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Privacy Policy"
     assert_includes response.body, "users agreed"
     refute_includes response.body, "text-5xl font-bold\">users agreed"
+
+    get "/admin/sections/terms/widgets/widgets.terms.acceptances_over_time",
+        params: { widget_usage_index: 2 },
+        headers: { "Sec-Fetch-Dest" => "empty", "Turbo-Frame" => "widget" }
+    assert_response :success
+    assert_includes response.body, "Agrees over time"
+    assert_includes response.body, "Who agreed"
+    assert_includes response.body, "/admin/screens/recording_studio_terms_acceptances"
+    assert_includes response.body, 'data-controller="flat-pack--chart"'
+    body = CGI.unescapeHTML(response.body)
+    assert_includes body, '"name":"Agrees"'
   end
 
   test "who agreed search matches email or profile name" do

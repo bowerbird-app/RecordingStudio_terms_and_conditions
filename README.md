@@ -72,7 +72,7 @@ Sign in at `/users/sign_in`: email first (**Continue with email**), then passwor
 - `/` — dummy app home page
 - `/users/sign_in` — Users Auth sign-in (email, then password)
 - `/recording_studio_terms_and_conditions/acceptance` — Agree (clickwrap) screen. The engine root redirects here.
-- `/admin` — Recording Studio Admin Terms and Conditions hub (Edit Terms and Edit Privacy Policy)
+- `/admin` — Recording Studio Admin Terms and Conditions hub (Edit Terms, Edit Privacy Policy, agree counts, and agrees over time)
 - `/admin/sections` and `/admin/sections/terms` — redirect to `/admin`
 - `/recording_studio_terms_and_conditions/admin/terms` — redirects to `/admin/screens/recording_studio_terms`. Show, edit, and new stay on the engine. Switch to the Admin root first.
 - `/terms/:uuid/:slug` — public published Terms
@@ -131,6 +131,10 @@ Do not translate stored Terms bodies or version titles. Those are data. Buttons,
 Add [Recording Studio Internationalization](https://github.com/bowerbird-app/RecordingStudio_Internationalization) on the host when you want a language selector. This gem does not declare the host's languages.
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
+
+## Upgrading from 0.12.0
+
+Bump to **0.13.0**. No schema change. The Terms Admin hub shows an Agrees over time chart from `terms_acceptances.over_time`. The chart links to Who agreed. Metrics registration is unchanged.
 
 ## Upgrading from 0.11.0
 

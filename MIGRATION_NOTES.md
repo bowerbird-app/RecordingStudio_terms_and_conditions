@@ -18,6 +18,10 @@ Then:
 
 The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
 
+## Upgrade from 0.12.0 to 0.13.0
+
+No schema change. Pin this gem at `0.13.0`. The Terms Admin hub adds an Agrees over time chart from `terms_acceptances.over_time`. It links to Who agreed. Metrics stay registered as they were in 0.12.0.
+
 ## Upgrade from 0.11.0 to 0.12.0
 
 No schema change. Pin this gem at `0.12.0`. Require `recording_studio_metrics` `>= 0.3.0, < 0.4` (tag `v0.3.1`). `terms_acceptances.over_time` accepts `group_by=kind`. Permission stays in `api_authorize`. When RecordingStudio API is present, the host still calls `RecordingStudioMetrics::Api.register!(api: :operations)`.

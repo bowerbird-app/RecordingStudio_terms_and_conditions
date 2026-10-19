@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.12.0", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.13.0", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -743,6 +743,10 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes admin, 'title "Agrees"'
     assert_includes admin, 'widget "widgets.terms.terms_agreed", view_variant: :card'
     assert_includes admin, 'widget "widgets.terms.privacy_agreed", view_variant: :card'
+    assert_includes admin, 'widget "widgets.terms.acceptances_over_time"'
+    assert_includes admin, "terms_acceptances.over_time"
+    assert_includes admin, 'link_label "Who agreed"'
+    assert_includes admin, 'title "Agrees over time"'
     assert_includes admin, "filter :name_or_email"
     assert_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/terms_controller.rb"),
                     "/screens/recording_studio_terms"
