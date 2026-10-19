@@ -134,7 +134,7 @@ Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay Engli
 
 ## Upgrading from 0.12.0
 
-Bump to **0.13.0**. No schema change. The Terms Admin hub shows an Agrees over time chart from `terms_acceptances.over_time`. The chart links to Who agreed. Who agreed filters by `accepted_at` date range. Metrics registration is unchanged.
+Bump to **0.13.0**. No schema change. The Terms Admin hub shows an Agrees over time chart from `terms_acceptances.over_time` with a `last_4_weeks` default, matching Who agreed. Who agreed filters by date, agreed Terms, and agreed Privacy. Metrics registration is unchanged.
 
 ## Upgrading from 0.11.0
 

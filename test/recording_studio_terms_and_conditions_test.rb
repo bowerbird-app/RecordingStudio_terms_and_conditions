@@ -723,8 +723,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin, 'text: "All versions"'
     assert_includes admin, 'text: "New"'
     assert_includes admin, 'title "Who agreed"'
-    assert_includes admin, 'text: "View"'
-    assert_includes admin, "admin_person_path"
+    refute_includes admin, 'text: "View"'
+    refute_includes admin, "column :actions"
     assert_includes admin, 'title: "Agreed terms"'
     assert_includes admin, 'title: "Agreed privacy"'
     assert_includes admin, 'text: "Terms and Condition page"'
@@ -752,6 +752,10 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin, "filter :name_or_email"
     assert_includes admin, "filter :date_range, field:"
     assert_includes admin, ".accepted_at"
+    assert_includes admin, "default: AcceptancesOverTime::DEFAULT_WINDOW"
+    assert_includes admin, "DEFAULT_WINDOW = :last_4_weeks"
+    assert_includes admin, "filter :agreed_terms"
+    assert_includes admin, "filter :agreed_privacy"
     assert_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/terms_controller.rb"),
                     "/screens/recording_studio_terms"
     refute_includes admin, "view_variant: :compact"

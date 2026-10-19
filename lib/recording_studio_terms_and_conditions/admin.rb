@@ -96,9 +96,16 @@ module RecordingStudioTermsAndConditions
       blast_radius :site
       query { |_context| AgreedPeople.relation }
       filter_presentation :inline
-      filter :date_range, field: "recording_studio_terms_and_conditions_acceptances.accepted_at"
+      filter :date_range, field: "recording_studio_terms_and_conditions_acceptances.accepted_at",
+                          default: AcceptancesOverTime::DEFAULT_WINDOW
       filter :name_or_email, apply: lambda { |relation, value, _context|
         AgreedPeople.matching_name_or_email(relation, value)
+      }
+      filter :agreed_terms, options: %w[yes no], apply: lambda { |relation, value, _context|
+        AgreedPeople.with_kind(relation, Terms::KIND_TERMS, agreed: value)
+      }
+      filter :agreed_privacy, options: %w[yes no], apply: lambda { |relation, value, _context|
+        AgreedPeople.with_kind(relation, Terms::KIND_PRIVACY, agreed: value)
       }
 
       table do
@@ -109,12 +116,6 @@ module RecordingStudioTermsAndConditions
                                    value: ->(row, _context) { row.read_attribute("terms_accepted_at") }
         column :privacy_accepted_at, title: "Agreed privacy", sortable: false,
                                      value: ->(row, _context) { row.read_attribute("privacy_accepted_at") }
-        column :actions, title: "Actions", sortable: false, value: lambda { |row, context|
-          href = RecordingStudioTermsAndConditions.admin_person_path(row.actor_type, row.actor_id)
-          context.view_context.render(
-            FlatPack::Button::Component.new(text: "View", style: :secondary, size: :sm, href: href)
-          )
-        }
       end
     end
 
@@ -123,16 +124,16 @@ module RecordingStudioTermsAndConditions
 
       def relation
         terms = Terms.arel_table
-        Acceptance.joins(terms_join(terms)).select(select_sql(terms)).group(group_sql).order(newest_first)
+        Acceptance.joins(terms_join(terms)).select(select_sql).group(group_sql).order(newest_first)
       end
 
-      def select_sql(terms)
+      def select_sql
         [
           "#{Acceptance.table_name}.actor_type",
           "#{Acceptance.table_name}.actor_id",
           "MAX(#{Acceptance.table_name}.accepted_at) AS latest_accepted_at",
-          kind_date_sql(terms, Terms::KIND_TERMS, "terms_accepted_at"),
-          kind_date_sql(terms, Terms::KIND_PRIVACY, "privacy_accepted_at")
+          kind_date_sql(Terms::KIND_TERMS, "terms_accepted_at"),
+          kind_date_sql(Terms::KIND_PRIVACY, "privacy_accepted_at")
         ]
       end
 
@@ -153,6 +154,15 @@ module RecordingStudioTermsAndConditions
         relation.joins(people_join).where(people_match_sql, term: term)
       end
 
+      def with_kind(relation, kind, agreed:)
+        clause = kind_present_sql(kind)
+        if %w[yes true].include?(agreed.to_s.downcase)
+          relation.having("#{clause} IS NOT NULL")
+        else
+          relation.having("#{clause} IS NULL")
+        end
+      end
+
       def people_join
         acceptances = Acceptance.table_name
         "LEFT JOIN users ON users.id = #{acceptances}.actor_id " \
@@ -166,9 +176,13 @@ module RecordingStudioTermsAndConditions
           "(profiles.first_name || ' ' || profiles.last_name) ILIKE :term"
       end
 
-      def kind_date_sql(terms, kind, alias_name)
+      def kind_date_sql(kind, alias_name)
+        "#{kind_present_sql(kind)} AS #{alias_name}"
+      end
+
+      def kind_present_sql(kind)
         "MAX(#{Acceptance.table_name}.accepted_at) FILTER " \
-          "(WHERE #{terms.name}.kind = #{Acceptance.connection.quote(kind)}) AS #{alias_name}"
+          "(WHERE #{Terms.table_name}.kind = #{Acceptance.connection.quote(kind)})"
       end
     end
 

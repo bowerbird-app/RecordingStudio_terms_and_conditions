@@ -5,6 +5,7 @@ module RecordingStudioTermsAndConditions
     module AcceptancesOverTime
       IDENTIFIER = "terms_acceptances.over_time"
       SCREEN_KEY = "recording_studio_terms_acceptances"
+      DEFAULT_WINDOW = :last_4_weeks
 
       module_function
 
@@ -23,7 +24,7 @@ module RecordingStudioTermsAndConditions
 
       def params(context)
         values = { scope: :site, site_authorized: true, interval: context.widget_group_by(default: :day) }
-        range = context.widget_time_range(default_preset_key: :this_week)
+        range = context.widget_time_range(default_preset_key: DEFAULT_WINDOW)
         return values if range.blank?
 
         values.merge(start_at: range.begin, end_at: range.end)

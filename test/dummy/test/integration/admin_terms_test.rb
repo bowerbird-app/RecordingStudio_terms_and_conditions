@@ -337,10 +337,10 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "table tbody tr", count: 1
     assert_includes response.body, person.email
-    assert_select "a", text: "View"
+    refute_select "a", text: "View"
+    refute_includes response.body, "Actions"
 
-    view_path = css_select("a").find { |link| link.text == "View" }["href"]
-    get view_path
+    get RecordingStudioTermsAndConditions.admin_person_path("User", person.id)
     assert_response :success
     assert_includes response.body, person.email
     assert_includes response.body, "House rules"
@@ -463,10 +463,13 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     series = JSON.parse(series_json.gsub("&quot;", '"'))
     points = series.dig(0, "data")
     chart_total = Array(points).sum { |point| point.is_a?(Array) ? point[1].to_i : point.fetch("y", 0).to_i }
+    period = RecordingStudioAdmin::Period.from_preset_key(
+      RecordingStudioTermsAndConditions::Admin::AcceptancesOverTime::DEFAULT_WINDOW
+    )
     window_total = RecordingStudioTermsAndConditions::Acceptance.where(
       "accepted_at >= ? AND accepted_at <= ?",
-      Time.current.beginning_of_week,
-      Time.current.end_of_week
+      period.start_date.beginning_of_day,
+      period.end_date.end_of_day
     ).count
     assert_operator chart_total, :>=, 2
     assert_equal window_total, chart_total
@@ -534,6 +537,9 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, 'name="date_range_preset"'
     assert_includes response.body, 'name="start_date"'
     assert_includes response.body, 'name="end_date"'
+    assert_includes response.body, 'name="agreed_terms"'
+    assert_includes response.body, 'name="agreed_privacy"'
+    assert_includes response.body, "last_4_weeks"
 
     get "/admin/screens/recording_studio_terms_acceptances/table",
         params: { start_date: "2026-10-01", end_date: "2026-10-19" }
@@ -545,6 +551,42 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
         params: { start_date: "2026-08-01", end_date: "2026-08-31", name_or_email: old_person.email }
     assert_includes response.body, old_person.email
     refute_includes response.body, new_person.email
+  end
+
+  test "who agreed filters people by agreed terms or privacy" do
+    sign_in @admin
+    switch_to_workspace(@admin_root)
+    root = RecordingStudio.root_recording_for(@workspace)
+    terms = publish_live_kind!(root, kind: "terms_and_condition", title: "Filter terms", slug: "ft-#{SecureRandom.hex(3)}")
+    privacy = publish_live_kind!(root, kind: "privacy_policy", title: "Filter privacy", slug: "fp-#{SecureRandom.hex(3)}")
+    terms_only = User.create!(
+      email: "terms-only-#{SecureRandom.hex(3)}@example.com",
+      password: "Password",
+      password_confirmation: "Password"
+    )
+    privacy_only = User.create!(
+      email: "privacy-only-#{SecureRandom.hex(3)}@example.com",
+      password: "Password",
+      password_confirmation: "Password"
+    )
+    RecordingStudioTermsAndConditions.accept!(terms_only, terms, { "source" => "clickwrap" })
+    RecordingStudioTermsAndConditions.accept!(privacy_only, privacy, { "source" => "clickwrap" })
+
+    get "/admin/screens/recording_studio_terms_acceptances/table",
+        params: { start_date: "2026-10-01", end_date: "2026-10-19", agreed_terms: "yes" }
+    assert_response :success
+    assert_includes response.body, terms_only.email
+    refute_includes response.body, privacy_only.email
+
+    get "/admin/screens/recording_studio_terms_acceptances/table",
+        params: { start_date: "2026-10-01", end_date: "2026-10-19", agreed_privacy: "yes" }
+    assert_includes response.body, privacy_only.email
+    refute_includes response.body, terms_only.email
+
+    get "/admin/screens/recording_studio_terms_acceptances/table",
+        params: { start_date: "2026-10-01", end_date: "2026-10-19", agreed_terms: "no" }
+    assert_includes response.body, privacy_only.email
+    refute_includes response.body, terms_only.email
   end
 
   private

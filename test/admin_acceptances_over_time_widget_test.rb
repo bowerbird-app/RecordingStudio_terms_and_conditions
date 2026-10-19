@@ -14,7 +14,11 @@ class AdminAcceptancesOverTimeWidgetTest < Minitest::Test
     end
   end
 
-  def test_over_time_params_authorize_site_metrics_and_pass_the_week_window
+  def test_default_window_is_last_four_weeks
+    assert_equal :last_4_weeks, RecordingStudioTermsAndConditions::Admin::AcceptancesOverTime::DEFAULT_WINDOW
+  end
+
+  def test_over_time_params_authorize_site_metrics_and_pass_the_window
     range = Time.utc(2026, 10, 13)..Time.utc(2026, 10, 19)
     context = FakeRangeContext.new(:day, range)
 
