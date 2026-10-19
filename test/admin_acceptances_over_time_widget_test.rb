@@ -18,7 +18,7 @@ class AdminAcceptancesOverTimeWidgetTest < Minitest::Test
     range = Time.utc(2026, 10, 13)..Time.utc(2026, 10, 19)
     context = FakeRangeContext.new(:day, range)
 
-    params = RecordingStudioTermsAndConditions::Admin.acceptances_over_time_params(context)
+    params = RecordingStudioTermsAndConditions::Admin::AcceptancesOverTime.params(context)
 
     assert_equal :site, params[:scope]
     assert_equal true, params[:site_authorized]
@@ -30,7 +30,7 @@ class AdminAcceptancesOverTimeWidgetTest < Minitest::Test
   def test_over_time_params_omit_bounds_when_admin_has_no_period
     context = FakeRangeContext.new(:week, nil)
 
-    params = RecordingStudioTermsAndConditions::Admin.acceptances_over_time_params(context)
+    params = RecordingStudioTermsAndConditions::Admin::AcceptancesOverTime.params(context)
 
     refute params.key?(:start_at)
     refute params.key?(:end_at)
@@ -38,10 +38,10 @@ class AdminAcceptancesOverTimeWidgetTest < Minitest::Test
   end
 
   def test_over_time_total_sums_the_metrics_series
-    admin = RecordingStudioTermsAndConditions::Admin
+    helper = RecordingStudioTermsAndConditions::Admin::AcceptancesOverTime
     series = [{ name: "Agrees", data: [["2026-10-18", 2], ["2026-10-19", 3]] }]
-    admin.stub(:acceptances_over_time_series, series) do
-      assert_equal 5, admin.acceptances_over_time_total(Object.new)
+    helper.stub(:series, series) do
+      assert_equal 5, helper.total(Object.new)
     end
   end
 end

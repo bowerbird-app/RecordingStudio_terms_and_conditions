@@ -715,7 +715,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes routes, "resource :acceptance"
     assert_includes routes, 'request.script_name}/acceptance"'
     assert_includes routes, "resources :terms"
-    admin = File.read(File.join(engine_root, "lib/recording_studio_terms_and_conditions/admin.rb"))
+    admin = File.read(File.join(engine_root, "lib/recording_studio_terms_and_conditions/admin.rb")) +
+            File.read(File.join(engine_root, "lib/recording_studio_terms_and_conditions/admin/acceptances_over_time.rb"))
     assert_includes admin, 'key "terms"'
     assert_includes admin, "paginate per_page: 25"
     assert_includes admin, 'text: "All versions"'

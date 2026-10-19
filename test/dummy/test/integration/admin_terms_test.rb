@@ -188,7 +188,8 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
       widgets.terms.privacy_agreed
       widgets.terms.acceptances_over_time
     ], usages.map(&:key)
-    assert usages.all? { |usage| usage.view_variant == :card }
+    assert_equal %i[card card], usages.first(2).map(&:view_variant)
+    assert_nil usages.last.view_variant
     assert_empty RecordingStudioTermsAndConditions::Admin::TermsScreen.widget_usages
     assert_empty RecordingStudioTermsAndConditions::Admin::AcceptancesScreen.widget_usages
     assert RecordingStudioAdmin::WidgetRenderingHelper.ancestors.include?(

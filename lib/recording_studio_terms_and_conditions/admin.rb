@@ -2,6 +2,7 @@
 
 require "recording_studio_admin"
 require "recording_studio_metrics"
+require_relative "admin/acceptances_over_time"
 
 module RecordingStudioTermsAndConditions
   module Admin
@@ -197,9 +198,9 @@ module RecordingStudioTermsAndConditions
       info "Day-by-day agreements. Open the list when a day looks off."
       chart_type :area
       chart_options { { height: 220 } }
-      value { |context| Admin.acceptances_over_time_total(context) }
-      series { |context| Admin.acceptances_over_time_series(context) }
-      link_to { |context| context.admin_screen_path("recording_studio_terms_acceptances") }
+      value { |context| AcceptancesOverTime.total(context) }
+      series { |context| AcceptancesOverTime.series(context) }
+      link_to { |context| context.admin_screen_path(AcceptancesOverTime::SCREEN_KEY) }
       link_label "Who agreed"
     end
 
@@ -306,28 +307,6 @@ module RecordingStudioTermsAndConditions
         register_widget!(TermsAgreedWidget)
         register_widget!(PrivacyAgreedWidget)
         register_widget!(AcceptancesOverTimeWidget)
-      end
-
-      def acceptances_over_time_series(context)
-        RecordingStudioMetrics::Admin.chart_series(
-          "terms_acceptances.over_time",
-          admin_context: context,
-          name: "Agrees",
-          **acceptances_over_time_params(context)
-        )
-      end
-
-      def acceptances_over_time_total(context)
-        series = acceptances_over_time_series(context)
-        Array(series.dig(0, :data)).sum { |point| point.is_a?(Array) ? point[1].to_i : 0 }
-      end
-
-      def acceptances_over_time_params(context)
-        params = { scope: :site, site_authorized: true, interval: context.widget_group_by(default: :day) }
-        range = context.widget_time_range(default_preset_key: :this_week)
-        return params if range.blank?
-
-        params.merge(start_at: range.begin, end_at: range.end)
       end
 
       def register_widget!(widget)
