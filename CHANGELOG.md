@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-10-19
+
+### Added
+- Terms Admin hub chart widget `widgets.terms.acceptances_over_time` reads `terms_acceptances.over_time` through `RecordingStudioMetrics::Admin` and links to the Who agreed screen. Default window is `last_4_weeks`, same as Who agreed.
+- Who agreed (`recording_studio_terms_acceptances`) has an Admin `date_range` filter on acceptance `accepted_at` (default `last_4_weeks`), plus `agreed_terms` and `agreed_privacy` filters. The people table no longer has an Actions column.
+
+### Upgrade notes (0.12.0 → 0.13.0)
+- No schema change. Pin this gem at `0.13.0`.
+- No new gems. The hub chart uses the existing Metrics Admin adapter and Admin widget registry.
+
 ## [0.12.0] - 2026-10-15
 
 ### Added

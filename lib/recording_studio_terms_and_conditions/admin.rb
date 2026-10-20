@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "recording_studio_admin"
+require "recording_studio_metrics"
+require_relative "admin/acceptances_over_time"
 
 module RecordingStudioTermsAndConditions
   module Admin
@@ -40,6 +42,7 @@ module RecordingStudioTermsAndConditions
            url: ->(context) { context.admin_screen_path("recording_studio_terms_acceptances") }
       widget "widgets.terms.terms_agreed", view_variant: :card
       widget "widgets.terms.privacy_agreed", view_variant: :card
+      widget "widgets.terms.acceptances_over_time"
     end
 
     class TermsScreen < RecordingStudioAdmin::Screen
@@ -93,8 +96,16 @@ module RecordingStudioTermsAndConditions
       blast_radius :site
       query { |_context| AgreedPeople.relation }
       filter_presentation :inline
+      filter :date_range, field: "recording_studio_terms_and_conditions_acceptances.accepted_at",
+                          default: AcceptancesOverTime::DEFAULT_WINDOW
       filter :name_or_email, apply: lambda { |relation, value, _context|
         AgreedPeople.matching_name_or_email(relation, value)
+      }
+      filter :agreed_terms, options: %w[yes no], apply: lambda { |relation, value, _context|
+        AgreedPeople.with_kind(relation, Terms::KIND_TERMS, agreed: value)
+      }
+      filter :agreed_privacy, options: %w[yes no], apply: lambda { |relation, value, _context|
+        AgreedPeople.with_kind(relation, Terms::KIND_PRIVACY, agreed: value)
       }
 
       table do
@@ -105,12 +116,6 @@ module RecordingStudioTermsAndConditions
                                    value: ->(row, _context) { row.read_attribute("terms_accepted_at") }
         column :privacy_accepted_at, title: "Agreed privacy", sortable: false,
                                      value: ->(row, _context) { row.read_attribute("privacy_accepted_at") }
-        column :actions, title: "Actions", sortable: false, value: lambda { |row, context|
-          href = RecordingStudioTermsAndConditions.admin_person_path(row.actor_type, row.actor_id)
-          context.view_context.render(
-            FlatPack::Button::Component.new(text: "View", style: :secondary, size: :sm, href: href)
-          )
-        }
       end
     end
 
@@ -119,16 +124,16 @@ module RecordingStudioTermsAndConditions
 
       def relation
         terms = Terms.arel_table
-        Acceptance.joins(terms_join(terms)).select(select_sql(terms)).group(group_sql).order(newest_first)
+        Acceptance.joins(terms_join(terms)).select(select_sql).group(group_sql).order(newest_first)
       end
 
-      def select_sql(terms)
+      def select_sql
         [
           "#{Acceptance.table_name}.actor_type",
           "#{Acceptance.table_name}.actor_id",
           "MAX(#{Acceptance.table_name}.accepted_at) AS latest_accepted_at",
-          kind_date_sql(terms, Terms::KIND_TERMS, "terms_accepted_at"),
-          kind_date_sql(terms, Terms::KIND_PRIVACY, "privacy_accepted_at")
+          kind_date_sql(Terms::KIND_TERMS, "terms_accepted_at"),
+          kind_date_sql(Terms::KIND_PRIVACY, "privacy_accepted_at")
         ]
       end
 
@@ -149,6 +154,15 @@ module RecordingStudioTermsAndConditions
         relation.joins(people_join).where(people_match_sql, term: term)
       end
 
+      def with_kind(relation, kind, agreed:)
+        clause = kind_present_sql(kind)
+        if %w[yes true].include?(agreed.to_s.downcase)
+          relation.having("#{clause} IS NOT NULL")
+        else
+          relation.having("#{clause} IS NULL")
+        end
+      end
+
       def people_join
         acceptances = Acceptance.table_name
         "LEFT JOIN users ON users.id = #{acceptances}.actor_id " \
@@ -162,9 +176,13 @@ module RecordingStudioTermsAndConditions
           "(profiles.first_name || ' ' || profiles.last_name) ILIKE :term"
       end
 
-      def kind_date_sql(terms, kind, alias_name)
+      def kind_date_sql(kind, alias_name)
+        "#{kind_present_sql(kind)} AS #{alias_name}"
+      end
+
+      def kind_present_sql(kind)
         "MAX(#{Acceptance.table_name}.accepted_at) FILTER " \
-          "(WHERE #{terms.name}.kind = #{Acceptance.connection.quote(kind)}) AS #{alias_name}"
+          "(WHERE #{Terms.table_name}.kind = #{Acceptance.connection.quote(kind)})"
       end
     end
 
@@ -184,6 +202,21 @@ module RecordingStudioTermsAndConditions
       value { |_context| AdminVersions.people_count(Terms::KIND_PRIVACY) }
       change { |_context| "users agreed" }
       hide_period
+    end
+
+    AcceptancesOverTimeWidget = RecordingStudioAdmin::Widget.new(
+      "widgets.terms.acceptances_over_time",
+      blast_radius: :site
+    ) do
+      type :chart
+      title "Agrees over time"
+      info "Day-by-day agreements. Open the list when a day looks off."
+      chart_type :area
+      chart_options { { height: 220 } }
+      value { |context| AcceptancesOverTime.total(context) }
+      series { |context| AcceptancesOverTime.series(context) }
+      link_to { |context| context.admin_screen_path(AcceptancesOverTime::SCREEN_KEY) }
+      link_label "Who agreed"
     end
 
     class TermsResource < RecordingStudioAdmin::Resource
@@ -238,6 +271,7 @@ module RecordingStudioTermsAndConditions
         TermsResource
         TermsAgreedWidget
         PrivacyAgreedWidget
+        AcceptancesOverTimeWidget
       ].freeze
     end
 
@@ -287,6 +321,7 @@ module RecordingStudioTermsAndConditions
         RecordingStudioAdmin.register_resource(TermsResource)
         register_widget!(TermsAgreedWidget)
         register_widget!(PrivacyAgreedWidget)
+        register_widget!(AcceptancesOverTimeWidget)
       end
 
       def register_widget!(widget)

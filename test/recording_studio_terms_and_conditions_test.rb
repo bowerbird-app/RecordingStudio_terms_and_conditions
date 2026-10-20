@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.12.0", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.13.0", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -715,14 +715,16 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes routes, "resource :acceptance"
     assert_includes routes, 'request.script_name}/acceptance"'
     assert_includes routes, "resources :terms"
-    admin = File.read(File.join(engine_root, "lib/recording_studio_terms_and_conditions/admin.rb"))
+    admin_rb = File.join(engine_root, "lib/recording_studio_terms_and_conditions/admin.rb")
+    over_time = File.join(engine_root, "lib/recording_studio_terms_and_conditions/admin/acceptances_over_time.rb")
+    admin = File.read(admin_rb) + File.read(over_time)
     assert_includes admin, 'key "terms"'
     assert_includes admin, "paginate per_page: 25"
     assert_includes admin, 'text: "All versions"'
     assert_includes admin, 'text: "New"'
     assert_includes admin, 'title "Who agreed"'
-    assert_includes admin, 'text: "View"'
-    assert_includes admin, "admin_person_path"
+    refute_includes admin, 'text: "View"'
+    refute_includes admin, "column :actions"
     assert_includes admin, 'title: "Agreed terms"'
     assert_includes admin, 'title: "Agreed privacy"'
     assert_includes admin, 'text: "Terms and Condition page"'
@@ -743,7 +745,17 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes admin, 'title "Agrees"'
     assert_includes admin, 'widget "widgets.terms.terms_agreed", view_variant: :card'
     assert_includes admin, 'widget "widgets.terms.privacy_agreed", view_variant: :card'
+    assert_includes admin, 'widget "widgets.terms.acceptances_over_time"'
+    assert_includes admin, "terms_acceptances.over_time"
+    assert_includes admin, 'link_label "Who agreed"'
+    assert_includes admin, 'title "Agrees over time"'
     assert_includes admin, "filter :name_or_email"
+    assert_includes admin, "filter :date_range, field:"
+    assert_includes admin, ".accepted_at"
+    assert_includes admin, "default: AcceptancesOverTime::DEFAULT_WINDOW"
+    assert_includes admin, "DEFAULT_WINDOW = :last_4_weeks"
+    assert_includes admin, "filter :agreed_terms"
+    assert_includes admin, "filter :agreed_privacy"
     assert_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/terms_controller.rb"),
                     "/screens/recording_studio_terms"
     refute_includes admin, "view_variant: :compact"
