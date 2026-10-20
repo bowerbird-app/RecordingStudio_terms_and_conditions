@@ -575,19 +575,21 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     RecordingStudioTermsAndConditions.accept!(terms_only, terms, { "source" => "clickwrap" })
     RecordingStudioTermsAndConditions.accept!(privacy_only, privacy, { "source" => "clickwrap" })
 
+    window = { start_date: "2026-10-01", end_date: Date.current.iso8601 }
+
     get "/admin/screens/recording_studio_terms_acceptances/table",
-        params: { start_date: "2026-10-01", end_date: "2026-10-19", agreed_terms: "yes" }
+        params: window.merge(agreed_terms: "yes")
     assert_response :success
     assert_includes response.body, terms_only.email
     refute_includes response.body, privacy_only.email
 
     get "/admin/screens/recording_studio_terms_acceptances/table",
-        params: { start_date: "2026-10-01", end_date: "2026-10-19", agreed_privacy: "yes" }
+        params: window.merge(agreed_privacy: "yes")
     assert_includes response.body, privacy_only.email
     refute_includes response.body, terms_only.email
 
     get "/admin/screens/recording_studio_terms_acceptances/table",
-        params: { start_date: "2026-10-01", end_date: "2026-10-19", agreed_terms: "no" }
+        params: window.merge(agreed_terms: "no")
     assert_includes response.body, privacy_only.email
     refute_includes response.body, terms_only.email
   end
