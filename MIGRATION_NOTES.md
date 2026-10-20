@@ -18,6 +18,10 @@ Then:
 
 The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
 
+## Upgrade from 0.13.2 to 0.13.3
+
+No schema change. Pin this gem at `0.13.3`. Agrees over time hides x-axis labels (`chart_options` `xaxis.labels.show: false`) and reads Admin `last_30_days`. Who agreed still defaults to `last_4_weeks`.
+
 ## Upgrade from 0.13.1 to 0.13.2
 
 No schema change. Pin this gem at `0.13.2`. The Terms hub compact row holds Terms and conditions and Privacy Policy; Agrees over time stays below. Who agreed filters people by `accepted_at`. Agrees over time plots `{ x:, y: }` points from the timeseries `date`/`value` rows.

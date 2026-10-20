@@ -457,6 +457,11 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, 'data-controller="flat-pack--chart"'
     body = CGI.unescapeHTML(response.body)
     assert_includes body, '"name":"Agrees"'
+    options_json = body[/'data-flat-pack--chart-options-value="(\{.*?\})"/, 1]
+    options_json ||= body[/data-flat-pack--chart-options-value="(\{.*?\})"/, 1]
+    assert options_json, "chart options payload missing"
+    options = JSON.parse(options_json.gsub("&quot;", '"'))
+    assert_equal false, options.dig("xaxis", "labels", "show")
     series_json = body[/'data-flat-pack--chart-series-value="(\[\{.*?\}\])"/, 1]
     series_json ||= body[/data-flat-pack--chart-series-value="(\[\{.*?\}\])"/, 1]
     assert series_json, "chart series payload missing"
@@ -467,7 +472,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     refute points&.any? { |point| point.is_a?(Array) }
     chart_total = Array(points).sum { |point| point.fetch("y", 0).to_i }
     period = RecordingStudioAdmin::Period.from_preset_key(
-      RecordingStudioTermsAndConditions::Admin::AcceptancesOverTime::DEFAULT_WINDOW
+      RecordingStudioTermsAndConditions::Admin::AcceptancesOverTime::CHART_WINDOW
     )
     window_total = RecordingStudioTermsAndConditions::Acceptance.where(
       "accepted_at >= ? AND accepted_at <= ?",
