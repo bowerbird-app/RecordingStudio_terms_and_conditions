@@ -43,7 +43,7 @@ class AdminAcceptancesOverTimeWidgetTest < Minitest::Test
 
   def test_over_time_total_sums_the_metrics_series
     helper = RecordingStudioTermsAndConditions::Admin::AcceptancesOverTime
-    series = [{ name: "Agrees", data: [["2026-10-18", 2], ["2026-10-19", 3]] }]
+    series = [{ name: "Agrees", data: [{ x: "2026-10-18", y: 2 }, { x: "2026-10-19", y: 3 }] }]
     helper.stub(:series, series) do
       assert_equal 5, helper.total(Object.new)
     end

@@ -18,6 +18,10 @@ Then:
 
 The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
 
+## Upgrade from 0.13.0 to 0.13.1
+
+No schema change. Pin this gem at `0.13.1`. Require `recording_studio_metrics` `>= 0.3.0, < 0.6` (tag `v0.5.0`). Agrees over time passes `{ x:, y: }` points from `chart_series` through to Admin.
+
 ## Upgrade from 0.12.0 to 0.13.0
 
 No schema change. Pin this gem at `0.13.0`. The Terms Admin hub adds an Agrees over time chart from `terms_acceptances.over_time` with a `last_4_weeks` default, matching Who agreed. Who agreed filters by `accepted_at`, agreed Terms, and agreed Privacy. The people table has no Actions column. Metrics stay registered as they were in 0.12.0.

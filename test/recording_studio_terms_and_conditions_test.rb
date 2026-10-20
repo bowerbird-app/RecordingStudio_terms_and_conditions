@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.13.0", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.13.1", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -18,7 +18,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.196"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", "~> 0.8"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_admin", "~> 2.0"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_metrics", ">= 0.3.0", "< 0.4"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_metrics", ">= 0.3.0", "< 0.6"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_publishable", "~> 0.6"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_user", ">= 0.12.2"'
   end
@@ -62,8 +62,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.3.0"'
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.3.0"'
     refute_includes gemfile, "recording_studio_api"
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.3.1"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.3.1"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.5.0"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.5.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.11.0"'
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.11.0"'
     assert_match(/recording_studio_trashable.*,\n\s+require: false/, gemfile)

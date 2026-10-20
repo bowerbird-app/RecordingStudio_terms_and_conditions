@@ -19,7 +19,7 @@ module RecordingStudioTermsAndConditions
       end
 
       def total(context)
-        Array(series(context).dig(0, :data)).sum { |point| point.is_a?(Array) ? point[1].to_i : 0 }
+        Array(series(context).dig(0, :data)).sum { |point| point.is_a?(Hash) ? point.fetch(:y, 0).to_i : 0 }
       end
 
       def params(context)

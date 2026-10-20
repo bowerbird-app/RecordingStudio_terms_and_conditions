@@ -132,6 +132,10 @@ Add [Recording Studio Internationalization](https://github.com/bowerbird-app/Rec
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
 
+## Upgrading from 0.13.0
+
+Bump to **0.13.1**. No schema change. Require `recording_studio_metrics` `>= 0.3.0, < 0.6` (tag `v0.5.0`). Agrees over time hands `{ x:, y: }` points from `chart_series` to Admin.
+
 ## Upgrading from 0.12.0
 
 Bump to **0.13.0**. No schema change. The Terms Admin hub shows an Agrees over time chart from `terms_acceptances.over_time` with a `last_4_weeks` default, matching Who agreed. Who agreed filters by date, agreed Terms, and agreed Privacy. Metrics registration is unchanged.

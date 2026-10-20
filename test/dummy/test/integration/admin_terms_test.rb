@@ -462,7 +462,10 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert series_json, "chart series payload missing"
     series = JSON.parse(series_json.gsub("&quot;", '"'))
     points = series.dig(0, "data")
-    chart_total = Array(points).sum { |point| point.is_a?(Array) ? point[1].to_i : point.fetch("y", 0).to_i }
+    assert points&.all? { |point| point.is_a?(Hash) && point.key?("x") && point.key?("y") },
+           "chart series must be { x:, y: } points"
+    refute points&.any? { |point| point.is_a?(Array) }
+    chart_total = Array(points).sum { |point| point.fetch("y", 0).to_i }
     period = RecordingStudioAdmin::Period.from_preset_key(
       RecordingStudioTermsAndConditions::Admin::AcceptancesOverTime::DEFAULT_WINDOW
     )
@@ -572,19 +575,21 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     RecordingStudioTermsAndConditions.accept!(terms_only, terms, { "source" => "clickwrap" })
     RecordingStudioTermsAndConditions.accept!(privacy_only, privacy, { "source" => "clickwrap" })
 
+    window = { start_date: "2026-10-01", end_date: Date.current.iso8601 }
+
     get "/admin/screens/recording_studio_terms_acceptances/table",
-        params: { start_date: "2026-10-01", end_date: "2026-10-19", agreed_terms: "yes" }
+        params: window.merge(agreed_terms: "yes")
     assert_response :success
     assert_includes response.body, terms_only.email
     refute_includes response.body, privacy_only.email
 
     get "/admin/screens/recording_studio_terms_acceptances/table",
-        params: { start_date: "2026-10-01", end_date: "2026-10-19", agreed_privacy: "yes" }
+        params: window.merge(agreed_privacy: "yes")
     assert_includes response.body, privacy_only.email
     refute_includes response.body, terms_only.email
 
     get "/admin/screens/recording_studio_terms_acceptances/table",
-        params: { start_date: "2026-10-01", end_date: "2026-10-19", agreed_terms: "no" }
+        params: window.merge(agreed_terms: "no")
     assert_includes response.body, privacy_only.email
     refute_includes response.body, terms_only.email
   end
