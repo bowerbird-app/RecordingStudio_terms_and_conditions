@@ -23,19 +23,22 @@ module RecordingStudioTermsAndConditions
       end
 
       def points_from(result)
-        Array(result.data).filter_map { |row| point_from(row) }
+        Array(result.data).filter_map { |row| hash_point(row) if row.is_a?(Hash) }
       end
 
-      def point_from(row)
-        if row.is_a?(Hash)
-          x = row[:x] || row["x"] || row[:date] || row["date"]
-          y = row[:y] || row["y"] || row[:value] || row["value"]
-          return unless x
+      def hash_point(row)
+        x = first_present(row, :x, "x", :date, "date")
+        return unless x
 
-          { x: x, y: y.to_i }
-        elsif row.is_a?(Array) && row.size >= 2
-          { x: row[0], y: row[1].to_i }
+        { x: x, y: first_present(row, :y, "y", :value, "value").to_i }
+      end
+
+      def first_present(row, *keys)
+        keys.each do |key|
+          value = row[key]
+          return value unless value.nil?
         end
+        nil
       end
 
       def params(context)

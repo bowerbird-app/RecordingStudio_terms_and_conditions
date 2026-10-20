@@ -750,8 +750,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin, 'link_label "Who agreed"'
     assert_includes admin, 'title "Agrees over time"'
     assert_includes admin, "filter :name_or_email"
-    assert_includes admin, "filter :date_range, field:"
-    assert_includes admin, ".accepted_at"
+    assert_includes admin, "filter :date_range, field: :accepted_at"
     assert_includes admin, "default: AcceptancesOverTime::DEFAULT_WINDOW"
     assert_includes admin, "DEFAULT_WINDOW = :last_4_weeks"
     assert_includes admin, "filter :agreed_terms"

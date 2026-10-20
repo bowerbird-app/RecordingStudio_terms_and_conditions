@@ -96,7 +96,7 @@ module RecordingStudioTermsAndConditions
       blast_radius :site
       query { |_context| AgreedPeople.relation }
       filter_presentation :inline
-      filter :date_range, field: Acceptance.arel_table[:accepted_at],
+      filter :date_range, field: :accepted_at,
                           default: AcceptancesOverTime::DEFAULT_WINDOW
       filter :name_or_email, apply: lambda { |relation, value, _context|
         AgreedPeople.matching_name_or_email(relation, value)
