@@ -212,7 +212,7 @@ module RecordingStudioTermsAndConditions
       title "Agrees over time"
       info "Day-by-day agreements. Open the list when a day looks off."
       chart_type :area
-      chart_options { { height: 220 } }
+      chart_options { { height: 220, xaxis: { labels: { show: false } } } }
       value { |context| AcceptancesOverTime.total(context) }
       series { |context| AcceptancesOverTime.series(context) }
       link_to { |context| context.admin_screen_path(AcceptancesOverTime::SCREEN_KEY) }

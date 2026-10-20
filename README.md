@@ -132,6 +132,10 @@ Add [Recording Studio Internationalization](https://github.com/bowerbird-app/Rec
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
 
+## Upgrading from 0.13.2
+
+Bump to **0.13.3**. No schema change. Agrees over time hides x-axis labels and uses Admin preset `last_30_days`. Who agreed still defaults to `last_4_weeks`.
+
 ## Upgrading from 0.13.1
 
 Bump to **0.13.2**. No schema change. The Terms hub shows Terms and conditions and Privacy Policy in the compact row, with Agrees over time below. Who agreed honours the date range on `accepted_at`. Agrees over time maps timeseries `date`/`value` rows to chart `{ x:, y: }` points.

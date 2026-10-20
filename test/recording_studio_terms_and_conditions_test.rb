@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.13.2", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.13.3", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -753,6 +753,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin, "filter :date_range, field: :accepted_at"
     assert_includes admin, "default: AcceptancesOverTime::DEFAULT_WINDOW"
     assert_includes admin, "DEFAULT_WINDOW = :last_4_weeks"
+    assert_includes admin, "CHART_WINDOW = :last_30_days"
+    assert_includes admin, "xaxis: { labels: { show: false } }"
     assert_includes admin, "filter :agreed_terms"
     assert_includes admin, "filter :agreed_privacy"
     assert_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/terms_controller.rb"),

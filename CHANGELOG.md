@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.3] - 2026-10-20
+
+### Changed
+- Agrees over time hides x-axis labels (`chart_options` `xaxis.labels.show: false`) and defaults the Metrics window to Admin preset `last_30_days`. Who agreed still defaults to `last_4_weeks`.
+
+### Upgrade notes (0.13.2 → 0.13.3)
+- No schema change. Pin this gem at `0.13.3`.
+
 ## [0.13.2] - 2026-10-20
 
 ### Changed
