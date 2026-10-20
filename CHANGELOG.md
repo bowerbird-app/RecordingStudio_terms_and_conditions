@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.2] - 2026-10-20
+
+### Changed
+- Terms Admin hub puts the Terms and conditions and Privacy Policy widgets in the compact row at the top, with Agrees over time in the full-width row below.
+
+### Fixed
+- Who agreed applies the date range to `accepted_at` through Admin’s date-range filter (`field: :accepted_at`, not a dotted table string), so changing the range changes the people table.
+- Agrees over time maps Metrics timeseries `{ date:, value: }` rows to `{ x:, y: }` points, so the chart counts the same acceptances as Who agreed.
+
+### Upgrade notes (0.13.1 → 0.13.2)
+- No schema change. Pin this gem at `0.13.2`.
+
 ## [0.13.1] - 2026-10-20
 
 ### Changed

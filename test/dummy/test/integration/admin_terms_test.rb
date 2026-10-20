@@ -188,7 +188,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
       widgets.terms.privacy_agreed
       widgets.terms.acceptances_over_time
     ], usages.map(&:key)
-    assert_equal %i[card card], usages.first(2).map(&:view_variant)
+    assert_equal %i[compact compact], usages.first(2).map(&:view_variant)
     assert_nil usages.last.view_variant
     assert_empty RecordingStudioTermsAndConditions::Admin::TermsScreen.widget_usages
     assert_empty RecordingStudioTermsAndConditions::Admin::AcceptancesScreen.widget_usages
@@ -379,8 +379,8 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Every version"
     refute_includes response.body, "Old versions"
     refute_includes response.body, "Who agreed"
-    assert_includes response.body, "widget_view_variant=card"
-    refute_includes response.body, "widget_view_variant=compact"
+    assert_includes response.body, "widget_view_variant=compact"
+    refute_includes response.body, "widget_view_variant=card"
     refute_includes response.body, "+ Access"
     refute_includes response.body, "Terms demo"
     refute_select "a", text: "Sign out"
@@ -432,7 +432,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_operator titles.index("Live rules"), :<, titles.index("Older draft")
 
     get "/admin/sections/terms/widgets/widgets.terms.terms_agreed",
-        params: { widget_usage_index: 0, widget_view_variant: "card" },
+        params: { widget_usage_index: 0, widget_view_variant: "compact" },
         headers: { "Sec-Fetch-Dest" => "empty", "Turbo-Frame" => "widget" }
     assert_response :success
     assert_includes response.body, "Terms and conditions"
@@ -440,7 +440,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "text-5xl"
 
     get "/admin/sections/terms/widgets/widgets.terms.privacy_agreed",
-        params: { widget_usage_index: 1, widget_view_variant: "card" },
+        params: { widget_usage_index: 1, widget_view_variant: "compact" },
         headers: { "Sec-Fetch-Dest" => "empty", "Turbo-Frame" => "widget" }
     assert_response :success
     assert_includes response.body, "Privacy Policy"
@@ -532,7 +532,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
       password: "Password",
       password_confirmation: "Password"
     )
-    stamp_acceptance!(old_person, recording, at: Time.utc(2026, 8, 1, 12))
+    stamp_acceptance!(old_person, recording, at: Time.utc(2026, 10, 2, 12))
     stamp_acceptance!(new_person, recording, at: Time.utc(2026, 10, 18, 12))
 
     get "/admin/screens/recording_studio_terms_acceptances"
@@ -548,10 +548,16 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
         params: { start_date: "2026-10-01", end_date: "2026-10-19" }
     assert_response :success
     assert_includes response.body, new_person.email
+    assert_includes response.body, old_person.email
+
+    get "/admin/screens/recording_studio_terms_acceptances/table",
+        params: { start_date: "2026-10-17", end_date: "2026-10-19" }
+    assert_response :success
+    assert_includes response.body, new_person.email
     refute_includes response.body, old_person.email
 
     get "/admin/screens/recording_studio_terms_acceptances/table",
-        params: { start_date: "2026-08-01", end_date: "2026-08-31", name_or_email: old_person.email }
+        params: { start_date: "2026-10-01", end_date: "2026-10-03", name_or_email: old_person.email }
     assert_includes response.body, old_person.email
     refute_includes response.body, new_person.email
   end

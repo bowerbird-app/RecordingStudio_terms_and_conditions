@@ -10,16 +10,35 @@ module RecordingStudioTermsAndConditions
       module_function
 
       def series(context)
-        RecordingStudioMetrics::Admin.chart_series(
+        result = RecordingStudioMetrics::Admin.execute(
           IDENTIFIER,
           admin_context: context,
-          name: "Agrees",
           **params(context)
         )
+        [{ name: "Agrees", data: points_from(result) }]
       end
 
       def total(context)
         Array(series(context).dig(0, :data)).sum { |point| point.is_a?(Hash) ? point.fetch(:y, 0).to_i : 0 }
+      end
+
+      def points_from(result)
+        Array(result.data).filter_map { |row| hash_point(row) if row.is_a?(Hash) }
+      end
+
+      def hash_point(row)
+        x = first_present(row, :x, "x", :date, "date")
+        return unless x
+
+        { x: x, y: first_present(row, :y, "y", :value, "value").to_i }
+      end
+
+      def first_present(row, *keys)
+        keys.each do |key|
+          value = row[key]
+          return value unless value.nil?
+        end
+        nil
       end
 
       def params(context)

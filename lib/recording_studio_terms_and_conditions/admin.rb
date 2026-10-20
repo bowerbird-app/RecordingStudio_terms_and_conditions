@@ -40,8 +40,8 @@ module RecordingStudioTermsAndConditions
       link :agrees,
            text: "Admin Sections",
            url: ->(context) { context.admin_screen_path("recording_studio_terms_acceptances") }
-      widget "widgets.terms.terms_agreed", view_variant: :card
-      widget "widgets.terms.privacy_agreed", view_variant: :card
+      widget "widgets.terms.terms_agreed", view_variant: :compact
+      widget "widgets.terms.privacy_agreed", view_variant: :compact
       widget "widgets.terms.acceptances_over_time"
     end
 
@@ -96,7 +96,7 @@ module RecordingStudioTermsAndConditions
       blast_radius :site
       query { |_context| AgreedPeople.relation }
       filter_presentation :inline
-      filter :date_range, field: "recording_studio_terms_and_conditions_acceptances.accepted_at",
+      filter :date_range, field: :accepted_at,
                           default: AcceptancesOverTime::DEFAULT_WINDOW
       filter :name_or_email, apply: lambda { |relation, value, _context|
         AgreedPeople.matching_name_or_email(relation, value)

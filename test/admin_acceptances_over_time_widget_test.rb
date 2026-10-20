@@ -48,4 +48,16 @@ class AdminAcceptancesOverTimeWidgetTest < Minitest::Test
       assert_equal 5, helper.total(Object.new)
     end
   end
+
+  def test_points_from_maps_metric_date_and_value_keys
+    helper = RecordingStudioTermsAndConditions::Admin::AcceptancesOverTime
+    result = Struct.new(:data).new(
+      [{ date: "2026-10-18", value: 2 }, { "date" => "2026-10-19", "value" => 4 }]
+    )
+
+    assert_equal(
+      [{ x: "2026-10-18", y: 2 }, { x: "2026-10-19", y: 4 }],
+      helper.points_from(result)
+    )
+  end
 end
