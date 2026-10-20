@@ -462,7 +462,10 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert series_json, "chart series payload missing"
     series = JSON.parse(series_json.gsub("&quot;", '"'))
     points = series.dig(0, "data")
-    chart_total = Array(points).sum { |point| point.is_a?(Array) ? point[1].to_i : point.fetch("y", 0).to_i }
+    assert points&.all? { |point| point.is_a?(Hash) && point.key?("x") && point.key?("y") },
+           "chart series must be { x:, y: } points"
+    refute points&.any? { |point| point.is_a?(Array) }
+    chart_total = Array(points).sum { |point| point.fetch("y", 0).to_i }
     period = RecordingStudioAdmin::Period.from_preset_key(
       RecordingStudioTermsAndConditions::Admin::AcceptancesOverTime::DEFAULT_WINDOW
     )

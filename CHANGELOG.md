@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.1] - 2026-10-20
+
+### Changed
+- Allow `recording_studio_metrics` `>= 0.3.0, < 0.6`. Development and dummy Gemfiles pin GitHub tag `v0.5.0`.
+- Agrees over time passes `RecordingStudioMetrics::Admin.chart_series` through unchanged. Metrics 0.5.0 already emits `{ x:, y: }` points, so the widget no longer sums `[date, value]` pairs.
+
+### Upgrade notes (0.13.0 → 0.13.1)
+- No schema change. Pin this gem at `0.13.1`.
+- Pin `recording_studio_metrics` to `>= 0.3.0, < 0.6` (tag `v0.5.0`). Hub charts expect `{ x:, y: }` points from `chart_series`.
+
 ## [0.13.0] - 2026-10-19
 
 ### Added
