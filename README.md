@@ -132,6 +132,10 @@ Add [Recording Studio Internationalization](https://github.com/bowerbird-app/Rec
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
 
+## Upgrading from 0.13.1
+
+Bump to **0.13.2**. No schema change. The Terms hub shows Terms and conditions and Privacy Policy in the compact row, with Agrees over time below. Who agreed honours the date range on `accepted_at`. Agrees over time maps timeseries `date`/`value` rows to chart `{ x:, y: }` points.
+
 ## Upgrading from 0.13.0
 
 Bump to **0.13.1**. No schema change. Require `recording_studio_metrics` `>= 0.3.0, < 0.6` (tag `v0.5.0`). Agrees over time hands `{ x:, y: }` points from `chart_series` to Admin.

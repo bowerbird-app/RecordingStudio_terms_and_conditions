@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.13.1", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.13.2", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -743,8 +743,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin, "users agreed"
     refute_includes admin, 'title "Live"'
     refute_includes admin, 'title "Agrees"'
-    assert_includes admin, 'widget "widgets.terms.terms_agreed", view_variant: :card'
-    assert_includes admin, 'widget "widgets.terms.privacy_agreed", view_variant: :card'
+    assert_includes admin, 'widget "widgets.terms.terms_agreed", view_variant: :compact'
+    assert_includes admin, 'widget "widgets.terms.privacy_agreed", view_variant: :compact'
     assert_includes admin, 'widget "widgets.terms.acceptances_over_time"'
     assert_includes admin, "terms_acceptances.over_time"
     assert_includes admin, 'link_label "Who agreed"'
@@ -758,7 +758,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin, "filter :agreed_privacy"
     assert_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/terms_controller.rb"),
                     "/screens/recording_studio_terms"
-    refute_includes admin, "view_variant: :compact"
+    refute_includes admin, "view_variant: :card"
     assert_includes admin, "class TermsResource"
     assert_includes admin, 'admin_action "terms.show"'
     assert_includes admin, 'admin_action "terms.edit"'
