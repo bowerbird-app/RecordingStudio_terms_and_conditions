@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.4] - 2026-10-22
+
+### Changed
+- Allow `recording_studio_metrics` `>= 0.3.0, < 1.0` (CI tested with Metrics 0.5.0). No code change.
+
+### Upgrade notes (0.13.3 → 0.13.4)
+- No schema change. Pin this gem at `0.13.4`. Ceiling for `recording_studio_metrics` is `< 1.0`. No code change.
+
 ## [0.13.3] - 2026-10-20
 
 ### Changed
