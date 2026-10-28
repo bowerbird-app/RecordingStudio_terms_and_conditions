@@ -132,6 +132,10 @@ Add [Recording Studio Internationalization](https://github.com/bowerbird-app/Rec
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
 
+## Upgrading from 0.13.4
+
+Bump to **0.13.5**. No schema change. Coverage reports are gitignored. `docs/gem_template/` and the dummy-app GitHub workflow are gone. This README, `CHANGELOG.md`, `MIGRATION_NOTES.md`, and the dummy app are the source of truth.
+
 ## Upgrading from 0.13.2
 
 Bump to **0.13.3**. No schema change. Agrees over time hides x-axis labels and uses Admin preset `last_30_days`. Who agreed still defaults to `last_4_weeks`.
@@ -400,4 +404,4 @@ The dummy Gemfile keeps `github:` sources so Bundler can fetch those gems. Hosts
 
 ## Documentation
 
-Engine internals from the original gem template stay in `docs/gem_template/` as architectural reference. This README, `CHANGELOG.md`, `MIGRATION_NOTES.md`, and the dummy app are the source of truth for the addon.
+This README, `CHANGELOG.md`, `MIGRATION_NOTES.md`, and the dummy app are the source of truth for the addon.

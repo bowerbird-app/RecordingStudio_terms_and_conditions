@@ -11,18 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Tracked SimpleCov output under `coverage/` and `test/dummy/coverage/`.
-- Template leftover `RecordingStudio::Capabilities::Example`, `docs/gem_template/`, and the dummy app's copied GitHub Actions workflow.
-- Unused `config.hooks.extend_model` / `extend_controller` applicators on this engine.
+- Template leftover `docs/gem_template/` and the dummy app's copied GitHub Actions workflow.
 
 ### Changed
-- Config YAML, `config.x`, admin-root resolver, and kind-presence root lookup rescue the errors those calls actually raise and log them.
-- Published lookup logs `ArgumentError` and Active Record errors. A Terms event subscriber still cannot fail publish: that path keeps reporting `StandardError` through `Rails.error`.
-- Lockfile-only security update: `crass` 1.0.8 and `net-ssh` 7.3.5. `view_component` is unchanged.
+- Lockfile-only security update: `crass` 1.0.8 and dummy `net-ssh` 7.3.5. `view_component` is unchanged.
 
 ### Upgrade notes (0.13.4 → 0.13.5)
 - No schema change. Pin this gem at `0.13.5`.
-- Do not include `RecordingStudio::Capabilities::Example`. Dummy Workspace keeps Accessible only.
-- `config.hooks.extend_model` / `extend_controller` on this gem are no longer applied. Lifecycle hooks (`before_initialize`, `after_initialize`, `on_configuration`) still run.
+- Stop tracking SimpleCov output. `docs/gem_template/` is gone; use this README, CHANGELOG, and the dummy app.
 - No Gemfile pin changes for FlatPack, Admin, Accessible, Metrics, Users, or Root Switchable.
 
 ## [0.13.4] - 2026-10-22

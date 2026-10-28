@@ -18,6 +18,10 @@ Then:
 
 The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
 
+## Upgrade from 0.13.4 to 0.13.5
+
+No schema change. Pin this gem at `0.13.5`. Stop tracking SimpleCov output. `docs/gem_template/` and the dummy-app GitHub workflow are gone.
+
 ## Upgrade from 0.13.2 to 0.13.3
 
 No schema change. Pin this gem at `0.13.3`. Agrees over time hides x-axis labels (`chart_options` `xaxis.labels.show: false`) and reads Admin `last_30_days`. Who agreed still defaults to `last_4_weeks`.
