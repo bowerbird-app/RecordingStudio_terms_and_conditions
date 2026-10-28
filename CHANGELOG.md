@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.5] - 2026-10-28
+
+### Removed
+- Dropped the FlatPack Button `url:` → `href:` prepend. FlatPack Button already renders an `<a>` when given `href:`.
+
+### Upgrade notes (0.13.4 → 0.13.5)
+- No schema change. Pin this gem at `0.13.5`.
+- Pass `href:` to FlatPack `Button::Component` for link-style buttons. This gem no longer copies `url:` onto `href:`. Recording Studio Admin section `link` / resource `action` still use `url:` on their own DSL.
+
 ## [0.13.4] - 2026-10-22
 
 ### Changed

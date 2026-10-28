@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.13.4", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.13.5", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -795,8 +795,12 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/admin_widget_card.rb"))
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "AdminWidgetCard"
-    assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
+    refute_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "FlatpackButtonHrefFromUrl"
+    refute File.exist?(engine_path("lib/recording_studio_terms_and_conditions/flatpack_button_href_from_url.rb"))
+    dummy_admin_section = File.read(File.expand_path("dummy/app/views/recording_studio_admin/sections/show.html.erb", __dir__))
+    assert_includes dummy_admin_section, "href: preserve_anchor_url(link.url)"
+    refute_includes dummy_admin_section, "url: preserve_anchor_url(link.url)"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "HideAdminAccessAvatars"
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/hide_admin_access_avatars.rb"))
