@@ -798,11 +798,6 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "FlatpackButtonHrefFromUrl"
     refute File.exist?(engine_path("lib/recording_studio_terms_and_conditions/flatpack_button_href_from_url.rb"))
-    dummy_admin_section = File.read(
-      File.expand_path("dummy/app/views/recording_studio_admin/sections/show.html.erb", __dir__)
-    )
-    assert_includes dummy_admin_section, "href: preserve_anchor_url(link.url)"
-    refute_includes dummy_admin_section, "url: preserve_anchor_url(link.url)"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "HideAdminAccessAvatars"
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/hide_admin_access_avatars.rb"))

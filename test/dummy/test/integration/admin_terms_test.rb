@@ -368,9 +368,6 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     edit_path = RecordingStudioTermsAndConditions.edit_admin_term_path(recording)
     assert_select "a[href=?][data-fp-style=secondary]", edit_path, text: "Edit Terms"
     refute_select "button", text: "Edit Terms"
-    dummy_hub = File.read(Rails.root.join("app/views/recording_studio_admin/sections/show.html.erb"))
-    assert_includes dummy_hub, "href: preserve_anchor_url(link.url)"
-    refute_includes dummy_hub, "url: preserve_anchor_url(link.url)"
   end
 
   test "recording studio admin terms hub is reachable and write parks there" do

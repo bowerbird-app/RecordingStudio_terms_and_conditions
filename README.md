@@ -134,7 +134,7 @@ Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay Engli
 
 ## Upgrading from 0.13.4
 
-Bump to **0.13.5**. No schema change. Link-style FlatPack Buttons take `href:`. This gem no longer maps `url:` onto `href:`. Admin section `link` and resource `action` still declare `url:` on the Admin DSL. The dummy Terms hub override now passes `href:` to Button (it used to pass `url:` through the shim). Links need FlatPack `>= 0.1.196`; Admin 2.3.0 already renders section links with `href:`.
+Bump to **0.13.5**. No schema change. Link-style FlatPack Buttons take `href:`. This gem no longer maps `url:` onto `href:`. Admin section `link` and resource `action` still declare `url:` on the Admin DSL. The dummy Terms hub override now passes `href:` to Button (it used to pass `url:` through the shim). Links need FlatPack `>= 0.1.196`; Admin 2.3.0 already renders section links with `href:`. Needs `recording_studio_admin >= 2.0.6` for working section buttons (Admin v2.0.0 to v2.0.5 passed `url:` into FlatPack Button).
 
 ## Upgrading from 0.13.2
 

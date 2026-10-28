@@ -11,11 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Dropped the FlatPack Button `url:` → `href:` prepend. FlatPack Button already renders an `<a>` when given `href:`.
-- The dummy Terms hub override was the only Button caller that passed `url:` (it relied on the shim). It now passes `href:`. Links need FlatPack `>= 0.1.196` (`href:` on Button). Recording Studio Admin 2.3.0 already passes `href:` on its own section view; this gem's Admin DSL `url:` keys on `link` / `action` are unchanged.
+- The dummy Terms hub override was the only Button caller that passed `url:` (it relied on the shim). It now passes `href:`. Links need FlatPack `>= 0.1.196` (`href:` on Button). Recording Studio Admin 2.3.0 already passes `href:` on its own section view; this gem's Admin DSL `url:` keys on `link` / `action` are unchanged. Needs `recording_studio_admin >= 2.0.6` for working section buttons (Admin v2.0.0 to v2.0.5 passed `url:` into FlatPack Button).
 
 ### Upgrade notes (0.13.4 → 0.13.5)
 - No schema change. Pin this gem at `0.13.5`.
-- Pass `href:` to FlatPack `Button::Component` for link-style buttons. This gem no longer copies `url:` onto `href:`. Recording Studio Admin section `link` / resource `action` still use `url:` on their own DSL. FlatPack floor stays `>= 0.1.196`; Admin pin stays `v2.3.0`. No gemspec floor or pin change.
+- Pass `href:` to FlatPack `Button::Component` for link-style buttons. This gem no longer copies `url:` onto `href:`. Recording Studio Admin section `link` / resource `action` still use `url:` on their own DSL. FlatPack floor stays `>= 0.1.196`; Admin pin stays `v2.3.0`. No gemspec floor or pin change. Needs `recording_studio_admin >= 2.0.6` for working section buttons (Admin v2.0.0 to v2.0.5 passed `url:` into FlatPack Button).
 
 ## [0.13.4] - 2026-10-22
 
