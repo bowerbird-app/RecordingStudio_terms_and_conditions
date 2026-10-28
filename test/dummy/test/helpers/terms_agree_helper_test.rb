@@ -43,7 +43,7 @@ class TermsAgreeHelperTest < ActionView::TestCase
     assert_includes html, 'data-fp-style="primary"'
     assert_includes html, "fp-button"
     assert_includes html, "fp-button-raised"
-    assert_includes html, ">Continue</span>"
+    assert_match(/<span[^>]*>Continue<\/span>/, html)
     refute_includes html, 'data-fp-style="secondary"'
     refute_includes html, 'data-fp-style="ghost"'
     refute_includes html, "fp-button-flat"
@@ -252,12 +252,12 @@ class TermsAgreeHelperTest < ActionView::TestCase
     I18n.with_locale(:fr) do
       html = recording_studio_terms_agree_button(require_scroll_to_end: false)
 
-      assert_includes html, ">J’accepte</span>"
+      assert_match(/<span[^>]*>J’accepte<\/span>/, html)
     end
 
     html = recording_studio_terms_agree_button(require_scroll_to_end: false, text: "Accept")
 
-    assert_includes html, ">Accept</span>"
+    assert_match(/<span[^>]*>Accept<\/span>/, html)
   end
 
   test "agree button is Flatpack primary for Accept clickwrap" do
@@ -266,7 +266,7 @@ class TermsAgreeHelperTest < ActionView::TestCase
     assert_includes html, 'data-fp-style="primary"'
     assert_includes html, "fp-button"
     assert_includes html, "fp-button-raised"
-    assert_includes html, ">Accept</span>"
+    assert_match(/<span[^>]*>Accept<\/span>/, html)
     refute_includes html, 'data-fp-style="secondary"'
     refute_includes html, 'data-fp-style="ghost"'
     refute_includes html, "fp-button-flat"
