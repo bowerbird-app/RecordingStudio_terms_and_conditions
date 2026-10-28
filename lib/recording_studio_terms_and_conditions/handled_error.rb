@@ -4,9 +4,10 @@ module RecordingStudioTermsAndConditions
   module HandledError
     module_function
 
-    def log(error, context)
+    def log(error, context, severity: :warn)
       if defined?(Rails) && Rails.respond_to?(:logger) && Rails.logger
-        Rails.logger.warn(
+        Rails.logger.public_send(
+          severity,
           "[RecordingStudioTermsAndConditions] #{context}: #{error.class}: #{error.message}"
         )
       end

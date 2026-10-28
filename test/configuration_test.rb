@@ -123,17 +123,17 @@ class ConfigurationTest < Minitest::Test
 
   private
 
-  def without_site_settings
-    RecordingStudioTermsAndConditions::Configuration.stub(:site_settings_class, nil) { yield }
+  def without_site_settings(&)
+    RecordingStudioTermsAndConditions::Configuration.stub(:site_settings_class, nil, &)
   end
 
-  def with_site_settings_name(name)
+  def with_site_settings_name(name, &)
     mod = Module.new
     mod.define_singleton_method(:name_for) { |*_args| name }
-    RecordingStudioTermsAndConditions::Configuration.stub(:site_settings_class, mod) { yield }
+    RecordingStudioTermsAndConditions::Configuration.stub(:site_settings_class, mod, &)
   end
 
-  def with_site_settings_module
-    RecordingStudioTermsAndConditions::Configuration.stub(:site_settings_class, Module.new) { yield }
+  def with_site_settings_module(&)
+    RecordingStudioTermsAndConditions::Configuration.stub(:site_settings_class, Module.new, &)
   end
 end

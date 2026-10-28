@@ -54,7 +54,7 @@ class ApiAccessTest < Minitest::Test
     end
 
     refute access_called
-    assert logs.any? { |line| line.include?("admin root resolver failed") && line.include?("NoMethodError") }
+    assert(logs.any? { |line| line.include?("admin root resolver failed") && line.include?("NoMethodError") })
   end
 
   def test_resolver_returning_nil_denies_view

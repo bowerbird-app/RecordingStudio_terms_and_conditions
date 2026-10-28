@@ -68,16 +68,26 @@ class PublishedTest < Minitest::Test
     logs = []
     logger = Object.new
     logger.define_singleton_method(:error) { |message| logs << message.to_s }
-    RecordingStudio::Recording.stub(:connected?, true) do
-      RecordingStudio::Recording.stub(:find_by, ->(*) { raise ActiveRecord::StatementInvalid, "lookup failed" }) do
-        Rails.stub(:logger, logger) do
-          instrument_publishable(recordable_type: RecordingStudioTermsAndConditions::Published::TERMS_TYPE)
-        end
+    recording_class = Class.new do
+      def self.connected?
+        true
       end
+
+      def self.find_by(*)
+        raise ArgumentError, "lookup failed"
+      end
+    end
+    created = !RecordingStudio.const_defined?(:Recording, false)
+    RecordingStudio.const_set(:Recording, recording_class) if created
+
+    Rails.stub(:logger, logger) do
+      instrument_publishable(recordable_type: RecordingStudioTermsAndConditions::Published::TERMS_TYPE)
     end
 
     assert_empty @events
-    assert logs.any? { |line| line.include?("published subscriber failed") && line.include?("StatementInvalid") }
+    assert(logs.any? { |line| line.include?("published lookup failed") && line.include?("ArgumentError") })
+  ensure
+    RecordingStudio.send(:remove_const, :Recording) if created
   end
 
   def test_subscriber_error_is_logged_and_does_not_raise
@@ -90,7 +100,7 @@ class PublishedTest < Minitest::Test
 
     exploding = ActiveSupport::Notifications.subscribe(
       RecordingStudioTermsAndConditions::Published::EVENT
-    ) { raise RuntimeError, "subscriber boom" }
+    ) { raise "subscriber boom" }
 
     Rails.stub(:logger, logger) do
       Rails.stub(:error, reporter) do
@@ -100,7 +110,7 @@ class PublishedTest < Minitest::Test
 
     assert_equal 1, reported.size
     assert_instance_of RuntimeError, reported.first
-    assert logs.any? { |line| line.include?("subscriber boom") }
+    assert(logs.any? { |line| line.include?("subscriber boom") })
   ensure
     ActiveSupport::Notifications.unsubscribe(exploding) if exploding
   end

@@ -205,10 +205,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
   end
 
   test "continuing a non-live version does not write a receipt" do
-    RecordingStudioTermsAndConditions.stub(
-      :accept!,
-      ->(*) { raise RecordingStudioTermsAndConditions::NotLive, RecordingStudioTermsAndConditions::Copy.t("errors.not_live") }
-    ) do
+    force_accept_not_live do
       assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
         post recording_studio_terms_and_conditions.acceptance_path
       end
@@ -216,5 +213,30 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_entity
     assert_includes CGI.unescapeHTML(response.body), "Those terms aren't live. Refresh and agree to the current ones."
+  end
+
+  def force_accept_not_live
+    wrap_accept_with_not_live
+    Thread.current[:rstac_force_not_live] = true
+    yield
+  ensure
+    Thread.current[:rstac_force_not_live] = false
+  end
+
+  def wrap_accept_with_not_live
+    klass = RecordingStudioTermsAndConditions::TermsAcceptance.singleton_class
+    return if klass.instance_variable_get(:@rstac_not_live_wrapper)
+
+    klass.prepend(Module.new do
+      def accept!(*)
+        if Thread.current[:rstac_force_not_live]
+          raise RecordingStudioTermsAndConditions::NotLive,
+                RecordingStudioTermsAndConditions::Copy.t("errors.not_live")
+        end
+
+        super
+      end
+    end)
+    klass.instance_variable_set(:@rstac_not_live_wrapper, true)
   end
 end

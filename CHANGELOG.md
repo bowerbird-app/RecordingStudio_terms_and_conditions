@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Config YAML, `config.x`, admin-root resolver, and kind-presence root lookup rescue the errors those calls actually raise and log them.
-- Published lookup rescue is `ActiveRecord::ActiveRecordError` and `ArgumentError`. A Terms event subscriber still cannot fail publish: that path keeps reporting `StandardError` through `Rails.error`.
+- Published lookup logs `ArgumentError` and Active Record errors. A Terms event subscriber still cannot fail publish: that path keeps reporting `StandardError` through `Rails.error`.
 
 ### Upgrade notes (0.13.4 → 0.13.5)
 - No schema change. Pin this gem at `0.13.5`.

@@ -66,7 +66,7 @@ module RecordingStudioTermsAndConditions
 
     def site_settings_name
       klass = self.class.site_settings_class
-      return unless klass&.respond_to?(:name_for)
+      return unless klass.respond_to?(:name_for)
 
       method = klass.method(:name_for)
       name = method.arity.zero? ? method.call : method.call(nil)

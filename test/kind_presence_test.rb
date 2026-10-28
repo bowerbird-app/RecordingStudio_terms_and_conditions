@@ -19,6 +19,6 @@ class KindPresenceTest < Minitest::Test
       end
     end
 
-    assert logs.any? { |line| line.include?("kind presence root skipped") && line.include?("ArgumentError") }
+    assert(logs.any? { |line| line.include?("kind presence root skipped") && line.include?("ArgumentError") })
   end
 end

@@ -86,7 +86,7 @@ class EngineTest < Minitest::Test
     end
 
     assert_equal "/from-pairs", RecordingStudioTermsAndConditions.configuration.mount_path
-    assert logs.any? { |line| line.include?("config_for skipped") && line.include?("RuntimeError") }
+    assert(logs.any? { |line| line.include?("config_for skipped") && line.include?("RuntimeError") })
   end
 
   def test_load_config_logs_each_pair_errors
@@ -109,7 +109,7 @@ class EngineTest < Minitest::Test
     end
 
     assert_equal "/ok", RecordingStudioTermsAndConditions.configuration.mount_path
-    assert logs.any? { |line| line.include?("config.x skipped") && line.include?("TypeError") }
+    assert(logs.any? { |line| line.include?("config.x skipped") && line.include?("TypeError") })
   end
 
   def test_load_config_is_noop_without_config_sources
@@ -125,7 +125,7 @@ class EngineTest < Minitest::Test
   def test_load_config_ignores_non_enumerable_yaml_and_merge_errors
     yaml = Class.new do
       def each
-        raise RuntimeError, "bad yaml"
+        raise "bad yaml"
       end
     end.new
 
@@ -145,7 +145,7 @@ class EngineTest < Minitest::Test
     end
 
     assert_equal "/from-x", RecordingStudioTermsAndConditions.configuration.mount_path
-    assert logs.any? { |line| line.include?("config yaml skipped") && line.include?("RuntimeError") }
+    assert(logs.any? { |line| line.include?("config yaml skipped") && line.include?("RuntimeError") })
   end
 
   def test_runtime_initializer_registers_to_prepare
@@ -189,11 +189,11 @@ class EngineTest < Minitest::Test
 
   private
 
-  def with_logged_warnings
+  def with_logged_warnings(&)
     logs = []
     logger = Object.new
     logger.define_singleton_method(:warn) { |message| logs << message.to_s }
-    Rails.stub(:logger, logger) { yield }
+    Rails.stub(:logger, logger, &)
     logs
   end
 

@@ -775,7 +775,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/published.rb"))
     published = engine_source("lib/recording_studio_terms_and_conditions/published.rb")
     assert_includes published, "SoleLive.call"
-    assert_includes published, "Rails.error.report"
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/handled_error.rb"),
+                    "Rails.error.report"
     assert_includes published, "idempotency_key"
     assert_includes published, "created_claim?"
     assert_includes published, "instrument_terms_event"
