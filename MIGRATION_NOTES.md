@@ -18,6 +18,10 @@ Then:
 
 The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
 
+## Upgrade from 0.13.4 to 0.14.0
+
+No schema change. Pin this gem at `0.14.0`. Pin `flat_pack` to git tag `v0.1.311` and run `bundle update view_component` so `view_component` is `>= 4.14` (GHSA-8qw7-6phv-7q6p). Dummy default layout PageNav uses `with_back`, `with_close`, and `with_item`. Pin Admin to `v2.4.0` or `v2.5.1` (not above `v2.5.1`) so widget cards do not pass removed Card `style:`. Reload Flatpack CSS.
+
 ## Upgrade from 0.13.2 to 0.13.3
 
 No schema change. Pin this gem at `0.13.3`. Agrees over time hides x-axis labels (`chart_options` `xaxis.labels.show: false`) and reads Admin `last_30_days`. Who agreed still defaults to `last_4_weeks`.
