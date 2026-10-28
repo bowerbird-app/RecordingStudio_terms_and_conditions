@@ -134,7 +134,7 @@ Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay Engli
 
 ## Upgrading from 0.13.4
 
-Bump to **0.14.0**. No schema change. Development and dummy pin FlatPack `v0.1.311` so `view_component` can resolve to `>= 4.14` (GHSA-8qw7-6phv-7q6p). Dummy default-layout PageNav uses `with_back`, `with_close`, and `with_item`. Dummy and development pin Admin `v2.4.0` (still `~> 2.0`, at or below `v2.5.1`) so Admin widget cards do not pass removed Card `style:`. Reload Flatpack CSS. Do not rerun `bin/rails generate flat_pack:install`.
+Bump to **0.14.0**. No schema change. Development and dummy pin FlatPack `v0.1.311` so `view_component` can resolve to `>= 4.14` (GHSA-8qw7-6phv-7q6p). Dummy default-layout PageNav uses `with_back`, `with_close`, and `with_item`. Dummy and development pin Admin `v2.4.0` (still `~> 2.0`, at or below `v2.5.1`) so Admin widget cards do not pass removed Card `style:`. Dummy overrides the Root Switchable switch page for the same FlatPack 0.1.311 keywords. Reload Flatpack CSS. Do not rerun `bin/rails generate flat_pack:install`.
 
 ## Upgrading from 0.13.2
 

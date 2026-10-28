@@ -20,7 +20,7 @@ The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` a
 
 ## Upgrade from 0.13.4 to 0.14.0
 
-No schema change. Pin this gem at `0.14.0`. Pin `flat_pack` to git tag `v0.1.311` and run `bundle update view_component` so `view_component` is `>= 4.14` (GHSA-8qw7-6phv-7q6p). Dummy default layout PageNav uses `with_back`, `with_close`, and `with_item`. Pin Admin to `v2.4.0` or `v2.5.1` (not above `v2.5.1`) so widget cards do not pass removed Card `style:`. Reload Flatpack CSS.
+No schema change. Pin this gem at `0.14.0`. Pin `flat_pack` to git tag `v0.1.311` and run `bundle update view_component` so `view_component` is `>= 4.14` (GHSA-8qw7-6phv-7q6p). Dummy default layout PageNav uses `with_back`, `with_close`, and `with_item`. Pin Admin to `v2.4.0` or `v2.5.1` (not above `v2.5.1`) so widget cards do not pass removed Card `style:`. A host that still mounts Root Switchable `v0.9.0` must stop passing PageNav `anchor_label:` and Card `style:` on the switch page. Reload Flatpack CSS.
 
 ## Upgrade from 0.13.2 to 0.13.3
 
