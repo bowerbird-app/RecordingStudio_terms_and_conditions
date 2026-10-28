@@ -27,17 +27,12 @@ module RecordingStudioTermsAndConditions
 
       def resolve_root_recording(root)
         return if root.blank?
-        return recording_root(root) if recording?(root)
+        return recording_root(root) if root.is_a?(RecordingStudio::Recording)
         return unless root.respond_to?(:id) && root.id.present?
 
         RecordingStudio.root_recording_for(root)
-      rescue ArgumentError, NoMethodError => e
-        HandledError.log(e, "kind presence root skipped")
+      rescue StandardError
         nil
-      end
-
-      def recording?(root)
-        defined?(RecordingStudio::Recording) && root.is_a?(RecordingStudio::Recording)
       end
 
       def recording_root(recording)

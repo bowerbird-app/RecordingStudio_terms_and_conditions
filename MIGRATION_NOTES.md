@@ -18,10 +18,6 @@ Then:
 
 The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
 
-## Upgrade from 0.13.4 to 0.13.5
-
-No schema change. Pin this gem at `0.13.5`. Stop tracking SimpleCov output. The template Example capability is gone; dummy Workspace keeps Accessible only. This gem no longer applies `config.hooks.extend_model` / `extend_controller` blocks. Config YAML and admin-root resolver failures log and skip instead of rescuing every `StandardError`.
-
 ## Upgrade from 0.13.2 to 0.13.3
 
 No schema change. Pin this gem at `0.13.3`. Agrees over time hides x-axis labels (`chart_options` `xaxis.labels.show: false`) and reads Admin `last_30_days`. Who agreed still defaults to `last_4_weeks`.

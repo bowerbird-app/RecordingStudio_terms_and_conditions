@@ -72,13 +72,8 @@ module RecordingStudioTermsAndConditions
         return unless lookup_ready?
 
         RecordingStudio::Recording.find_by(id: recording_id)
-      rescue ArgumentError => e
-        HandledError.log(e, "published lookup failed", severity: :error)
-        :failed
       rescue StandardError => e
-        raise unless active_record_error?(e)
-
-        HandledError.log(e, "published lookup failed", severity: :error)
+        report_failure(e)
         :failed
       end
 
@@ -88,15 +83,11 @@ module RecordingStudioTermsAndConditions
           RecordingStudio::Recording.connected?
       end
 
-      def active_record_error?(error)
-        defined?(::ActiveRecord::ActiveRecordError) && error.is_a?(::ActiveRecord::ActiveRecordError)
-      end
-
       def instrument_terms_event(recording_id, terms_id)
         ActiveSupport::Notifications.instrument(EVENT, recording_id: recording_id, terms_id: terms_id)
         true
       rescue StandardError => e
-        HandledError.log(e, "published subscriber failed", severity: :error)
+        report_failure(e)
         false
       end
 
@@ -122,6 +113,18 @@ module RecordingStudioTermsAndConditions
 
       def idempotency_key(recording, terms_id)
         "#{EVENT}:#{recording.id}:#{terms_id}"
+      end
+
+      def report_failure(error)
+        if defined?(Rails) && Rails.respond_to?(:logger) && Rails.logger
+          Rails.logger.error(
+            "[RecordingStudioTermsAndConditions] published subscriber failed: " \
+            "#{error.class}: #{error.message}"
+          )
+        end
+        return unless defined?(Rails) && Rails.respond_to?(:error) && Rails.error
+
+        Rails.error.report(error, handled: true)
       end
     end
   end

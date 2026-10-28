@@ -5,12 +5,8 @@ require "recording_studio_publishable"
 require "recording_studio_terms_and_conditions/version"
 require "recording_studio_terms_and_conditions/copy"
 require "recording_studio_terms_and_conditions/sample_terms"
-require "recording_studio_terms_and_conditions/handled_error"
 require "recording_studio_terms_and_conditions/configuration"
 require "recording_studio_terms_and_conditions/body_digest"
-require "recording_studio_terms_and_conditions/engine_config"
-require "recording_studio_terms_and_conditions/engine_runtime"
-require "recording_studio_terms_and_conditions/admin_reloader"
 require "recording_studio_terms_and_conditions/engine"
 require "recording_studio_terms_and_conditions/terms_acceptance"
 require "recording_studio_terms_and_conditions/terms_write"
@@ -29,6 +25,7 @@ require "recording_studio_terms_and_conditions/flatpack_button_href_from_url"
 require "recording_studio_terms_and_conditions/hide_admin_access_avatars"
 require "recording_studio_terms_and_conditions/admin" if defined?(RecordingStudioAdmin)
 require "recording_studio_terms_and_conditions/metrics"
+require "recording_studio_terms_and_conditions/capabilities/example"
 
 module RecordingStudioTermsAndConditions
   class NotLive < StandardError; end
