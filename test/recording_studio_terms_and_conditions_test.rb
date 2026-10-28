@@ -610,7 +610,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes readme, "v0.11.0"
     assert_includes readme, "v0.3.1"
     assert_includes readme, "v0.8.0"
-    assert_includes readme, "v0.9.0"
+    assert_includes readme, "v0.10.0"
     assert_includes readme, "v0.15.0"
     assert_includes readme, "v0.18.0"
     assert_includes readme, "v0.21.0"
