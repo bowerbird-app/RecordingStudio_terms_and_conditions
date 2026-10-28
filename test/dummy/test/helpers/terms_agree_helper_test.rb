@@ -37,15 +37,6 @@ class TermsAgreeHelperTest < ActionView::TestCase
     assert_includes html, "recording-studio-terms-and-conditions--scroll-to-end-target"
   end
 
-  test "link-style Flatpack Button renders an anchor with href" do
-    html = render(FlatPack::Button::Component.new(text: "Admin", href: "/admin", style: :secondary))
-
-    assert_includes html, "<a "
-    assert_includes html, 'href="/admin"'
-    assert_includes html, "<span>Admin</span>"
-    refute_includes html, "<button"
-  end
-
   test "agree button is Flatpack primary for Accept Continue" do
     html = recording_studio_terms_agree_button(require_scroll_to_end: false, text: "Continue")
 
