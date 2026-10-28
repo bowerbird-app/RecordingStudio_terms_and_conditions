@@ -80,7 +80,7 @@ Sign in at `/users/sign_in`: email first (**Continue with email**), then passwor
 - `/agree_helper` — dummy demo of the embeddable Agree helper (code example + checkbox)
 - `/docs/install`, `/docs/config`, `/docs/recordable_types`, `/docs/recordings_tree`, `/docs/gem_views`, `/docs/methods` — dummy-only starter pages
 
-This gem registers `:terms_acceptances` metrics (`total`, `over_time`, `by_version`) with `RecordingStudioMetrics.register` and `api_authorize`. MCP 0.17 and the operations API list them from Metrics 0.3 `catalog_metadata`. This gem does not call `RecordingStudioMetrics::Api.register!`. When RecordingStudio API is present, the host exposes them once:
+This gem registers `:terms_acceptances` metrics (`total`, `over_time`, `by_version`) with `RecordingStudioMetrics.register` and `api_authorize`. The operations API lists them from Metrics `catalog_metadata`. The gemspec requires `recording_studio_metrics` `>= 0.3.0, < 1.0` (0.13.4 CI used Metrics 0.5.0). This gem does not call `RecordingStudioMetrics::Api.register!`. When RecordingStudio API is present, the host exposes them once:
 
 ```ruby
 RecordingStudioMetrics::Api.register!(api: :operations)
@@ -131,6 +131,10 @@ Do not translate stored Terms bodies or version titles. Those are data. Buttons,
 Add [Recording Studio Internationalization](https://github.com/bowerbird-app/RecordingStudio_Internationalization) on the host when you want a language selector. This gem does not declare the host's languages.
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
+
+## Upgrading from 0.13.4
+
+Bump to **0.13.5**. No schema change. Coverage reports are gitignored. The template Example capability, `docs/gem_template/`, dummy-app GitHub workflow, and unused model/controller extension applicators are gone. Hosts that never called `config.hooks.extend_model` / `extend_controller` on this gem need no code change. Config load and resolver failures log a warning instead of swallowing every `StandardError`.
 
 ## Upgrading from 0.13.2
 
@@ -348,14 +352,6 @@ The dummy Workspace enables Accessible because that addon is bundled:
 RecordingStudio.enable_capability(:accessible, on: Workspace)
 ```
 
-The dummy also ships one example mixin that uses core 4.2.0's `include_for` factory:
-
-```ruby
-include RecordingStudio::Capabilities::Example.to(label: "dummy workspace")
-```
-
-`.to` wraps `RecordingStudio::Capabilities.include_for`. It does not add a fourth verb and it does not call `enable_capability` / `set_capability_options` itself. Folder and Page stay without the example mixin.
-
 Use core `RecordingStudio::Hooks` and `RecordingStudio::Services::BaseService`. Do not copy those classes into this addon.
 
 ### FlatPack UI components
@@ -400,4 +396,4 @@ The dummy Gemfile keeps `github:` sources so Bundler can fetch those gems. Hosts
 
 ## Documentation
 
-Engine internals from the original gem template stay in `docs/gem_template/` as architectural reference. This README, `CHANGELOG.md`, `MIGRATION_NOTES.md`, and the dummy app are the source of truth for the addon.
+This README, `CHANGELOG.md`, `MIGRATION_NOTES.md`, and the dummy app are the source of truth for the addon.

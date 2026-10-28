@@ -31,7 +31,8 @@ module RecordingStudioTermsAndConditions
         return unless root.respond_to?(:id) && root.id.present?
 
         RecordingStudio.root_recording_for(root)
-      rescue StandardError
+      rescue ArgumentError, NoMethodError, ActiveRecord::ActiveRecordError => e
+        HandledError.log(e, "kind presence root skipped")
         nil
       end
 

@@ -72,7 +72,7 @@ module RecordingStudioTermsAndConditions
         return unless lookup_ready?
 
         RecordingStudio::Recording.find_by(id: recording_id)
-      rescue StandardError => e
+      rescue ActiveRecord::ActiveRecordError, ArgumentError => e
         report_failure(e)
         :failed
       end

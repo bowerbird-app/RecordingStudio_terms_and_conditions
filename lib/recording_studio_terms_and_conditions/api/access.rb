@@ -16,7 +16,8 @@ module RecordingStudioTermsAndConditions
 
         begin
           resolver.call(ResolverContext.new(nil))
-        rescue StandardError
+        rescue ArgumentError, NameError, NoMethodError, TypeError, RuntimeError => e
+          HandledError.log(e, "admin root resolver failed")
           nil
         end
       end

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module RecordingStudioTermsAndConditions
-  class Engine < ::Rails::Engine # rubocop:disable Metrics/ClassLength
+  class Engine < ::Rails::Engine
     isolate_namespace RecordingStudioTermsAndConditions
 
     initializer "recording_studio_terms_and_conditions.helpers" do
@@ -20,8 +20,6 @@ module RecordingStudioTermsAndConditions
     end
 
     class << self
-      APPLIED_EXTENSIONS_IVAR = :@recording_studio_terms_and_conditions_applied_extensions
-
       def prepend_users_signup_view_path
         return unless defined?(RecordingStudioUser)
         return unless defined?(ActionController::Base)
@@ -31,116 +29,21 @@ module RecordingStudioTermsAndConditions
 
         ActionController::Base.prepend_view_path(views)
       end
-
-      def apply_model_extensions(target)
-        apply_extensions(target, extensions_for(:model, extension_keys_for(target)))
-      end
-
-      def apply_controller_extensions(target)
-        apply_extensions(target, extensions_for(:controller, extension_keys_for(target)))
-      end
-
-      private
-
-      def extensions_for(kind, names)
-        hooks = RecordingStudioTermsAndConditions.configuration.hooks
-        Array(names).flat_map do |name|
-          if kind == :model
-            hooks.model_extensions_for(name)
-          else
-            hooks.controller_extensions_for(name)
-          end
-        end
-      end
-
-      def apply_extensions(target, extensions)
-        return unless target
-
-        applied = target.instance_variable_get(APPLIED_EXTENSIONS_IVAR) || identity_hash
-
-        extensions.flatten.compact.each do |extension|
-          next if applied[extension]
-
-          target.class_eval(&extension)
-          applied[extension] = true
-        end
-
-        target.instance_variable_set(APPLIED_EXTENSIONS_IVAR, applied)
-      end
-
-      def extension_keys_for(target)
-        names = [target.name, target.name&.demodulize].compact.uniq
-        names.map(&:to_sym)
-      end
-
-      def identity_hash
-        {}.compare_by_identity
-      end
     end
 
-    # Run before_initialize hooks
     initializer "recording_studio_terms_and_conditions.before_initialize",
                 before: "recording_studio_terms_and_conditions.load_config" do |_app|
       RecordingStudioTermsAndConditions.configuration.hooks.run(:before_initialize, self)
     end
 
-    # rubocop:disable Metrics/BlockLength
     initializer "recording_studio_terms_and_conditions.load_config" do |app|
-      # Load config/recording_studio_terms_and_conditions.yml via Rails config_for if present
-      if app.respond_to?(:config_for)
-        begin
-          yaml = begin
-            app.config_for(:recording_studio_terms_and_conditions)
-          rescue StandardError
-            nil
-          end
-          RecordingStudioTermsAndConditions.configuration.merge!(yaml) if yaml.respond_to?(:each)
-        rescue StandardError => _e
-          # ignore load errors; host app can provide initializer overrides
-        end
-      end
-
-      # Merge Rails.application.config.x.recording_studio_terms_and_conditions if present
-      if app.config.respond_to?(:x) && app.config.x.respond_to?(:recording_studio_terms_and_conditions)
-        xcfg = app.config.x.recording_studio_terms_and_conditions
-        if xcfg.respond_to?(:to_h)
-          RecordingStudioTermsAndConditions.configuration.merge!(xcfg.to_h)
-        else
-          begin
-            # try converting OrderedOptions
-            hash = {}
-            xcfg.each_pair { |k, v| hash[k] = v } if xcfg.respond_to?(:each_pair)
-            RecordingStudioTermsAndConditions.configuration.merge!(hash) if hash&.any?
-          rescue StandardError => _e
-            # ignore
-          end
-        end
-      end
-
-      # Run on_configuration hooks after config is loaded
-      cfg = RecordingStudioTermsAndConditions.configuration
-      cfg.hooks.run(:on_configuration, cfg)
+      EngineConfig.load!(app)
     end
-    # rubocop:enable Metrics/BlockLength
 
-    # Run after_initialize hooks
     initializer "recording_studio_terms_and_conditions.after_initialize",
                 after: "recording_studio_terms_and_conditions.load_config" do |_app|
       RecordingStudioTermsAndConditions.configuration.hooks.run(:after_initialize, self)
-      RecordingStudioTermsAndConditions::AcceptanceGateInstaller.call
-    end
-
-    # Apply model extensions when models are loaded
-    initializer "recording_studio_terms_and_conditions.apply_model_extensions" do
-      config.to_prepare do
-        next unless defined?(ActiveRecord::Base)
-
-        ActiveRecord::Base.descendants.each do |model|
-          next if model.abstract_class?
-
-          RecordingStudioTermsAndConditions::Engine.apply_model_extensions(model)
-        end
-      end
+      AcceptanceGateInstaller.call
     end
 
     initializer "recording_studio_terms_and_conditions.metrics" do
@@ -148,58 +51,24 @@ module RecordingStudioTermsAndConditions
     end
 
     initializer "recording_studio_terms_and_conditions.admin_definitions" do
-      config.to_prepare do
-        next unless defined?(RecordingStudioAdmin)
-
-        # Reload so `register!` survives Zeitwerk resetting Admin to the
-        # controllers namespace in development. Drop definition constants
-        # first so `class TermsSection` does not reopen and duplicate widgets.
-        admin = RecordingStudioTermsAndConditions::Admin
-        admin.reset_definition_constants! if admin.respond_to?(:reset_definition_constants!)
-        load File.expand_path("admin.rb", __dir__)
-        RecordingStudioTermsAndConditions::Admin.register!
-        helper = RecordingStudioAdmin::WidgetRenderingHelper
-        unless helper.ancestors.include?(RecordingStudioTermsAndConditions::AdminWidgetCard)
-          helper.prepend RecordingStudioTermsAndConditions::AdminWidgetCard
-        end
-        button = FlatPack::Button::Component
-        unless button.ancestors.include?(RecordingStudioTermsAndConditions::FlatpackButtonHrefFromUrl)
-          button.prepend RecordingStudioTermsAndConditions::FlatpackButtonHrefFromUrl
-        end
-        hide_access = RecordingStudioTermsAndConditions::HideAdminAccessAvatars
-        if defined?(RecordingStudioAdmin::ApplicationController)
-          admin_helpers = RecordingStudioAdmin::ApplicationController._helpers
-          admin_helpers.prepend hide_access unless admin_helpers.ancestors.include?(hide_access)
-        end
-      end
+      config.to_prepare { AdminReloader.call }
     end
 
     initializer "recording_studio_terms_and_conditions.sole_live" do
       config.after_initialize do
-        RecordingStudioTermsAndConditions::SoleLive.install!
-        RecordingStudioTermsAndConditions::Published.install!
+        SoleLive.install!
+        Published.install!
       end
     end
 
     initializer "recording_studio_terms_and_conditions.privacy_route" do |app|
       app.routes.append do
-        RecordingStudioTermsAndConditions::PrivacyRoute.draw!(self)
+        PrivacyRoute.draw!(self)
       end
     end
 
-    # Apply controller extensions
-    initializer "recording_studio_terms_and_conditions.apply_controller_extensions" do
-      config.to_prepare do
-        next unless defined?(ActionController::Base)
-
-        ActionController::Base.descendants.each do |controller|
-          RecordingStudioTermsAndConditions::Engine.apply_controller_extensions(controller)
-        end
-        RecordingStudioTermsAndConditions::AcceptanceGateInstaller.call
-        RecordingStudioTermsAndConditions::SoleLive.install!
-        RecordingStudioTermsAndConditions::Published.install!
-        RecordingStudioTermsAndConditions::Engine.prepend_users_signup_view_path
-      end
+    initializer "recording_studio_terms_and_conditions.install_runtime" do
+      config.to_prepare { EngineRuntime.install! }
     end
   end
 end

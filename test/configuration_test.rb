@@ -124,38 +124,16 @@ class ConfigurationTest < Minitest::Test
   private
 
   def without_site_settings
-    stash_site_settings
-    yield
-  ensure
-    restore_site_settings
+    RecordingStudioTermsAndConditions::Configuration.stub(:site_settings_class, nil) { yield }
   end
 
   def with_site_settings_name(name)
-    stash_site_settings
     mod = Module.new
     mod.define_singleton_method(:name_for) { |*_args| name }
-    Object.const_set(:RecordingStudioSiteSettings, mod)
-    yield
-  ensure
-    restore_site_settings
+    RecordingStudioTermsAndConditions::Configuration.stub(:site_settings_class, mod) { yield }
   end
 
   def with_site_settings_module
-    stash_site_settings
-    Object.const_set(:RecordingStudioSiteSettings, Module.new)
-    yield
-  ensure
-    restore_site_settings
-  end
-
-  def stash_site_settings
-    @stashed_site_settings = Object.const_defined?(:RecordingStudioSiteSettings)
-    @site_settings_const = Object.const_get(:RecordingStudioSiteSettings) if @stashed_site_settings
-    Object.send(:remove_const, :RecordingStudioSiteSettings) if @stashed_site_settings
-  end
-
-  def restore_site_settings
-    Object.send(:remove_const, :RecordingStudioSiteSettings) if Object.const_defined?(:RecordingStudioSiteSettings)
-    Object.const_set(:RecordingStudioSiteSettings, @site_settings_const) if @stashed_site_settings
+    RecordingStudioTermsAndConditions::Configuration.stub(:site_settings_class, Module.new) { yield }
   end
 end

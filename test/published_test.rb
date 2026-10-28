@@ -64,6 +64,47 @@ class PublishedTest < Minitest::Test
     hooks.on(RecordingStudioTermsAndConditions::Published::LATCH) { true }
   end
 
+  def test_lookup_record_error_is_logged_and_skips_the_event
+    logs = []
+    logger = Object.new
+    logger.define_singleton_method(:error) { |message| logs << message.to_s }
+    RecordingStudio::Recording.stub(:connected?, true) do
+      RecordingStudio::Recording.stub(:find_by, ->(*) { raise ActiveRecord::StatementInvalid, "lookup failed" }) do
+        Rails.stub(:logger, logger) do
+          instrument_publishable(recordable_type: RecordingStudioTermsAndConditions::Published::TERMS_TYPE)
+        end
+      end
+    end
+
+    assert_empty @events
+    assert logs.any? { |line| line.include?("published subscriber failed") && line.include?("StatementInvalid") }
+  end
+
+  def test_subscriber_error_is_logged_and_does_not_raise
+    logs = []
+    logger = Object.new
+    logger.define_singleton_method(:error) { |message| logs << message.to_s }
+    reported = []
+    reporter = Object.new
+    reporter.define_singleton_method(:report) { |error, **_opts| reported << error }
+
+    exploding = ActiveSupport::Notifications.subscribe(
+      RecordingStudioTermsAndConditions::Published::EVENT
+    ) { raise RuntimeError, "subscriber boom" }
+
+    Rails.stub(:logger, logger) do
+      Rails.stub(:error, reporter) do
+        instrument_publishable(recordable_type: RecordingStudioTermsAndConditions::Published::TERMS_TYPE)
+      end
+    end
+
+    assert_equal 1, reported.size
+    assert_instance_of RuntimeError, reported.first
+    assert logs.any? { |line| line.include?("subscriber boom") }
+  ensure
+    ActiveSupport::Notifications.unsubscribe(exploding) if exploding
+  end
+
   private
 
   def instrument_publishable(recordable_type:)

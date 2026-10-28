@@ -22,18 +22,14 @@ class PublishedClaimConcurrencyTest < ActiveSupport::TestCase
       events << event.payload
     end
 
-    claims = threaded_results(2) do
-      recording = RecordingStudio::Recording.find(claim_recording.id)
-      RecordingStudioTermsAndConditions::Published.send(
-        :claim_emit?,
-        recording,
-        claim_recording.recordable.id
+    threaded_results(2) do
+      ActiveSupport::Notifications.instrument(
+        "published.recording_studio_publishable",
+        recordable_type: RecordingStudioTermsAndConditions::Published::TERMS_TYPE,
+        recording_id: claim_recording.id,
+        recordable_id: claim_recording.recordable.id
       )
     end
-
-    assert_equal 1, claims.count(true)
-    assert_equal 1, claims.count(false)
-
     threaded_results(2) do
       ActiveSupport::Notifications.instrument(
         "published.recording_studio_publishable",
@@ -43,8 +39,10 @@ class PublishedClaimConcurrencyTest < ActiveSupport::TestCase
       )
     end
 
-    assert_equal 1, events.size
-    assert_equal notify_recording.id, events.first.fetch(:recording_id)
+    recording_ids = events.map { |payload| payload.fetch(:recording_id) }
+    assert_equal 1, recording_ids.count(claim_recording.id)
+    assert_equal 1, recording_ids.count(notify_recording.id)
+    assert_equal 2, events.size
   ensure
     ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
   end

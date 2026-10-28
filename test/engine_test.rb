@@ -5,7 +5,10 @@ require "test_helper"
 class EngineTest < Minitest::Test
   def setup
     @original_configuration = RecordingStudioTermsAndConditions.instance_variable_get(:@configuration)
-    RecordingStudioTermsAndConditions.instance_variable_set(:@configuration, RecordingStudioTermsAndConditions::Configuration.new)
+    RecordingStudioTermsAndConditions.instance_variable_set(
+      :@configuration,
+      RecordingStudioTermsAndConditions::Configuration.new
+    )
   end
 
   def teardown
@@ -78,15 +81,18 @@ class EngineTest < Minitest::Test
       end
     end.new(app_config)
 
-    find_initializer("recording_studio_terms_and_conditions.load_config").block.call(app)
+    logs = with_logged_warnings do
+      find_initializer("recording_studio_terms_and_conditions.load_config").block.call(app)
+    end
 
     assert_equal "/from-pairs", RecordingStudioTermsAndConditions.configuration.mount_path
+    assert logs.any? { |line| line.include?("config_for skipped") && line.include?("RuntimeError") }
   end
 
-  def test_load_config_swallow_each_pair_errors
+  def test_load_config_logs_each_pair_errors
     bad_pair_config = Class.new do
       def each_pair
-        raise "bad pair"
+        raise TypeError, "bad pair"
       end
     end.new
 
@@ -98,10 +104,12 @@ class EngineTest < Minitest::Test
       end
     end.new(app_config)
 
-    # Should not raise even if xcfg.each_pair fails.
-    find_initializer("recording_studio_terms_and_conditions.load_config").block.call(app)
+    logs = with_logged_warnings do
+      find_initializer("recording_studio_terms_and_conditions.load_config").block.call(app)
+    end
 
     assert_equal "/ok", RecordingStudioTermsAndConditions.configuration.mount_path
+    assert logs.any? { |line| line.include?("config.x skipped") && line.include?("TypeError") }
   end
 
   def test_load_config_is_noop_without_config_sources
@@ -117,7 +125,7 @@ class EngineTest < Minitest::Test
   def test_load_config_ignores_non_enumerable_yaml_and_merge_errors
     yaml = Class.new do
       def each
-        raise "bad yaml"
+        raise RuntimeError, "bad yaml"
       end
     end.new
 
@@ -132,12 +140,15 @@ class EngineTest < Minitest::Test
     end.new(app_config)
     app.yaml = yaml
 
-    find_initializer("recording_studio_terms_and_conditions.load_config").block.call(app)
+    logs = with_logged_warnings do
+      find_initializer("recording_studio_terms_and_conditions.load_config").block.call(app)
+    end
 
     assert_equal "/from-x", RecordingStudioTermsAndConditions.configuration.mount_path
+    assert logs.any? { |line| line.include?("config yaml skipped") && line.include?("RuntimeError") }
   end
 
-  def test_apply_extension_initializers_register_active_support_on_load_callbacks
+  def test_runtime_initializer_registers_to_prepare
     to_prepare_blocks = []
     config_stub = Object.new
     config_stub.define_singleton_method(:to_prepare) do |&block|
@@ -145,212 +156,45 @@ class EngineTest < Minitest::Test
     end
 
     RecordingStudioTermsAndConditions::Engine.stub(:config, config_stub) do
-      find_initializer("recording_studio_terms_and_conditions.apply_model_extensions").block.call
-      find_initializer("recording_studio_terms_and_conditions.apply_controller_extensions").block.call
+      find_initializer("recording_studio_terms_and_conditions.install_runtime").block.call
     end
 
-    assert_equal 2, to_prepare_blocks.size
+    assert_equal 1, to_prepare_blocks.size
   end
 
-  def test_model_extension_initializer_skips_abstract_models
-    to_prepare_blocks = []
-    config_stub = Object.new
-    config_stub.define_singleton_method(:to_prepare) do |&block|
-      to_prepare_blocks << block
-    end
+  def test_does_not_ship_model_or_controller_extension_applicators
+    engine = File.read(File.expand_path("../lib/recording_studio_terms_and_conditions/engine.rb", __dir__))
 
-    abstract_model = Class.new do
-      def self.abstract_class?
-        true
-      end
-    end
-    concrete_model = Class.new do
-      def self.abstract_class?
-        false
-      end
-    end
-    applied = []
-    active_record_base = Class.new
-    active_record_base.define_singleton_method(:descendants) { [abstract_model, concrete_model] }
-
-    RecordingStudioTermsAndConditions::Engine.stub(:config, config_stub) do
-      find_initializer("recording_studio_terms_and_conditions.apply_model_extensions").block.call
-    end
-
-    with_temporary_nested_constant(:ActiveRecord, :Base, active_record_base) do
-      RecordingStudioTermsAndConditions::Engine.stub(:apply_model_extensions, ->(model) { applied << model }) do
-        to_prepare_blocks.first.call
-      end
-    end
-
-    assert_equal [concrete_model], applied
-  end
-
-  def test_controller_extension_initializer_applies_all_controllers
-    to_prepare_blocks = []
-    config_stub = Object.new
-    config_stub.define_singleton_method(:to_prepare) do |&block|
-      to_prepare_blocks << block
-    end
-
-    first_controller = Class.new
-    second_controller = Class.new
-    applied = []
-    action_controller_base = Class.new
-    action_controller_base.define_singleton_method(:descendants) { [first_controller, second_controller] }
-
-    RecordingStudioTermsAndConditions::Engine.stub(:config, config_stub) do
-      find_initializer("recording_studio_terms_and_conditions.apply_controller_extensions").block.call
-    end
-
-    with_temporary_nested_constant(:ActionController, :Base, action_controller_base) do
-      RecordingStudioTermsAndConditions::Engine.stub(:apply_controller_extensions, lambda { |controller|
-        applied << controller
-      }) do
-        to_prepare_blocks.first.call
-      end
-    end
-
-    assert_equal [first_controller, second_controller], applied
-  end
-
-  def test_apply_model_extensions_adds_registered_methods_once
-    model_class = Class.new do
-      def self.name
-        "ExampleRecord"
-      end
-    end
-
-    RecordingStudioTermsAndConditions.configuration.hooks.extend_model(:ExampleRecord) do
-      def template_extension_method
-        :applied
-      end
-    end
-
-    RecordingStudioTermsAndConditions::Engine.apply_model_extensions(model_class)
-    RecordingStudioTermsAndConditions::Engine.apply_model_extensions(model_class)
-
-    instance = model_class.new
-    assert_equal :applied, instance.template_extension_method
+    refute_includes engine, "apply_extensions"
+    refute_includes engine, "class_eval"
+    refute_includes engine, "apply_model_extensions"
+    refute_includes engine, "apply_controller_extensions"
+    refute RecordingStudioTermsAndConditions::Engine.respond_to?(:apply_model_extensions)
+    refute RecordingStudioTermsAndConditions::Engine.respond_to?(:apply_controller_extensions)
   end
 
   def test_force_acceptance_initializer_installs_the_gate
-    initializer = find_initializer("recording_studio_terms_and_conditions.apply_controller_extensions")
+    initializer = find_initializer("recording_studio_terms_and_conditions.install_runtime")
 
     assert initializer
-    created_host = false
-    host = Class.new do
-      def self.before_action(*); end
-    end
-    unless defined?(::ApplicationController)
-      Object.const_set(:ApplicationController, host)
-      created_host = true
-    end
-    created_users, auth, registrations = fake_users_auth_constants
+    RecordingStudioTermsAndConditions::AcceptanceGateInstaller.call
 
-    2.times { RecordingStudioTermsAndConditions::AcceptanceGateInstaller.call }
-
-    assert_includes host.ancestors, RecordingStudioTermsAndConditions::ForcesAcceptance if created_host
-    assert_users_gate_installed(auth, registrations) if created_users
-  ensure
-    Object.send(:remove_const, :ApplicationController) if created_host
-    Object.send(:remove_const, :RecordingStudioUser) if created_users
-  end
-
-  def fake_users_auth_constants
-    auth = Class.new
-    registrations = Class.new
-    return [false, auth, registrations] if defined?(RecordingStudioUser)
-
-    users = Module.new
-    users_auth = Module.new
-    Object.const_set(:RecordingStudioUser, users)
-    users.const_set(:Auth, users_auth)
-    users_auth.const_set(:BaseController, auth)
-    users_auth.const_set(:RegistrationsController, registrations)
-    [true, auth, registrations]
-  end
-
-  def assert_users_gate_installed(auth, registrations)
-    assert_includes auth.ancestors, RecordingStudioTermsAndConditions::UsersAuthRedirect
-    assert_includes registrations.ancestors, RecordingStudioTermsAndConditions::SignupAcceptance
-  end
-
-  def test_apply_controller_extensions_matches_demodulized_name
-    controller_class = Class.new do
-      def self.name
-        "Admin::DashboardController"
-      end
-    end
-
-    RecordingStudioTermsAndConditions.configuration.hooks.extend_controller(:DashboardController) do
-      def template_controller_extension
-        :applied
-      end
-    end
-
-    RecordingStudioTermsAndConditions::Engine.apply_controller_extensions(controller_class)
-
-    instance = controller_class.new
-    assert_equal :applied, instance.template_controller_extension
-  end
-
-  def test_apply_extensions_flattens_compacts_and_tracks_identity
-    target = Class.new
-    extension = proc do
-      def generated_method
-        :generated
-      end
-    end
-
-    RecordingStudioTermsAndConditions::Engine.send(:apply_extensions, target, [nil, [extension, extension]])
-
-    assert_equal :generated, target.new.generated_method
-    applied = target.instance_variable_get(:@recording_studio_terms_and_conditions_applied_extensions)
-    assert_equal true, applied.compare_by_identity?
-  end
-
-  def test_apply_extensions_returns_without_target
-    assert_nil RecordingStudioTermsAndConditions::Engine.send(:apply_extensions, nil, [])
-  end
-
-  def test_extension_keys_for_includes_demodulized_name
-    namespaced = Class.new do
-      def self.name
-        "Admin::ReportsController"
-      end
-    end
-
-    expected_keys = [:"Admin::ReportsController"]
-    expected_keys << :ReportsController
-
-    assert_equal expected_keys, RecordingStudioTermsAndConditions::Engine.send(:extension_keys_for, namespaced)
-  end
-
-  def test_extension_keys_for_removes_duplicate_names
-    plain = Class.new do
-      def self.name
-        "ReportsController"
-      end
-    end
-
-    assert_equal [:ReportsController], RecordingStudioTermsAndConditions::Engine.send(:extension_keys_for, plain)
+    host = "::ApplicationController".safe_constantize
+    auth = "RecordingStudioUser::Auth::BaseController".safe_constantize
+    registrations = "RecordingStudioUser::Auth::RegistrationsController".safe_constantize
+    assert_includes host.ancestors, RecordingStudioTermsAndConditions::ForcesAcceptance if host
+    assert_includes auth.ancestors, RecordingStudioTermsAndConditions::UsersAuthRedirect if auth
+    assert_includes registrations.ancestors, RecordingStudioTermsAndConditions::SignupAcceptance if registrations
   end
 
   private
 
-  def with_temporary_nested_constant(parent_name, child_name, value)
-    parent_defined = Object.const_defined?(parent_name, false)
-    parent = parent_defined ? Object.const_get(parent_name) : Object.const_set(parent_name, Module.new)
-    child_defined = parent.const_defined?(child_name, false)
-    previous_child = parent.const_get(child_name) if child_defined
-
-    parent.const_set(child_name, value)
-    yield
-  ensure
-    parent.send(:remove_const, child_name) if parent.const_defined?(child_name, false)
-    parent.const_set(child_name, previous_child) if child_defined
-    Object.send(:remove_const, parent_name) unless parent_defined
+  def with_logged_warnings
+    logs = []
+    logger = Object.new
+    logger.define_singleton_method(:warn) { |message| logs << message.to_s }
+    Rails.stub(:logger, logger) { yield }
+    logs
   end
 
   def find_initializer(name)

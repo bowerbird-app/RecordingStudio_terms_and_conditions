@@ -205,8 +205,10 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
   end
 
   test "continuing a non-live version does not write a receipt" do
-    draft = record_terms(@root, title: "Stale draft", body: "Skip me.")
-    force_current_published_for(draft.recordable) do
+    RecordingStudioTermsAndConditions.stub(
+      :accept!,
+      ->(*) { raise RecordingStudioTermsAndConditions::NotLive, RecordingStudioTermsAndConditions::Copy.t("errors.not_live") }
+    ) do
       assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
         post recording_studio_terms_and_conditions.acceptance_path
       end
@@ -214,29 +216,5 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_entity
     assert_includes CGI.unescapeHTML(response.body), "Those terms aren't live. Refresh and agree to the current ones."
-  end
-
-  private
-
-  def force_current_published_for(terms)
-    mod = RecordingStudioTermsAndConditions.singleton_class
-    mod.class_eval do
-      alias_method :current_published_for_without_a3, :current_published_for
-      alias_method :pending_published_for_without_a3, :pending_published_for
-      alias_method :pending_published_list_without_a3, :pending_published_list
-      define_method(:current_published_for) { |*_args, **_kwargs| terms }
-      define_method(:pending_published_for) { |*_args, **_kwargs| terms }
-      define_method(:pending_published_list) { |*_args, **_kwargs| Array(terms).compact }
-    end
-    yield
-  ensure
-    mod.class_eval do
-      alias_method :current_published_for, :current_published_for_without_a3
-      alias_method :pending_published_for, :pending_published_for_without_a3
-      alias_method :pending_published_list, :pending_published_list_without_a3
-      remove_method :current_published_for_without_a3
-      remove_method :pending_published_for_without_a3
-      remove_method :pending_published_list_without_a3
-    end
   end
 end

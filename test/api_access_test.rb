@@ -37,6 +37,10 @@ class ApiAccessTest < Minitest::Test
   def test_resolver_raising_denies_view_without_raising
     access_called = false
 
+    logs = []
+    logger = Object.new
+    logger.define_singleton_method(:warn) { |message| logs << message.to_s }
+
     with_resolvers(
       site: ->(_context) { raise NoMethodError, "controller" },
       access: lambda { |_context|
@@ -44,10 +48,13 @@ class ApiAccessTest < Minitest::Test
         Object.new
       }
     ) do
-      assert_equal false, can_view?(view_context(Object.new))
+      Rails.stub(:logger, logger) do
+        assert_equal false, can_view?(view_context(Object.new))
+      end
     end
 
     refute access_called
+    assert logs.any? { |line| line.include?("admin root resolver failed") && line.include?("NoMethodError") }
   end
 
   def test_resolver_returning_nil_denies_view

@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.13.4", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.13.5", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -115,15 +115,11 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute File.exist?(File.join(lib, "services/example_service.rb"))
   end
 
-  def test_example_capability_wraps_include_for_and_is_not_enabled_globally
-    source = File.read(
+  def test_example_capability_is_not_shipped
+    refute File.exist?(
       File.expand_path("../lib/recording_studio_terms_and_conditions/capabilities/example.rb", __dir__)
     )
-
-    assert_includes source, "def self.to(**)"
-    assert_includes source, "RecordingStudio::Capabilities.include_for(:example, **)"
-    refute_includes source, "enable_capability"
-    refute_includes source, "set_capability_options"
+    refute defined?(RecordingStudio::Capabilities::Example)
     refute RecordingStudio.capability_enabled?(:example, for: "Folder")
     refute RecordingStudio.capability_enabled?(:example, for: "Page")
     assert_empty RecordingStudio.configuration.enabled_recordable_types_for(:example)
@@ -580,7 +576,6 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_product_readme_is_the_addon_guide
     readme = File.read(File.expand_path("../README.md", __dir__))
 
-    internals_docs = File.join("docs", %w[gem template].join("_"))
     old_module = %w[Gem Template].join
 
     assert_includes readme, "RecordingStudio"
@@ -600,7 +595,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes readme, "MIGRATION_NOTES.md"
     assert_includes readme, "recording_studio.terms_and_conditions"
     refute_includes readme, "come later"
-    assert_includes readme, "#{internals_docs}/"
+    refute File.directory?(File.expand_path("../docs/gem_template", __dir__))
     assert_includes readme, "v4.7.0"
     assert_includes readme, "v0.1.213"
     assert_includes readme, "v2.3.0"
@@ -767,7 +762,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin, "register_resource(TermsResource)"
     assert_includes admin, "register_widget!"
     assert_includes admin, "reset_definition_constants!"
-    assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/admin_reloader.rb"),
                     "reset_definition_constants!"
     assert_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/base_controller.rb"),
                     "AdminActionAuditing"
@@ -793,11 +788,11 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/terms_acceptance.rb"),
                     "sibling_terms_recording_ids"
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/admin_widget_card.rb"))
-    assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/admin_reloader.rb"),
                     "AdminWidgetCard"
-    assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/admin_reloader.rb"),
                     "FlatpackButtonHrefFromUrl"
-    assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/admin_reloader.rb"),
                     "HideAdminAccessAvatars"
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/hide_admin_access_avatars.rb"))
     assert_includes admin, 'admin_screen_path("recording_studio_terms")'
@@ -855,6 +850,10 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.13.5]"
+    assert_includes changelog, "Upgrade notes (0.13.4 → 0.13.5)"
+    assert_includes changelog, "compare/v0.13.5...HEAD"
+    assert_includes changelog, "[0.13.5]:"
     assert_includes changelog, "## [0.11.0]"
     assert_includes changelog, "Upgrade notes (0.10.1 → 0.11.0)"
     assert_includes changelog, "## [0.10.0]"

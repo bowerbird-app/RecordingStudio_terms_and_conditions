@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.5] - 2026-10-28
+
+### Removed
+- Tracked SimpleCov output under `coverage/` and `test/dummy/coverage/`.
+- Template leftover `RecordingStudio::Capabilities::Example`, `docs/gem_template/`, and the dummy app's copied GitHub Actions workflow.
+- Unused `config.hooks.extend_model` / `extend_controller` applicators on this engine.
+
+### Changed
+- Config YAML, `config.x`, admin-root resolver, and kind-presence root lookup rescue the errors those calls actually raise and log them.
+- Published lookup rescue is `ActiveRecord::ActiveRecordError` and `ArgumentError`. A Terms event subscriber still cannot fail publish: that path keeps reporting `StandardError` through `Rails.error`.
+
+### Upgrade notes (0.13.4 → 0.13.5)
+- No schema change. Pin this gem at `0.13.5`.
+- Do not include `RecordingStudio::Capabilities::Example`. Dummy Workspace keeps Accessible only.
+- `config.hooks.extend_model` / `extend_controller` on this gem are no longer applied. Lifecycle hooks (`before_initialize`, `after_initialize`, `on_configuration`) still run.
+- No Gemfile pin changes for FlatPack, Admin, Accessible, Metrics, Users, or Root Switchable.
+
 ## [0.13.4] - 2026-10-22
 
 ### Changed
@@ -539,7 +556,30 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.6.2...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.13.5...HEAD
+[0.13.5]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.13.5
+[0.13.4]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.13.4
+[0.13.3]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.13.3
+[0.13.2]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.13.2
+[0.13.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.13.1
+[0.13.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.13.0
+[0.12.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.12.0
+[0.11.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.11.0
+[0.10.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.10.1
+[0.10.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.10.0
+[0.9.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.9.0
+[0.8.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.8.1
+[0.8.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.8.0
+[0.7.8]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.7.8
+[0.7.7]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.7.7
+[0.7.3]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.7.3
+[0.7.2]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.7.2
+[0.7.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.7.1
+[0.7.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.7.0
+[0.6.6]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.6.6
+[0.6.5]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.6.5
+[0.6.4]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.6.4
+[0.6.3]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.6.3
 [0.6.2]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.6.2
 [0.6.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.6.1
 [0.6.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.6.0

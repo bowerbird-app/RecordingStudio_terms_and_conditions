@@ -38,7 +38,7 @@ module RecordingStudioTermsAndConditions
         app_name: app_name,
         require_scroll_to_end: require_scroll_to_end,
         capture_request_provenance: capture_request_provenance,
-        hooks_registered: hooks.instance_variable_get(:@registry).transform_values(&:size)
+        hooks_registered: hooks.registered_counts
       }
     end
 
@@ -56,13 +56,19 @@ module RecordingStudioTermsAndConditions
       value == true || value.to_s.casecmp("true").zero? || value.to_s == "1"
     end
 
+    def self.site_settings_class
+      return unless defined?(::RecordingStudioSiteSettings)
+
+      ::RecordingStudioSiteSettings
+    end
+
     private
 
     def site_settings_name
-      return unless defined?(::RecordingStudioSiteSettings)
-      return unless ::RecordingStudioSiteSettings.respond_to?(:name_for)
+      klass = self.class.site_settings_class
+      return unless klass&.respond_to?(:name_for)
 
-      method = ::RecordingStudioSiteSettings.method(:name_for)
+      method = klass.method(:name_for)
       name = method.arity.zero? ? method.call : method.call(nil)
       name.to_s.strip.presence
     rescue ArgumentError, NameError
