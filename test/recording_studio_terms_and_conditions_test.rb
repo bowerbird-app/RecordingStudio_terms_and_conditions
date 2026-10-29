@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.13.5", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.14.1", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -59,8 +59,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.15.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_publishable", tag: "v0.8.0"'
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_publishable", tag: "v0.8.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.3.0"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.3.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.4.0"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.4.0"'
     refute_includes gemfile, "recording_studio_api"
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.5.0"'
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.5.0"'
@@ -72,11 +72,11 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.21.0"'
     refute_includes gemfile, "0b1d229693041093200420b318154ff07acca33e"
     refute_includes root_gemfile, "0b1d229693041093200420b318154ff07acca33e"
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.9.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.10.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.5.0"'
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.5.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.213"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.213"'
+    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.311"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.311"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_Internationalization", tag: "v0.1.2"'
     refute_includes File.read(File.expand_path("../recording_studio_terms_and_conditions.gemspec", __dir__)),
                     "recording_studio_internationalization"
@@ -276,9 +276,12 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes layout, "dummy_language_selector"
     refute_includes layout, "dummy_top_nav"
     refute_includes layout, "skip_top_nav"
-    assert_includes layout, "anchor_href"
-    refute_includes layout, "page_nav_options[:back_url]"
-    refute_includes layout, "page_nav_options[:anchor_url]"
+    assert_includes layout, "with_back"
+    assert_includes layout, "with_close"
+    assert_includes layout, "with_item"
+    refute_includes layout, "right_slot"
+    refute_includes layout, "secondary_anchor_href"
+    refute_includes layout, "page_nav_options"
     refute_includes layout, "url: back_url"
     refute_includes layout, "url: anchor_url"
     refute_includes layout, "max-w-3xl"
@@ -602,12 +605,12 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes readme, "come later"
     assert_includes readme, "#{internals_docs}/"
     assert_includes readme, "v4.7.0"
-    assert_includes readme, "v0.1.213"
-    assert_includes readme, "v2.3.0"
+    assert_includes readme, "v0.1.311"
+    assert_includes readme, "v2.4.0"
     assert_includes readme, "v0.11.0"
     assert_includes readme, "v0.3.1"
     assert_includes readme, "v0.8.0"
-    assert_includes readme, "v0.9.0"
+    assert_includes readme, "v0.10.0"
     assert_includes readme, "v0.15.0"
     assert_includes readme, "v0.18.0"
     assert_includes readme, "v0.21.0"
