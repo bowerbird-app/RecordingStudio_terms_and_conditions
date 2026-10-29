@@ -352,6 +352,24 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert titles.last.include?("Quiet privacy")
   end
 
+  test "dummy terms hub Flatpack Buttons render anchors from href" do
+    sign_in @admin
+    switch_to_workspace(@admin_root)
+    root = RecordingStudio.root_recording_for(@workspace)
+    recording = publish_live_kind!(
+      root,
+      kind: "terms_and_condition",
+      title: "House rules",
+      slug: "house-rules-#{SecureRandom.hex(3)}"
+    )
+
+    get "/admin"
+    assert_response :success
+    edit_path = RecordingStudioTermsAndConditions.edit_admin_term_path(recording)
+    assert_select "a[href=?][data-fp-style=secondary]", edit_path, text: "Edit Terms"
+    refute_select "button", text: "Edit Terms"
+  end
+
   test "recording studio admin terms hub is reachable and write parks there" do
     sign_in @admin
     switch_to_workspace(@admin_root)
@@ -373,7 +391,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_select "a", text: "Edit Privacy Policy"
     assert_select "a[data-fp-style=secondary]", text: "Terms and Condition page"
     assert_select "a[data-fp-style=secondary]", text: "Privacy Policy page"
-    assert_select "a[data-fp-style=secondary]", text: "Edit Terms"
+    assert_select "a[href][data-fp-style=secondary]", text: "Edit Terms"
     refute_select "button", text: "New"
     refute_includes response.body, "Write terms"
     refute_includes response.body, "Every version"

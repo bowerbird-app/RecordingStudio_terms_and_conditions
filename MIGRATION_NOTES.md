@@ -18,9 +18,13 @@ Then:
 
 The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
 
-## Upgrade from 0.14.0 to 0.14.2
+## Upgrade from 0.14.1 to 0.14.2
 
 No schema change. Pin this gem at `0.14.2`. Stop tracking SimpleCov output. Keep FlatPack `v0.1.311`.
+
+## Upgrade from 0.14.0 to 0.14.1
+
+No schema change. Pin this gem at `0.14.1`. Pass `href:` to FlatPack `Button::Component` for link-style buttons. This gem no longer copies `url:` onto `href:`. Recording Studio Admin section `link` / resource `action` still use `url:` on their own DSL. FlatPack stays at git tag `v0.1.311` from 0.14.0. Install `recording_studio_admin` `>= 2.0.6` and below 3.0.
 
 ## Upgrade from 0.13.4 to 0.14.0
 
