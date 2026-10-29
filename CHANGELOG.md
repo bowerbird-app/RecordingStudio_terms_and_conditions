@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-10-28
+
+### Changed
+- Development and dummy pin FlatPack `v0.1.311`. That gemspec allows `view_component` `>= 4.14`, `< 5` (GHSA-8qw7-6phv-7q6p). The previous FlatPack tag (`v0.1.213`) required `view_component ~> 4.12.0`.
+- Dummy default layout PageNav uses `with_back`, `with_close`, and `with_item`. Keywords removed in FlatPack 0.1.274 (`right_slot`, `anchor_href`, `secondary_anchor_href`, `back_label`) raise on 0.1.311.
+- Dummy pins Root Switchable `v0.10.0`. That tag's switch page already uses PageNav `with_close` and a Card without `style:`. Dummy does not override the view. `v0.11.0` needs Recording Studio 6.1.
+- Development and dummy pin Admin `v2.4.0` (gemspec still `~> 2.0`). Admin 2.3.0 widget cards passed Card `style: :outlined`, which FlatPack 0.1.311 rejects.
+- Lockfiles resolve `view_component` `>= 4.14`, `crass` `>= 1.0.8`, and dummy `net-ssh` `>= 7.3.5`.
+
+### Upgrade notes (0.13.4 → 0.14.0)
+- No schema change. Pin this gem at `0.14.0`.
+- Pin `flat_pack` to git tag `v0.1.311` and run `bundle update view_component`. Render each component instance once.
+- Hosts that override `recording_studio/default_layout` must use the FlatPack `>= 0.1.274` PageNav API (`with_back`, `with_close`, `with_item`). Do not pass `right_slot`, `anchor_href`, or `secondary_anchor_href`.
+- Dummy and hosts can pin Root Switchable `v0.10.0` on FlatPack 0.1.311. A host that still mounts `v0.9.0` must stop passing PageNav `anchor_label:` and Card `style:` on the switch page.
+- Pin `recording_studio_admin` to `v2.4.0` or `v2.5.1` when the host FlatPack is 0.1.311. Stay below Admin `v2.7.0` (`v2.7.0` is the first to require Recording Studio `>= 6.1` and `flat_pack >= 0.1.315`).
+- Reload Flatpack CSS. Do not rerun `bin/rails generate flat_pack:install`.
+
 ## [0.13.4] - 2026-10-22
 
 ### Changed

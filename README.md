@@ -132,6 +132,10 @@ Add [Recording Studio Internationalization](https://github.com/bowerbird-app/Rec
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
 
+## Upgrading from 0.13.4
+
+Bump to **0.14.0**. No schema change. Development and dummy pin FlatPack `v0.1.311` so `view_component` can resolve to `>= 4.14` (GHSA-8qw7-6phv-7q6p). Dummy default-layout PageNav uses `with_back`, `with_close`, and `with_item`. Dummy and development pin Admin `v2.4.0` (still `~> 2.0`; stay below Admin `v2.7.0`; `v2.7.0` is the first to require Recording Studio `>= 6.1` and `flat_pack >= 0.1.315`) so Admin widget cards do not pass removed Card `style:`. Dummy pins Root Switchable `v0.10.0` and does not override the switch page. Reload Flatpack CSS. Do not rerun `bin/rails generate flat_pack:install`.
+
 ## Upgrading from 0.13.2
 
 Bump to **0.13.3**. No schema change. Agrees over time hides x-axis labels and uses Admin preset `last_30_days`. Who agreed still defaults to `last_4_weeks`.
@@ -385,14 +389,14 @@ See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full do
 | TailwindCSS     | 4       |
 | RecordingStudio | 4.x (`~> 4.2` in the gemspec; dummy GitHub tag `v4.7.0`) |
 | Accessible      | gemspec `~> 0.8`; dummy GitHub tag `v0.18.0` |
-| Admin           | gemspec `~> 2.0`; dummy GitHub tag `v2.3.0` |
+| Admin           | gemspec `~> 2.0`; dummy GitHub tag `v2.4.0` |
 | Trashable       | dummy GitHub tag `v0.11.0` (`require: false`; Admin query helpers) |
 | Users           | gemspec `recording_studio_user >= 0.12.2`; dummy GitHub tag `v0.21.0` |
 | Publishable     | gemspec `~> 0.6`; dummy GitHub tag `v0.8.0` |
 | Attachable      | dummy GitHub tag `v0.15.0` (Users Profile needs it) |
-| Root Switchable | dummy GitHub tag `v0.9.0` |
+| Root Switchable | dummy GitHub tag `v0.10.0` |
 | Cache           | dummy GitHub tag `v0.5.0` (Users / Root Switchable rate limits) |
-| FlatPack        | gemspec `>= 0.1.196`; dummy GitHub tag `v0.1.213` |
+| FlatPack        | gemspec `>= 0.1.196`; dummy GitHub tag `v0.1.311` |
 | Internationalization | dummy GitHub tag `v0.1.2` (not in the gemspec) |
 | Devise          | latest  |
 
