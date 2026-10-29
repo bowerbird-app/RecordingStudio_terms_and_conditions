@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.2] - 2026-10-29
+
+### Removed
+- Tracked SimpleCov output under `coverage/` and `test/dummy/coverage/`.
+
+### Upgrade notes (0.14.1 → 0.14.2)
+- No schema change. Pin this gem at `0.14.2`.
+- Stop tracking SimpleCov output. `coverage/` and `test/dummy/coverage/` are gitignored.
+- Keep the 0.14.0 FlatPack `v0.1.311` pin (`view_component` `>= 4.14`).
+
 ## [0.14.1] - 2026-10-29
 
 ### Removed
@@ -566,7 +576,8 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.14.1...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.14.2...HEAD
+[0.14.2]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.14.1...v0.14.2
 [0.14.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.14.0...v0.14.1
 [0.14.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.13.4...v0.14.0
 [0.6.2]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.6.2

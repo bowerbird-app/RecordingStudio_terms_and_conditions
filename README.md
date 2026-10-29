@@ -132,6 +132,10 @@ Add [Recording Studio Internationalization](https://github.com/bowerbird-app/Rec
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
 
+## Upgrading from 0.14.1
+
+Bump to **0.14.2**. No schema change. Coverage reports under `coverage/` and `test/dummy/coverage/` are gitignored. Keep the 0.14.0 FlatPack `v0.1.311` pin.
+
 ## Upgrading from 0.14.0
 
 Bump to **0.14.1**. No schema change. Link-style FlatPack Buttons take `href:`. This gem no longer maps `url:` onto `href:`. Admin section `link` and resource `action` still declare `url:` on the Admin DSL. The dummy Terms hub override now passes `href:` to Button (it used to pass `url:` through the shim). Links need FlatPack `>= 0.1.196`; Admin 2.4.0 already renders section links with `href:`. Needs `recording_studio_admin >= 2.0.6` for working section buttons (Admin v2.0.0 to v2.0.5 passed `url:` into FlatPack Button).
