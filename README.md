@@ -132,9 +132,9 @@ Add [Recording Studio Internationalization](https://github.com/bowerbird-app/Rec
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
 
-## Upgrading from 0.14.0
+## Upgrading from 0.14.1
 
-Bump to **0.14.2**. No schema change. Coverage reports are gitignored. `docs/gem_template/` and the dummy-app GitHub workflow are gone. This README, `CHANGELOG.md`, `MIGRATION_NOTES.md`, and the dummy app are the source of truth. Keep the 0.14.0 FlatPack `v0.1.311` pin.
+Bump to **0.14.2**. No schema change. Coverage reports under `coverage/` and `test/dummy/coverage/` are gitignored. Keep the 0.14.0 FlatPack `v0.1.311` pin.
 
 ## Upgrading from 0.13.4
 
@@ -408,4 +408,4 @@ The dummy Gemfile keeps `github:` sources so Bundler can fetch those gems. Hosts
 
 ## Documentation
 
-This README, `CHANGELOG.md`, `MIGRATION_NOTES.md`, and the dummy app are the source of truth for the addon.
+Engine internals from the original gem template stay in `docs/gem_template/` as architectural reference. This README, `CHANGELOG.md`, `MIGRATION_NOTES.md`, and the dummy app are the source of truth for the addon.

@@ -603,7 +603,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes readme, "MIGRATION_NOTES.md"
     assert_includes readme, "recording_studio.terms_and_conditions"
     refute_includes readme, "come later"
-    refute File.directory?(File.expand_path("../#{internals_docs}", __dir__))
+    assert_includes readme, "#{internals_docs}/"
     assert_includes readme, "v4.7.0"
     assert_includes readme, "v0.1.311"
     assert_includes readme, "v2.4.0"
@@ -859,7 +859,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     readme = File.read(File.expand_path("../README.md", __dir__))
 
     assert_includes changelog, "## [0.14.2]"
-    assert_includes changelog, "Upgrade notes (0.14.0 → 0.14.2)"
+    assert_includes changelog, "Upgrade notes (0.14.1 → 0.14.2)"
     assert_includes changelog, "compare/v0.14.2...HEAD"
     assert_includes changelog, "[0.14.2]:"
     assert_includes changelog, "## [0.14.0]"

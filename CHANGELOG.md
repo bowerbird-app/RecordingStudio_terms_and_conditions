@@ -11,11 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Tracked SimpleCov output under `coverage/` and `test/dummy/coverage/`.
-- Template leftover `docs/gem_template/` and the dummy app's copied GitHub Actions workflow.
 
-### Upgrade notes (0.14.0 → 0.14.2)
+### Upgrade notes (0.14.1 → 0.14.2)
 - No schema change. Pin this gem at `0.14.2`.
-- Stop tracking SimpleCov output. `docs/gem_template/` is gone; use this README, CHANGELOG, and the dummy app.
+- Stop tracking SimpleCov output. `coverage/` and `test/dummy/coverage/` are gitignored.
 - Keep the 0.14.0 FlatPack `v0.1.311` pin (`view_component` `>= 4.14`).
 
 ## [0.14.0] - 2026-10-28

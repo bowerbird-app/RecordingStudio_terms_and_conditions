@@ -20,7 +20,7 @@ The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` a
 
 ## Upgrade from 0.14.0 to 0.14.2
 
-No schema change. Pin this gem at `0.14.2`. Stop tracking SimpleCov output. `docs/gem_template/` and the dummy-app GitHub workflow are gone. Keep FlatPack `v0.1.311`.
+No schema change. Pin this gem at `0.14.2`. Stop tracking SimpleCov output. Keep FlatPack `v0.1.311`.
 
 ## Upgrade from 0.13.4 to 0.14.0
 

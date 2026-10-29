@@ -4,7 +4,7 @@
 
 - This repository is a Rails mountable engine for the Recording Studio Terms and Conditions addon.
 - Preserve engine namespace isolation under `RecordingStudioTermsAndConditions`.
-- Prefer the top-level README, CHANGELOG, and the dummy app for current addon workflow.
+- Treat `docs/gem_template/` as architectural reference material. For current addon workflow, prefer the top-level README and the dummy app.
 - Keep changes small and scoped. Do not rewrite template surfaces unless the request requires it.
 
 ## UI Conventions
