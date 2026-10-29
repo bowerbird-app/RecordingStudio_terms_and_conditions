@@ -11,11 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Dropped the FlatPack Button `url:` → `href:` prepend. FlatPack Button already renders an `<a>` when given `href:`.
-- The dummy Terms hub override was the only Button caller that passed `url:` (it relied on the shim). It now passes `href:`. Links need FlatPack `>= 0.1.196` (`href:` on Button). Recording Studio Admin 2.4.0 already passes `href:` on its own section view; this gem's Admin DSL `url:` keys on `link` / `action` are unchanged. Needs `recording_studio_admin >= 2.0.6` for working section buttons (Admin v2.0.0 to v2.0.5 passed `url:` into FlatPack Button).
+- The dummy Terms hub override was the only Button caller that passed `url:` (it relied on the shim). It now passes `href:`. Links need FlatPack `>= 0.1.196` (`href:` on Button). Recording Studio Admin 2.4.0 already passes `href:` on its own section view; this gem's Admin DSL `url:` keys on `link` / `action` are unchanged. Gemspec now requires `recording_studio_admin` `>= 2.0.6`, `< 3` so hosts cannot land on Admin 2.0.0–2.0.5 (those versions pass `url:` into FlatPack Button and section buttons stay inert).
 
 ### Upgrade notes (0.14.0 → 0.14.1)
 - No schema change. Pin this gem at `0.14.1`.
-- Pass `href:` to FlatPack `Button::Component` for link-style buttons. This gem no longer copies `url:` onto `href:`. Recording Studio Admin section `link` / resource `action` still use `url:` on their own DSL. FlatPack stays at git tag `v0.1.311` from 0.14.0; Admin pin stays `v2.4.0`. No gemspec floor or pin change. Needs `recording_studio_admin >= 2.0.6` for working section buttons (Admin v2.0.0 to v2.0.5 passed `url:` into FlatPack Button).
+- Pass `href:` to FlatPack `Button::Component` for link-style buttons. This gem no longer copies `url:` onto `href:`. Recording Studio Admin section `link` / resource `action` still use `url:` on their own DSL. FlatPack stays at git tag `v0.1.311` from 0.14.0; development and dummy Admin pin stays `v2.4.0` (at or below `v2.5.1`). Install `recording_studio_admin` `>= 2.0.6` and below 3.0 (gemspec floor; Admin 2.0.0–2.0.5 passed `url:` into FlatPack Button).
 
 ## [0.14.0] - 2026-10-28
 
