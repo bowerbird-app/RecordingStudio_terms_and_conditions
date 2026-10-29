@@ -7,19 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.13.5] - 2026-10-28
+## [0.14.2] - 2026-10-29
 
 ### Removed
 - Tracked SimpleCov output under `coverage/` and `test/dummy/coverage/`.
 - Template leftover `docs/gem_template/` and the dummy app's copied GitHub Actions workflow.
 
-### Changed
-- Lockfile-only security update: `crass` 1.0.8 and dummy `net-ssh` 7.3.5. `view_component` is unchanged.
-
-### Upgrade notes (0.13.4 → 0.13.5)
-- No schema change. Pin this gem at `0.13.5`.
+### Upgrade notes (0.14.0 → 0.14.2)
+- No schema change. Pin this gem at `0.14.2`.
 - Stop tracking SimpleCov output. `docs/gem_template/` is gone; use this README, CHANGELOG, and the dummy app.
-- No Gemfile pin changes for FlatPack, Admin, Accessible, Metrics, Users, or Root Switchable.
+- Keep the 0.14.0 FlatPack `v0.1.311` pin (`view_component` `>= 4.14`).
+
+## [0.14.0] - 2026-10-28
+
+### Changed
+- Development and dummy pin FlatPack `v0.1.311`. That gemspec allows `view_component` `>= 4.14`, `< 5` (GHSA-8qw7-6phv-7q6p). The previous FlatPack tag (`v0.1.213`) required `view_component ~> 4.12.0`.
+- Dummy default layout PageNav uses `with_back`, `with_close`, and `with_item`. Keywords removed in FlatPack 0.1.274 (`right_slot`, `anchor_href`, `secondary_anchor_href`, `back_label`) raise on 0.1.311.
+- Dummy pins Root Switchable `v0.10.0`. That tag's switch page already uses PageNav `with_close` and a Card without `style:`. Dummy does not override the view. `v0.11.0` needs Recording Studio 6.1.
+- Development and dummy pin Admin `v2.4.0` (gemspec still `~> 2.0`). Admin 2.3.0 widget cards passed Card `style: :outlined`, which FlatPack 0.1.311 rejects.
+- Lockfiles resolve `view_component` `>= 4.14`, `crass` `>= 1.0.8`, and dummy `net-ssh` `>= 7.3.5`.
+
+### Upgrade notes (0.13.4 → 0.14.0)
+- No schema change. Pin this gem at `0.14.0`.
+- Pin `flat_pack` to git tag `v0.1.311` and run `bundle update view_component`. Render each component instance once.
+- Hosts that override `recording_studio/default_layout` must use the FlatPack `>= 0.1.274` PageNav API (`with_back`, `with_close`, `with_item`). Do not pass `right_slot`, `anchor_href`, or `secondary_anchor_href`.
+- Dummy and hosts can pin Root Switchable `v0.10.0` on FlatPack 0.1.311. A host that still mounts `v0.9.0` must stop passing PageNav `anchor_label:` and Card `style:` on the switch page.
+- Pin `recording_studio_admin` to `v2.4.0` or `v2.5.1` when the host FlatPack is 0.1.311. Stay below Admin `v2.7.0` (`v2.7.0` is the first to require Recording Studio `>= 6.1` and `flat_pack >= 0.1.315`).
+- Reload Flatpack CSS. Do not rerun `bin/rails generate flat_pack:install`.
 
 ## [0.13.4] - 2026-10-22
 
@@ -553,8 +567,9 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.13.5...HEAD
-[0.13.5]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.13.5
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.14.2...HEAD
+[0.14.2]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.14.2
+[0.14.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.14.0
 [0.13.4]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.13.4
 [0.13.3]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.13.3
 [0.13.2]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.13.2

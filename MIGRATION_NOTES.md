@@ -18,9 +18,13 @@ Then:
 
 The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
 
-## Upgrade from 0.13.4 to 0.13.5
+## Upgrade from 0.14.0 to 0.14.2
 
-No schema change. Pin this gem at `0.13.5`. Stop tracking SimpleCov output. `docs/gem_template/` and the dummy-app GitHub workflow are gone.
+No schema change. Pin this gem at `0.14.2`. Stop tracking SimpleCov output. `docs/gem_template/` and the dummy-app GitHub workflow are gone. Keep FlatPack `v0.1.311`.
+
+## Upgrade from 0.13.4 to 0.14.0
+
+No schema change. Pin this gem at `0.14.0`. Pin `flat_pack` to git tag `v0.1.311` and run `bundle update view_component` so `view_component` is `>= 4.14` (GHSA-8qw7-6phv-7q6p). Dummy default layout PageNav uses `with_back`, `with_close`, and `with_item`. Dummy pins Root Switchable `v0.10.0` (switch page already uses PageNav `with_close` and a Card without `style:`). Pin Admin to `v2.4.0` or `v2.5.1` (stay below Admin `v2.7.0`; `v2.7.0` is the first to require Recording Studio `>= 6.1` and `flat_pack >= 0.1.315`) so widget cards do not pass removed Card `style:`. A host that still mounts Root Switchable `v0.9.0` must stop passing PageNav `anchor_label:` and Card `style:` on the switch page. Reload Flatpack CSS.
 
 ## Upgrade from 0.13.2 to 0.13.3
 
