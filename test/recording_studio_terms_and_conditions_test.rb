@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.14.0", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.14.1", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -17,7 +17,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes gemspec, 'spec.add_dependency "recording_studio", "~> 4.2"'
     assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.196"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", "~> 0.8"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_admin", "~> 2.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_admin", ">= 2.0.6", "< 3"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_metrics", ">= 0.3.0", "< 1.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_publishable", "~> 0.6"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_user", ">= 0.12.2"'
@@ -798,8 +798,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/admin_widget_card.rb"))
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "AdminWidgetCard"
-    assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
+    refute_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "FlatpackButtonHrefFromUrl"
+    refute File.exist?(engine_path("lib/recording_studio_terms_and_conditions/flatpack_button_href_from_url.rb"))
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "HideAdminAccessAvatars"
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/hide_admin_access_avatars.rb"))

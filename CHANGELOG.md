@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.1] - 2026-10-29
+
+### Removed
+- Dropped the FlatPack Button `url:` → `href:` prepend. FlatPack Button already renders an `<a>` when given `href:`.
+- The dummy Terms hub override was the only Button caller that passed `url:` (it relied on the shim). It now passes `href:`. Links need FlatPack `>= 0.1.196` (`href:` on Button). Recording Studio Admin 2.4.0 already passes `href:` on its own section view; this gem's Admin DSL `url:` keys on `link` / `action` are unchanged. Gemspec now requires `recording_studio_admin` `>= 2.0.6`, `< 3` so hosts cannot land on Admin 2.0.0–2.0.5 (those versions pass `url:` into FlatPack Button and section buttons stay inert).
+
+### Upgrade notes (0.14.0 → 0.14.1)
+- No schema change. Pin this gem at `0.14.1`.
+- Pass `href:` to FlatPack `Button::Component` for link-style buttons. This gem no longer copies `url:` onto `href:`. Recording Studio Admin section `link` / resource `action` still use `url:` on their own DSL. FlatPack stays at git tag `v0.1.311` from 0.14.0; development and dummy Admin pin stays `v2.4.0` (at or below `v2.5.1`). Install `recording_studio_admin` `>= 2.0.6` and below 3.0 (gemspec floor; Admin 2.0.0–2.0.5 passed `url:` into FlatPack Button).
+
 ## [0.14.0] - 2026-10-28
 
 ### Changed
@@ -556,7 +566,9 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.6.2...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.14.1...HEAD
+[0.14.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.14.0...v0.14.1
+[0.14.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.13.4...v0.14.0
 [0.6.2]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.6.2
 [0.6.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.6.1
 [0.6.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/releases/tag/v0.6.0
