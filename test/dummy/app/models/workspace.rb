@@ -7,7 +7,4 @@ class Workspace < ApplicationRecord
     max_file_size: 25.megabytes,
     enabled_attachment_kinds: %i[ image file ]
   )
-  # Attachable 0.22 dropped ImageLibrary. Dummy Workspace still opts into
-  # :image_library so host declaration tests keep their existing assertions.
-  RecordingStudio.enable_capability(:image_library, on: self)
 end

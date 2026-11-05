@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.14.3", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.15.0", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -863,10 +863,10 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
-    assert_includes changelog, "## [0.14.3]"
-    assert_includes changelog, "Upgrade notes (0.14.2 → 0.14.3)"
-    assert_includes changelog, "compare/v0.14.3...HEAD"
-    assert_includes changelog, "[0.14.3]:"
+    assert_includes changelog, "## [0.15.0]"
+    assert_includes changelog, "Upgrade notes (0.14.2 → 0.15.0)"
+    assert_includes changelog, "compare/v0.15.0...HEAD"
+    assert_includes changelog, "[0.15.0]:"
     assert_includes changelog, "## [0.14.2]"
     assert_includes changelog, "Upgrade notes (0.14.1 → 0.14.2)"
     assert_includes changelog, "[0.14.2]:"

@@ -278,11 +278,17 @@ class TermsMetricsTest < ActiveSupport::TestCase
   end
 
   def grant_manager_for(recording, role)
-    [
-      User.find_by(email: "admin@admin.com"),
-      @staff
-    ].compact.find do |candidate|
-      RecordingStudioAccessible.authorized?(actor: candidate, recording: recording, role: role)
-    end || @staff
+    if @staff && RecordingStudioAccessible.authorized?(actor: @staff, recording: recording, role: role)
+      return @staff
+    end
+
+    manager = User.find_or_create_by!(email: "metrics-grant-manager@example.com") do |user|
+      user.password = "Password"
+      user.password_confirmation = "Password"
+    end
+    unless RecordingStudioAccessible.authorized?(actor: manager, recording: recording, role: role)
+      bootstrap_owner!(recording, manager)
+    end
+    manager
   end
 end

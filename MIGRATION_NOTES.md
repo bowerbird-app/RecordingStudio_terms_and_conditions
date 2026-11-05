@@ -18,9 +18,9 @@ Then:
 
 The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
 
-## Upgrade from 0.14.2 to 0.14.3
+## Upgrade from 0.14.2 to 0.15.0
 
-No schema change. Pin this gem at `0.14.3`. Require Recording Studio `>= 6.3.0`, `< 7`. Pin FlatPack `v0.1.341` and Admin `v2.9.1` when the host uses Admin. Dummy pins Root Switchable `v0.11.5`. Use `recording_studio_layout` instead of `UsesDefaultLayout`. `terms_page_nav` uses `flat_pack_page_nav`. Hosts that override default layout should render `flat_pack_page_nav_tag` for Root Switchable pages. Users Auth 0.27 needs `config.layout` set when the host does not want core `DEFAULT_LAYOUT`. Terms public API is unchanged.
+No schema change. Pin this gem at `0.15.0`. Require Recording Studio `>= 6.3.0`, `< 7`. Pin FlatPack `v0.1.341` and Admin `v2.9.1` when the host uses Admin. Dummy pins Root Switchable `v0.11.5`. Use `recording_studio_layout` instead of `UsesDefaultLayout`. `terms_page_nav` uses `flat_pack_page_nav`. Hosts that override default layout should render `flat_pack_page_nav_tag` for Root Switchable pages. Users Auth 0.27 needs `config.layout` set when the host does not want core `DEFAULT_LAYOUT`. Terms `config.layout` defaults to `nil` (core default layout). Terms public API is unchanged.
 
 ## Upgrade from 0.14.1 to 0.14.2
 

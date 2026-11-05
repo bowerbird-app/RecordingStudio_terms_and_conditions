@@ -8,8 +8,8 @@ RecordingStudioRootSwitchable.configure do |config|
   # Render the mounted switcher pages inside the app shell when users visit them.
   # Core 6 Layout.accept rejects a symbol method name. Call the host method.
   config.layout = lambda { |controller:|
-    if controller.respond_to?(:application_layout, true)
-      controller.send(:application_layout)
+    if controller.respond_to?(:application_layout)
+      controller.application_layout
     else
       "recording_studio/default_layout"
     end

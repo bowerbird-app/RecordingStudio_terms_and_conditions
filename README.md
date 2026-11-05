@@ -134,7 +134,7 @@ Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay Engli
 
 ## Upgrading from 0.14.2
 
-Bump to **0.14.3**. No schema change. Gemspec `recording_studio` is `>= 6.3.0`, `< 7`. Development and dummy pin Recording Studio `v6.3.0` and FlatPack `v0.1.341`. Dummy and development pin Admin `v2.9.1`. Dummy pins Root Switchable `v0.11.5`. Sibling kit tags move only as far as Bundler needs. Dummy pins Logs `v0.7.3` because Admin `v2.9.1` requires it. `view_component` stays `>= 4.14` (GHSA-8qw7-6phv-7q6p). Controllers use `recording_studio_layout`. `terms_page_nav` calls `flat_pack_page_nav`. Terms public API is unchanged. Reload Flatpack CSS.
+Bump to **0.15.0**. No schema change. Gemspec `recording_studio` is `>= 6.3.0`, `< 7`. Development and dummy pin Recording Studio `v6.3.0` and FlatPack `v0.1.341`. Dummy and development pin Admin `v2.9.1`. Dummy pins Root Switchable `v0.11.5`. Sibling kit tags move only as far as Bundler needs. Dummy pins Logs `v0.7.3` because Admin `v2.9.1` requires it. `view_component` stays `>= 4.14` (GHSA-8qw7-6phv-7q6p). Controllers use `recording_studio_layout`. `terms_page_nav` calls `flat_pack_page_nav`. `config.layout` defaults to `nil` (core default layout); set a layout name or callable when Agree screens should use a host layout. Terms public API is unchanged. Reload Flatpack CSS.
 
 ## Upgrading from 0.14.1
 
