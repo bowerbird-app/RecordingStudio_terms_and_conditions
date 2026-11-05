@@ -257,22 +257,53 @@ class TermsMetricsTest < ActiveSupport::TestCase
       recording: recording,
       actor: actor
     )
-    raise result.error if result.failure?
+    return if result.success?
+    return if result.error.to_s.include?("Access already exists") &&
+      RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: :admin)
+
+    raise result.error
   end
 
   def grant!(recording, actor, role)
     return if RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: role)
 
-    original = RecordingStudioAccessible.configuration.access_management_authorizer
-    RecordingStudioAccessible.configuration.access_management_authorizer = ->(**) { true }
+    configuration = RecordingStudioAccessible.configuration
+    original = configuration.access_management_authorizer
+    configuration.access_management_authorizer = ->(**) { true }
     result = RecordingStudioAccessible.grant_access(
       recording: recording,
       actor: actor,
       role: role,
-      manager_actor: @staff
+      manager_actor: grant_manager_for(recording, role)
     )
     raise result.error if result.failure?
   ensure
-    RecordingStudioAccessible.configuration.access_management_authorizer = original
+    configuration.access_management_authorizer = original if configuration
+  end
+
+  def grant_manager_for(recording, role)
+    if @staff && RecordingStudioAccessible.authorized?(actor: @staff, recording: recording, role: role)
+      return @staff
+    end
+
+    holder = existing_role_holder(recording, role)
+    return holder if holder
+
+    manager = User.find_or_create_by!(email: "metrics-grant-manager@example.com") do |user|
+      user.password = "Password"
+      user.password_confirmation = "Password"
+    end
+    bootstrap_owner!(recording, manager)
+    manager
+  end
+
+  def existing_role_holder(recording, role)
+    RecordingStudioAccessible.access_recordings_for(recording).filter_map do |access_recording|
+      actor = access_recording.recordable.try(:actor)
+      next unless actor
+      next unless RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: role)
+
+      actor
+    end.first
   end
 end

@@ -2,7 +2,7 @@
 
 module RecordingStudioTermsAndConditions
   class ApplicationController < (defined?(::ApplicationController) ? ::ApplicationController : ActionController::Base)
-    include RecordingStudio::UsesDefaultLayout if defined?(RecordingStudio::UsesDefaultLayout)
+    recording_studio_layout { RecordingStudioTermsAndConditions.configuration.layout }
     helper RecordingStudioTermsAndConditions::ApplicationHelper
     helper RecordingStudioTermsAndConditions::TermsDateHelper
     helper RecordingStudio::LayoutHelper if defined?(RecordingStudio::LayoutHelper)

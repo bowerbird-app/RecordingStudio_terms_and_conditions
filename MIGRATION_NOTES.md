@@ -18,6 +18,10 @@ Then:
 
 The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
 
+## Upgrade from 0.14.2 to 0.15.0
+
+No schema change. Pin this gem at `0.15.0`. Require Recording Studio `>= 6.3.0`, `< 7`. Pin FlatPack `v0.1.341` and Admin `v2.9.1` when the host uses Admin. Dummy pins Root Switchable `v0.11.5`. Use `recording_studio_layout` instead of `UsesDefaultLayout`. `terms_page_nav` uses `flat_pack_page_nav`. Hosts that override default layout should render `flat_pack_page_nav_tag` for Root Switchable pages. Users Auth 0.27 needs `config.layout` set when the host does not want core `DEFAULT_LAYOUT`. Terms `config.layout` defaults to `nil` (core default layout). Terms public API is unchanged.
+
 ## Upgrade from 0.14.1 to 0.14.2
 
 No schema change. Pin this gem at `0.14.2`. Stop tracking SimpleCov output. Keep FlatPack `v0.1.311`.
@@ -177,11 +181,12 @@ Product config after 0.4.0 is `mount_path`, `require_scroll_to_end` (default off
 
 - Ruby 3.3 or newer
 - Rails 8.1 or newer
-- Recording Studio 4.x (`~> 4.2` in the gemspec; dummy GitHub tag `v4.5.0`)
-- Accessible dummy tag `v0.11.1` and Root Switchable dummy tag `v0.5.3`
-- FlatPack dummy tag `v0.1.196`
-- Publishable dummy tag `v0.4.2` (gemspec `~> 0.4`)
-- Users `>= 0.12.2` (dummy GitHub tag `v0.12.5`)
+- Recording Studio 6.x (`>= 6.3.0`, `< 7` in the gemspec; dummy GitHub tag `v6.3.0`)
+- Accessible dummy tag `v0.24.1` and Root Switchable dummy tag `v0.11.5`
+- FlatPack dummy tag `v0.1.341`
+- Publishable dummy tag `v0.13.0` (gemspec `~> 0.6`)
+- Users `>= 0.12.2` (dummy GitHub tag `v0.27.0`)
+- Admin dummy tag `v2.9.1` (gemspec `>= 2.0.6`, `< 3`)
 - Public RubyGems and GitHub access for dependency installation
 
 ## Verification

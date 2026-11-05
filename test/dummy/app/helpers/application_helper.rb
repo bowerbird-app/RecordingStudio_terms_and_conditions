@@ -2,11 +2,16 @@ module ApplicationHelper
   include DummyLayoutHelper
 
   def dummy_page_nav(title:, back_url: nil, back_label: "Home")
-    recording_studio_page_nav(
-      title: title,
-      page_nav_back_url: back_url,
-      page_nav_back_label: back_label
-    )
+    content_for(:title, title) if title.present?
+    content_for(:page_nav_back_url, back_url) if back_url.present?
+    content_for(:page_nav_back_label, back_label) if back_label.present?
+
+    return unless respond_to?(:flat_pack_page_nav)
+
+    kwargs = { round: true, style: :default }
+    kwargs[:back_href] = back_url if back_url.present?
+    kwargs[:back_tooltip] = back_label if back_label.present?
+    flat_pack_page_nav(**kwargs)
   end
 
   def dummy_admin_hub_switch_href
