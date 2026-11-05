@@ -257,7 +257,11 @@ class TermsMetricsTest < ActiveSupport::TestCase
       recording: recording,
       actor: actor
     )
-    raise result.error if result.failure?
+    return if result.success?
+    return if result.error.to_s.include?("Access already exists") &&
+      RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: :admin)
+
+    raise result.error
   end
 
   def grant!(recording, actor, role)
@@ -278,11 +282,28 @@ class TermsMetricsTest < ActiveSupport::TestCase
   end
 
   def grant_manager_for(recording, role)
-    holders = RecordingStudioAccessible.access_recordings_for(recording).filter_map do |access_recording|
-      access_recording.recordable.try(:actor)
+    if @staff && RecordingStudioAccessible.authorized?(actor: @staff, recording: recording, role: role)
+      return @staff
     end
-    ([ @staff ] + holders).compact.find do |candidate|
-      RecordingStudioAccessible.authorized?(actor: candidate, recording: recording, role: role)
-    end || @staff
+
+    holder = existing_role_holder(recording, role)
+    return holder if holder
+
+    manager = User.find_or_create_by!(email: "metrics-grant-manager@example.com") do |user|
+      user.password = "Password"
+      user.password_confirmation = "Password"
+    end
+    bootstrap_owner!(recording, manager)
+    manager
+  end
+
+  def existing_role_holder(recording, role)
+    RecordingStudioAccessible.access_recordings_for(recording).filter_map do |access_recording|
+      actor = access_recording.recordable.try(:actor)
+      next unless actor
+      next unless RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: role)
+
+      actor
+    end.first
   end
 end
