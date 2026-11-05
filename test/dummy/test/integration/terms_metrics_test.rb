@@ -263,16 +263,26 @@ class TermsMetricsTest < ActiveSupport::TestCase
   def grant!(recording, actor, role)
     return if RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: role)
 
+    manager = grant_manager_for(recording, role)
     original = RecordingStudioAccessible.configuration.access_management_authorizer
     RecordingStudioAccessible.configuration.access_management_authorizer = ->(**) { true }
     result = RecordingStudioAccessible.grant_access(
       recording: recording,
       actor: actor,
       role: role,
-      manager_actor: @staff
+      manager_actor: manager
     )
     raise result.error if result.failure?
   ensure
     RecordingStudioAccessible.configuration.access_management_authorizer = original
+  end
+
+  def grant_manager_for(recording, role)
+    [
+      User.find_by(email: "admin@admin.com"),
+      @staff
+    ].compact.find do |candidate|
+      RecordingStudioAccessible.authorized?(actor: candidate, recording: recording, role: role)
+    end || @staff
   end
 end

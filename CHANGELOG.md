@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.3] - 2026-11-05
+
+### Changed
+- Gemspec `recording_studio` is `>= 6.3.0`, `< 7` (was `~> 4.2`). Dependents can resolve core `v6.3.0` with Admin `v2.9.1`, Root Switchable `v0.11.5`, and Cache `>= 6.1`.
+- Development and dummy pin Recording Studio `v6.3.0` and FlatPack `v0.1.341`. Dummy and development pin Admin `v2.9.1`. Dummy pins Root Switchable `v0.11.5`. Sibling GitHub tags move only as far as Bundler needs for those pins. Dummy and development pin Logs `v0.7.3` because Admin `v2.9.1` requires it. Logs is not a Terms gemspec dependency.
+- Gem and dummy controllers use core 6 `recording_studio_layout` instead of removed `UsesDefaultLayout`. Gem views still render `recording_studio/default_layout`. `terms_page_nav` writes `:title` plus dummy `page_nav_back_*` slots and calls `flat_pack_page_nav(round: true, style: :default, back_href:, back_tooltip:)`. Core 6 removed `recording_studio_page_nav`. Dummy Admin hub override uses Admin `recording_studio_admin_page_heading` and still puts every hub action in the PageTitle slot.
+- Dummy Users Auth sets `config.layout = "application"` because Users 0.27 `recording_studio_layout` falls through to core `DEFAULT_LAYOUT` when the setting is nil. Dummy `layouts/application` loads `flat_pack/application`. Dummy default layout renders `flat_pack_page_nav_tag` for Root Switchable 0.11.5. Root Switchable `config.layout` is a callable because `Layout.accept` rejects a symbol method name. Accessible 0.24 grants need a manager who already holds the role. Attachable 0.22 dropped `ImageLibrary`; dummy Workspace still enables `:image_library` next to `Attachable.to`.
+- Lockfiles resolve `view_component` `>= 4.14` (GHSA-8qw7-6phv-7q6p).
+
+### Upgrade notes (0.14.2 → 0.14.3)
+- No schema change. Pin this gem at `0.14.3`.
+- Require Recording Studio `>= 6.3.0` and below 7. Pin FlatPack git tag `v0.1.341`. Pin Admin `v2.9.1` when the dummy or host uses Admin. Pin Root Switchable `v0.11.5` when the host uses it.
+- Replace `include RecordingStudio::UsesDefaultLayout` with `recording_studio_layout`. Hosts that override `recording_studio/default_layout` keep PageNav `with_back` / `with_close` / `with_item`. Do not pass removed PageNav keywords (`back_icon`, `anchor_label`, `right_slot`) or Card `style:`.
+- Reload Flatpack CSS. Do not rerun `bin/rails generate flat_pack:install`.
+- Terms public API (`accept!`, pending/live helpers, Agree helpers) is unchanged.
+
 ## [0.14.2] - 2026-10-29
 
 ### Removed
@@ -576,7 +592,8 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.14.2...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.14.3...HEAD
+[0.14.3]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.14.2...v0.14.3
 [0.14.2]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.14.1...v0.14.2
 [0.14.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.14.0...v0.14.1
 [0.14.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.13.4...v0.14.0

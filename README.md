@@ -28,7 +28,7 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, embed
 - **FlatPack** UI component library for all views
 - **Dummy app** (`test/dummy/`) with a FlatPack sign-in screen, a home page on Recording Studio's default layout, mounted Recording Studio routes, and FlatPack's built-in rounded theme
 
-Authenticated dummy pages use Recording Studio's shared default layout (`RecordingStudio::UsesDefaultLayout`) plus FlatPack CSS and JS. They do not add a host TopNav (no demo bar, workspace switcher, or Sign out). The Admin hub also omits Accessible **+ Access**. Sign-in uses Users Auth (`recording_studio_user/auth`). Dummy `/docs/*` pages stay in the dummy app as a host-app sandbox; they are not the product README.
+Authenticated dummy pages use Recording Studio's shared default layout (`recording_studio_layout` / `recording_studio/default_layout`) plus FlatPack CSS and JS. They do not add a host TopNav (no demo bar, workspace switcher, or Sign out). The Admin hub also omits Accessible **+ Access**. Sign-in uses Users Auth (`recording_studio_user/auth`). Dummy `/docs/*` pages stay in the dummy app as a host-app sandbox; they are not the product README.
 
 ## Quick start
 
@@ -131,6 +131,10 @@ Do not translate stored Terms bodies or version titles. Those are data. Buttons,
 Add [Recording Studio Internationalization](https://github.com/bowerbird-app/RecordingStudio_Internationalization) on the host when you want a language selector. This gem does not declare the host's languages.
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
+
+## Upgrading from 0.14.2
+
+Bump to **0.14.3**. No schema change. Gemspec `recording_studio` is `>= 6.3.0`, `< 7`. Development and dummy pin Recording Studio `v6.3.0` and FlatPack `v0.1.341`. Dummy and development pin Admin `v2.9.1`. Dummy pins Root Switchable `v0.11.5`. Sibling kit tags move only as far as Bundler needs. Dummy pins Logs `v0.7.3` because Admin `v2.9.1` requires it. `view_component` stays `>= 4.14` (GHSA-8qw7-6phv-7q6p). Controllers use `recording_studio_layout`. `terms_page_nav` calls `flat_pack_page_nav`. Terms public API is unchanged. Reload Flatpack CSS.
 
 ## Upgrading from 0.14.1
 
@@ -360,7 +364,7 @@ The dummy Workspace enables Accessible because that addon is bundled:
 RecordingStudio.enable_capability(:accessible, on: Workspace)
 ```
 
-The dummy also ships one example mixin that uses core 4.2.0's `include_for` factory:
+The dummy also ships one example mixin that uses core `include_for`:
 
 ```ruby
 include RecordingStudio::Capabilities::Example.to(label: "dummy workspace")
@@ -395,17 +399,18 @@ See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full do
 | Rails           | 8.1+    |
 | PostgreSQL      | 16      |
 | TailwindCSS     | 4       |
-| RecordingStudio | 4.x (`~> 4.2` in the gemspec; dummy GitHub tag `v4.7.0`) |
-| Accessible      | gemspec `~> 0.8`; dummy GitHub tag `v0.18.0` |
-| Admin           | gemspec `~> 2.0`; dummy GitHub tag `v2.4.0` |
-| Trashable       | dummy GitHub tag `v0.11.0` (`require: false`; Admin query helpers) |
-| Users           | gemspec `recording_studio_user >= 0.12.2`; dummy GitHub tag `v0.21.0` |
-| Publishable     | gemspec `~> 0.6`; dummy GitHub tag `v0.8.0` |
-| Attachable      | dummy GitHub tag `v0.15.0` (Users Profile needs it) |
-| Root Switchable | dummy GitHub tag `v0.10.0` |
-| Cache           | dummy GitHub tag `v0.5.0` (Users / Root Switchable rate limits) |
-| FlatPack        | gemspec `>= 0.1.196`; dummy GitHub tag `v0.1.311` |
-| Internationalization | dummy GitHub tag `v0.1.2` (not in the gemspec) |
+| RecordingStudio | 6.x (`>= 6.3.0`, `< 7` in the gemspec; dummy GitHub tag `v6.3.0`) |
+| Accessible      | gemspec `~> 0.8`; dummy GitHub tag `v0.24.1` |
+| Admin           | gemspec `>= 2.0.6`, `< 3`; dummy GitHub tag `v2.9.1` |
+| Trashable       | dummy GitHub tag `v0.12.2` (`require: false`; Admin query helpers) |
+| Users           | gemspec `recording_studio_user >= 0.12.2`; dummy GitHub tag `v0.27.0` |
+| Publishable     | gemspec `~> 0.6`; dummy GitHub tag `v0.13.0` |
+| Attachable      | dummy GitHub tag `v0.22.0` (Users Profile needs it) |
+| Root Switchable | dummy GitHub tag `v0.11.5` |
+| Cache           | dummy GitHub tag `v0.6.2` (Users / Root Switchable rate limits) |
+| Logs            | dummy GitHub tag `v0.7.3` (Admin 2.9.1 requires it; not in this gemspec) |
+| FlatPack        | gemspec `>= 0.1.196`; dummy GitHub tag `v0.1.341` |
+| Internationalization | dummy GitHub tag `v0.2.1` (not in the gemspec) |
 | Devise          | latest  |
 
 The dummy Gemfile keeps `github:` sources so Bundler can fetch those gems. Hosts also need Publishable (and Users/Attachable) migrations from those gems — this addon only ships Terms and Acceptance migrations.

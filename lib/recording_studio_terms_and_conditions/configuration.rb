@@ -3,14 +3,19 @@
 module RecordingStudioTermsAndConditions
   class Configuration
     attr_accessor :mount_path
-    attr_reader :hooks, :require_scroll_to_end, :capture_request_provenance
+    attr_reader :hooks, :layout, :require_scroll_to_end, :capture_request_provenance
 
     def initialize
       @mount_path = "/recording_studio_terms_and_conditions"
       @app_name = ""
+      @layout = nil
       @require_scroll_to_end = false
       @capture_request_provenance = false
       @hooks = RecordingStudio::Hooks.new
+    end
+
+    def layout=(value)
+      @layout = RecordingStudio::Layout.accept(value)
     end
 
     def app_name
