@@ -263,32 +263,26 @@ class TermsMetricsTest < ActiveSupport::TestCase
   def grant!(recording, actor, role)
     return if RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: role)
 
-    manager = grant_manager_for(recording, role)
-    original = RecordingStudioAccessible.configuration.access_management_authorizer
-    RecordingStudioAccessible.configuration.access_management_authorizer = ->(**) { true }
+    configuration = RecordingStudioAccessible.configuration
+    original = configuration.access_management_authorizer
+    configuration.access_management_authorizer = ->(**) { true }
     result = RecordingStudioAccessible.grant_access(
       recording: recording,
       actor: actor,
       role: role,
-      manager_actor: manager
+      manager_actor: grant_manager_for(recording, role)
     )
     raise result.error if result.failure?
   ensure
-    RecordingStudioAccessible.configuration.access_management_authorizer = original
+    configuration.access_management_authorizer = original if configuration
   end
 
   def grant_manager_for(recording, role)
-    if @staff && RecordingStudioAccessible.authorized?(actor: @staff, recording: recording, role: role)
-      return @staff
+    holders = RecordingStudioAccessible.access_recordings_for(recording).filter_map do |access_recording|
+      access_recording.recordable.try(:actor)
     end
-
-    manager = User.find_or_create_by!(email: "metrics-grant-manager@example.com") do |user|
-      user.password = "Password"
-      user.password_confirmation = "Password"
-    end
-    unless RecordingStudioAccessible.authorized?(actor: manager, recording: recording, role: role)
-      bootstrap_owner!(recording, manager)
-    end
-    manager
+    ([ @staff ] + holders).compact.find do |candidate|
+      RecordingStudioAccessible.authorized?(actor: candidate, recording: recording, role: role)
+    end || @staff
   end
 end
