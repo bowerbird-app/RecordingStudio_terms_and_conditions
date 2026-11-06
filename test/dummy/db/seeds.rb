@@ -82,10 +82,6 @@ begin
   private_root_recording = RecordingStudio.root_recording_for(private_workspace)
   admin_root_recording = RecordingStudio.root_recording_for(admin_root)
 
-  folder_recording = find_or_record_child.call(folder, root_recording, root_recording)
-
-  find_or_record_child.call(page, root_recording, folder_recording)
-
   if defined?(RecordingStudioAccessible)
     unless RecordingStudioAccessible.authorized?(
       actor: user,
@@ -106,6 +102,10 @@ begin
       raise result.error if result.respond_to?(:failure?) && result.failure?
     end
   end
+
+  folder_recording = find_or_record_child.call(folder, root_recording, root_recording)
+
+  find_or_record_child.call(page, root_recording, folder_recording)
 
   ensure_published_terms.call(
     root_recording,

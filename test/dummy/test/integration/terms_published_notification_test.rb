@@ -6,6 +6,7 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
   setup do
     @workspace = Workspace.create!(name: "Notify #{SecureRandom.hex(4)}")
     @root = RecordingStudio.root_recording_for(@workspace)
+    grant_write_access!(@root)
     @events = []
     @subscriber = RecordingStudioTermsAndConditions::Published.subscribe do |event|
       @events << event.payload
@@ -60,6 +61,7 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
       password: "Password",
       password_confirmation: "Password"
     )
+    grant_write_access!(@root, actor)
 
     RecordingStudioTermsAndConditions::TermsWrite.call(
       recording: recording,
@@ -264,11 +266,7 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
     publish_terms!(first, slug: "sole-#{SecureRandom.hex(4)}")
     draft = RecordingStudioTermsAndConditions::TermsWrite.call(
       recording: first,
-      actor: User.create!(
-        email: "sole-#{SecureRandom.hex(4)}@example.com",
-        password: "Password",
-        password_confirmation: "Password"
-      ),
+      actor: create_actor("sole"),
       title: "v2",
       body: "Second."
     )
@@ -283,11 +281,13 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
   private
 
   def create_actor(prefix)
-    User.create!(
+    actor = User.create!(
       email: "#{prefix}-#{SecureRandom.hex(4)}@example.com",
       password: "Password",
       password_confirmation: "Password"
     )
+    grant_write_access!(@root, actor)
+    actor
   end
 
   def record_terms(title:, body:)

@@ -23,9 +23,29 @@ RecordingStudio.configure do |config|
   # Actor resolver for events when no actor is explicitly supplied
   config.actor = -> { Current.actor }
 
-  # Core 6.5 fails closed without a write authorizer. Dummy allows a present actor.
-  # Hosts should replace this with Accessible on the target recording.
-  config.authorize_write = ->(actor:, **) { actor.present? }
+  # Core 6.5 fails closed without a write authorizer. Dummy uses Accessible.
+  # AccessCreationContext may allow RecordingStudio::Access rows only.
+  # Every other write needs Accessible :edit on the root. No broad allow.
+  config.authorize_write = lambda { |actor:, root_recording:, recordable:, **|
+    if defined?(RecordingStudioAccessible::AccessCreationContext) &&
+       RecordingStudioAccessible::AccessCreationContext.allowed? &&
+       defined?(RecordingStudio::Access) &&
+       recordable.is_a?(RecordingStudio::Access)
+      next true
+    end
+
+    next false unless defined?(RecordingStudioAccessible)
+    next false unless root_recording
+    if defined?(RecordingStudioUser::Profile) && recordable.is_a?(RecordingStudioUser::Profile)
+      next actor.is_a?(User) && actor.persisted?
+    end
+
+    RecordingStudioAccessible.authorized?(
+      actor: actor,
+      recording: root_recording,
+      role: :edit
+    )
+  }
 
   # Emit ActiveSupport::Notifications events
   config.event_notifications_enabled = true

@@ -37,6 +37,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
   test "member cannot open Users receipts" do
     sign_in @admin
+    grant_workspace_access!(@admin, @workspace)
     switch_to_workspace(@workspace)
     recording = RecordingStudio.root_recording_for(@workspace).record(
       RecordingStudioTermsAndConditions::Terms,
@@ -225,6 +226,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     26.times do |index|
       workspace = Workspace.create!(name: "Page #{index} #{SecureRandom.hex(3)}")
       root = RecordingStudio.root_recording_for(workspace)
+      grant_write_access!(root, @admin)
       root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
         terms.title = "Page #{index} #{SecureRandom.hex(3)}"
         terms.body = "Body #{index}."
@@ -237,6 +239,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
   test "term users paginates receipts" do
     sign_in @admin
+    grant_workspace_access!(@admin, @workspace)
     switch_to_workspace(@admin_root)
     recording = RecordingStudio.root_recording_for(@workspace).record(
       RecordingStudioTermsAndConditions::Terms,
@@ -272,6 +275,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     26.times do |index|
       workspace = Workspace.create!(name: "Hub #{index} #{SecureRandom.hex(3)}")
       root = RecordingStudio.root_recording_for(workspace)
+      grant_write_access!(root, @admin)
       root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
         terms.title = "Hub #{index} #{SecureRandom.hex(3)}"
         terms.body = "Hub body #{index}."
@@ -291,6 +295,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
   test "admin who agreed screen table paginates" do
     sign_in @admin
+    grant_workspace_access!(@admin, @workspace)
     switch_to_workspace(@admin_root)
     recording = RecordingStudio.root_recording_for(@workspace).record(
       RecordingStudioTermsAndConditions::Terms,
@@ -664,6 +669,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
   end
 
   def publish_live_kind!(root, kind:, title:, slug:)
+    grant_write_access!(root, @admin)
     recording = root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
       terms.title = title
       terms.body = "Bring headphones."

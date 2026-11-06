@@ -38,18 +38,20 @@ class TermsTest < ActiveSupport::TestCase
 
   test "terms can be recorded under a workspace and revised to a new snapshot" do
     root_recording = RecordingStudio.root_recording_for(Workspace.create!(name: unique_name("Terms Workspace")))
+    writer = recording_write_actor
+    grant_write_access!(root_recording, writer)
 
     event = RecordingStudio.record!(
       action: "created",
       recordable: RecordingStudioTermsAndConditions::Terms.new(title: "Studio terms", body: "Be kind."),
       root_recording: root_recording,
       parent_recording: root_recording,
-      actor: recording_write_actor
+      actor: writer
     )
     recording = event.recording
     original_terms = recording.recordable
 
-    revised = root_recording.revise(recording, actor: recording_write_actor) { |terms| terms.title = "Studio terms v2" }
+    revised = root_recording.revise(recording, actor: writer) { |terms| terms.title = "Studio terms v2" }
 
     assert_equal root_recording, recording.parent_recording
     assert_kind_of RecordingStudioTermsAndConditions::Terms, original_terms

@@ -15,6 +15,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     )
     @workspace = Workspace.create!(name: "Agree #{SecureRandom.hex(4)}")
     @root = RecordingStudio.root_recording_for(@workspace)
+    grant_write_access!(@root)
     @recording = record_terms(@root, title: "Studio Terms", body: "Be kind. Don't be a jerk.")
     publish_terms!(@recording, slug: "studio-terms-#{SecureRandom.hex(4)}")
     sign_in @user
@@ -72,7 +73,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
 
   test "re-gate after a new live version shows the flash date and Continue" do
     RecordingStudioTermsAndConditions.accept!(@user, @recording, { "source" => "continue_notice" })
-    revised = @root.revise(@recording, actor: @user) do |terms|
+    revised = @root.revise(@recording, actor: recording_write_actor) do |terms|
       terms.body = "Be kinder."
     end
     publish_terms!(revised, slug: "studio-terms-#{SecureRandom.hex(4)}")

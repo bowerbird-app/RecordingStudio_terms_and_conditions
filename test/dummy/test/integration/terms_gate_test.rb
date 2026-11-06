@@ -15,6 +15,7 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     )
     @workspace = Workspace.create!(name: "Gate #{SecureRandom.hex(4)}")
     @root = RecordingStudio.root_recording_for(@workspace)
+    grant_write_access!(@root)
     @password = "Password"
     sign_in @user
     switch_to_workspace(@workspace)
@@ -131,7 +132,7 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     get "/"
     assert_response :success
 
-    revised = @root.revise(recording, actor: @user) { |terms| terms.body = "Be kinder." }
+    revised = @root.revise(recording, actor: recording_write_actor) { |terms| terms.body = "Be kinder." }
     publish_terms!(revised, slug: "gate-terms-#{SecureRandom.hex(4)}")
 
     get "/"

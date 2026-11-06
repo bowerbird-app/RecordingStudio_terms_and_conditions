@@ -39,6 +39,49 @@ module TermsDemoTestHelper
     actor
   end
 
+  def grant_write_access!(recording, actor = nil)
+    writer = actor || recording_write_actor
+    return writer if recording.blank?
+
+    root = recording.respond_to?(:root_recording) ? (recording.root_recording || recording) : recording
+    return writer if RecordingStudioAccessible.authorized?(actor: writer, recording: root, role: :edit)
+
+    previous_authorizer = RecordingStudioAccessible.configuration.access_management_authorizer
+    previous_actor = Current.actor if defined?(Current)
+    begin
+      RecordingStudioAccessible.configuration.access_management_authorizer = ->(**) { true }
+      result = RecordingStudioAccessible.bootstrap_owner_access!(recording: root, actor: writer)
+      if result.respond_to?(:failure?) && result.failure?
+        manager = access_admin_for(root) || writer
+        Current.actor = manager if defined?(Current) && Current.respond_to?(:actor=)
+        result = RecordingStudioAccessible.grant_access(
+          recording: root,
+          actor: writer,
+          role: :admin,
+          manager_actor: manager
+        )
+      end
+      raise result.error if result.respond_to?(:failure?) && result.failure?
+    ensure
+      RecordingStudioAccessible.configuration.access_management_authorizer = previous_authorizer
+      Current.actor = previous_actor if defined?(Current) && Current.respond_to?(:actor=)
+    end
+    writer
+  end
+
+  def access_admin_for(recording)
+    return unless RecordingStudioAccessible.respond_to?(:access_recordings_for)
+
+    RecordingStudioAccessible.access_recordings_for(recording).each do |access_recording|
+      access = access_recording.recordable
+      next unless access.respond_to?(:role) && access.role.to_s == "admin"
+      next unless access.respond_to?(:actor) && access.actor
+
+      return access.actor
+    end
+    nil
+  end
+
   def grant_workspace_access!(actor, workspace)
     recording = RecordingStudio.root_recording_for(workspace)
     return recording if RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: :view)
@@ -48,6 +91,7 @@ module TermsDemoTestHelper
 
   def record_terms(root_recording, title:, body:, kind: RecordingStudioTermsAndConditions::Terms::DEFAULT_KIND, actor: nil)
     writer = actor || recording_write_actor
+    grant_write_access!(root_recording, writer)
     root_recording.record(RecordingStudioTermsAndConditions::Terms, actor: writer) do |terms|
       terms.title = title
       terms.body = body
@@ -55,11 +99,13 @@ module TermsDemoTestHelper
     end
   end
 
-  def publish_terms!(recording, slug:, status: "published")
+  def publish_terms!(recording, slug:, status: "published", actor: nil)
+    writer = actor || recording_write_actor
+    grant_write_access!(recording, writer)
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: recording,
       attributes: { slug: slug, status: status },
-      actor: recording_write_actor
+      actor: writer
     ).value!
   end
 

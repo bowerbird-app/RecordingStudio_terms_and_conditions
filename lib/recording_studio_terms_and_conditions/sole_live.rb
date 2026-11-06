@@ -45,15 +45,12 @@ module RecordingStudioTermsAndConditions
       end
     end
 
-    def self.write_actor_for(recording)
-      if defined?(Current) && Current.respond_to?(:actor)
-        current = Current.actor
-        return current if current.present?
-      end
+    def self.write_actor_for(_recording = nil)
+      actor = Current.actor if defined?(Current) && Current.respond_to?(:actor)
+      return actor if actor.present?
 
-      return unless recording.respond_to?(:events)
-
-      recording.events.reorder(created_at: :desc).filter_map(&:actor).first
+      raise RecordingStudio::ActorRequired,
+            "actor is required for RecordingStudio writes when config.require_actor is true"
     end
 
     def self.terms_recording?(recording)

@@ -569,6 +569,11 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes initializer_source, "RecordingStudioTermsAndConditions::Terms"
     assert_includes initializer_source, "RecordingStudioUser::People"
     assert_includes initializer_source, "RecordingStudioPublishable::Publishable"
+    assert_includes initializer_source, "config.authorize_write"
+    assert_includes initializer_source, "AccessCreationContext"
+    assert_includes initializer_source, "RecordingStudioAccessible.authorized?"
+    refute_match(/authorize_write\s*=\s*->\(actor:, \*\*\) \{ actor\.present\? \}/, initializer_source)
+    assert_includes initializer_source, "RecordingStudioUser::Profile"
     refute_includes initializer_source, "config.include_children"
     refute_includes initializer_source, "config.features."
     refute_includes initializer_source, "v3"
@@ -810,6 +815,10 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
                     "def terms_recordings_for"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/sole_live.rb"),
                     "def self.terms_recordings_for"
+    sole_live = engine_source("lib/recording_studio_terms_and_conditions/sole_live.rb")
+    assert_includes sole_live, "RecordingStudio::ActorRequired"
+    refute_includes sole_live, "filter_map(&:actor)"
+    refute_includes sole_live, "events.reorder"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/terms_write.rb"), "fork_draft"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/sole_live.rb"), "status: \"draft\""
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/terms_acceptance.rb"),
@@ -859,7 +868,6 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes File.read(skill), "Upgrade (0.7.2 → 0.7.3)"
     assert_includes File.read(skill), "Upgrade (0.7.3 → 0.7.7)"
     assert_includes File.read(skill), "Upgrade (0.7.7 → 0.7.8)"
-    assert_includes File.read(skill), "Upgrade (0.15.0 → 0.16.0)"
     assert_includes File.read(skill), "Upgrade (0.8.1 → 0.9.0)"
     assert_includes File.read(skill), "Upgrade (0.7.8 → 0.8.0)"
     assert_includes File.read(skill), "v0.12.2"

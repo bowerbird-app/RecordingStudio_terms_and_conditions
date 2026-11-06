@@ -19,6 +19,10 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
       password_confirmation: "Password"
     )
     Current.actor = @actor if defined?(Current)
+    grant_write_access!(@root, @actor)
+    grant_write_access!(@root, @other_actor)
+    grant_write_access!(@other_root, @other_actor)
+    grant_write_access!(@other_root, @actor)
   end
 
   test "current_published_for returns live published Terms for a host root" do

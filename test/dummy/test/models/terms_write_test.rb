@@ -12,6 +12,7 @@ class TermsWriteTest < ActiveSupport::TestCase
       password_confirmation: "Password"
     )
     Current.actor = @actor if defined?(Current)
+    grant_write_access!(@root, @actor)
   end
 
   test "draft save revises the same recording" do

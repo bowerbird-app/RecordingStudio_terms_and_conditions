@@ -134,7 +134,7 @@ Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay Engli
 
 ## Upgrading from 0.15.0
 
-Bump to **0.16.0**. No schema change. Admin authorization fails closed without Accessible. Drafting Terms needs Accessible `:view` on a Workspace (the first matching root when you are on the Admin root). Clickwrap no longer falls back to live Terms on a root the person cannot view. Gemspec Accessible is `>= 0.24.2`, `< 1`. Development and dummy pin Recording Studio `v6.5.0`, Accessible `v0.24.2`, Metrics `v0.7.3`, Logs `v0.7.4`, Trashable `v0.12.3`, and Users `v0.27.1`. Admin stays `v2.9.1`. Dummy sets core `config.authorize_write` so 6.5 writes are not denied. Hosts must set their own authorizer (Accessible on the target recording).
+Bump to **0.16.0**. No schema change. Admin authorization fails closed without Accessible. Drafting Terms needs Accessible `:view` on a Workspace (the first matching root when you are on the Admin root). Clickwrap no longer falls back to live Terms on a root the person cannot view. Gemspec Accessible is `>= 0.24.2`, `< 1`. Development and dummy pin Recording Studio `v6.5.0`, Accessible `v0.24.2`, Metrics `v0.7.3`, Logs `v0.7.4`, Trashable `v0.12.3`, and Users `v0.27.1`. Admin stays `v2.9.1`. Dummy `config.authorize_write` allows AccessCreationContext only for `RecordingStudio::Access` rows, otherwise Accessible `:edit` on the root. Hosts must set their own authorizer (Accessible on the target recording).
 
 ## Upgrading from 0.14.2
 

@@ -8,6 +8,8 @@ class PublishedClaimConcurrencyTest < ActiveSupport::TestCase
   setup do
     @workspace = Workspace.create!(name: "Claim #{SecureRandom.hex(4)}")
     @root = RecordingStudio.root_recording_for(@workspace)
+    @writer = recording_write_actor
+    grant_write_access!(@root, @writer)
   end
 
   teardown do
@@ -24,7 +26,7 @@ class PublishedClaimConcurrencyTest < ActiveSupport::TestCase
 
     claims = threaded_results(2) do
       recording = RecordingStudio::Recording.find(claim_recording.id)
-      Current.actor = recording_write_actor if defined?(Current)
+      Current.actor = @writer if defined?(Current)
       RecordingStudioTermsAndConditions::Published.send(
         :claim_emit?,
         recording,
@@ -36,6 +38,7 @@ class PublishedClaimConcurrencyTest < ActiveSupport::TestCase
     assert_equal 1, claims.count(false)
 
     threaded_results(2) do
+      Current.actor = @writer if defined?(Current)
       ActiveSupport::Notifications.instrument(
         "published.recording_studio_publishable",
         recordable_type: RecordingStudioTermsAndConditions::Published::TERMS_TYPE,
@@ -61,12 +64,12 @@ class PublishedClaimConcurrencyTest < ActiveSupport::TestCase
       RecordingStudio::Event.where(recording_id: ids).delete_all
       RecordingStudio::Recording.where(id: ids).delete_all
     end
-    workspace.delete
+    Workspace.unscoped.where(id: workspace.id).delete_all
   end
 
   def publish_without_terms_event(body)
     hooks = RecordingStudioPublishable.configuration.hooks
-    recording = @root.record(RecordingStudioTermsAndConditions::Terms, actor: recording_write_actor) do |terms|
+    recording = @root.record(RecordingStudioTermsAndConditions::Terms, actor: @writer) do |terms|
       terms.title = "Live"
       terms.body = body
     end
@@ -74,7 +77,7 @@ class PublishedClaimConcurrencyTest < ActiveSupport::TestCase
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: recording,
       attributes: { slug: "claim-#{SecureRandom.hex(4)}", status: "published" },
-      actor: recording_write_actor
+      actor: @writer
     ).value!
     recording.reload
   ensure

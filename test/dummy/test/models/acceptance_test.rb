@@ -29,6 +29,7 @@ class AcceptanceTest < ActiveSupport::TestCase
     user = User.create!(email: "terms-#{SecureRandom.hex(4)}@example.com", password: "Password",
                         password_confirmation: "Password")
     root_recording = RecordingStudio.root_recording_for(Workspace.create!(name: "Accept #{SecureRandom.hex(4)}"))
+    grant_write_access!(root_recording, user)
     event = RecordingStudio.record!(
       action: "created",
       recordable: RecordingStudioTermsAndConditions::Terms.new(title: "Clickwrap", body: "I agree."),

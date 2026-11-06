@@ -25,6 +25,7 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
     unless RecordingStudioAccessible.authorized?(actor: @admin, recording: @admin_recording, role: :edit)
       bootstrap_owner_access!(@admin, @admin_recording)
     end
+    grant_workspace_access!(@admin, @workspace)
   end
 
   test "kind constraints and create uniqueness per kind" do
