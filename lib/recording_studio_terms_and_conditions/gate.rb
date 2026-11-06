@@ -47,13 +47,14 @@ module RecordingStudioTermsAndConditions
     end
 
     def refresh_root(controller, actor)
-      return unless actor
       return unless defined?(RecordingStudio::RootSwitchable::Current)
 
-      RecordingStudio::RootSwitchable::Current.actor = actor
-      return unless controller.respond_to?(:resolve_recording_studio_root_switchable_current, true)
-
-      controller.send(:resolve_recording_studio_root_switchable_current)
+      RecordingStudio::RootSwitchable::Current.actor = actor if actor
+      if controller.respond_to?(:resolve_recording_studio_root_switchable_current, true)
+        controller.send(:resolve_recording_studio_root_switchable_current)
+      elsif RecordingStudio::RootSwitchable.respond_to?(:resolve_current_root)
+        RecordingStudio::RootSwitchable.resolve_current_root(controller: controller, actor: actor)
+      end
     end
 
     def acceptance_path(controller)
@@ -70,9 +71,19 @@ module RecordingStudioTermsAndConditions
         return recordable if recordable
       end
 
-      return unless controller.respond_to?(:current_root_recording, true)
+      if controller.respond_to?(:current_root_recording, true)
+        recording = controller.send(:current_root_recording)
+        return recording if recording
+      end
 
-      controller.send(:current_root_recording)
+      switchable_current_root
+    end
+
+    def switchable_current_root
+      return unless defined?(RecordingStudio::RootSwitchable)
+
+      RecordingStudio::RootSwitchable.current_root_recordable ||
+        RecordingStudio::RootSwitchable.current_root_recording
     end
 
     def root_for_signup(controller)
@@ -80,20 +91,36 @@ module RecordingStudioTermsAndConditions
     end
 
     def root_for_acceptance(controller)
+      actor = actor_from(controller)
+      refresh_root(controller, actor)
       current = root_for(controller)
       return current if current.present? && live_terms_on?(current)
 
-      first_root_with_live_terms || current
+      first_root_with_live_terms(actor) || current
     end
 
-    def first_root_with_live_terms
-      return unless defined?(RecordingStudio::Recording)
-
-      RecordingStudio::Recording.where(parent_recording_id: nil).find_each do |root|
+    def first_root_with_live_terms(actor = nil)
+      accessible_root_recordings_for(actor).each do |root|
         return root.recordable if live_terms_on?(root)
       end
 
       nil
+    end
+
+    def actor_from(controller)
+      if controller.respond_to?(:current_user)
+        user = controller.current_user
+        return user if user.present?
+      end
+
+      Current.actor if defined?(Current)
+    end
+
+    def accessible_root_recordings_for(actor)
+      return [] if actor.blank?
+      return [] unless defined?(RecordingStudioAccessible)
+
+      RecordingStudioAccessible.root_recordings_for(actor: actor, minimum_role: :view)
     end
 
     def live_terms_on?(root)

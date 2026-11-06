@@ -5,6 +5,7 @@ module RecordingStudioTermsAndConditions
     class PeopleController < BaseController
       def show
         @acceptances = Acceptance.where(actor_type: actor_type, actor_id: actor_id)
+                                 .where(terms_recording_id: terms_scope.select(:id))
                                  .order(accepted_at: :desc)
         @actor = @acceptances.first&.actor
         return head :not_found if @actor.blank?

@@ -18,6 +18,7 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
       password: "Password",
       password_confirmation: "Password"
     )
+    Current.actor = @actor if defined?(Current)
   end
 
   test "current_published_for returns live published Terms for a host root" do
@@ -82,7 +83,7 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     RecordingStudioTermsAndConditions.accept!(@actor, first, source: "clickwrap")
     assert RecordingStudioTermsAndConditions.accepted?(@actor, @workspace)
 
-    revised = @root.revise(recording) { |terms| terms.body = "Second." }
+    revised = @root.revise(recording, actor: @actor) { |terms| terms.body = "Second." }
     publish_terms!(revised, slug: "versioned-terms")
 
     refute RecordingStudioTermsAndConditions.accepted?(@actor, @workspace)
@@ -185,7 +186,7 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     publish_terms!(recording, slug: "retry-versioned")
     first = RecordingStudioTermsAndConditions.accept!(@actor, recording, source: "clickwrap")
 
-    revised = @root.revise(recording) { |terms| terms.body = "Second." }
+    revised = @root.revise(recording, actor: @actor) { |terms| terms.body = "Second." }
     publish_terms!(revised, slug: "retry-versioned")
     second = RecordingStudioTermsAndConditions.accept!(@actor, revised, source: "clickwrap")
 
@@ -234,7 +235,7 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     home = record_terms("Home v1", "Home first.")
     publish_terms!(home, slug: "home-#{SecureRandom.hex(4)}")
     RecordingStudioTermsAndConditions.accept!(@actor, home, source: "clickwrap")
-    away = @other_root.record(RecordingStudioTermsAndConditions::Terms) do |terms|
+    away = @other_root.record(RecordingStudioTermsAndConditions::Terms, actor: @other_actor) do |terms|
       terms.title = "Away v1"
       terms.body = "Away first."
     end
@@ -276,7 +277,7 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     terms = record_terms("Terms v1", "Terms first.")
     publish_terms!(terms, slug: "kind-terms-#{SecureRandom.hex(4)}")
     RecordingStudioTermsAndConditions.accept!(@actor, terms, source: "clickwrap")
-    privacy = @root.record(RecordingStudioTermsAndConditions::Terms) do |row|
+    privacy = @root.record(RecordingStudioTermsAndConditions::Terms, actor: @actor) do |row|
       row.title = "Privacy v1"
       row.body = "Privacy first."
       row.kind = RecordingStudioTermsAndConditions::Terms::KIND_PRIVACY
@@ -493,7 +494,8 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
       action: "created",
       recordable: RecordingStudioTermsAndConditions::Terms.new(title: title, body: body),
       root_recording: @root,
-      parent_recording: @root
+      parent_recording: @root,
+      actor: @actor
     ).recording
   end
 
@@ -502,7 +504,8 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     attributes[:publish_at] = publish_at if publish_at
     result = RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: recording,
-      attributes: attributes
+      attributes: attributes,
+      actor: @actor
     )
     result.value!
   end

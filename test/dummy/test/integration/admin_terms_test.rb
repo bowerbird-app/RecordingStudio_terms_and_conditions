@@ -54,6 +54,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
   test "admin can draft and revise terms" do
     sign_in @admin
+    grant_workspace_access!(@admin, @workspace)
     switch_to_workspace(@admin_root)
     clear_terms_on_write_workspace!
 
@@ -419,6 +420,18 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
     get recording_studio_terms_and_conditions.new_admin_term_path
     assert_response :forbidden
+  end
+
+  test "admin without workspace access cannot pick a write workspace" do
+    sign_in @admin
+    switch_to_workspace(@admin_root)
+
+    post recording_studio_terms_and_conditions.admin_terms_path, params: {
+      terms: { title: "House rules", body: "No yelling in the booth.", kind: "terms_and_condition" }
+    }
+
+    assert_response :unprocessable_entity
+    assert_includes response.body, "Pick a workspace first."
   end
 
   test "admin hub cards count people who agreed and versions stay a table" do

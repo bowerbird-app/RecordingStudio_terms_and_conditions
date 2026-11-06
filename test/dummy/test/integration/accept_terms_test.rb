@@ -72,7 +72,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
 
   test "re-gate after a new live version shows the flash date and Continue" do
     RecordingStudioTermsAndConditions.accept!(@user, @recording, { "source" => "continue_notice" })
-    revised = @root.revise(@recording) do |terms|
+    revised = @root.revise(@recording, actor: @user) do |terms|
       terms.body = "Be kinder."
     end
     publish_terms!(revised, slug: "studio-terms-#{SecureRandom.hex(4)}")
@@ -176,8 +176,10 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "accept screen falls back to live terms from another root" do
+  test "accept screen falls back to live terms from another accessible root" do
+    grant_workspace_access!(@user, @workspace)
     empty = Workspace.create!(name: "Empty #{SecureRandom.hex(4)}")
+    grant_workspace_access!(@user, empty)
     switch_to_workspace(empty)
 
     get recording_studio_terms_and_conditions.acceptance_path

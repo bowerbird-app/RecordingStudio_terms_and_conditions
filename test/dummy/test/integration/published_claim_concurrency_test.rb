@@ -24,6 +24,7 @@ class PublishedClaimConcurrencyTest < ActiveSupport::TestCase
 
     claims = threaded_results(2) do
       recording = RecordingStudio::Recording.find(claim_recording.id)
+      Current.actor = recording_write_actor if defined?(Current)
       RecordingStudioTermsAndConditions::Published.send(
         :claim_emit?,
         recording,
@@ -65,14 +66,15 @@ class PublishedClaimConcurrencyTest < ActiveSupport::TestCase
 
   def publish_without_terms_event(body)
     hooks = RecordingStudioPublishable.configuration.hooks
-    recording = @root.record(RecordingStudioTermsAndConditions::Terms) do |terms|
+    recording = @root.record(RecordingStudioTermsAndConditions::Terms, actor: recording_write_actor) do |terms|
       terms.title = "Live"
       terms.body = body
     end
     hooks.clear(RecordingStudioTermsAndConditions::Published::LATCH)
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: recording,
-      attributes: { slug: "claim-#{SecureRandom.hex(4)}", status: "published" }
+      attributes: { slug: "claim-#{SecureRandom.hex(4)}", status: "published" },
+      actor: recording_write_actor
     ).value!
     recording.reload
   ensure

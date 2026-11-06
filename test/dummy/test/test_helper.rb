@@ -29,8 +29,26 @@ module TermsDemoTestHelper
     result.error.to_s.include?("Access already exists")
   end
 
-  def record_terms(root_recording, title:, body:, kind: RecordingStudioTermsAndConditions::Terms::DEFAULT_KIND)
-    root_recording.record(RecordingStudioTermsAndConditions::Terms) do |terms|
+  def recording_write_actor
+    actor = Current.actor || User.find_by(email: "admin@admin.com") || User.create!(
+      email: "writer-#{SecureRandom.hex(4)}@example.com",
+      password: "Password",
+      password_confirmation: "Password"
+    )
+    Current.actor = actor if defined?(Current) && Current.respond_to?(:actor=)
+    actor
+  end
+
+  def grant_workspace_access!(actor, workspace)
+    recording = RecordingStudio.root_recording_for(workspace)
+    return recording if RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: :view)
+
+    bootstrap_owner_access!(actor, recording)
+  end
+
+  def record_terms(root_recording, title:, body:, kind: RecordingStudioTermsAndConditions::Terms::DEFAULT_KIND, actor: nil)
+    writer = actor || recording_write_actor
+    root_recording.record(RecordingStudioTermsAndConditions::Terms, actor: writer) do |terms|
       terms.title = title
       terms.body = body
       terms.kind = kind
@@ -40,7 +58,8 @@ module TermsDemoTestHelper
   def publish_terms!(recording, slug:, status: "published")
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: recording,
-      attributes: { slug: slug, status: status }
+      attributes: { slug: slug, status: status },
+      actor: recording_write_actor
     ).value!
   end
 
@@ -58,13 +77,13 @@ module TermsDemoTestHelper
   def without_live_terms_fallback
     gate = RecordingStudioTermsAndConditions::Gate
     original = gate.method(:first_root_with_live_terms)
-    gate.define_singleton_method(:first_root_with_live_terms) { nil }
+    gate.define_singleton_method(:first_root_with_live_terms) { |_actor = nil| nil }
     yield
   ensure
     gate.define_singleton_method(:first_root_with_live_terms, original)
   end
 end
 
-class ActionDispatch::IntegrationTest
+class ActiveSupport::TestCase
   include TermsDemoTestHelper
 end

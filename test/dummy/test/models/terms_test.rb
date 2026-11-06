@@ -43,12 +43,13 @@ class TermsTest < ActiveSupport::TestCase
       action: "created",
       recordable: RecordingStudioTermsAndConditions::Terms.new(title: "Studio terms", body: "Be kind."),
       root_recording: root_recording,
-      parent_recording: root_recording
+      parent_recording: root_recording,
+      actor: recording_write_actor
     )
     recording = event.recording
     original_terms = recording.recordable
 
-    revised = root_recording.revise(recording) { |terms| terms.title = "Studio terms v2" }
+    revised = root_recording.revise(recording, actor: recording_write_actor) { |terms| terms.title = "Studio terms v2" }
 
     assert_equal root_recording, recording.parent_recording
     assert_kind_of RecordingStudioTermsAndConditions::Terms, original_terms

@@ -12,7 +12,8 @@ find_or_record_child = lambda do |recordable, root_recording, parent_recording|
     action: "created",
     recordable: recordable,
     root_recording: root_recording,
-    parent_recording: parent_recording
+    parent_recording: parent_recording,
+    actor: Current.actor
   ).recording
 end
 
@@ -48,7 +49,8 @@ ensure_published_terms = lambda do |root_recording, user, kind:, title:, body:, 
   if !recording.currently_published? || current_slug != slug
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: recording,
-      attributes: { slug: slug, status: "published" }
+      attributes: { slug: slug, status: "published" },
+      actor: user
     ).value!
     recording = recording.reload
   end

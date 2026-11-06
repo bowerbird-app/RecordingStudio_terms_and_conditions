@@ -2,7 +2,7 @@
 
 module RecordingStudioTermsAndConditions
   # After-commit signal that a Terms parent became currently published.
-  module Published
+  module Published # rubocop:disable Metrics/ModuleLength
     EVENT = "published.recording_studio_terms_and_conditions"
     TERMS_TYPE = "RecordingStudioTermsAndConditions::Terms"
     LATCH = :recording_studio_terms_published
@@ -99,7 +99,11 @@ module RecordingStudioTermsAndConditions
 
       def take_claim?(recording, key)
         before_ids = recording.events.where(idempotency_key: key).pluck(:id)
-        event = recording.log_event!(action: "published", idempotency_key: key)
+        event = recording.log_event!(
+          action: "published",
+          idempotency_key: key,
+          actor: SoleLive.write_actor_for(recording)
+        )
         created_claim?(before_ids, event)
       end
 

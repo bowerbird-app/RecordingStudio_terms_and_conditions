@@ -32,7 +32,8 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
     publish_at = 1.hour.from_now.change(usec: 0)
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: recording,
-      attributes: { slug: "later-#{SecureRandom.hex(4)}", status: "published", publish_at: publish_at }
+      attributes: { slug: "later-#{SecureRandom.hex(4)}", status: "published", publish_at: publish_at },
+      actor: recording_write_actor
     ).value!
 
     assert_empty @events
@@ -112,7 +113,8 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
     publish_at = 1.hour.from_now.change(usec: 0)
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: draft,
-      attributes: { slug: "sched-v2-#{SecureRandom.hex(4)}", status: "published", publish_at: publish_at }
+      attributes: { slug: "sched-v2-#{SecureRandom.hex(4)}", status: "published", publish_at: publish_at },
+      actor: actor
     ).value!
 
     found = nil
@@ -156,7 +158,8 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
     result = with_error_reports(reports) do
       RecordingStudioPublishable::Services::Publishables::Update.call(
         parent_recording: draft,
-        attributes: { slug: "boom-v2-#{SecureRandom.hex(4)}", status: "published" }
+        attributes: { slug: "boom-v2-#{SecureRandom.hex(4)}", status: "published" },
+        actor: actor
       )
     end
 
@@ -173,7 +176,8 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
     publish_at = 1.hour.from_now.change(usec: 0)
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: recording,
-      attributes: { slug: "retry-#{SecureRandom.hex(4)}", status: "published", publish_at: publish_at }
+      attributes: { slug: "retry-#{SecureRandom.hex(4)}", status: "published", publish_at: publish_at },
+      actor: recording_write_actor
     ).value!
     @events.clear
     calls = 0
@@ -210,7 +214,8 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
     publish_at = 1.hour.from_now.change(usec: 0)
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: recording,
-      attributes: { slug: "once-#{SecureRandom.hex(4)}", status: "published", publish_at: publish_at }
+      attributes: { slug: "once-#{SecureRandom.hex(4)}", status: "published", publish_at: publish_at },
+      actor: recording_write_actor
     ).value!
     @events.clear
 
@@ -286,7 +291,7 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
   end
 
   def record_terms(title:, body:)
-    @root.record(RecordingStudioTermsAndConditions::Terms) do |terms|
+    @root.record(RecordingStudioTermsAndConditions::Terms, actor: recording_write_actor) do |terms|
       terms.title = title
       terms.body = body
     end
@@ -295,7 +300,8 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
   def publish_terms!(recording, slug:)
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: recording,
-      attributes: { slug: slug, status: "published" }
+      attributes: { slug: slug, status: "published" },
+      actor: recording_write_actor
     ).value!
   end
 

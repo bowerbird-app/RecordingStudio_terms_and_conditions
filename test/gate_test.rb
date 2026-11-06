@@ -173,9 +173,40 @@ class GateTest < Minitest::Test
       nil
     end
 
-    RecordingStudioTermsAndConditions::Gate.stub(:first_root_with_live_terms, :live_workspace) do
-      assert_equal :live_workspace, RecordingStudioTermsAndConditions::Gate.root_for_signup(blank)
+    RecordingStudioTermsAndConditions::Gate.stub(:switchable_current_root, nil) do
+      RecordingStudioTermsAndConditions::Gate.stub(:first_root_with_live_terms, :live_workspace) do
+        assert_equal :live_workspace, RecordingStudioTermsAndConditions::Gate.root_for_signup(blank)
+      end
     end
+  end
+
+  def test_root_for_falls_back_to_switchable_current_root
+    blank = Object.new
+    def blank.current_root_recordable
+      nil
+    end
+
+    RecordingStudioTermsAndConditions::Gate.stub(:switchable_current_root, :studio) do
+      assert_equal :studio, RecordingStudioTermsAndConditions::Gate.root_for(blank)
+    end
+  end
+
+  def test_first_root_with_live_terms_uses_accessible_roots
+    actor = Object.new
+    allowed = Struct.new(:recordable).new(:live_workspace)
+    other = Struct.new(:recordable).new(:other_workspace)
+
+    RecordingStudioTermsAndConditions::Gate.stub(:accessible_root_recordings_for, [other, allowed]) do
+      RecordingStudioTermsAndConditions::Gate.stub(:live_terms_on?, ->(root) { root.equal?(allowed) }) do
+        assert_equal :live_workspace,
+                     RecordingStudioTermsAndConditions::Gate.first_root_with_live_terms(actor)
+      end
+    end
+  end
+
+  def test_first_root_with_live_terms_is_blank_without_an_actor
+    assert_equal [], RecordingStudioTermsAndConditions::Gate.accessible_root_recordings_for(nil)
+    assert_nil RecordingStudioTermsAndConditions::Gate.first_root_with_live_terms(nil)
   end
 
   def test_users_auth_redirect_falls_through_when_acceptance_is_not_required
@@ -207,6 +238,11 @@ class GateTest < Minitest::Test
     assert_includes gate, "pending_published_list"
     assert_includes gate, "def pending_for"
     assert_includes gate, "root_for_acceptance"
+    assert_includes gate, "accessible_root_recordings_for"
+    assert_includes gate, "root_recordings_for"
+    assert_includes gate, "switchable_current_root"
+    assert_includes gate, "resolve_current_root"
+    refute_includes gate, "find_each"
     refute_includes gate, "root = root_for(controller)"
     assert_includes forces, "force_terms_acceptance"
     assert_includes forces, "Gate.pending_for"

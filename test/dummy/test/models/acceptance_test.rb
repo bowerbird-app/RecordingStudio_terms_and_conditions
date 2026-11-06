@@ -33,7 +33,8 @@ class AcceptanceTest < ActiveSupport::TestCase
       action: "created",
       recordable: RecordingStudioTermsAndConditions::Terms.new(title: "Clickwrap", body: "I agree."),
       root_recording: root_recording,
-      parent_recording: root_recording
+      parent_recording: root_recording,
+      actor: user
     )
     terms = event.recording.recordable
 
