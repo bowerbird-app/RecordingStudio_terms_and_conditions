@@ -6,6 +6,7 @@ require_relative "../dummy/config/environment"
 
 require "devise/test/integration_helpers"
 require "rails/test_help"
+require_relative "../dummy/test/test_helper"
 
 class DocsControllerTest < ActionDispatch::IntegrationTest
   include Devise::Test::IntegrationHelpers
@@ -20,7 +21,7 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
 
     sign_in @user
     studio = Workspace.find_by(name: "Studio Workspace")
-    grant_docs_write_access!(RecordingStudio.root_recording_for(studio), @user) if studio
+    grant_write_access!(RecordingStudio.root_recording_for(studio), @user) if studio
     accept_live_studio_terms!
   end
 
@@ -187,7 +188,7 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
   end
 
   def record_child(recordable, root_recording, parent_recording)
-    grant_docs_write_access!(root_recording, @user)
+    grant_write_access!(root_recording, @user)
     RecordingStudio.record!(
       action: "created",
       recordable: recordable,
@@ -197,24 +198,4 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     ).recording
   end
 
-  def grant_docs_write_access!(recording, actor)
-    return if RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: :edit)
-
-    previous = RecordingStudioAccessible.configuration.access_management_authorizer
-    begin
-      RecordingStudioAccessible.configuration.access_management_authorizer = ->(**) { true }
-      result = RecordingStudioAccessible.bootstrap_owner_access!(recording: recording, actor: actor)
-      if result.respond_to?(:failure?) && result.failure?
-        result = RecordingStudioAccessible.grant_access(
-          recording: recording,
-          actor: actor,
-          role: :admin,
-          manager_actor: User.find_by(email: "admin@admin.com") || actor
-        )
-      end
-      raise result.error if result.respond_to?(:failure?) && result.failure?
-    ensure
-      RecordingStudioAccessible.configuration.access_management_authorizer = previous
-    end
-  end
 end

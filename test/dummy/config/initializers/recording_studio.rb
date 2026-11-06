@@ -25,7 +25,8 @@ RecordingStudio.configure do |config|
 
   # Core 6.5 fails closed without a write authorizer. Dummy uses Accessible.
   # AccessCreationContext may allow RecordingStudio::Access rows only.
-  # Every other write needs Accessible :edit on the root. No broad allow.
+  # Access writes outside that context need Accessible :admin on the root.
+  # Every other write needs Accessible :edit on the root. No identity allow.
   config.authorize_write = lambda { |actor:, root_recording:, recordable:, **|
     if defined?(RecordingStudioAccessible::AccessCreationContext) &&
        RecordingStudioAccessible::AccessCreationContext.allowed? &&
@@ -36,14 +37,17 @@ RecordingStudio.configure do |config|
 
     next false unless defined?(RecordingStudioAccessible)
     next false unless root_recording
-    if defined?(RecordingStudioUser::Profile) && recordable.is_a?(RecordingStudioUser::Profile)
-      next actor.is_a?(User) && actor.persisted?
-    end
+
+    role = if defined?(RecordingStudio::Access) && recordable.is_a?(RecordingStudio::Access)
+             :admin
+           else
+             :edit
+           end
 
     RecordingStudioAccessible.authorized?(
       actor: actor,
       recording: root_recording,
-      role: :edit
+      role: role
     )
   }
 

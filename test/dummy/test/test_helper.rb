@@ -46,27 +46,58 @@ module TermsDemoTestHelper
     root = recording.respond_to?(:root_recording) ? (recording.root_recording || recording) : recording
     return writer if RecordingStudioAccessible.authorized?(actor: writer, recording: root, role: :edit)
 
-    previous_authorizer = RecordingStudioAccessible.configuration.access_management_authorizer
+    admin = held_access_admin
+    ensure_held_admin_on!(root, admin)
+    return writer if writer == admin || RecordingStudioAccessible.authorized?(actor: writer, recording: root, role: :edit)
+
+    grant_through_admin!(root, writer, admin)
+    writer
+  end
+
+  def held_access_admin
+    User.find_by(email: "admin@admin.com") || User.create!(
+      email: "admin@admin.com",
+      password: "Password",
+      password_confirmation: "Password"
+    )
+  end
+
+  def ensure_held_admin_on!(root, admin)
+    return if RecordingStudioAccessible.authorized?(actor: admin, recording: root, role: :admin)
+
+    existing = access_admin_for(root)
+    if existing
+      grant_through_admin!(root, admin, existing) unless existing == admin
+      return
+    end
+
+    result = RecordingStudioAccessible.bootstrap_owner_access!(recording: root, actor: admin)
+    return if result.respond_to?(:success?) && result.success?
+    if already_bootstrapped?(result)
+      manager = access_admin_for(root)
+      raise result.error unless manager
+
+      grant_through_admin!(root, admin, manager) unless manager == admin
+      return
+    end
+
+    raise result.error if result.respond_to?(:failure?) && result.failure?
+  end
+
+  def grant_through_admin!(root, actor, admin)
     previous_actor = Current.actor if defined?(Current)
     begin
-      RecordingStudioAccessible.configuration.access_management_authorizer = ->(**) { true }
-      result = RecordingStudioAccessible.bootstrap_owner_access!(recording: root, actor: writer)
-      if result.respond_to?(:failure?) && result.failure?
-        manager = access_admin_for(root) || writer
-        Current.actor = manager if defined?(Current) && Current.respond_to?(:actor=)
-        result = RecordingStudioAccessible.grant_access(
-          recording: root,
-          actor: writer,
-          role: :admin,
-          manager_actor: manager
-        )
-      end
+      Current.actor = admin if defined?(Current) && Current.respond_to?(:actor=)
+      result = RecordingStudioAccessible.grant_access(
+        recording: root,
+        actor: actor,
+        role: :admin,
+        manager_actor: admin
+      )
       raise result.error if result.respond_to?(:failure?) && result.failure?
     ensure
-      RecordingStudioAccessible.configuration.access_management_authorizer = previous_authorizer
       Current.actor = previous_actor if defined?(Current) && Current.respond_to?(:actor=)
     end
-    writer
   end
 
   def access_admin_for(recording)
