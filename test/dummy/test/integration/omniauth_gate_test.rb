@@ -41,10 +41,8 @@ class OmniauthGateTest < ActionDispatch::IntegrationTest
     assert_equal recording_studio_terms_and_conditions.acceptance_path, path_without_query
     assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
     user = User.find_by!(email: email)
-    refute RecordingStudioTermsAndConditions.pending_published_list(
-      user,
-      RecordingStudioTermsAndConditions::Gate.first_root_with_live_terms
-    ).empty?
+    studio = Workspace.find_by!(name: "Studio Workspace")
+    refute RecordingStudioTermsAndConditions.pending_published_list(user, studio).empty?
   end
 
   private
@@ -57,9 +55,9 @@ class OmniauthGateTest < ActionDispatch::IntegrationTest
   end
 
   def ensure_host_has_live_terms!
-    return if RecordingStudioTermsAndConditions::Gate.first_root_with_live_terms.present?
-
     workspace = Workspace.find_or_create_by!(name: "Studio Workspace")
+    return if RecordingStudioTermsAndConditions.current_published_for(workspace).present?
+
     root = RecordingStudio.root_recording_for(workspace)
     recording = record_terms(root, title: "OAuth Terms", body: "Be kind.")
     publish_terms!(recording, slug: "oauth-terms-#{SecureRandom.hex(4)}")

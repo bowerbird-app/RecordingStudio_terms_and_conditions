@@ -35,8 +35,21 @@ module RecordingStudioTermsAndConditions
           RecordingStudioPublishable.configuration.hooks.registered?(LATCH)
       end
 
+      def claim_emit?(recording, terms_id)
+        PublishedEmitter.claim_emit?(recording, terms_id)
+      end
+      private :claim_emit?
+
       private
 
+      def emit_from(publishable_payload)
+        PublishedEmitter.emit_from(publishable_payload)
+      end
+    end
+  end
+
+  class PublishedEmitter
+    class << self
       def emit_from(publishable_payload)
         recording_id, terms_id = terms_ids_from(publishable_payload)
         return if recording_id.blank? || terms_id.blank?
@@ -51,9 +64,17 @@ module RecordingStudioTermsAndConditions
         end
       end
 
+      def claim_emit?(recording, terms_id)
+        recording.with_lock { take_claim?(recording, idempotency_key(recording, terms_id)) }
+      rescue RecordingStudio::IdempotencyError
+        false
+      end
+
+      private
+
       def terms_ids_from(publishable_payload)
         payload = publishable_payload.to_h.symbolize_keys
-        return [nil, nil] unless payload[:recordable_type] == TERMS_TYPE
+        return [nil, nil] unless payload[:recordable_type] == Published::TERMS_TYPE
 
         [payload[:recording_id], payload[:recordable_id]]
       end
@@ -84,22 +105,24 @@ module RecordingStudioTermsAndConditions
       end
 
       def instrument_terms_event(recording_id, terms_id)
-        ActiveSupport::Notifications.instrument(EVENT, recording_id: recording_id, terms_id: terms_id)
+        ActiveSupport::Notifications.instrument(
+          Published::EVENT,
+          recording_id: recording_id,
+          terms_id: terms_id
+        )
         true
       rescue StandardError => e
         report_failure(e)
         false
       end
 
-      def claim_emit?(recording, terms_id)
-        recording.with_lock { take_claim?(recording, idempotency_key(recording, terms_id)) }
-      rescue RecordingStudio::IdempotencyError
-        false
-      end
-
       def take_claim?(recording, key)
         before_ids = recording.events.where(idempotency_key: key).pluck(:id)
-        event = recording.log_event!(action: "published", idempotency_key: key)
+        event = recording.log_event!(
+          action: "published",
+          idempotency_key: key,
+          actor: SoleLive.write_actor_for(recording)
+        )
         created_claim?(before_ids, event)
       end
 
@@ -112,7 +135,7 @@ module RecordingStudioTermsAndConditions
       end
 
       def idempotency_key(recording, terms_id)
-        "#{EVENT}:#{recording.id}:#{terms_id}"
+        "#{Published::EVENT}:#{recording.id}:#{terms_id}"
       end
 
       def report_failure(error)

@@ -11,6 +11,8 @@ class TermsWriteTest < ActiveSupport::TestCase
       password: "Password",
       password_confirmation: "Password"
     )
+    Current.actor = @actor if defined?(Current)
+    grant_write_access!(@root, @actor)
   end
 
   test "draft save revises the same recording" do
@@ -62,7 +64,8 @@ class TermsWriteTest < ActiveSupport::TestCase
   def publish_terms!(recording, slug:)
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: recording,
-      attributes: { slug: slug, status: "published" }
+      attributes: { slug: slug, status: "published" },
+      actor: @actor
     ).value!
   end
 end

@@ -25,6 +25,7 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
     unless RecordingStudioAccessible.authorized?(actor: @admin, recording: @admin_recording, role: :edit)
       bootstrap_owner_access!(@admin, @admin_recording)
     end
+    grant_workspace_access!(@admin, @workspace)
   end
 
   test "kind constraints and create uniqueness per kind" do
@@ -45,6 +46,7 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
     assert_empty RecordingStudioTermsAndConditions::KindPresence.available_kinds(@root)
 
     sign_in @admin
+    grant_workspace_access!(@admin, @workspace)
     switch_to_workspace(@admin_root)
 
     post recording_studio_terms_and_conditions.admin_terms_path, params: {
@@ -95,7 +97,7 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
     )
     publish_terms!(privacy_v1, slug: "privacy-v1-#{SecureRandom.hex(4)}")
 
-    terms_v2 = @root.record(RecordingStudioTermsAndConditions::Terms) do |terms|
+    terms_v2 = @root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
       terms.title = "Terms v2"
       terms.body = "Two."
       terms.kind = "terms_and_condition"
@@ -167,9 +169,9 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
     RecordingStudioTermsAndConditions.accept!(@user, terms, { "source" => "clickwrap" })
     RecordingStudioTermsAndConditions.accept!(@user, privacy, { "source" => "clickwrap" })
 
-    revised_terms = @root.revise(terms) { |doc| doc.body = "Be kinder." }
+    revised_terms = @root.revise(terms, actor: @admin) { |doc| doc.body = "Be kinder." }
     publish_terms!(revised_terms, slug: "re-terms-v2-#{SecureRandom.hex(4)}")
-    revised_privacy = @root.revise(privacy) { |doc| doc.body = "We keep more receipts." }
+    revised_privacy = @root.revise(privacy, actor: @admin) { |doc| doc.body = "We keep more receipts." }
     publish_terms!(revised_privacy, slug: "re-privacy-v2-#{SecureRandom.hex(4)}")
 
     sign_in @user

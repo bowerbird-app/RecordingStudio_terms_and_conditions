@@ -82,12 +82,6 @@ module RecordingStudioTermsAndConditions
         result
       end
 
-      def terms_scope
-        RecordingStudio::Recording.where(recordable_type: Terms.name, trashed_at: nil)
-                                  .preload(:recordable)
-                                  .order(updated_at: :desc)
-      end
-
       def draft_terms!(parent)
         parent.record(Terms, actor: current_admin_actor, parent_recording: parent) do |terms|
           assign_terms_fields(terms)

@@ -13,6 +13,10 @@ module RecordingStudioTermsAndConditions
           prepend_view_path(views) unless view_paths.first.to_s == views
         end
       end
+      ActiveSupport.on_load(:action_view) do
+        include RecordingStudioTermsAndConditions::ApplicationHelper
+        include RecordingStudioTermsAndConditions::TermsDateHelper
+      end
     end
 
     initializer "recording_studio_terms_and_conditions.assets" do |app|

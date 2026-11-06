@@ -12,7 +12,8 @@ find_or_record_child = lambda do |recordable, root_recording, parent_recording|
     action: "created",
     recordable: recordable,
     root_recording: root_recording,
-    parent_recording: parent_recording
+    parent_recording: parent_recording,
+    actor: Current.actor
   ).recording
 end
 
@@ -48,7 +49,8 @@ ensure_published_terms = lambda do |root_recording, user, kind:, title:, body:, 
   if !recording.currently_published? || current_slug != slug
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: recording,
-      attributes: { slug: slug, status: "published" }
+      attributes: { slug: slug, status: "published" },
+      actor: user
     ).value!
     recording = recording.reload
   end
@@ -80,10 +82,6 @@ begin
   private_root_recording = RecordingStudio.root_recording_for(private_workspace)
   admin_root_recording = RecordingStudio.root_recording_for(admin_root)
 
-  folder_recording = find_or_record_child.call(folder, root_recording, root_recording)
-
-  find_or_record_child.call(page, root_recording, folder_recording)
-
   if defined?(RecordingStudioAccessible)
     unless RecordingStudioAccessible.authorized?(
       actor: user,
@@ -104,6 +102,10 @@ begin
       raise result.error if result.respond_to?(:failure?) && result.failure?
     end
   end
+
+  folder_recording = find_or_record_child.call(folder, root_recording, root_recording)
+
+  find_or_record_child.call(page, root_recording, folder_recording)
 
   ensure_published_terms.call(
     root_recording,
