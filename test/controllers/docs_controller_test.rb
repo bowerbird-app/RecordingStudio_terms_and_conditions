@@ -20,9 +20,7 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
 
     sign_in @user
     studio = Workspace.find_by(name: "Studio Workspace")
-    if studio
-      grant_docs_write_access!(RecordingStudio.root_recording_for(studio), @user)
-    end
+    grant_docs_write_access!(RecordingStudio.root_recording_for(studio), @user) if studio
     accept_live_studio_terms!
   end
 
