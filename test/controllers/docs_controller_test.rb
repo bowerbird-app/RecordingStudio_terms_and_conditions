@@ -197,5 +197,4 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
       actor: @user
     ).recording
   end
-
 end
