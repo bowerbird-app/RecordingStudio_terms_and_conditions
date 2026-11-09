@@ -39,9 +39,18 @@ module RecordingStudioTermsAndConditions
 
         RecordingStudioPublishable::Services::Publishables::Update.call(
           parent_recording: recording,
-          attributes: { status: "draft" }
+          attributes: { status: "draft" },
+          actor: write_actor_for(parent_recording)
         )
       end
+    end
+
+    def self.write_actor_for(_recording = nil)
+      actor = Current.actor if defined?(Current) && Current.respond_to?(:actor)
+      return actor if actor.present?
+
+      raise RecordingStudio::ActorRequired,
+            "actor is required for RecordingStudio writes when config.require_actor is true"
     end
 
     def self.terms_recording?(recording)

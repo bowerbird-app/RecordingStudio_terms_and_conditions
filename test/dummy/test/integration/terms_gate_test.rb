@@ -15,6 +15,7 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     )
     @workspace = Workspace.create!(name: "Gate #{SecureRandom.hex(4)}")
     @root = RecordingStudio.root_recording_for(@workspace)
+    grant_write_access!(@root)
     @password = "Password"
     sign_in @user
     switch_to_workspace(@workspace)
@@ -31,6 +32,18 @@ class TermsGateTest < ActionDispatch::IntegrationTest
       get "/docs/install"
       assert_response :success
     end
+  end
+
+  test "live terms on a root the actor cannot view do not gate" do
+    live_workspace = Workspace.create!(name: "Live #{SecureRandom.hex(4)}")
+    live_root = RecordingStudio.root_recording_for(live_workspace)
+    live = record_terms(live_root, title: "Other booth Terms", body: "Stay out.")
+    publish_terms!(live, slug: "other-booth-#{SecureRandom.hex(4)}")
+
+    get "/"
+    assert_response :success
+    refute_redirected_to_acceptance
+    refute_includes response.body, "Other booth Terms"
   end
 
   test "current root without live terms still gates when another root has them" do
@@ -119,7 +132,7 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     get "/"
     assert_response :success
 
-    revised = @root.revise(recording) { |terms| terms.body = "Be kinder." }
+    revised = @root.revise(recording, actor: recording_write_actor) { |terms| terms.body = "Be kinder." }
     publish_terms!(revised, slug: "gate-terms-#{SecureRandom.hex(4)}")
 
     get "/"
@@ -195,7 +208,7 @@ class TermsGateTest < ActionDispatch::IntegrationTest
   def with_fallback_terms_root(workspace)
     gate = RecordingStudioTermsAndConditions::Gate
     original = gate.method(:first_root_with_live_terms)
-    gate.define_singleton_method(:first_root_with_live_terms) { workspace }
+    gate.define_singleton_method(:first_root_with_live_terms) { |_actor = nil| workspace }
     yield
   ensure
     gate.define_singleton_method(:first_root_with_live_terms, original)

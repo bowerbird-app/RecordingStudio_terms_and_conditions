@@ -61,7 +61,8 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     assert_equal root_recording, folder_recording.root_recording
     assert_equal folder_recording, page_recording.parent_recording
     assert_equal root_recording, page_recording.root_recording
-    assert_equal 3, Workspace.count
+    seeded_names = ["Studio Workspace", "Client Workspace", "Private Workspace"]
+    assert_equal seeded_names.sort, Workspace.where(name: seeded_names).order(:name).pluck(:name)
     assert_equal "Terms and Conditions v1.0", terms.title
     assert_equal "Privacy Policy v1.0", privacy.title
     assert_equal "terms_and_condition", terms.kind

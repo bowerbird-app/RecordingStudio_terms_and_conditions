@@ -132,9 +132,13 @@ Add [Recording Studio Internationalization](https://github.com/bowerbird-app/Rec
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
 
+## Upgrading from 0.15.0
+
+Bump to **0.16.0**. No schema change. Admin authorization fails closed without Accessible. Drafting Terms needs Accessible `:view` on a Workspace (the first matching root when you are on the Admin root). Clickwrap no longer falls back to live Terms on a root the person cannot view. Gemspec Accessible is `>= 0.24.2`, `< 1`. Development and dummy pin Recording Studio `v6.5.0`, Accessible `v0.24.2`, Metrics `v0.7.3`, Logs `v0.7.4`, Trashable `v0.12.3`, and Users `v0.27.1`. Admin stays `v2.9.1`. Dummy `config.authorize_write` allows AccessCreationContext only for `RecordingStudio::Access` rows. Access writes outside that context need Accessible `:admin` on the root. Every other write needs Accessible `:edit` on the root. Dummy does not allow Profile writes from persisted User identity. Users first-Profile on the shared People root still needs Accessible `:edit` there (Users bootstrap gap, not a host exception). Hosts must set their own authorizer (Accessible on the target recording).
+
 ## Upgrading from 0.14.2
 
-Bump to **0.15.0**. No schema change. Gemspec `recording_studio` is `>= 6.3.0`, `< 7`. Development and dummy pin Recording Studio `v6.3.0` and FlatPack `v0.1.341`. Dummy and development pin Admin `v2.9.1`. Dummy pins Root Switchable `v0.11.5`. Sibling kit tags move only as far as Bundler needs. Dummy pins Logs `v0.7.3` because Admin `v2.9.1` requires it. `view_component` stays `>= 4.14` (GHSA-8qw7-6phv-7q6p). Controllers use `recording_studio_layout`. `terms_page_nav` calls `flat_pack_page_nav`. `config.layout` defaults to `nil` (core default layout); set a layout name or callable when Agree screens should use a host layout. Terms public API is unchanged. Reload Flatpack CSS.
+Bump to **0.15.0**. No schema change. Gemspec `recording_studio` is `>= 6.3.0`, `< 7`. Development and dummy pin Recording Studio `v6.3.0` and FlatPack `v0.1.341`. Dummy and development pin Admin `v2.9.1`. Dummy pins Root Switchable `v0.11.5`, Accessible `v0.24.1`, Users `v0.27.0`, and Logs `v0.7.3` because Admin `v2.9.1` requires it. Sibling kit tags move only as far as Bundler needs. `view_component` stays `>= 4.14` (GHSA-8qw7-6phv-7q6p). Controllers use `recording_studio_layout`. `terms_page_nav` calls `flat_pack_page_nav`. `config.layout` defaults to `nil` (core default layout); set a layout name or callable when Agree screens should use a host layout. Terms public API is unchanged. Reload Flatpack CSS.
 
 ## Upgrading from 0.14.1
 
@@ -399,16 +403,16 @@ See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full do
 | Rails           | 8.1+    |
 | PostgreSQL      | 16      |
 | TailwindCSS     | 4       |
-| RecordingStudio | 6.x (`>= 6.3.0`, `< 7` in the gemspec; dummy GitHub tag `v6.3.0`) |
-| Accessible      | gemspec `~> 0.8`; dummy GitHub tag `v0.24.1` |
+| RecordingStudio | 6.x (`>= 6.3.0`, `< 7` in the gemspec; dummy GitHub tag `v6.5.0`) |
+| Accessible      | gemspec `>= 0.24.2`, `< 1`; dummy GitHub tag `v0.24.2` |
 | Admin           | gemspec `>= 2.0.6`, `< 3`; dummy GitHub tag `v2.9.1` |
-| Trashable       | dummy GitHub tag `v0.12.2` (`require: false`; Admin query helpers) |
-| Users           | gemspec `recording_studio_user >= 0.12.2`; dummy GitHub tag `v0.27.0` |
+| Trashable       | dummy GitHub tag `v0.12.3` (`require: false`; Admin query helpers) |
+| Users           | gemspec `recording_studio_user >= 0.12.2`; dummy GitHub tag `v0.27.1` |
 | Publishable     | gemspec `~> 0.6`; dummy GitHub tag `v0.13.0` |
 | Attachable      | dummy GitHub tag `v0.22.0` (Users Profile needs it) |
 | Root Switchable | dummy GitHub tag `v0.11.5` |
 | Cache           | dummy GitHub tag `v0.6.2` (Users / Root Switchable rate limits) |
-| Logs            | dummy GitHub tag `v0.7.3` (Admin 2.9.1 requires it; not in this gemspec) |
+| Logs            | dummy GitHub tag `v0.7.4` (Admin 2.9.1 requires it; not in this gemspec) |
 | FlatPack        | gemspec `>= 0.1.196`; dummy GitHub tag `v0.1.341` |
 | Internationalization | dummy GitHub tag `v0.2.1` (not in the gemspec) |
 | Devise          | latest  |

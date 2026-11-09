@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-11-06
+
+### Changed
+- Admin authorization fails closed when Accessible or Admin is missing, the actor is blank, or the admin access recording is missing. It used to allow the request in those cases.
+- Admin write parent is the current Workspace only when Accessible grants `:view` on it, otherwise the first Accessible workspace root for that actor. It no longer picks the first Workspace in the table.
+- Admin Terms and person-receipt queries go through that Accessible Terms scope. Site admins who already hold `:view` on the Admin access recording still see every version and receipt.
+- Clickwrap fallback (`first_root_with_live_terms`) only considers Accessible `:view` roots for the actor. It no longer walks every root. Live Terms on a root the actor cannot view no longer gate them. Users Auth still resolves Root Switchable Current (the host default root when the actor is unsigned) so create-password can show host Terms without scanning every tenant.
+- Development and dummy pin Recording Studio `v6.5.0`, Accessible `v0.24.2`, Metrics `v0.7.3`, Logs `v0.7.4`, Trashable `v0.12.3`, and Users `v0.27.1`. Admin stays `v2.9.1`. Dummy `config.authorize_write` allows AccessCreationContext only for `RecordingStudio::Access` rows. Access writes outside that context need Accessible `:admin` on the root. Every other write needs Accessible `:edit` on the root. Dummy does not allow Profile writes from persisted User identity. Users first-Profile on the shared People root still needs Accessible `:edit` there (Users bootstrap gap, not a host exception).
+- Gemspec `recording_studio_accessible` is `>= 0.24.2`, `< 1` (was `~> 0.8`) so hosts resolve `root_recordings_for`.
+
+### Upgrade notes (0.15.0 → 0.16.0)
+- No schema change. Pin this gem at `0.16.0`.
+- Require `recording_studio_accessible` `>= 0.24.2`. Pin Recording Studio `v6.5.0` in development and dummy. Leave Admin at `v2.9.1` when the host follows the 2.5.1 policy plus this dummy's existing 2.9.1 pin.
+- Drafting Terms while switched to the Admin root needs Accessible `:view` on a Workspace. Otherwise New/create says “Pick a workspace first.” instead of attaching the draft to an arbitrary Workspace.
+- Host-wide clickwrap that relied on “first root with live Terms” must put those Terms on a root the actor can `:view`, keep the actor on that root, or leave them on the Root Switchable default root (signup). Signed-in users no longer fall back to another tenant's Terms.
+
 ## [0.15.0] - 2026-11-05
 
 ### Changed
@@ -593,7 +609,8 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.15.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.16.0...HEAD
+[0.16.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.15.0...v0.16.0
 [0.15.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.14.2...v0.15.0
 [0.14.2]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.14.1...v0.14.2
 [0.14.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.14.0...v0.14.1

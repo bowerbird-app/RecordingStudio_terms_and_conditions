@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.15.0", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.16.0", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -16,7 +16,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
 
     assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 6.3.0", "< 7"'
     assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.196"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", "~> 0.8"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", ">= 0.24.2", "< 1"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_admin", ">= 2.0.6", "< 3"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_metrics", ">= 0.3.0", "< 1.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_publishable", "~> 0.6"'
@@ -51,10 +51,10 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     gemfile = File.read(File.expand_path("dummy/Gemfile", __dir__))
     root_gemfile = File.read(File.expand_path("../Gemfile", __dir__))
 
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v6.3.0"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v6.3.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.24.1"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.24.1"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v6.5.0"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v6.5.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.24.2"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.24.2"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.22.0"'
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.22.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_publishable", tag: "v0.13.0"'
@@ -62,16 +62,16 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.9.1"'
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.9.1"'
     refute_includes gemfile, "recording_studio_api"
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.7.2"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.7.2"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_logs", tag: "v0.7.3"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_logs", tag: "v0.7.3"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.12.2"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.12.2"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.7.3"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.7.3"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_logs", tag: "v0.7.4"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_logs", tag: "v0.7.4"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.12.3"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.12.3"'
     assert_match(/recording_studio_trashable.*,\n\s+require: false/, gemfile)
     assert_match(/recording_studio_trashable.*,\n\s+require: false/, root_gemfile)
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.27.0"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.27.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.27.1"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.27.1"'
     refute_includes gemfile, "0b1d229693041093200420b318154ff07acca33e"
     refute_includes root_gemfile, "0b1d229693041093200420b318154ff07acca33e"
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.11.5"'
@@ -569,6 +569,11 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes initializer_source, "RecordingStudioTermsAndConditions::Terms"
     assert_includes initializer_source, "RecordingStudioUser::People"
     assert_includes initializer_source, "RecordingStudioPublishable::Publishable"
+    assert_includes initializer_source, "config.authorize_write"
+    assert_includes initializer_source, "AccessCreationContext"
+    assert_includes initializer_source, "RecordingStudioAccessible.authorized?"
+    refute_match(/authorize_write\s*=\s*->\(actor:, \*\*\) \{ actor\.present\? \}/, initializer_source)
+    assert_includes initializer_source, "RecordingStudioUser::Profile"
     refute_includes initializer_source, "config.include_children"
     refute_includes initializer_source, "config.features."
     refute_includes initializer_source, "v3"
@@ -608,15 +613,19 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes readme, "recording_studio.terms_and_conditions"
     refute_includes readme, "come later"
     assert_includes readme, "#{internals_docs}/"
+    assert_includes readme, "v6.5.0"
     assert_includes readme, "v6.3.0"
     assert_includes readme, "v0.1.341"
     assert_includes readme, "v2.9.1"
+    assert_includes readme, "v0.12.3"
     assert_includes readme, "v0.12.2"
     assert_includes readme, "v0.3.1"
     assert_includes readme, "v0.13.0"
     assert_includes readme, "v0.11.5"
     assert_includes readme, "v0.22.0"
+    assert_includes readme, "v0.24.2"
     assert_includes readme, "v0.24.1"
+    assert_includes readme, "v0.27.1"
     assert_includes readme, "v0.27.0"
     assert_includes readme, "v0.6.2"
     assert_includes readme, "recording_studio_metrics"
@@ -778,6 +787,16 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
                     "reset_definition_constants!"
     assert_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/base_controller.rb"),
                     "AdminActionAuditing"
+    base_controller = engine_source("app/controllers/recording_studio_terms_and_conditions/admin/base_controller.rb")
+    refute_includes base_controller, "return true unless defined?(RecordingStudioAccessible)"
+    assert_includes base_controller, "return false unless defined?(RecordingStudioAccessible)"
+    assert_includes base_controller, "root_recordings_for"
+    assert_includes base_controller, "def terms_scope"
+    refute_includes base_controller, "parent_recording_id: nil"
+    people = engine_source("app/controllers/recording_studio_terms_and_conditions/admin/people_controller.rb")
+    assert_includes people, "terms_scope.select(:id)"
+    refute_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/terms_controller.rb"),
+                    "def terms_scope"
     assert_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/terms_controller.rb"),
                     "perform_recording_studio_admin_action!"
     assert_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/terms_controller.rb"),
@@ -791,10 +810,15 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes published, "idempotency_key"
     assert_includes published, "created_claim?"
     assert_includes published, "instrument_terms_event"
+    assert_includes published, "SoleLive.write_actor_for"
     refute_includes engine_source("lib/recording_studio_terms_and_conditions/terms_acceptance.rb"),
                     "def terms_recordings_for"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/sole_live.rb"),
                     "def self.terms_recordings_for"
+    sole_live = engine_source("lib/recording_studio_terms_and_conditions/sole_live.rb")
+    assert_includes sole_live, "RecordingStudio::ActorRequired"
+    refute_includes sole_live, "filter_map(&:actor)"
+    refute_includes sole_live, "events.reorder"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/terms_write.rb"), "fork_draft"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/sole_live.rb"), "status: \"draft\""
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/terms_acceptance.rb"),
@@ -863,9 +887,12 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.16.0]"
+    assert_includes changelog, "Upgrade notes (0.15.0 → 0.16.0)"
+    assert_includes changelog, "compare/v0.16.0...HEAD"
+    assert_includes changelog, "[0.16.0]:"
     assert_includes changelog, "## [0.15.0]"
     assert_includes changelog, "Upgrade notes (0.14.2 → 0.15.0)"
-    assert_includes changelog, "compare/v0.15.0...HEAD"
     assert_includes changelog, "[0.15.0]:"
     assert_includes changelog, "## [0.14.2]"
     assert_includes changelog, "Upgrade notes (0.14.1 → 0.14.2)"

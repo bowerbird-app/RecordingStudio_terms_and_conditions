@@ -6,6 +6,7 @@ require_relative "../dummy/config/environment"
 
 require "devise/test/integration_helpers"
 require "rails/test_help"
+require_relative "../dummy/test/test_helper"
 
 class DocsControllerTest < ActionDispatch::IntegrationTest
   include Devise::Test::IntegrationHelpers
@@ -19,6 +20,8 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     end
 
     sign_in @user
+    studio = Workspace.find_by(name: "Studio Workspace")
+    grant_write_access!(RecordingStudio.root_recording_for(studio), @user) if studio
     accept_live_studio_terms!
   end
 
@@ -185,11 +188,13 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
   end
 
   def record_child(recordable, root_recording, parent_recording)
+    grant_write_access!(root_recording, @user)
     RecordingStudio.record!(
       action: "created",
       recordable: recordable,
       root_recording: root_recording,
-      parent_recording: parent_recording
+      parent_recording: parent_recording,
+      actor: @user
     ).recording
   end
 end
