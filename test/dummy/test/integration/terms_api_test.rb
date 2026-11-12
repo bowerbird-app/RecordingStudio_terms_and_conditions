@@ -21,7 +21,7 @@ class TermsApiTest < ActionDispatch::IntegrationTest
     Current.actor = @previous_actor
   end
 
-  test "grant actor can read pending current and accepted then accept pending" do
+  test "grant actor can read pending current and accepted" do
     pending = call(:get, "/workspaces/#{@root.id}/actions/terms_pending_published_list", @token)
     assert_response :success, response.body
     assert_equal "Studio Terms", pending.fetch("terms").fetch(0).fetch("title")
@@ -34,27 +34,6 @@ class TermsApiTest < ActionDispatch::IntegrationTest
     before = call(:get, "/workspaces/#{@root.id}/actions/terms_accepted", @token)
     assert_response :success, response.body
     assert_equal false, before.fetch("accepted")
-
-    accepted = call(:post, "/workspaces/#{@root.id}/actions/terms_accept_pending", @token)
-    assert_response :success, response.body
-    receipt = accepted.fetch("receipts").fetch(0)
-    assert_equal @recording.id.to_s, receipt.fetch("terms_recording_id")
-    assert_equal @recording.recordable.id.to_s, receipt.fetch("terms_id")
-    first_accepted_at = receipt.fetch("accepted_at")
-
-    after = call(:get, "/workspaces/#{@root.id}/actions/terms_accepted", @token)
-    assert_equal true, after.fetch("accepted")
-    assert_empty call(:get, "/workspaces/#{@root.id}/actions/terms_pending_published_list", @token).fetch("terms")
-
-    repeat = call(:post, "/workspaces/#{@root.id}/actions/terms_accept_pending", @token)
-    assert_response :success, response.body
-    assert_equal 1, repeat.fetch("receipts").size
-    assert_equal first_accepted_at, repeat.fetch("receipts").fetch(0).fetch("accepted_at")
-    assert_equal 1, RecordingStudioTermsAndConditions::Acceptance.where(
-      actor_type: receipt.fetch("actor_type"),
-      actor_id: receipt.fetch("actor_id"),
-      terms_recording_id: @recording.id
-    ).count
   end
 
   test "unauthenticated calls are 401" do
@@ -104,35 +83,36 @@ class TermsApiTest < ActionDispatch::IntegrationTest
     other_access = bootstrap!(other_root, outsider)
     outsider_token = token_for(other_access, manager: outsider)
 
-    call(:post, "/workspaces/#{@root.id}/actions/terms_accept_pending", outsider_token)
+    call(:get, "/workspaces/#{@root.id}/actions/terms_pending_published_list", outsider_token)
     assert_response :not_found, response.body
     assert_equal "not_found", json.dig("error", "code")
   end
 
-  test "accept pending with no live terms returns empty receipts" do
+  test "reads with no live terms return empty pending nil current and unaccepted" do
     empty_workspace = Workspace.create!(name: "Empty #{SecureRandom.hex(4)}")
     empty_root = RecordingStudio.root_recording_for(empty_workspace)
     empty_access = bootstrap!(empty_root, @owner)
     token = token_for(empty_access)
 
-    result = call(:post, "/workspaces/#{empty_root.id}/actions/terms_accept_pending", token)
-    assert_response :success, response.body
-    assert_equal [], result.fetch("receipts")
     assert_empty call(:get, "/workspaces/#{empty_root.id}/actions/terms_pending_published_list", token).fetch("terms")
     current = call(:get, "/workspaces/#{empty_root.id}/actions/terms_current_published_for", token)
     assert_nil current.fetch("terms")
     assert_equal false, call(:get, "/workspaces/#{empty_root.id}/actions/terms_accepted", token).fetch("accepted")
   end
 
+  test "registry does not list terms_accept_pending" do
+    %i[public operations].each do |api|
+      refute RecordingStudioApi.capability_action(:terms_accept_pending, api: api)
+    end
+    refute_includes RecordingStudioTermsAndConditions::Api::ACTIONS.keys, :terms_accept_pending
+  end
+
   test "actions register on public and operations with view and collide on a second register" do
     %i[public operations].each do |api|
-      action = RecordingStudioApi.capability_action(:terms_accept_pending, api: api)
+      action = RecordingStudioApi.capability_action(:terms_pending_published_list, api: api)
       assert_equal :terms_and_conditions, action.capability
       assert_equal :member, action.scope
       assert_equal :view, action.required_role
-      assert_equal "Terms - Accept", action.openapi.fetch(:title)
-      assert_includes action.openapi.fetch(:description), "access_grant.actor"
-      assert_includes action.openapi.fetch(:description), "ApiClient"
       assert RecordingStudioApi.capability_action(:terms_pending_published_list, api: api)
       assert RecordingStudioApi.capability_action(:terms_current_published_for, api: api)
       assert RecordingStudioApi.capability_action(:terms_accepted, api: api)

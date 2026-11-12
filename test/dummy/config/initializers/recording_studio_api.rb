@@ -33,5 +33,5 @@ RecordingStudioApi.register_recordable_type_api(
   operations: %i[index show],
   serializer: ->(workspace, **) { { name: workspace.name } },
   output_keys: %i[name],
-  capability_actions: %i[terms_accept_pending terms_pending_published_list terms_current_published_for terms_accepted]
+  capability_actions: %i[terms_pending_published_list terms_current_published_for terms_accepted]
 )

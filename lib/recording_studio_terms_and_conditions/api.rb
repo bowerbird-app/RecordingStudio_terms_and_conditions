@@ -3,7 +3,6 @@
 require_relative "api/access"
 require_relative "api/actor_root"
 require_relative "api/terms_payload"
-require_relative "api/accept_pending"
 require_relative "api/pending_published_list"
 require_relative "api/current_published_for"
 require_relative "api/accepted"
@@ -13,15 +12,6 @@ module RecordingStudioTermsAndConditions
     ACTION_VERSION = "1.0.0"
     KIND_DESCRIPTION = "Terms kind: terms_and_condition or privacy_policy. Defaults to terms_and_condition."
     ACTIONS = {
-      terms_accept_pending: {
-        http_verb: :post,
-        handler: AcceptPending,
-        title: "Terms - Accept",
-        summary: "Accept pending Terms",
-        description: "Accept every live Terms document the access grant's actor still needs in this workspace. " \
-                     "A second call returns the same receipts. The acceptance is recorded as access_grant.actor, " \
-                     "which is the ApiClient under a client-credentials token."
-      }.freeze,
       terms_pending_published_list: {
         http_verb: :get,
         handler: PendingPublishedList,

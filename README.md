@@ -16,7 +16,7 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, embed
 - **Terms** recordable (`RecordingStudioTermsAndConditions::Terms`, product label `"Terms"`) with Publishable opted in on the type
 - **Acceptance** append-only table for clickwrap receipts (not a recordable). New rows store a SHA-256 body digest of the live copy at accept time
 - **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for` / `current_published_by_kind`, `pending_published_list` / `pending_published_for`, `accepted?`, `accepted_any?`, `accept!`, `requires_acceptance?`, `reaccepting?`, `reaccepting_actors_for`
-- **Recording Studio API capability actions** (when Recording Studio API is loaded): `terms_accept_pending`, `terms_pending_published_list`, `terms_current_published_for`, `terms_accepted`. Thin wrappers over those helpers for the access grant's actor. Required role is Accessible `:view` on the workspace root. Hosts include `RecordingStudio::Capabilities::TermsAndConditions.to` on the root type and list the actions on that type's API. This gem does not depend on Recording Studio API at runtime. Metrics stay on `RecordingStudioMetrics.register` (`metrics.rb`).
+- **Recording Studio API capability actions** (when Recording Studio API is loaded): `terms_pending_published_list`, `terms_current_published_for`, `terms_accepted`. Read-only wrappers over those helpers for the access grant's actor. API clients may not accept Terms. `terms_accept_pending` is not registered. Required role is Accessible `:view` on the workspace root. Hosts include `RecordingStudio::Capabilities::TermsAndConditions.to` on the root type and list the actions on that type's API. This gem does not depend on Recording Studio API at runtime. Metrics stay on `RecordingStudioMetrics.register` (`metrics.rb`).
 - **Published hook** `published.recording_studio_terms_and_conditions` after a Terms recording becomes currently published. Payload is `recording_id` and `terms_id` only. Hosts subscribe, call `reaccepting_actors_for`, drop staff, and send their own mail. The gate still redirects the next signed-in request.
 - **Agree screen** for pending live Terms and/or Privacy Policy (Continue + continue-notice, no checkbox on Accept). No PageNav. Each pending document sits in a Flatpack Collapse wrapping `FlatPack::Content`. Continue and the “By continuing…” line stay after someone has already agreed, and a second continue does not change the receipt time. Continue `accept!`s every pending live version. First-time Accept titles name the pending kinds; a later live version still uses “We have updated our…”
 - **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`. Wraps in `mt-3 mb-6` so there is a comfortable gap before the host Agree / Accept button. Pass `link_terms: true` to link “terms” (same tab) and “privacy policy” (`target=_blank`) when those documents are pending. Prefer `recording_studio_terms_agree_button` (Flatpack primary) for the CTA. On submit, call `accept!` for each pending live version
@@ -97,7 +97,7 @@ include RecordingStudio::Capabilities::TermsAndConditions.to
 RecordingStudioApi.register_recordable_type_api(
   "Workspace",
   operations: %i[index show],
-  capability_actions: %i[terms_accept_pending terms_pending_published_list terms_current_published_for terms_accepted]
+  capability_actions: %i[terms_pending_published_list terms_current_published_for terms_accepted]
 )
 ```
 
@@ -105,10 +105,9 @@ RecordingStudioApi.register_recordable_type_api(
 GET  /recording_studio_api/api/v1/workspaces/:id/actions/terms_pending_published_list
 GET  /recording_studio_api/api/v1/workspaces/:id/actions/terms_current_published_for
 GET  /recording_studio_api/api/v1/workspaces/:id/actions/terms_accepted
-POST /recording_studio_api/api/v1/workspaces/:id/actions/terms_accept_pending
 ```
 
-The actor is the access grant's actor (`access_grant.actor`). Do not send one in the body. Under a client-credentials token that actor is the ApiClient. `kind` on the two reads is `terms_and_condition` or `privacy_policy`. A second `terms_accept_pending` returns the existing receipts. MCP sees these through `capability_action`.
+The actor is the access grant's actor (`access_grant.actor`). Do not send one in the body. Under a client-credentials token that actor is the ApiClient. `kind` on the two reads is `terms_and_condition` or `privacy_policy`. API clients may not accept Terms. MCP sees these through `capability_action`.
 
 The home page in `test/dummy/app/views/home/index.html.erb` is a starting point for a minimal demo of the gem's primary behavior. Keep deeper explanations on the dummy docs pages, not in this README.
 
@@ -156,7 +155,7 @@ Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay Engli
 
 ## Upgrading from 0.16.0
 
-Bump to **0.17.0**. No schema change. Recording Studio API is optional. Dummy mounts API `v0.21.3`. Enable `RecordingStudio::Capabilities::TermsAndConditions.to` on the workspace/root type and list `terms_accept_pending`, `terms_pending_published_list`, `terms_current_published_for`, and `terms_accepted` on that type's API. The actor is the access grant's actor (`access_grant.actor`, the ApiClient under a client-credentials token). Required role is Accessible `:view`. Metrics registration is unchanged.
+Bump to **0.17.0**. No schema change. Recording Studio API is optional. Dummy mounts API `v0.21.3`. Enable `RecordingStudio::Capabilities::TermsAndConditions.to` on the workspace/root type and list `terms_pending_published_list`, `terms_current_published_for`, and `terms_accepted` on that type's API. API clients may not accept Terms. `terms_accept_pending` is not registered. The actor is the access grant's actor (`access_grant.actor`, the ApiClient under a client-credentials token). Required role is Accessible `:view`. Metrics registration is unchanged.
 
 ## Upgrading from 0.15.0
 
