@@ -9,10 +9,6 @@ module RecordingStudioTermsAndConditions
         context.access_grant.authorize!(recording: context.recording, role: :view)
       end
 
-      def actor(context)
-        context.access_grant.actor
-      end
-
       def root(context)
         context.recording
       end

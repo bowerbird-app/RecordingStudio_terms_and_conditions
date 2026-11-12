@@ -6,7 +6,7 @@ module RecordingStudioTermsAndConditions
       def self.call(context)
         ActorRoot.authorize!(context)
         accepted = RecordingStudioTermsAndConditions.accepted?(
-          ActorRoot.actor(context),
+          Access.actor_for(context),
           ActorRoot.root(context),
           kind: TermsPayload.kind_from(context.params)
         )

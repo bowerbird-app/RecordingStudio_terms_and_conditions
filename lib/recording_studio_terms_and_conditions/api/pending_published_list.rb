@@ -6,7 +6,7 @@ module RecordingStudioTermsAndConditions
       def self.call(context)
         ActorRoot.authorize!(context)
         list = RecordingStudioTermsAndConditions.pending_published_list(
-          ActorRoot.actor(context),
+          Access.actor_for(context),
           ActorRoot.root(context)
         )
 

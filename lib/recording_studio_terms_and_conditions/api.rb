@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative "api/access"
 require_relative "api/actor_root"
 require_relative "api/terms_payload"
 require_relative "api/accept_pending"
@@ -12,22 +13,23 @@ module RecordingStudioTermsAndConditions
     ACTION_VERSION = "1.0.0"
     KIND_DESCRIPTION = "Terms kind: terms_and_condition or privacy_policy. Defaults to terms_and_condition."
     ACTIONS = {
-      accept_pending: {
+      terms_accept_pending: {
         http_verb: :post,
         handler: AcceptPending,
         title: "Terms - Accept",
         summary: "Accept pending Terms",
         description: "Accept every live Terms document the access grant's actor still needs in this workspace. " \
-                     "A second call returns the same receipts."
+                     "A second call returns the same receipts. The acceptance is recorded as access_grant.actor, " \
+                     "which is the ApiClient under a client-credentials token."
       }.freeze,
-      pending_published_list: {
+      terms_pending_published_list: {
         http_verb: :get,
         handler: PendingPublishedList,
         title: "Terms - Pending published list",
         summary: "List pending Terms",
         description: "Live Terms documents in this workspace the access grant's actor has not accepted yet."
       }.freeze,
-      current_published_for: {
+      terms_current_published_for: {
         http_verb: :get,
         handler: CurrentPublishedFor,
         title: "Terms - Current published",
@@ -35,7 +37,7 @@ module RecordingStudioTermsAndConditions
         description: "The live Terms document for a kind in this workspace.",
         kind_field: true
       }.freeze,
-      accepted: {
+      terms_accepted: {
         http_verb: :get,
         handler: Accepted,
         title: "Terms - Accepted",
@@ -52,64 +54,29 @@ module RecordingStudioTermsAndConditions
     module Registration
       class << self
         def register!
-          return unless api_available?
+          return unless defined?(::RecordingStudioApi)
 
-          each_surface { |surface_name| register_surface(surface_name) }
+          RecordingStudioApi.configuration.each_api { |definition| register_surface(definition.name) }
           nil
         end
 
         private
-
-        def api_available?
-          defined?(RecordingStudioApi) &&
-            RecordingStudioApi.respond_to?(:capability_action) &&
-            RecordingStudioApi.respond_to?(:register_capability_action) &&
-            defined?(RecordingStudioApi::ActionInputContract)
-        end
-
-        def each_surface
-          if named_api_registration_supported?
-            RecordingStudioApi.configuration.each_api { |definition| yield definition.name }
-          else
-            yield nil
-          end
-        end
-
-        def named_api_registration_supported?
-          RecordingStudioApi.respond_to?(:configuration) &&
-            RecordingStudioApi.configuration.respond_to?(:each_api) &&
-            accepts_api_keyword?(:capability_action) &&
-            accepts_api_keyword?(:register_capability_action)
-        end
-
-        def accepts_api_keyword?(method_name)
-          RecordingStudioApi.method(method_name).parameters.any? do |type, name|
-            type == :keyrest || (name == :api && %i[key keyreq].include?(type))
-          end
-        end
 
         def register_surface(surface_name)
           ACTIONS.each_key { |action_name| register_action(surface_name, action_name) }
         end
 
         def register_action(surface_name, action_name)
-          return if existing_action(surface_name, action_name)
-
+          existing_action(surface_name, action_name)
           spec = ACTIONS.fetch(action_name)
-          options = action_options(spec)
-          if surface_name
-            RecordingStudioApi.register_capability_action(action_name, api: surface_name, **options)
-          else
-            RecordingStudioApi.register_capability_action(action_name, **options)
-          end
+          RecordingStudioApi.register_capability_action(action_name, api: surface_name, **action_options(spec))
         end
 
         def existing_action(surface_name, action_name)
-          if surface_name
-            RecordingStudioApi.capability_action(action_name, api: surface_name)
-          else
-            RecordingStudioApi.capability_action(action_name)
-          end
+          found = RecordingStudioApi.capability_action(action_name, api: surface_name)
+          return unless found
+
+          raise ArgumentError, "#{action_name} is already registered on API #{surface_name}"
         end
 
         def fields_for(spec)

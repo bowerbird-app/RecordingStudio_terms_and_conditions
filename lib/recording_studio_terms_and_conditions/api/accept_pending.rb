@@ -5,7 +5,7 @@ module RecordingStudioTermsAndConditions
     class AcceptPending
       def self.call(context)
         ActorRoot.authorize!(context)
-        actor = ActorRoot.actor(context)
+        actor = Access.actor_for(context)
         root = ActorRoot.root(context)
         versions = RecordingStudioTermsAndConditions.pending_published_list(actor, root)
         versions = live_versions(root) if versions.empty?

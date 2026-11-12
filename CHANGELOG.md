@@ -10,12 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.17.0] - 2026-11-12
 
 ### Added
-- Recording Studio API capability actions for the access grant's actor: `accept_pending`, `pending_published_list`, `current_published_for`, and `accepted`. They wrap the existing domain helpers. Register behind `defined?(RecordingStudioApi)` on each named API. Required role is Accessible `:view` on the workspace root (the same floor the Agree screen and gate use). Hosts enable `RecordingStudio::Capabilities::TermsAndConditions.to` on the root type and list the actions on that type's API. No runtime gemspec dependency on Recording Studio API. Metrics stay on `metrics.rb`.
+- Recording Studio API capability actions for the access grant's actor: `terms_accept_pending`, `terms_pending_published_list`, `terms_current_published_for`, and `terms_accepted`. They wrap the existing domain helpers. Register behind `defined?(::RecordingStudioApi)` on each named API via `configuration.each_api`. A second register of the same name on an API raises. Required role is Accessible `:view` on the workspace root (the same floor the Agree screen and gate use). Hosts enable `RecordingStudio::Capabilities::TermsAndConditions.to` on the root type and list the actions on that type's API. No runtime gemspec dependency on Recording Studio API. Metrics stay on `metrics.rb`. `terms_accept_pending` records the acceptance as `access_grant.actor` (the ApiClient under a client-credentials token).
 
 ### Upgrade notes (0.16.0 → 0.17.0)
 - No schema change. Pin this gem at `0.17.0`.
-- Recording Studio API is optional. Dummy mounts API `v0.21.3`. A host that wants the actions adds Recording Studio API, includes `RecordingStudio::Capabilities::TermsAndConditions.to` on the workspace/root type, and lists `accept_pending`, `pending_published_list`, `current_published_for`, and `accepted` in that type's `capability_actions`.
-- Actor always comes from the access grant. Do not send an actor in the request.
+- Recording Studio API is optional. Dummy mounts API `v0.21.3`. A host that wants the actions adds Recording Studio API, includes `RecordingStudio::Capabilities::TermsAndConditions.to` on the workspace/root type, and lists `terms_accept_pending`, `terms_pending_published_list`, `terms_current_published_for`, and `terms_accepted` in that type's `capability_actions`.
+- Actor always comes from the access grant (`access_grant.actor`). Do not send an actor in the request. Under a client-credentials token that actor is the ApiClient.
 
 ## [0.16.0] - 2026-11-06
 
