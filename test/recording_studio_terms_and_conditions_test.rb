@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.16.0", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.17.0", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -61,7 +61,11 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_publishable", tag: "v0.13.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.9.1"'
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.9.1"'
-    refute_includes gemfile, "recording_studio_api"
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v0.21.3"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_moveable", tag: "v4.1.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_icons", tag: "v0.2.0"'
+    assert_includes gemfile, 'gem "redis", "~> 5.3"'
+    refute_includes root_gemfile, "recording_studio_api"
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.7.3"'
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.7.3"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_logs", tag: "v0.7.4"'
@@ -124,11 +128,18 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
 
     assert_includes source, "def self.to(**)"
     assert_includes source, "RecordingStudio::Capabilities.include_for(:example, **)"
+    terms_capability = File.read(
+      File.expand_path("../lib/recording_studio_terms_and_conditions/capabilities/terms_and_conditions.rb", __dir__)
+    )
+    assert_includes terms_capability, "RecordingStudio::Capabilities.include_for(:terms_and_conditions, **)"
     refute_includes source, "enable_capability"
     refute_includes source, "set_capability_options"
     refute RecordingStudio.capability_enabled?(:example, for: "Folder")
     refute RecordingStudio.capability_enabled?(:example, for: "Page")
     assert_empty RecordingStudio.configuration.enabled_recordable_types_for(:example)
+    refute RecordingStudio.capability_enabled?(:terms_and_conditions, for: "Folder")
+    refute RecordingStudio.capability_enabled?(:terms_and_conditions, for: "Page")
+    assert_empty RecordingStudio.configuration.enabled_recordable_types_for(:terms_and_conditions)
   end
 
   def test_terms_recordable_opts_into_publishable
@@ -603,6 +614,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes readme, "require_scroll_to_end"
     assert_includes readme, "Upgrading from 0.3.x"
     assert_includes readme, "pending_published_list"
+    assert_includes readme, "accept_pending"
+    assert_includes readme, "TermsAndConditions.to"
     assert_includes readme, "published.recording_studio_terms_and_conditions"
     assert_includes readme, "reaccepting_actors_for"
     assert_includes readme, "Rails.error.report"
@@ -887,9 +900,12 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.17.0]"
+    assert_includes changelog, "Upgrade notes (0.16.0 → 0.17.0)"
+    assert_includes changelog, "compare/v0.17.0...HEAD"
     assert_includes changelog, "## [0.16.0]"
     assert_includes changelog, "Upgrade notes (0.15.0 → 0.16.0)"
-    assert_includes changelog, "compare/v0.16.0...HEAD"
+    assert_includes changelog, "compare/v0.16.0...v0.17.0"
     assert_includes changelog, "[0.16.0]:"
     assert_includes changelog, "## [0.15.0]"
     assert_includes changelog, "Upgrade notes (0.14.2 → 0.15.0)"

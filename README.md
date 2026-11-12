@@ -16,6 +16,7 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, embed
 - **Terms** recordable (`RecordingStudioTermsAndConditions::Terms`, product label `"Terms"`) with Publishable opted in on the type
 - **Acceptance** append-only table for clickwrap receipts (not a recordable). New rows store a SHA-256 body digest of the live copy at accept time
 - **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for` / `current_published_by_kind`, `pending_published_list` / `pending_published_for`, `accepted?`, `accepted_any?`, `accept!`, `requires_acceptance?`, `reaccepting?`, `reaccepting_actors_for`
+- **Recording Studio API capability actions** (when Recording Studio API is loaded): `accept_pending`, `pending_published_list`, `current_published_for`, `accepted`. Thin wrappers over those helpers for the access grant's actor. Required role is Accessible `:view` on the workspace root. Hosts include `RecordingStudio::Capabilities::TermsAndConditions.to` on the root type and list the actions on that type's API. This gem does not depend on Recording Studio API at runtime. Metrics stay on `RecordingStudioMetrics.register` (`metrics.rb`).
 - **Published hook** `published.recording_studio_terms_and_conditions` after a Terms recording becomes currently published. Payload is `recording_id` and `terms_id` only. Hosts subscribe, call `reaccepting_actors_for`, drop staff, and send their own mail. The gate still redirects the next signed-in request.
 - **Agree screen** for pending live Terms and/or Privacy Policy (Continue + continue-notice, no checkbox on Accept). No PageNav. Each pending document sits in a Flatpack Collapse wrapping `FlatPack::Content`. Continue and the “By continuing…” line stay after someone has already agreed, and a second continue does not change the receipt time. Continue `accept!`s every pending live version. First-time Accept titles name the pending kinds; a later live version still uses “We have updated our…”
 - **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`. Wraps in `mt-3 mb-6` so there is a comfortable gap before the host Agree / Accept button. Pass `link_terms: true` to link “terms” (same tab) and “privacy policy” (`target=_blank`) when those documents are pending. Prefer `recording_studio_terms_agree_button` (Flatpack primary) for the CTA. On submit, call `accept!` for each pending live version
@@ -88,6 +89,27 @@ RecordingStudioMetrics::Api.register!(api: :operations)
 
 Staff with AdminRoot `:view` can read them. `by_version` groups receipts by `terms_recording_id` (the Terms recording), including trashed versions. It does not count immutable Terms snapshots as separate versions. Hosts that mount the operations API serve `/recording_studio_api/apis/operations/v1/metrics/terms_acceptances/total` (and the matching `over_time` / `by_version` paths).
 
+Clickwrap on the JSON API is the same domain action as the Agree screen. Enable the mixin on the workspace/root type and list the actions:
+
+```ruby
+include RecordingStudio::Capabilities::TermsAndConditions.to
+
+RecordingStudioApi.register_recordable_type_api(
+  "Workspace",
+  operations: %i[index show],
+  capability_actions: %i[accept_pending pending_published_list current_published_for accepted]
+)
+```
+
+```text
+GET  /recording_studio_api/api/v1/workspaces/:id/actions/pending_published_list
+GET  /recording_studio_api/api/v1/workspaces/:id/actions/current_published_for
+GET  /recording_studio_api/api/v1/workspaces/:id/actions/accepted
+POST /recording_studio_api/api/v1/workspaces/:id/actions/accept_pending
+```
+
+The actor is the access grant's actor. Do not send one in the body. `kind` on the two reads is `terms_and_condition` or `privacy_policy`. A second `accept_pending` returns the existing receipts. MCP sees these through `capability_action`.
+
 The home page in `test/dummy/app/views/home/index.html.erb` is a starting point for a minimal demo of the gem's primary behavior. Keep deeper explanations on the dummy docs pages, not in this README.
 
 ## Host install
@@ -131,6 +153,10 @@ Do not translate stored Terms bodies or version titles. Those are data. Buttons,
 Add [Recording Studio Internationalization](https://github.com/bowerbird-app/RecordingStudio_Internationalization) on the host when you want a language selector. This gem does not declare the host's languages.
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
+
+## Upgrading from 0.16.0
+
+Bump to **0.17.0**. No schema change. Recording Studio API is optional. Dummy mounts API `v0.21.3`. Enable `RecordingStudio::Capabilities::TermsAndConditions.to` on the workspace/root type and list `accept_pending`, `pending_published_list`, `current_published_for`, and `accepted` on that type's API. The actor is the access grant's actor. Required role is Accessible `:view`. Metrics registration is unchanged.
 
 ## Upgrading from 0.15.0
 
@@ -372,9 +398,10 @@ The dummy also ships one example mixin that uses core `include_for`:
 
 ```ruby
 include RecordingStudio::Capabilities::Example.to(label: "dummy workspace")
+include RecordingStudio::Capabilities::TermsAndConditions.to
 ```
 
-`.to` wraps `RecordingStudio::Capabilities.include_for`. It does not add a fourth verb and it does not call `enable_capability` / `set_capability_options` itself. Folder and Page stay without the example mixin.
+`.to` wraps `RecordingStudio::Capabilities.include_for`. It does not add a fourth verb and it does not call `enable_capability` / `set_capability_options` itself. Folder and Page stay without those mixins. `TermsAndConditions` is the mixin the API capability actions attach to.
 
 Use core `RecordingStudio::Hooks` and `RecordingStudio::Services::BaseService`. Do not copy those classes into this addon.
 

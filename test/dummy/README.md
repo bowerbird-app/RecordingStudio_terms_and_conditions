@@ -49,6 +49,7 @@ Then open `/users/sign_in`, continue with email, and sign in with:
 - `/agree_helper` - embeddable Agree helpers (checkbox plus continue notice)
 - `/docs/install`, `/docs/config`, `/docs/recordable_types`, `/docs/recordings_tree`, `/docs/gem_views`, `/docs/methods` - dummy-only starter pages
 - `/up` - Rails health check
+- `/recording_studio_api` - Recording Studio API (dummy-only; capability actions on workspaces)
 
 ## Why This App Exists
 
