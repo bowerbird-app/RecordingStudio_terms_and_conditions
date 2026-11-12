@@ -23,6 +23,7 @@ require "recording_studio_admin"
 require "recording_studio_accessible"
 require "recording_studio_internationalization"
 require "recording_studio_terms_and_conditions"
+require "recording_studio_api"
 
 module Dummy
   class Application < Rails::Application

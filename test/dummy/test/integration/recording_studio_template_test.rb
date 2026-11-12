@@ -97,18 +97,23 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     example_source = File.read(RecordingStudioTermsAndConditions::Engine.root.join("lib/recording_studio_terms_and_conditions/capabilities/example.rb"))
 
     assert_includes workspace_source, "include RecordingStudio::Capabilities::Example.to(label: \"dummy workspace\")"
+    assert_includes workspace_source, "include RecordingStudio::Capabilities::TermsAndConditions.to"
     assert_includes example_source, "RecordingStudio::Capabilities.include_for(:example, **)"
     refute_includes example_source, "enable_capability"
     refute_includes example_source, "set_capability_options"
 
     assert RecordingStudio.capability_enabled?(:accessible, for: Workspace)
     assert RecordingStudio.capability_enabled?(:example, for: Workspace)
+    assert RecordingStudio.capability_enabled?(:terms_and_conditions, for: Workspace)
     assert_equal({ label: "dummy workspace" }, RecordingStudio.capability_options(:example, for: Workspace))
     refute RecordingStudio.capability_enabled?(:accessible, for: Folder)
     refute RecordingStudio.capability_enabled?(:accessible, for: Page)
     refute RecordingStudio.capability_enabled?(:example, for: Folder)
     refute RecordingStudio.capability_enabled?(:example, for: Page)
+    refute RecordingStudio.capability_enabled?(:terms_and_conditions, for: Folder)
+    refute RecordingStudio.capability_enabled?(:terms_and_conditions, for: Page)
     assert_equal [ "Workspace" ], RecordingStudio.configuration.enabled_recordable_types_for(:example)
+    assert_equal [ "Workspace" ], RecordingStudio.configuration.enabled_recordable_types_for(:terms_and_conditions)
     assert_includes ApplicationController.instance_methods, :recording_studio_resolved_layout
   end
 

@@ -11,6 +11,7 @@ Rails.application.routes.draw do
   get "/recording_studio", to: redirect("/"), as: nil
   mount RecordingStudioUser::Engine => RecordingStudioUser.config.mount_path, as: :recording_studio_users
   mount RecordingStudio::Engine, at: "/recording_studio"
+  mount RecordingStudioApi::Engine, at: "/recording_studio_api" if defined?(RecordingStudioApi)
   mount RecordingStudioRootSwitchable::Engine, at: "/recording_studio_root_switchable"
   mount RecordingStudioInternationalization::Engine, at: "/recording_studio_internationalization"
   mount RecordingStudioTermsAndConditions::Engine, at: "/recording_studio_terms_and_conditions"

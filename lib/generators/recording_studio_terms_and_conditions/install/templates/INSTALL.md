@@ -11,6 +11,7 @@ Next steps:
 7. Pin `app/javascript/recording_studio_terms_and_conditions/controllers` in the host importmap (the install generator adds this when `config/importmap.rb` exists). The gem Agree screen does not apply scroll-to-end. Optional: wrap your own copy with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` or set `config.require_scroll_to_end = true` on a host wrap. The checkbox is still required. If IntersectionObserver is missing, Agree stays enabled so people are not stuck. Optional: `config.capture_request_provenance = true` stores IP and user agent on gem UI accepts (default off).
 8. Run `bin/rails tailwindcss:build` if you use Tailwind CSS.
 9. Optional operations metrics: add `recording_studio_metrics` (`>= 0.3.0, < 0.6`, tag `v0.5.0`). This gem registers `:terms_acceptances` metrics with `api_authorize`. When RecordingStudio API is present, the host calls `RecordingStudioMetrics::Api.register!(api: :operations)`.
+10. Optional clickwrap API: include `RecordingStudio::Capabilities::TermsAndConditions.to` on the workspace/root type and list `terms_pending_published_list`, `terms_current_published_for`, and `terms_accepted` on that type's `capability_actions`. API clients may not accept Terms. The actor is the access grant's actor (`access_grant.actor`, the ApiClient under a client-credentials token). Required role is Accessible `:view`. This gem does not add a runtime Recording Studio API dependency.
 
 Useful routes after mount:
 
