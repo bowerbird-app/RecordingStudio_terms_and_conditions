@@ -1,0 +1,79 @@
+<% terms_page_nav(title: @section.heading, back_url: admin_term_sections_path(@terms_recording), back_label: "Sections") %>
+
+<div class="mx-auto flex w-full flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: "#{@section.number}. #{@section.heading}",
+    subtitle: "Section",
+    variant: :h1
+  ) do |page_title| %>
+    <% page_title.slot do %>
+      <% if @unreleased %>
+        <%= render FlatPack::Badge::Component.new(text: "Unreleased changes", style: :warning, size: :sm) %>
+      <% end %>
+      <%= terms_changed_badge(@changes, @section.id) %>
+    <% end %>
+  <% end %>
+
+  <div class="flex flex-wrap items-center gap-3">
+    <div class="inline-block">
+      <%= render FlatPack::Button::Component.new(
+        text: "Add clause",
+        style: :primary,
+        href: new_admin_term_section_clause_path(@terms_recording, @section.recording)
+      ) %>
+    </div>
+    <% if @section.clauses.any? %>
+      <div class="inline-block">
+        <%= render FlatPack::Button::Component.new(text: "Reorder", style: :secondary, data: { modal_id: "terms-clauses-order" }) %>
+      </div>
+    <% end %>
+  </div>
+
+  <% if @section.clauses.empty? %>
+    <%= render FlatPack::EmptyState::Component.new(title: "No clauses yet", description: "Add a clause for this section.") %>
+  <% else %>
+    <%= render FlatPack::Grid::Component.new(cols: 2) do %>
+      <%= render FlatPack::Card::Component.new(border: :default, padding: :none) do %>
+        <%= render FlatPack::List::Component.new(divider: true, class: "w-full") do %>
+          <% @section.clauses.each do |clause| %>
+            <% dropdown = FlatPack::Button::Dropdown::Component.new(
+              text: "Clause actions",
+              icon: "ellipsis-horizontal",
+              icon_only: true,
+              style: :secondary,
+              size: :sm,
+              placement: :bottom_right
+            ) %>
+            <% dropdown.menu_item(
+              text: "Edit clause",
+              href: edit_admin_term_clause_path(@terms_recording, clause.recording)
+            ) %>
+            <% dropdown.menu_html(capture do %>
+              <%= form_with url: admin_term_clause_path(@terms_recording, clause.recording), method: :delete, data: { turbo_confirm: "Remove this clause?" }, class: "w-full" do %>
+                <%= render FlatPack::Button::DropdownItem::Component.new(text: "Delete", icon: "trash", destructive: true) %>
+              <% end %>
+            <% end) %>
+            <%= render FlatPack::List::Item.new(
+              leading: clause.number,
+              hover: true,
+              align: :start,
+              trailing: tag.span(class: "inline-flex items-center gap-2") {
+                safe_join([terms_changed_badge(@changes, clause.id), render(dropdown)].compact)
+              }
+            ) do %>
+              <%= terms_body(clause.body) %>
+            <% end %>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <% if @section.clauses.any? %>
+    <%= render "recording_studio_terms_and_conditions/admin/shared/reorder_modal",
+          modal_id: "terms-clauses-order",
+          order_url: admin_term_section_clause_order_path(@terms_recording, @section.recording),
+          items: @section.clauses,
+          label: ->(clause) { terms_clause_preview(clause.body) } %>
+  <% end %>
+</div>

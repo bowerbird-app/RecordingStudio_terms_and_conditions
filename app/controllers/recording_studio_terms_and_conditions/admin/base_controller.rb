@@ -122,7 +122,7 @@ module RecordingStudioTermsAndConditions
       def terms_resource_action
         case action_name
         when "create" then :new
-        when "update" then :edit
+        when "update", "release" then :edit
         else action_name.to_sym
         end
       end

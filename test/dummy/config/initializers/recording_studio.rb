@@ -8,6 +8,8 @@ RecordingStudio.configure do |config|
     "Folder",
     "Page",
     "RecordingStudioTermsAndConditions::Terms",
+    "RecordingStudioTermsAndConditions::Section",
+    "RecordingStudioTermsAndConditions::Clause",
     "RecordingStudioUser::People",
     "RecordingStudioUser::Profile",
     "RecordingStudioPublishable::Publishable",

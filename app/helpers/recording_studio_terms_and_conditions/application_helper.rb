@@ -4,6 +4,7 @@ module RecordingStudioTermsAndConditions
   module ApplicationHelper
     include AgreeHelper
     include ContinueNoticeHelper
+    include OutlineHelper
     include TablePaginationHelper
     include TermsDateHelper
 
@@ -36,6 +37,10 @@ module RecordingStudioTermsAndConditions
       return unless recording && respond_to?(:recording_studio_publishable)
 
       recording_studio_publishable.edit_recording_publishable_path(recording_id: recording.id)
+    end
+
+    def terms_has_outline?(recording)
+      recording.present? && Outline.sections(recording).any?
     end
 
     def terms_publishable_quick_actions(recording)

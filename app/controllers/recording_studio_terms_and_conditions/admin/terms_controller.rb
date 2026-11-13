@@ -4,8 +4,8 @@ module RecordingStudioTermsAndConditions
   module Admin
     class TermsController < BaseController # rubocop:disable Metrics/ClassLength
       before_action :authorize_terms_index!, only: :index
-      before_action :authorize_terms_write!, only: %i[new create edit update]
-      before_action :authorize_terms_show!, only: :show
+      before_action :authorize_terms_write!, only: %i[new create edit update release]
+      before_action :authorize_terms_show!, only: %i[show changes preview text]
 
       def index
         hub = RecordingStudioTermsAndConditions.admin_hub_path
@@ -30,6 +30,7 @@ module RecordingStudioTermsAndConditions
         recording = write_terms_resource!(:new, terms_parent_root, audit_action: :create) do
           draft_terms!(terms_parent_root)
         end
+        Outline.seed_recording!(recording, actor: current_admin_actor)
         redirect_to admin_term_path(recording), notice: "Terms drafted. Publish when they are ready."
       rescue ActiveRecord::RecordInvalid => e
         @available_kinds = KindPresence.available_kinds(terms_parent_root)
@@ -38,19 +39,45 @@ module RecordingStudioTermsAndConditions
 
       def show
         @terms = terms_recording.recordable
+        @changes = Outline.changes(terms_recording)
+        @unreleased = @changes.any?
+        @live = Outline.live?(terms_recording)
+        @current_version = AgreementHistory.find(terms_recording, @terms.id) if @live
+        @agreement_count = @current_version&.agreement_count
       end
 
       def edit
-        @terms = terms_recording.recordable
-        assign_form_fields_from(@terms)
+        redirect_to admin_term_path(terms_recording)
       end
 
       def update
-        recording = persist_terms_update!
-        redirect_to admin_term_path(recording), notice: terms_write_notice(recording)
-      rescue ActiveRecord::RecordInvalid => e
+        redirect_to admin_term_path(terms_recording), alert: "Edit a section or a clause, then release."
+      end
+
+      def text
         @terms = terms_recording.recordable
-        render_invalid_terms(:edit, e, "Could not save that version.")
+        @version = params[:version].to_s == "next" ? "next" : "live"
+        preview = Outline.preview(terms_recording)
+        @document_title = @version == "next" ? preview[:title] : @terms.title
+        @document_body = @version == "next" ? preview[:body] : @terms.body
+      end
+
+      def changes
+        @terms = terms_recording.recordable
+        @changes = Outline.changes(terms_recording)
+        @unreleased = Outline.unreleased?(terms_recording)
+      end
+
+      def preview
+        @terms = terms_recording.recordable
+        @preview = Outline.preview(terms_recording, title: params.dig(:terms, :title))
+        @unreleased = Outline.unreleased?(terms_recording, title: params.dig(:terms, :title))
+      end
+
+      def release
+        before = terms_recording.recordable_id
+        released = Outline.release(terms_recording, actor: current_admin_actor, title: params.dig(:terms, :title))
+        redirect_to admin_term_path(released), notice: release_notice(released, before)
       end
 
       private
@@ -101,23 +128,11 @@ module RecordingStudioTermsAndConditions
         render template, status: :unprocessable_entity
       end
 
-      def persist_terms_update!
-        write_terms_resource!(:edit, terms_recording, audit_action: :update) do
-          TermsWrite.call(
-            recording: terms_recording,
-            actor: current_admin_actor,
-            title: terms_params[:title],
-            body: terms_params[:body],
-            kind: terms_recording.recordable&.kind
-          )
-        end
-      end
-
-      def terms_write_notice(recording)
-        if recording.id == terms_recording.id
-          "Terms updated."
+      def release_notice(released, snapshot_id)
+        if released.id == terms_recording.id && released.recordable_id == snapshot_id
+          "Nothing new to release."
         else
-          "Draft saved. The live copy stays until you publish."
+          "Released. People will need to agree to this version."
         end
       end
 

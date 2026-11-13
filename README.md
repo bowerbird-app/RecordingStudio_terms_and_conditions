@@ -13,10 +13,10 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, embed
 - **Recording Studio** 4.x gem pinned and configured
 - **Recording Studio Users Auth** (email, then password) with a pre-seeded admin user
 - **Workspace**, **Folder**, and **Page** recordables seeded into the dummy host app
-- **Terms** recordable (`RecordingStudioTermsAndConditions::Terms`, product label `"Terms"`) with Publishable opted in on the type
+- **Terms** recordable (`RecordingStudioTermsAndConditions::Terms`, product label `"Terms"`) with Publishable opted in on the type. **Section** and **Clause** recordables sit under it. Staff and agents edit those. Release rebuilds the parent text.
 - **Acceptance** append-only table for clickwrap receipts (not a recordable). New rows store a SHA-256 body digest of the live copy at accept time
 - **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for` / `current_published_by_kind`, `pending_published_list` / `pending_published_for`, `accepted?`, `accepted_any?`, `accept!`, `requires_acceptance?`, `reaccepting?`, `reaccepting_actors_for`
-- **Recording Studio API capability actions** (when Recording Studio API is loaded): `terms_pending_published_list`, `terms_current_published_for`, `terms_accepted`. Read-only wrappers over those helpers for the access grant's actor. API clients may not accept Terms. `terms_accept_pending` is not registered. Required role is Accessible `:view` on the workspace root. Hosts include `RecordingStudio::Capabilities::TermsAndConditions.to` on the root type and list the actions on that type's API. This gem does not depend on Recording Studio API at runtime. Metrics stay on `RecordingStudioMetrics.register` (`metrics.rb`).
+- **Recording Studio API capability actions** (when Recording Studio API is loaded). Public reads: `terms_pending_published_list`, `terms_current_published_for`, `terms_accepted`. Admin authoring: `terms_documents`, `terms_outline`, `terms_section`, `terms_clause`, `terms_changes`, `terms_preview`, `terms_add_section`, `terms_edit_section`, `terms_move_section`, `terms_remove_section`, `terms_add_clause`, `terms_edit_clause`, `terms_move_clause`, `terms_remove_clause`, `terms_release`. MCP calls them through `capability_action`. There is no accept action. This gem does not depend on Recording Studio API at runtime. Metrics stay on `RecordingStudioMetrics.register` (`metrics.rb`).
 - **Published hook** `published.recording_studio_terms_and_conditions` after a Terms recording becomes currently published. Payload is `recording_id` and `terms_id` only. Hosts subscribe, call `reaccepting_actors_for`, drop staff, and send their own mail. The gate still redirects the next signed-in request.
 - **Agree screen** for pending live Terms and/or Privacy Policy (Continue + continue-notice, no checkbox on Accept). No PageNav. Each pending document sits in a Flatpack Collapse wrapping `FlatPack::Content`. Continue and the “By continuing…” line stay after someone has already agreed, and a second continue does not change the receipt time. Continue `accept!`s every pending live version. First-time Accept titles name the pending kinds; a later live version still uses “We have updated our…”
 - **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`. Wraps in `mt-3 mb-6` so there is a comfortable gap before the host Agree / Accept button. Pass `link_terms: true` to link “terms” (same tab) and “privacy policy” (`target=_blank`) when those documents are pending. Prefer `recording_studio_terms_agree_button` (Flatpack primary) for the CTA. On submit, call `accept!` for each pending live version
@@ -24,7 +24,7 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, embed
 - **Gate** on the host `ApplicationController`: redirects to Agree until every pending live kind is accepted (0..2), and again after a new publish of either kind
 - **Users hook** on `RecordingStudioUser::Auth::BaseController` so after sign in / sign up land on Agree when acceptance is still required
 - **Users create-password slot** (`recording_studio_user/auth/registrations/_extra_fields`) renders `recording_studio_terms_continue_notice` when live documents are pending. Successful `create_password` calls `accept!` for each pending version with provenance `continue_notice`. Soft: TnC still boots without Users Auth.
-- **Admin** create/edit Terms or Privacy Policy (Type select; New blocked when that kind already exists), Publishable `QuickActions`, and a Users page of receipts. SoleLive is per kind
+- **Admin** create/edit Terms or Privacy Policy (Type select; New blocked when that kind already exists), Publishable `QuickActions`, and agreement history per released snapshot. SoleLive is per kind
 - **Public Terms URL** at `/terms/:uuid/:slug` and **Privacy Policy** at `/privacy/:uuid/:slug` via Publishable
 - **FlatPack** UI component library for all views
 - **Dummy app** (`test/dummy/`) with a FlatPack sign-in screen, a home page on Recording Studio's default layout, mounted Recording Studio routes, and FlatPack's built-in rounded theme
@@ -75,7 +75,7 @@ Sign in at `/users/sign_in`: email first (**Continue with email**), then passwor
 - `/recording_studio_terms_and_conditions/acceptance` — Agree (clickwrap) screen. The engine root redirects here.
 - `/admin` — Recording Studio Admin Terms and Conditions hub (Edit Terms, Edit Privacy Policy, agree counts, and agrees over time)
 - `/admin/sections` and `/admin/sections/terms` — redirect to `/admin`
-- `/recording_studio_terms_and_conditions/admin/terms` — redirects to `/admin/screens/recording_studio_terms`. Show, edit, and new stay on the engine. Switch to the Admin root first.
+- `/recording_studio_terms_and_conditions/admin/terms` — redirects to `/admin/screens/recording_studio_terms`. The document, its sections, and its clauses stay on the engine. Switch to the Admin root first.
 - `/terms/:uuid/:slug` — public published Terms
 - `/recording_studio` — redirect to `/` while the mounted Recording Studio engine remains data/API-focused
 - `/agree_helper` — dummy demo of the embeddable Agree helper (code example + checkbox)
@@ -109,6 +109,50 @@ GET  /recording_studio_api/api/v1/workspaces/:id/actions/terms_accepted
 
 The actor is the access grant's actor (`access_grant.actor`). Do not send one in the body. Under a client-credentials token that actor is the ApiClient. `kind` on the two reads is `terms_and_condition` or `privacy_policy`. API clients may not accept Terms. MCP sees these through `capability_action`.
 
+## Authoring
+
+A Terms document is a tree. Sections belong to one Terms recording. Clauses belong to one section. Sections are not shared between documents. One lineage per kind per workspace still applies.
+
+People edit a section or a clause. That writes a new snapshot of that child only. It does not publish, and it does not fire `published.recording_studio_terms_and_conditions`.
+
+Release is the step that makes a version. It builds `title` and `body` from the current sections and clauses, writes the numbers into that text (`1.`, `1.1`), saves a manifest of the child snapshots it used, and publishes through Publishable. A live recording is never revised in place. Release forks a draft, moves the sections onto it, and publishes that draft. A release with no outline or title change does nothing. Every release that does change the document is a new version, and people have to agree again.
+
+Numbers come from order. The id used by the admin screens and the API is the section or clause recording id, and it stays put across releases.
+
+Unreleased changes are the difference between the current outline and the last release manifest. The comparison uses wording, order, and which children exist. Putting the released wording back is not a change.
+
+Admin opens a document, then drills into it. The document page has two sections. Current version is labelled Version N in release order, with the release date and time in the host time zone, the full text, and how many people agreed to that exact snapshot. Unreleased changes counts added, changed, moved, and removed sections and clauses, then offers Edit, Review changes, and Release. When nothing has changed, those last two stay hidden. Full text is read-only and switches between the live wording and the next release. The section list shows each section's number, heading, and clause count in a bordered list. Section, with a plus, adds one. Each row's menu edits the heading, opens the clauses, or deletes the section. A section page shows that heading and lists each clause by number and its full wording, line breaks included, in a bordered list. Each row's menu edits or deletes that clause. Reorder still uses a short preview. Renaming and deleting that section stay on the sections list. A clause page shows the full wording, then Edit and Remove. Clauses have no titles. Reorder opens a drag-and-drop list. Nothing in that flow publishes. Release still builds the parent text.
+
+Agreement history lists released versions, newest first. Each row is one terms snapshot (`terms_id` on the receipt), labelled Version N in release order, with the release date and time in the host time zone and the agreement count. The live row is marked Live. Opening a row lists who agreed to that snapshot and when. The count is receipts for that snapshot. The gem does not know how many people ought to agree, so it does not show a share of a population. Receipts stay append-only. The Agree screen and the public pages keep reading the parent title and body.
+
+```ruby
+RecordingStudioApi.register_recordable_type_api(
+  "Workspace",
+  operations: %i[index show],
+  capability_actions: %i[
+    terms_pending_published_list
+    terms_current_published_for
+    terms_accepted
+    terms_documents
+  ],
+  auto_capability_actions: false
+)
+
+RecordingStudioApi.register_recordable_type_api(
+  "RecordingStudioTermsAndConditions::Terms",
+  operations: %i[show],
+  capability_actions: %i[
+    terms_outline terms_section terms_clause terms_changes terms_preview
+    terms_add_section terms_edit_section terms_move_section terms_remove_section
+    terms_add_clause terms_edit_clause terms_move_clause terms_remove_clause
+    terms_release
+  ],
+  auto_capability_actions: false
+)
+```
+
+`terms_documents` is a workspace action. The rest run on the Terms recording, including `terms_release`. Reads need Accessible `:view` on the admin root. Writes and release need `:edit` there, using the same admin access recording as the Admin screens. The workspace grant still has to be able to see that recording. MCP calls these through `capability_action`. There is no accept action. A draft that already has an outline is released from the show page. Publishable's publish path for that document also releases, so the stored parent text is rebuilt and the hook fires once. `TermsWrite` still saves a document with no outline, and raises when an outline is already there.
+
 The home page in `test/dummy/app/views/home/index.html.erb` is a starting point for a minimal demo of the gem's primary behavior. Keep deeper explanations on the dummy docs pages, not in this README.
 
 ## Host install
@@ -125,7 +169,7 @@ bin/rails db:migrate
 bin/rails tailwindcss:build
 ```
 
-`recording_studio_terms_and_conditions:install` mounts the engine, copies this gem's migrations, and writes the initializer. Then register `RecordingStudioTermsAndConditions::Terms` in `recordable_types`, mount Publishable at `/`, and enable Admin `section :terms` on an Admin root with Accessible access.
+`recording_studio_terms_and_conditions:install` mounts the engine, copies this gem's migrations, and writes the initializer. Then register `RecordingStudioTermsAndConditions::Terms`, `Section`, and `Clause` in `recordable_types`, mount Publishable at `/`, and enable Admin `section :terms` on an Admin root with Accessible access. This gem depends on `recording_studio_moveable` `>= 4.1.0`, `< 5`. Add GitHub sources for Moveable `v4.1.0` and Icons `v0.2.0` when those gems are not on RubyGems.
 
 This is the kit gem for published Terms and clickwrap. Add it to the approved list in `recording-studio-gems`. Do not hand-roll acceptances.
 
@@ -152,6 +196,12 @@ Do not translate stored Terms bodies or version titles. Those are data. Buttons,
 Add [Recording Studio Internationalization](https://github.com/bowerbird-app/RecordingStudio_Internationalization) on the host when you want a language selector. This gem does not declare the host's languages.
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
+
+## Upgrading from 0.17.0
+
+Bump to **0.18.0**. This release changes how Terms are authored. Copy the new migrations and run `bin/rails db:migrate`. Register Section and Clause in `recordable_types`. Add `recording_studio_moveable` `v4.1.0` and `recording_studio_icons` `v0.2.0` from GitHub. Run `recording_studio_terms_and_conditions:seed_outline` with `ACTOR_TYPE` and `ACTOR_ID`. The task is safe to repeat. It does not publish and does not write receipts.
+
+List `terms_documents` on the workspace and the outline actions on the Terms type. Set `auto_capability_actions: false`. Grant admin API clients Accessible on the admin root. Public read actions, Agree, public URLs, the gate, helpers, metrics, and the hook payload stay as they are. There is no accept action. Consumers that only read a published title and body need this version bump and the seed. They do not need a second receipt table.
 
 ## Upgrading from 0.16.0
 

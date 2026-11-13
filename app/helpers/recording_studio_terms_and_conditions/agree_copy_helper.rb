@@ -19,7 +19,7 @@ module RecordingStudioTermsAndConditions
     end
 
     def terms_users_subtitle(_terms = nil)
-      "People who ticked the box for these terms."
+      "Released versions, newest first."
     end
 
     def terms_document(documents)

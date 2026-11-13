@@ -1,27 +1,29 @@
-<% terms_page_nav(title: "Users", back_url: admin_term_path(@terms_recording), back_label: @terms.title) %>
+<% terms_page_nav(title: "Agreement history", back_url: admin_term_path(@terms_recording), back_label: @terms.title) %>
 
-<%= render FlatPack::PageTitle::Component.new(
-  title: "Users",
-  subtitle: terms_users_subtitle(@terms),
-  variant: :h1
-) %>
-
-<% if @acceptances.blank? %>
-  <%= render FlatPack::EmptyState::Component.new(
-    title: "Nobody yet",
-    description: "Receipts show up here after someone ticks the box."
+<div class="mx-auto flex w-full flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: "Agreement history",
+    subtitle: terms_users_subtitle(@terms),
+    variant: :h1
   ) %>
-<% else %>
-  <%= render FlatPack::Table::Component.new(
-    data: @acceptances.map { |row|
-      {
-        person: row.actor.try(:email) || "Someone",
-        agreed: row.accepted_at
-      }
-    }
-  ) do |table| %>
-    <% table.column(title: "Person") { |row| row[:person] } %>
-    <% table.column(title: "Agreed") { |row| row[:agreed] } %>
+
+  <% if @versions.blank? %>
+    <%= render FlatPack::EmptyState::Component.new(
+      title: "No released versions yet.",
+      description: "Release this document before people can agree."
+    ) %>
+  <% else %>
+    <%= render FlatPack::List::Component.new(divider: true, class: "w-full") do %>
+      <% @versions.each do |version| %>
+        <%= render FlatPack::List::Item.new(
+          href: admin_term_user_path(@terms_recording, version.terms_id),
+          title: terms_version_label(version),
+          subtitle: version.title.presence,
+          hover: true,
+          trailing: terms_version_trailing(version)
+        ) %>
+      <% end %>
+    <% end %>
+    <%= terms_table_pagination(@pagy) %>
   <% end %>
-  <%= terms_table_pagination(@pagy) %>
-<% end %>
+</div>

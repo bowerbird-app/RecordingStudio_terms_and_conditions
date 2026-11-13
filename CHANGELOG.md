@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-11-12
+
+### Added
+- Terms are authored as Section and Clause recordables under the Terms recording. Each has its own history. A clause edit revises that clause only.
+- Release builds the parent `title` and `body` from the current outline, with section and clause numbers baked into the text, stores a manifest of the section and clause snapshots that went into it, and publishes through Publishable. Child edits do not publish and do not fire `published.recording_studio_terms_and_conditions`.
+- Unreleased changes are computed by comparing the current outline to the last release manifest. A revert to the released wording is not a change. Admin shows that status, a per-clause review, and a Release action.
+- Admin API actions, also available to MCP through `capability_action`: `terms_documents`, `terms_outline`, `terms_section`, `terms_clause`, `terms_changes`, `terms_preview`, `terms_add_section`, `terms_edit_section`, `terms_move_section`, `terms_remove_section`, `terms_add_clause`, `terms_edit_clause`, `terms_move_clause`, `terms_remove_clause`, and `terms_release`. Reads need admin `:view`. Writes need admin `:edit`. There is still no accept action.
+- Idempotent rake task `recording_studio_terms_and_conditions:seed_outline`. It splits an existing body into sections and clauses and records the live version as the baseline manifest. It does not publish and does not write receipts.
+
+### Changed
+- Staff no longer edit the parent body directly. The parent text is rebuilt only at release. Every release is a new version people must accept again.
+- Admin outline editing is a set of screens instead of one long form. The document page splits the live version from unreleased edits. Full text toggles the live wording and the next release. Sections and clauses are their own pages. Reorder is a drag-and-drop list. Clauses have no title field.
+- Agreement history lists each released snapshot, newest first, with its agreement count. A snapshot is labelled Version N in release order, with the release date and time in the host time zone. The live row is marked Live. Opening one lists who agreed to that snapshot and when. Receipts stay grouped by `terms_id`. There is no acceptance schema change.
+- Publishing a Terms document that already has an outline, from the Admin show page or from Publishable's publish path, goes through Release. The show page offers Release instead of Publish now. The hook still fires once, and one live copy per kind remains.
+- `TermsWrite` raises `TermsWrite::OutlinePresent` when the document already has an outline. It still saves a document that has none.
+- New dependency `recording_studio_moveable` `>= 4.1.0`, `< 5`. Releasing a live document moves its sections onto the new draft so section and clause ids stay put.
+
+### Upgrade notes (0.17.0 → 0.18.0)
+- Schema change. Copy migrations with `bin/rails generate recording_studio_terms_and_conditions:migrations` (or the install generator) and run `bin/rails db:migrate`. New tables are sections and clauses. Terms gains nullable `release_manifest` jsonb.
+- Pin this gem at `0.18.0`. Add GitHub sources for `recording_studio_moveable` `v4.1.0` and `recording_studio_icons` `v0.2.0` if Bundler cannot find them on RubyGems.
+- Register `RecordingStudioTermsAndConditions::Section` and `RecordingStudioTermsAndConditions::Clause` in `recordable_types`.
+- Run `ACTOR_TYPE=User ACTOR_ID=<staff id> bin/rails recording_studio_terms_and_conditions:seed_outline` once. It is safe to run again. It does not create a Terms version and does not touch receipts.
+- Public reads stay `terms_pending_published_list`, `terms_current_published_for`, and `terms_accepted`. List `terms_documents` on the workspace. List the outline, edit, preview, and release actions on `RecordingStudioTermsAndConditions::Terms`. Set `auto_capability_actions: false` on those types so only the listed actions are exposed. Grant the API client Accessible on the admin root (`:view` to read, `:edit` to change or release). There is no API or MCP accept action.
+- Consumers that only read a published title and body need the version bump, the migrations, and the seed. They do not need a new receipt system. Agree, public URLs, the gate, helpers, `:terms_acceptances`, and the hook payload are unchanged.
+- `terms_release` is an admin API action and an MCP `capability_action`. There is no accept action. `TermsWrite` cannot overwrite a document that already has an outline.
+
 ## [0.17.0] - 2026-11-12
 
 ### Added
@@ -619,7 +645,8 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.17.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.18.0...HEAD
+[0.18.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.15.0...v0.16.0
 [0.15.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.14.2...v0.15.0

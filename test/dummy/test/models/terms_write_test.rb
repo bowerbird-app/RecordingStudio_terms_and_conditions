@@ -52,6 +52,23 @@ class TermsWriteTest < ActiveSupport::TestCase
     refute draft.currently_published?
   end
 
+  test "a document with an outline cannot be rewritten through TermsWrite" do
+    recording = record_terms("Booth", "ABC")
+    RecordingStudioTermsAndConditions::Outline.seed_recording!(recording, actor: @actor)
+
+    error = assert_raises(RecordingStudioTermsAndConditions::TermsWrite::OutlinePresent) do
+      RecordingStudioTermsAndConditions::TermsWrite.call(
+        recording: recording,
+        actor: @actor,
+        title: "Booth",
+        body: "Replaced."
+      )
+    end
+
+    assert_equal "ABC", recording.reload.recordable.body
+    assert_includes error.message, "outline"
+  end
+
   private
 
   def record_terms(title, body)

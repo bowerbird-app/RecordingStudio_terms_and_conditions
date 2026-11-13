@@ -1,0 +1,27 @@
+<% section_recording = @clause.recording.parent_recording %>
+<% terms_page_nav(title: @clause.number, back_url: admin_term_section_path(@terms_recording, section_recording), back_label: "Section") %>
+
+<div class="mx-auto flex w-full flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(title: @clause.number, subtitle: "Clause", variant: :h1) do |page_title| %>
+    <% page_title.slot do %>
+      <% if @unreleased %>
+        <%= render FlatPack::Badge::Component.new(text: "Unreleased changes", style: :warning, size: :sm) %>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <%= terms_content(@clause.body) %>
+
+  <div class="flex flex-wrap items-center gap-3">
+    <div class="inline-block">
+      <%= render FlatPack::Button::Component.new(
+        text: "Edit",
+        style: :primary,
+        href: edit_admin_term_clause_path(@terms_recording, @clause.recording)
+      ) %>
+    </div>
+    <%= form_with url: admin_term_clause_path(@terms_recording, @clause.recording), method: :delete, data: { turbo_confirm: "Remove this clause?" } do %>
+      <%= render FlatPack::Button::Component.new(text: "Remove", style: :ghost, type: "submit") %>
+    <% end %>
+  </div>
+</div>

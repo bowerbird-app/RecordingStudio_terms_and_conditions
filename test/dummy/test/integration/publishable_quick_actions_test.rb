@@ -59,6 +59,50 @@ class PublishableQuickActionsTest < ActionDispatch::IntegrationTest
     assert recording.reload.currently_published?
   end
 
+  test "publishing a draft after a clause edit releases the assembled text" do
+    sign_in @admin
+    switch_to_workspace(@workspace)
+    recording = @root.record(
+      RecordingStudioTermsAndConditions::Terms,
+      actor: @admin
+    ) do |terms|
+      terms.title = "Booth rules"
+      terms.body = "Keep the door shut."
+    end
+    RecordingStudioTermsAndConditions::Outline.seed_recording!(recording, actor: @admin)
+    clause = RecordingStudioTermsAndConditions::Outline.sections(recording).first.clauses.first
+    RecordingStudioTermsAndConditions::Outline.edit_clause(
+      clause.recording,
+      body: "Close the door.",
+      actor: @admin
+    )
+    switch_to_workspace(@admin_root)
+    events = []
+    subscription = RecordingStudioTermsAndConditions::Published.subscribe { |event| events << event }
+
+    get recording_studio_terms_and_conditions.admin_term_path(recording)
+    assert_response :success
+    assert_includes response.body, "Nothing is live."
+    assert_includes response.body, "Release"
+    refute_includes response.body, "Publish now"
+
+    patch "/recordings/#{recording.id}/publishable/publish",
+          params: { inline: 1, button_size: "md" },
+          headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    recording.reload
+    assert_response :success
+    assert recording.currently_published?
+    assert_includes recording.recordable.body, "Close the door."
+    assert_includes recording.recordable.body, "1.1"
+    assert recording.recordable.release_manifest.present?
+    assert_equal 1, events.size
+    live = RecordingStudioTermsAndConditions::SoleLive.terms_recordings_for(recording, kind: recording.recordable.kind)
+    assert_equal [recording.id], live.select(&:currently_published?).map(&:id)
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscription) if subscription
+  end
+
   test "preview is for people who can see the page and is not the public URL" do
     recording = record_terms(@root, title: "Quiet copy", body: "Whisper in the booth.")
     publish_terms!(recording, slug: "quiet-copy-#{SecureRandom.hex(4)}", status: "draft")

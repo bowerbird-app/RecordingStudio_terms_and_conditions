@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "pagy"
+require "pagy/extras/array"
 require "pagy/extras/overflow"
 
 module RecordingStudioTermsAndConditions
@@ -11,6 +12,10 @@ module RecordingStudioTermsAndConditions
 
     def paginate_table(scope)
       pagy(scope, limit: SIZE, overflow: :last_page)
+    end
+
+    def paginate_records(records)
+      pagy_array(Array(records), limit: SIZE, overflow: :last_page)
     end
   end
 end

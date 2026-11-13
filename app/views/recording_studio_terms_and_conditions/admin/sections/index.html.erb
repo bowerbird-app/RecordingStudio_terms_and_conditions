@@ -1,0 +1,79 @@
+<% terms_page_nav(title: "Sections", back_url: admin_term_path(@terms_recording), back_label: @terms.title) %>
+
+<div class="mx-auto flex w-full flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: "Sections",
+    subtitle: @terms.title,
+    variant: :h1
+  ) do |page_title| %>
+    <% page_title.slot do %>
+      <% if @unreleased %>
+        <%= render FlatPack::Badge::Component.new(text: "Unreleased changes", style: :warning, size: :sm) %>
+      <% end %>
+      <div class="inline-block">
+        <%= render FlatPack::Button::Component.new(
+          text: "Section",
+          icon: "plus",
+          style: :primary,
+          href: new_admin_term_section_path(@terms_recording)
+        ) %>
+      </div>
+      <% if @sections.any? %>
+        <div class="inline-block">
+          <%= render FlatPack::Button::Component.new(text: "Reorder", style: :secondary, data: { modal_id: "terms-sections-order" }) %>
+        </div>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <% if @sections.empty? %>
+    <%= render FlatPack::EmptyState::Component.new(title: "No sections yet", description: "Add a section to start the outline.") %>
+  <% else %>
+    <%= render FlatPack::Grid::Component.new(cols: 2) do %>
+      <%= render FlatPack::Card::Component.new(border: :default, padding: :none) do %>
+        <%= render FlatPack::List::Component.new(divider: true, class: "w-full") do %>
+          <% @sections.each do |section| %>
+            <% dropdown = FlatPack::Button::Dropdown::Component.new(
+              text: "Section actions",
+              icon: "ellipsis-horizontal",
+              icon_only: true,
+              style: :secondary,
+              size: :sm,
+              placement: :bottom_right
+            ) %>
+            <% dropdown.menu_item(
+              text: "Edit section name",
+              href: edit_admin_term_section_path(@terms_recording, section.recording)
+            ) %>
+            <% dropdown.menu_item(
+              text: "Edit clauses",
+              href: admin_term_section_path(@terms_recording, section.recording)
+            ) %>
+            <% dropdown.menu_html(capture do %>
+              <%= form_with url: admin_term_section_path(@terms_recording, section.recording), method: :delete, data: { turbo_confirm: "Remove this section?" }, class: "w-full" do %>
+                <%= render FlatPack::Button::DropdownItem::Component.new(text: "Delete", icon: "trash", destructive: true) %>
+              <% end %>
+            <% end) %>
+            <%= render FlatPack::List::Item.new(
+              title: "#{section.number}. #{section.heading}",
+              subtitle: terms_clause_count(section),
+              hover: true,
+              align: :center,
+              trailing: tag.span(class: "inline-flex items-center gap-2") {
+                safe_join([terms_section_changed_badge(@changes, section), render(dropdown)].compact)
+              }
+            ) %>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <% if @sections.any? %>
+    <%= render "recording_studio_terms_and_conditions/admin/shared/reorder_modal",
+          modal_id: "terms-sections-order",
+          order_url: admin_term_section_order_path(@terms_recording),
+          items: @sections,
+          label: ->(section) { section.heading } %>
+  <% end %>
+</div>

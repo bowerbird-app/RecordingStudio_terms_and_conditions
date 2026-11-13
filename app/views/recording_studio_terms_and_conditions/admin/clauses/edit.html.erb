@@ -1,0 +1,12 @@
+<% terms_page_nav(title: "Edit clause", back_url: admin_term_clause_path(@terms_recording, @clause.recording), back_label: @clause.number) %>
+
+<div class="mx-auto flex w-full flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(title: "Edit #{@clause.number}", subtitle: "Wording only. Clauses have no titles.", variant: :h1) %>
+
+  <%= form_with url: admin_term_clause_path(@terms_recording, @clause.recording), method: :patch, scope: :clause, class: "flex w-full flex-col gap-6" do %>
+    <%= render FlatPack::TextArea::Component.new(name: "clause[body]", value: @clause.body, label: "Wording", required: true, rows: 8) %>
+    <div class="inline-block">
+      <%= render FlatPack::Button::Component.new(text: "Save", style: :primary, type: "submit") %>
+    </div>
+  <% end %>
+</div>

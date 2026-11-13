@@ -1,0 +1,12 @@
+<% terms_page_nav(title: "Add section", back_url: admin_term_sections_path(@terms_recording), back_label: "Sections") %>
+
+<div class="mx-auto flex w-full flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(title: "Add section", subtitle: "A heading only. Clauses come next.", variant: :h1) %>
+
+  <%= form_with url: admin_term_sections_path(@terms_recording), method: :post, scope: :section, class: "flex w-full flex-col gap-6" do %>
+    <%= render FlatPack::TextInput::Component.new(name: "section[heading]", value: "", label: "Heading", required: true) %>
+    <div class="inline-block">
+      <%= render FlatPack::Button::Component.new(text: "Add section", style: :primary, type: "submit") %>
+    </div>
+  <% end %>
+</div>

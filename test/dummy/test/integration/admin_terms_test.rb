@@ -106,49 +106,66 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Terms drafted. Publish when they are ready."
     refute_select "header.fp-top-nav"
     assert_includes response.body, "House rules"
-    assert_includes response.body, "Recording"
-    assert_includes response.body, "fp-content"
-    assert_includes response.body, "Draft"
-    assert_includes response.body, "Publish now"
+    assert_includes response.body, "Current version"
+    assert_includes response.body, "Nothing is live."
+    assert_includes response.body, "Unreleased changes"
+    assert_select "a", text: "Edit"
+    refute_includes response.body, "Edit sections"
+    assert_includes response.body, "Review changes"
+    assert_includes response.body, "Release"
+    refute_includes response.body, "Publish now"
     refute_select "a", text: "Publish"
-    assert_select "a", text: "Users"
+    assert_select "a", text: "Agreement history"
     refute_includes response.body, "Who agreed"
-    refute_includes response.body, "Nobody yet"
+    refute_includes response.body, "ticks the box"
 
     get recording_studio_terms_and_conditions.admin_term_users_path(recording)
     assert_response :success
-    assert_includes response.body, "Users"
-    assert_includes response.body, "Nobody yet"
-    assert_includes response.body, "People who ticked the box for these terms."
+    assert_includes response.body, "Agreement history"
+    assert_includes response.body, "No released versions yet."
+    refute_includes response.body, "ticks the box"
 
     publish_terms!(recording, slug: "house-rules-#{SecureRandom.hex(4)}")
+    recording.reload
     RecordingStudioTermsAndConditions.accept!(@member, recording, { "source" => "clickwrap" })
     get recording_studio_terms_and_conditions.admin_term_users_path(recording)
     assert_response :success
+    assert_includes response.body, "1 agreed"
+
+    get recording_studio_terms_and_conditions.admin_term_user_path(recording, recording.recordable_id)
+    assert_response :success
     assert_includes response.body, @member.email
-    refute_includes response.body, "Nobody yet"
+    refute_includes response.body, "Nobody has agreed to this version yet."
 
     original_snapshot_id = recording.recordable_id
     original_body = recording.recordable.body
-    assert_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count }, 1 do
-      patch recording_studio_terms_and_conditions.admin_term_path(recording), params: {
-        terms: { title: "House rules", body: "Whisper, please." }
+    clause = RecordingStudioTermsAndConditions::Outline.sections(recording).first.clauses.first
+    assert_no_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count } do
+      patch recording_studio_terms_and_conditions.admin_term_clause_path(recording, clause.recording), params: {
+        clause: { body: "Whisper, please." }
       }
     end
 
     live = recording.reload
-    draft = RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name)
-                                      .order(:created_at).last
     assert_equal original_snapshot_id, live.recordable_id
     assert_equal original_body, live.recordable.body
     assert live.currently_published?
-    refute_equal live.id, draft.id
-    assert_equal "Whisper, please.", draft.recordable.body
-    refute draft.currently_published?
-    assert_redirected_to recording_studio_terms_and_conditions.admin_term_path(draft)
+    assert_redirected_to recording_studio_terms_and_conditions.admin_term_clause_path(recording, clause.recording)
     follow_redirect!
-    assert_includes response.body, "Draft saved. The live copy stays until you publish."
     assert_includes response.body, "Whisper, please."
+    assert_includes response.body, "Unreleased changes"
+
+    assert_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count }, 1 do
+      post recording_studio_terms_and_conditions.release_admin_term_path(recording), params: {
+        terms: { title: "House rules" }
+      }
+    end
+    released = RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name)
+                                         .order(:created_at).last
+    assert_redirected_to recording_studio_terms_and_conditions.admin_term_path(released)
+    assert_includes released.recordable.body, "Whisper, please."
+    assert released.currently_published?
+    refute recording.reload.currently_published?
 
     get recording_studio_terms_and_conditions.admin_terms_path
     assert_redirected_to "/admin/screens/recording_studio_terms"
@@ -249,6 +266,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
       terms.body = "Many people tick this."
     end
     publish_terms!(recording, slug: "crowd-#{SecureRandom.hex(4)}")
+    recording.reload
     26.times do |index|
       person = User.create!(
         email: "agree-#{index}-#{SecureRandom.hex(3)}@example.com",
@@ -258,11 +276,11 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
       RecordingStudioTermsAndConditions.accept!(person, recording, { "source" => "clickwrap" })
     end
 
-    get recording_studio_terms_and_conditions.admin_term_users_path(recording)
+    get recording_studio_terms_and_conditions.admin_term_user_path(recording, recording.recordable_id)
     assert_response :success
     assert_equal 25, first_table_row_count
 
-    get recording_studio_terms_and_conditions.admin_term_users_path(recording), params: { page: 2 }
+    get recording_studio_terms_and_conditions.admin_term_user_path(recording, recording.recordable_id), params: { page: 2 }
     assert_response :success
     page_two = first_table_row_count
     assert_operator page_two, :>, 0
@@ -371,7 +389,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
     get "/admin"
     assert_response :success
-    edit_path = RecordingStudioTermsAndConditions.edit_admin_term_path(recording)
+    edit_path = RecordingStudioTermsAndConditions.admin_term_path(recording)
     assert_select "a[href=?][data-fp-style=secondary]", edit_path, text: "Edit Terms"
     refute_select "button", text: "Edit Terms"
   end
