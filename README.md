@@ -149,7 +149,7 @@ RecordingStudioApi.register_recordable_type_api(
 )
 ```
 
-`terms_documents` is a workspace action. The rest run on the Terms recording. Reads need Accessible `:view` on the admin root. Writes and release need `:edit` there, using the same admin access recording as the Admin screens. The workspace grant still has to be able to see that recording. The show-page Publish control still publishes the stored parent text. Use Release when the outline should become the live copy.
+`terms_documents` is a workspace action. The rest run on the Terms recording, including `terms_release`. Reads need Accessible `:view` on the admin root. Writes and release need `:edit` there, using the same admin access recording as the Admin screens. The workspace grant still has to be able to see that recording. MCP calls these through `capability_action`. There is no accept action. A draft that already has an outline is released from the show page. Publishable's publish path for that document also releases, so the stored parent text is rebuilt and the hook fires once. `TermsWrite` still saves a document with no outline, and raises when an outline is already there.
 
 The home page in `test/dummy/app/views/home/index.html.erb` is a starting point for a minimal demo of the gem's primary behavior. Keep deeper explanations on the dummy docs pages, not in this README.
 

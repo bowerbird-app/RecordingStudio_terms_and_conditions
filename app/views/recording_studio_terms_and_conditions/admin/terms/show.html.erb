@@ -16,7 +16,14 @@
       style: :secondary,
       href: edit_admin_term_path(@terms_recording)
     ) %>
-    <%= terms_publishable_quick_actions(@terms_recording) %>
+    <% if terms_has_outline?(@terms_recording) && !@terms_recording.currently_published? %>
+      <%= render FlatPack::Badge::Component.new(text: "Draft", style: :default, size: :sm) %>
+      <%= form_with url: release_admin_term_path(@terms_recording), method: :post do %>
+        <%= render FlatPack::Button::Component.new(text: "Release", style: :primary, type: "submit") %>
+      <% end %>
+    <% else %>
+      <%= terms_publishable_quick_actions(@terms_recording) %>
+    <% end %>
   <% end %>
 <% end %>
 

@@ -52,12 +52,14 @@ module RecordingStudioTermsAndConditions
       end
 
       def publish!(recording, actor, title)
-        with_actor(actor) do
-          RecordingStudioPublishable::Services::Publishables::Update.call(
-            parent_recording: recording,
-            attributes: { slug: slug_for(title), status: "published" },
-            actor: actor
-          ).value!
+        OutlinePublish.releasing do
+          with_actor(actor) do
+            RecordingStudioPublishable::Services::Publishables::Update.call(
+              parent_recording: recording,
+              attributes: { slug: slug_for(title), status: "published" },
+              actor: actor
+            ).value!
+          end
         end
       end
 

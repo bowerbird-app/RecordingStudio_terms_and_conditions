@@ -109,7 +109,8 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Recording"
     assert_includes response.body, "fp-content"
     assert_includes response.body, "Draft"
-    assert_includes response.body, "Publish now"
+    assert_includes response.body, "Release"
+    refute_includes response.body, "Publish now"
     refute_select "a", text: "Publish"
     assert_select "a", text: "Users"
     refute_includes response.body, "Who agreed"
@@ -122,6 +123,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "People who ticked the box for these terms."
 
     publish_terms!(recording, slug: "house-rules-#{SecureRandom.hex(4)}")
+    recording.reload
     RecordingStudioTermsAndConditions.accept!(@member, recording, { "source" => "clickwrap" })
     get recording_studio_terms_and_conditions.admin_term_users_path(recording)
     assert_response :success

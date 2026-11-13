@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Staff no longer edit the parent body directly. The parent text is rebuilt only at release. Every release is a new version people must accept again.
+- Publishing a Terms document that already has an outline, from the Admin show page or from Publishable's publish path, goes through Release. The show page offers Release instead of Publish now. The hook still fires once, and one live copy per kind remains.
+- `TermsWrite` raises `TermsWrite::OutlinePresent` when the document already has an outline. It still saves a document that has none.
 - New dependency `recording_studio_moveable` `>= 4.1.0`, `< 5`. Releasing a live document moves its sections onto the new draft so section and clause ids stay put.
 
 ### Upgrade notes (0.17.0 → 0.18.0)
@@ -27,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Run `ACTOR_TYPE=User ACTOR_ID=<staff id> bin/rails recording_studio_terms_and_conditions:seed_outline` once. It is safe to run again. It does not create a Terms version and does not touch receipts.
 - Public reads stay `terms_pending_published_list`, `terms_current_published_for`, and `terms_accepted`. List `terms_documents` on the workspace. List the outline, edit, preview, and release actions on `RecordingStudioTermsAndConditions::Terms`. Set `auto_capability_actions: false` on those types so only the listed actions are exposed. Grant the API client Accessible on the admin root (`:view` to read, `:edit` to change or release). There is no API or MCP accept action.
 - Consumers that only read a published title and body need the version bump, the migrations, and the seed. They do not need a new receipt system. Agree, public URLs, the gate, helpers, `:terms_acceptances`, and the hook payload are unchanged.
-- The show-page Publish control still publishes the stored parent text. Use Release to rebuild that text from the outline.
+- `terms_release` is an admin API action and an MCP `capability_action`. There is no accept action. `TermsWrite` cannot overwrite a document that already has an outline.
 
 ## [0.17.0] - 2026-11-12
 

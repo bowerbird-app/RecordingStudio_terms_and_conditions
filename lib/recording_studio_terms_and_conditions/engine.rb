@@ -183,6 +183,7 @@ module RecordingStudioTermsAndConditions
       config.after_initialize do
         RecordingStudioTermsAndConditions::SoleLive.install!
         RecordingStudioTermsAndConditions::Published.install!
+        RecordingStudioTermsAndConditions::OutlinePublish.install!
       end
     end
 
@@ -203,6 +204,7 @@ module RecordingStudioTermsAndConditions
         RecordingStudioTermsAndConditions::AcceptanceGateInstaller.call
         RecordingStudioTermsAndConditions::SoleLive.install!
         RecordingStudioTermsAndConditions::Published.install!
+        RecordingStudioTermsAndConditions::OutlinePublish.install!
         RecordingStudioTermsAndConditions::Engine.prepend_users_signup_view_path
       end
     end

@@ -2,7 +2,10 @@
 
 module RecordingStudioTermsAndConditions
   # Saves Terms copy. A live recording stays frozen; the edit becomes a new draft.
+  # A document that already has an outline must be edited as sections and clauses.
   class TermsWrite
+    class OutlinePresent < StandardError; end
+
     def self.call(recording:, actor:, title:, body:, kind: nil)
       new(recording: recording, actor: actor, title: title, body: body, kind: kind).call
     end
@@ -16,6 +19,7 @@ module RecordingStudioTermsAndConditions
     end
 
     def call
+      refuse_outline!
       return recording if live? && same_copy?
 
       live? ? fork_draft : revise_draft
@@ -27,6 +31,13 @@ module RecordingStudioTermsAndConditions
 
     def live?
       recording.respond_to?(:currently_published?) && recording.currently_published?
+    end
+
+    def refuse_outline!
+      return if Outline.sections(recording).empty?
+
+      raise OutlinePresent,
+            "This Terms document has an outline. Edit a section or a clause, then release."
     end
 
     def same_copy?
