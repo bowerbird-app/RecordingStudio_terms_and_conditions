@@ -141,6 +141,12 @@ module TermsDemoTestHelper
   end
 
   def switch_to_workspace(workspace)
+    # Root Switchable 0.12+ returns 403 unless the signed-in actor holds
+    # Accessible :view on the current root. Dummy's scope still lists every
+    # root; the page floor is the new requirement.
+    grant_current_root_view!(@terms_signed_in_user)
+    grant_view_access!(@terms_signed_in_user, workspace) if @terms_signed_in_user && workspace
+
     recording = RecordingStudio.root_recording_for(workspace)
     patch "/recording_studio_root_switchable/v1/root_switch", params: {
       scope: "all_workspaces",
@@ -151,6 +157,59 @@ module TermsDemoTestHelper
     }
   end
 
+  def grant_view_access!(actor, recordable)
+    return unless actor && recordable
+
+    recording = if recordable.is_a?(RecordingStudio::Recording)
+                  recordable
+                else
+                  RecordingStudio.root_recording_for(recordable)
+                end
+    return if RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: :view)
+
+    manager = access_admin_for(recording)
+    if manager && manager != actor
+      previous_actor = Current.actor if defined?(Current)
+      begin
+        Current.actor = manager if defined?(Current) && Current.respond_to?(:actor=)
+        result = RecordingStudioAccessible.grant_access(
+          recording: recording,
+          actor: actor,
+          role: :view,
+          manager_actor: manager
+        )
+        raise result.error if result.respond_to?(:failure?) && result.failure?
+      ensure
+        Current.actor = previous_actor if defined?(Current) && Current.respond_to?(:actor=)
+      end
+      return
+    end
+
+    bootstrap_owner_access!(actor, recording)
+  end
+
+  def grant_current_root_view!(actor)
+    return unless actor
+
+    RecordingStudio::RootSwitchable::Selection.where(actor: actor).find_each do |selection|
+      recordable = selection.root_recording&.recordable
+      grant_view_access!(actor, recordable) if recordable
+    end
+
+    current = dummy_default_switch_root
+    grant_view_access!(actor, current.recordable) if current&.recordable
+  end
+
+  def dummy_default_switch_root
+    admin = AdminRoot.find_by(name: "Admin")
+    admin_recording = admin && RecordingStudio.root_recording_for(admin)
+    workspace_roots = Workspace.order(:name).filter_map do |workspace|
+      RecordingStudio.root_recording_for(workspace)
+    end
+    roots = [admin_recording, *workspace_roots].compact
+    roots.find { |root| root.recordable.try(:name) == "Studio Workspace" } || roots.first
+  end
+
   def without_live_terms_fallback
     gate = RecordingStudioTermsAndConditions::Gate
     original = gate.method(:first_root_with_live_terms)
@@ -158,6 +217,20 @@ module TermsDemoTestHelper
     yield
   ensure
     gate.define_singleton_method(:first_root_with_live_terms, original)
+  end
+end
+
+module TermsSignInTracker
+  def sign_in(resource, *args, **kwargs)
+    @terms_signed_in_user = resource if resource.is_a?(User)
+    super
+  end
+end
+
+class ActionDispatch::IntegrationTest
+  def self.inherited(subclass)
+    super
+    subclass.prepend(TermsSignInTracker)
   end
 end
 
