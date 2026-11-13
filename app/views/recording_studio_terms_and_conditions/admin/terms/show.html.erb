@@ -11,7 +11,14 @@
     <%= render FlatPack::PageTitle::Component.new(title: "Current version", variant: :h2) %>
     <% if @live %>
       <p class="text-sm text-[var(--surface-muted-content-color)]"><%= terms_version_label(@current_version) %></p>
-      <div class="flex flex-wrap items-center gap-3">
+    <% else %>
+      <%= render FlatPack::EmptyState::Component.new(
+        title: "Nothing is live.",
+        description: "This document has not been released."
+      ) %>
+    <% end %>
+    <div class="flex flex-wrap items-center gap-3">
+      <% if @live %>
         <div class="inline-block">
           <%= render FlatPack::Button::Component.new(text: "View full text", style: :secondary, href: text_admin_term_path(@terms_recording)) %>
         </div>
@@ -22,15 +29,10 @@
             href: admin_term_user_path(@terms_recording, @terms.id)
           ) %>
         </div>
+      <% end %>
+      <div class="inline-block">
+        <%= render FlatPack::Button::Component.new(text: "Agreement history", style: :secondary, href: admin_term_users_path(@terms_recording)) %>
       </div>
-    <% else %>
-      <%= render FlatPack::EmptyState::Component.new(
-        title: "Nothing is live.",
-        description: "This document has not been released."
-      ) %>
-    <% end %>
-    <div class="inline-block">
-      <%= render FlatPack::Button::Component.new(text: "Agreement history", style: :secondary, href: admin_term_users_path(@terms_recording)) %>
     </div>
   </section>
 
@@ -39,14 +41,14 @@
     <p><%= terms_change_summary(@changes) %></p>
     <div class="flex flex-wrap items-center gap-3">
       <div class="inline-block">
-        <%= render FlatPack::Button::Component.new(text: "Edit sections", style: :primary, href: admin_term_sections_path(@terms_recording)) %>
+        <%= render FlatPack::Button::Component.new(text: "Edit sections", style: :secondary, href: admin_term_sections_path(@terms_recording)) %>
       </div>
       <% if @unreleased %>
         <div class="inline-block">
           <%= render FlatPack::Button::Component.new(text: "Review changes", style: :secondary, href: changes_admin_term_path(@terms_recording)) %>
         </div>
         <div class="inline-block">
-          <%= render FlatPack::Button::Component.new(text: "Release", style: :primary, href: preview_admin_term_path(@terms_recording)) %>
+          <%= render FlatPack::Button::Component.new(text: "Release", style: :secondary, href: preview_admin_term_path(@terms_recording)) %>
         </div>
       <% end %>
     </div>
