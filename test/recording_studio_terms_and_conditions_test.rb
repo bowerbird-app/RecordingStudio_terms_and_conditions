@@ -482,7 +482,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes controller, "RecordingStudioPublishable::ApplicationHelper"
     assert_includes admin_show, "admin_term_users_path"
     refute_includes admin_show, "Who agreed"
-    assert_includes admin_show, 'text: "Edit sections"'
+    assert_includes admin_show, 'text: "Edit"'
+    refute_includes admin_show, 'text: "Edit sections"'
     assert_includes admin_show, 'text: "Release"'
     refute_includes admin_show, "snapshot"
     users = engine_source("#{views}/admin/term_users/index.html.erb")

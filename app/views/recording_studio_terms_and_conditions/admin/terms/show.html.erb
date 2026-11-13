@@ -41,7 +41,7 @@
     <p><%= terms_change_summary(@changes) %></p>
     <div class="flex flex-wrap items-center gap-3">
       <div class="inline-block">
-        <%= render FlatPack::Button::Component.new(text: "Edit sections", style: :secondary, href: admin_term_sections_path(@terms_recording)) %>
+        <%= render FlatPack::Button::Component.new(text: "Edit", style: :secondary, href: admin_term_sections_path(@terms_recording)) %>
       </div>
       <% if @unreleased %>
         <div class="inline-block">

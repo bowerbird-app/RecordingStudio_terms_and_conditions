@@ -45,7 +45,8 @@ class OutlineScreensTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Current version"
     assert_includes response.body, "View full text"
     assert_includes response.body, "0 agreed"
-    assert_includes response.body, "Edit sections"
+    assert_select "a", text: "Edit"
+    refute_includes response.body, "Edit sections"
     assert_includes response.body, "No unreleased changes"
     assert_select "a", text: "Review changes", count: 0
     assert_select "a", text: "Release", count: 0
