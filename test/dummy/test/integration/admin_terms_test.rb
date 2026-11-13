@@ -106,8 +106,9 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Terms drafted. Publish when they are ready."
     refute_select "header.fp-top-nav"
     assert_includes response.body, "House rules"
-    assert_includes response.body, "Recording"
-    assert_includes response.body, "fp-content"
+    assert_includes response.body, "Full text"
+    assert_includes response.body, "Sections"
+    assert_includes response.body, "Review changes"
     assert_includes response.body, "Draft"
     assert_includes response.body, "Release"
     refute_includes response.body, "Publish now"
@@ -143,7 +144,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_equal original_snapshot_id, live.recordable_id
     assert_equal original_body, live.recordable.body
     assert live.currently_published?
-    assert_redirected_to recording_studio_terms_and_conditions.edit_admin_term_path(recording)
+    assert_redirected_to recording_studio_terms_and_conditions.admin_term_clause_path(recording, clause.recording)
     follow_redirect!
     assert_includes response.body, "Whisper, please."
     assert_includes response.body, "Unreleased changes"
@@ -381,7 +382,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
     get "/admin"
     assert_response :success
-    edit_path = RecordingStudioTermsAndConditions.edit_admin_term_path(recording)
+    edit_path = RecordingStudioTermsAndConditions.admin_term_path(recording)
     assert_select "a[href=?][data-fp-style=secondary]", edit_path, text: "Edit Terms"
     refute_select "button", text: "Edit Terms"
   end

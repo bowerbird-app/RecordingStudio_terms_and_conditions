@@ -1,4 +1,4 @@
-<% terms_page_nav(title: "Release", back_url: edit_admin_term_path(@terms_recording), back_label: "Edit") %>
+<% terms_page_nav(title: "Release", back_url: admin_term_path(@terms_recording), back_label: @terms.title) %>
 
 <div class="mx-auto flex w-full flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(

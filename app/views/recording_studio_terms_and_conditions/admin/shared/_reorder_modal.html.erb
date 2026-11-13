@@ -1,0 +1,23 @@
+<div
+  data-controller="recording-studio-terms-and-conditions--reload-order"
+  data-action="list:saved->recording-studio-terms-and-conditions--reload-order#reload"
+>
+  <%= render FlatPack::Modal::Component.new(id: modal_id, title: "Reorder", size: :md, scroll: :page) do |modal| %>
+    <% modal.body do %>
+      <%= render FlatPack::List::Component.new(
+        orderable: true,
+        divider: true,
+        class: "w-full",
+        orderable_url: order_url,
+        param_uuid_name: "moving_recording_id",
+        param_target_position_name: "target_position"
+      ) do %>
+        <% items.each do |item| %>
+          <%= render FlatPack::List::Item.new(id: item.recording.id, hover: true, class: "!items-center") do %>
+            <span class="block truncate text-sm font-medium"><%= item.number %>. <%= label.call(item) %></span>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>

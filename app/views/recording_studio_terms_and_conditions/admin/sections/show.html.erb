@@ -1,0 +1,65 @@
+<% terms_page_nav(title: @section.heading, back_url: admin_term_sections_path(@terms_recording), back_label: "Sections") %>
+
+<div class="mx-auto flex w-full flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: "#{@section.number}. #{@section.heading}",
+    subtitle: "Section",
+    variant: :h1
+  ) do |page_title| %>
+    <% page_title.slot do %>
+      <% if @unreleased %>
+        <%= render FlatPack::Badge::Component.new(text: "Unreleased changes", style: :warning, size: :sm) %>
+      <% end %>
+      <%= terms_changed_badge(@changes, @section.id) %>
+    <% end %>
+  <% end %>
+
+  <%= form_with url: admin_term_section_path(@terms_recording, @section.recording), method: :patch, scope: :section, class: "flex w-full flex-col gap-3" do %>
+    <%= render FlatPack::TextInput::Component.new(name: "section[heading]", value: @section.heading, label: "Heading", required: true) %>
+    <div class="inline-block">
+      <%= render FlatPack::Button::Component.new(text: "Save heading", style: :secondary, type: "submit") %>
+    </div>
+  <% end %>
+
+  <div class="flex flex-wrap items-center gap-3">
+    <div class="inline-block">
+      <%= render FlatPack::Button::Component.new(
+        text: "Add clause",
+        style: :primary,
+        href: new_admin_term_section_clause_path(@terms_recording, @section.recording)
+      ) %>
+    </div>
+    <% if @section.clauses.any? %>
+      <div class="inline-block">
+        <%= render FlatPack::Button::Component.new(text: "Reorder", style: :secondary, data: { modal_id: "terms-clauses-order" }) %>
+      </div>
+    <% end %>
+    <%= form_with url: admin_term_section_path(@terms_recording, @section.recording), method: :delete, data: { turbo_confirm: "Remove this section?" } do %>
+      <%= render FlatPack::Button::Component.new(text: "Remove", style: :ghost, type: "submit") %>
+    <% end %>
+  </div>
+
+  <% if @section.clauses.empty? %>
+    <%= render FlatPack::EmptyState::Component.new(title: "No clauses yet", description: "Add a clause for this section.") %>
+  <% else %>
+    <%= render FlatPack::List::Component.new(divider: true, class: "w-full") do %>
+      <% @section.clauses.each do |clause| %>
+        <%= render FlatPack::List::Item.new(
+          href: admin_term_clause_path(@terms_recording, clause.recording),
+          title: clause.number,
+          subtitle: terms_clause_preview(clause.body),
+          hover: true,
+          trailing: terms_changed_badge(@changes, clause.id)
+        ) %>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <% if @section.clauses.any? %>
+    <%= render "recording_studio_terms_and_conditions/admin/shared/reorder_modal",
+          modal_id: "terms-clauses-order",
+          order_url: admin_term_section_clause_order_path(@terms_recording, @section.recording),
+          items: @section.clauses,
+          label: ->(clause) { terms_clause_preview(clause.body) } %>
+  <% end %>
+</div>

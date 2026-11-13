@@ -467,7 +467,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin_index, 'text: "New"'
     refute_includes admin_index, 'text: "Write terms"'
     assert_includes admin_show, "terms_heading_date"
-    assert_includes admin_show, "terms_content"
+    assert_includes admin_show, 'text: "Full text"'
+    assert_includes admin_show, "Unreleased changes"
+    assert_includes engine_source("#{views}/admin/terms/text.html.erb"), "terms_content"
     assert_includes admin_show, 'text: "Users"'
     assert_includes admin_show, "terms_publishable_quick_actions"
     refute_includes admin_show, 'text: "Publish"'
@@ -479,8 +481,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes controller, "RecordingStudioPublishable::ApplicationHelper"
     assert_includes admin_show, "admin_term_users_path"
     refute_includes admin_show, "Who agreed"
-    assert_includes admin_show, "Recording"
-    assert_includes admin_show, "snapshot"
+    assert_includes admin_show, 'text: "Sections"'
+    assert_includes admin_show, 'text: "Release"'
+    refute_includes admin_show, "snapshot"
     users = engine_source("#{views}/admin/term_users/index.html.erb")
     assert_includes users, 'title: "Users"'
     assert_includes users, "terms_users_subtitle"
@@ -494,12 +497,18 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes admin_new, "skip_top_nav"
     assert_includes admin_new, "New Terms and Conditions"
     refute_includes admin_new, "Write terms"
-    assert_includes engine_source("#{views}/admin/terms/edit.html.erb"), 'title: "Edit"'
-    assert_includes engine_source("#{views}/admin/terms/edit.html.erb"), "Release"
-    refute_includes engine_source("#{views}/admin/terms/edit.html.erb"), "Save version"
-    refute_includes engine_source("#{views}/admin/terms/edit.html.erb"), "Edit terms"
-    refute_includes engine_source("#{views}/admin/terms/edit.html.erb"), "FlatPack::Card::Component"
-    assert_includes engine_source("#{views}/admin/terms/edit.html.erb"), 'class="inline-block"'
+    sections_index = engine_source("#{views}/admin/sections/index.html.erb")
+    reorder = engine_source("#{views}/admin/shared/_reorder_modal.html.erb")
+    clause_edit = engine_source("#{views}/admin/clauses/edit.html.erb")
+    assert_includes sections_index, "Add section"
+    assert_includes sections_index, "Reorder"
+    assert_includes reorder, "moving_recording_id"
+    assert_includes reorder, "target_position"
+    assert_includes reorder, "orderable: true"
+    refute_includes clause_edit, "clause[title]"
+    refute_includes clause_edit, "FlatPack::Card::Component"
+    assert_includes clause_edit, 'class="inline-block"'
+    refute File.exist?(engine_path("#{views}/admin/terms/edit.html.erb"))
     refute_includes admin_show, "FlatPack::Card::Component"
     assert_includes admin_index, "FlatPack::Table::Component"
     assert_includes admin_index, "terms_table_pagination"

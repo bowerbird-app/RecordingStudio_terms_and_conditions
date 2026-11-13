@@ -75,7 +75,7 @@ Sign in at `/users/sign_in`: email first (**Continue with email**), then passwor
 - `/recording_studio_terms_and_conditions/acceptance` — Agree (clickwrap) screen. The engine root redirects here.
 - `/admin` — Recording Studio Admin Terms and Conditions hub (Edit Terms, Edit Privacy Policy, agree counts, and agrees over time)
 - `/admin/sections` and `/admin/sections/terms` — redirect to `/admin`
-- `/recording_studio_terms_and_conditions/admin/terms` — redirects to `/admin/screens/recording_studio_terms`. Show, edit, and new stay on the engine. Switch to the Admin root first.
+- `/recording_studio_terms_and_conditions/admin/terms` — redirects to `/admin/screens/recording_studio_terms`. The document, its sections, and its clauses stay on the engine. Switch to the Admin root first.
 - `/terms/:uuid/:slug` — public published Terms
 - `/recording_studio` — redirect to `/` while the mounted Recording Studio engine remains data/API-focused
 - `/agree_helper` — dummy demo of the embeddable Agree helper (code example + checkbox)
@@ -121,7 +121,7 @@ Numbers come from order. The id used by the admin screens and the API is the sec
 
 Unreleased changes are the difference between the current outline and the last release manifest. The comparison uses wording, order, and which children exist. Putting the released wording back is not a change.
 
-Admin edits the outline, reviews each change, and releases. The Agree screen and the public pages keep reading the parent title and body.
+Admin opens a document, then drills into it. The document page shows whether it is live, whether anything is unreleased, and links to the full text, the section list, the review, and Release. Full text is read-only and switches between the live wording and the next release. The section list shows each section's number, heading, and clause count. A section page edits that heading and lists each clause by number and a short preview. A clause page shows the full wording, then Edit and Remove. Clauses have no titles. Reorder opens a drag-and-drop list. Nothing in that flow publishes. Release still builds the parent text. The Agree screen and the public pages keep reading that parent title and body.
 
 ```ruby
 RecordingStudioApi.register_recordable_type_api(

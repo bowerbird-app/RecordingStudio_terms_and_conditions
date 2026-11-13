@@ -1,0 +1,33 @@
+<% terms_page_nav(title: "Full text", back_url: admin_term_path(@terms_recording), back_label: @terms.title) %>
+
+<div class="mx-auto flex w-full flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: "Full text",
+    subtitle: @version == "next" ? "The next release. Nobody has agreed to this yet." : "The text people agree to.",
+    variant: :h1
+  ) %>
+
+  <div class="flex flex-wrap gap-3">
+    <div class="inline-block">
+      <%= render FlatPack::Button::Component.new(
+        text: "Live version",
+        style: @version == "live" ? :primary : :secondary,
+        href: text_admin_term_path(@terms_recording, version: "live")
+      ) %>
+    </div>
+    <div class="inline-block">
+      <%= render FlatPack::Button::Component.new(
+        text: "Next release",
+        style: @version == "next" ? :primary : :secondary,
+        href: text_admin_term_path(@terms_recording, version: "next")
+      ) %>
+    </div>
+  </div>
+
+  <%= render FlatPack::PageTitle::Component.new(title: @document_title, variant: :h2) %>
+  <% if @document_body.present? %>
+    <%= terms_content(@document_body) %>
+  <% else %>
+    <%= render FlatPack::EmptyState::Component.new(title: "No text yet", description: "Add a section, then come back.") %>
+  <% end %>
+</div>

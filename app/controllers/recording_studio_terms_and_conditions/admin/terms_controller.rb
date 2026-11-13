@@ -5,7 +5,7 @@ module RecordingStudioTermsAndConditions
     class TermsController < BaseController # rubocop:disable Metrics/ClassLength
       before_action :authorize_terms_index!, only: :index
       before_action :authorize_terms_write!, only: %i[new create edit update release]
-      before_action :authorize_terms_show!, only: %i[show changes preview]
+      before_action :authorize_terms_show!, only: %i[show changes preview text]
 
       def index
         hub = RecordingStudioTermsAndConditions.admin_hub_path
@@ -43,14 +43,19 @@ module RecordingStudioTermsAndConditions
       end
 
       def edit
-        Outline.seed_recording!(terms_recording, actor: current_admin_actor)
-        @terms = terms_recording.recordable
-        @sections = Outline.sections(terms_recording)
-        @unreleased = Outline.unreleased?(terms_recording)
+        redirect_to admin_term_path(terms_recording)
       end
 
       def update
-        redirect_to edit_admin_term_path(terms_recording), alert: "Edit a section or a clause, then release."
+        redirect_to admin_term_path(terms_recording), alert: "Edit a section or a clause, then release."
+      end
+
+      def text
+        @terms = terms_recording.recordable
+        @version = params[:version].to_s == "next" ? "next" : "live"
+        preview = Outline.preview(terms_recording)
+        @document_title = @version == "next" ? preview[:title] : @terms.title
+        @document_body = @version == "next" ? preview[:body] : @terms.body
       end
 
       def changes

@@ -7,15 +7,15 @@ RecordingStudioTermsAndConditions::Engine.routes.draw do
       member do
         get :changes
         get :preview
+        get :text
         post :release
       end
-      resources :sections, only: %i[create update destroy] do
-        member { post :move }
-        resources :clauses, only: :create
+      resource :section_order, only: :update, controller: "section_orders"
+      resources :sections, only: %i[index new create show update destroy] do
+        resource :clause_order, only: :update, controller: "clause_orders"
+        resources :clauses, only: %i[new create]
       end
-      resources :clauses, only: %i[update destroy] do
-        member { post :move }
-      end
+      resources :clauses, only: %i[show edit update destroy]
       resources :users, only: :index, controller: "term_users"
     end
     get "people/:actor_type/:actor_id",

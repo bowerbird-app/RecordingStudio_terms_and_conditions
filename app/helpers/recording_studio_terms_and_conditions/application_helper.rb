@@ -4,6 +4,7 @@ module RecordingStudioTermsAndConditions
   module ApplicationHelper
     include AgreeHelper
     include ContinueNoticeHelper
+    include OutlineHelper
     include TablePaginationHelper
     include TermsDateHelper
 
@@ -14,10 +15,6 @@ module RecordingStudioTermsAndConditions
       toolbar: :standard,
       placeholder: TERMS_BODY_PLACEHOLDER
     }.freeze
-
-    def review_words(value)
-      strip_tags(value.to_s).squish.presence || "—"
-    end
 
     def terms_page_nav(title:, back_url: nil, back_label: "Back")
       content_for(:title, title) if title.present?

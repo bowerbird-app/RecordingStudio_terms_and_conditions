@@ -4,43 +4,41 @@
   title: @terms.title,
   subtitle: [@terms.kind_label, terms_heading_date(@terms, recording: @terms_recording)].compact.join(" · "),
   variant: :h1
-) do |page_title| %>
-  <% page_title.slot do %>
-    <%= render FlatPack::Button::Component.new(
-      text: "Users",
-      style: :secondary,
-      href: admin_term_users_path(@terms_recording)
-    ) %>
-    <%= render FlatPack::Button::Component.new(
-      text: "Edit",
-      style: :secondary,
-      href: edit_admin_term_path(@terms_recording)
-    ) %>
-    <% if terms_has_outline?(@terms_recording) && !@terms_recording.currently_published? %>
-      <%= render FlatPack::Badge::Component.new(text: "Draft", style: :default, size: :sm) %>
-      <%= form_with url: release_admin_term_path(@terms_recording), method: :post do %>
-        <%= render FlatPack::Button::Component.new(text: "Release", style: :primary, type: "submit") %>
-      <% end %>
-    <% else %>
-      <%= terms_publishable_quick_actions(@terms_recording) %>
-    <% end %>
-  <% end %>
-<% end %>
+) %>
 
-<div class="mb-6 flex flex-col gap-3">
-  <p class="mt-1 text-sm text-[var(--surface-muted-content-color)]">
-    Recording <%= @terms_recording.id %> · snapshot <%= @terms.id %>
-  </p>
-  <div class="self-start">
-    <%= render FlatPack::Badge::Component.new(
-      text: @unreleased ? "Unreleased changes" : "Live copy matches",
-      style: @unreleased ? :warning : :success,
-      size: :sm
-    ) %>
-  </div>
-  <% if @unreleased %>
-    <%= render FlatPack::Button::Component.new(text: "Review", style: :secondary, href: changes_admin_term_path(@terms_recording)) %>
-  <% end %>
+<div class="mb-6 flex flex-wrap items-center gap-3">
+  <%= render FlatPack::Badge::Component.new(
+    text: @terms_recording.currently_published? ? "Live" : "Draft",
+    style: @terms_recording.currently_published? ? :success : :default,
+    size: :sm
+  ) %>
+  <%= render FlatPack::Badge::Component.new(
+    text: @unreleased ? "Unreleased changes" : "Up to date",
+    style: @unreleased ? :warning : :success,
+    size: :sm
+  ) %>
 </div>
 
-<%= terms_content(@terms.body) %>
+<div class="flex flex-wrap items-center gap-3">
+  <div class="inline-block">
+    <%= render FlatPack::Button::Component.new(text: "Full text", style: :secondary, href: text_admin_term_path(@terms_recording)) %>
+  </div>
+  <div class="inline-block">
+    <%= render FlatPack::Button::Component.new(text: "Sections", style: :secondary, href: admin_term_sections_path(@terms_recording)) %>
+  </div>
+  <div class="inline-block">
+    <%= render FlatPack::Button::Component.new(text: "Review changes", style: :secondary, href: changes_admin_term_path(@terms_recording)) %>
+  </div>
+  <div class="inline-block">
+    <%= render FlatPack::Button::Component.new(text: "Release", style: :primary, href: preview_admin_term_path(@terms_recording)) %>
+  </div>
+  <div class="inline-block">
+    <%= render FlatPack::Button::Component.new(text: "Users", style: :secondary, href: admin_term_users_path(@terms_recording)) %>
+  </div>
+</div>
+
+<% unless terms_has_outline?(@terms_recording) %>
+  <div class="mt-6">
+    <%= terms_publishable_quick_actions(@terms_recording) %>
+  </div>
+<% end %>

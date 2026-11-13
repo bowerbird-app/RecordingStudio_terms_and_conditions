@@ -46,7 +46,7 @@ class LiveTermsEditKeepsAgreementTest < ActionDispatch::IntegrationTest
     publishable = live.publishable_child_recording
 
     switch_to_workspace(@admin_root)
-    get recording_studio_terms_and_conditions.edit_admin_term_path(live)
+    get recording_studio_terms_and_conditions.admin_term_sections_path(live)
     assert_response :success
     clause = RecordingStudioTermsAndConditions::Outline.sections(live.reload).first.clauses.first
     parent_snapshot = live.recordable_id

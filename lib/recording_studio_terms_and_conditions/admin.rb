@@ -240,7 +240,7 @@ module RecordingStudioTermsAndConditions
              icon: "pencil-square",
              required_role: :edit,
              url: lambda { |recording, _context|
-               RecordingStudioTermsAndConditions.edit_admin_term_path(recording) if recording
+               RecordingStudioTermsAndConditions.admin_term_path(recording) if recording
              },
              visible_if: ->(recording, _context) { recording.present? }
 
@@ -293,7 +293,7 @@ module RecordingStudioTermsAndConditions
         recording = live_recording(kind)
         return if recording.blank?
 
-        RecordingStudioTermsAndConditions.edit_admin_term_path(recording)
+        RecordingStudioTermsAndConditions.admin_term_path(recording)
       end
 
       def actor_name(actor)
