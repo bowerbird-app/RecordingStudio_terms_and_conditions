@@ -522,11 +522,20 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes sections_index, 'turbo_confirm: "Remove this section?"'
     refute_includes section_show, "section[heading]"
     refute_includes section_show, "Save heading"
-    refute_includes section_show, 'text: "Edit"'
     refute_includes section_show, "edit_admin_term_section_path"
     refute_includes section_show, 'text: "Remove"'
     refute_includes section_show, "Remove this section?"
-    refute_includes section_show, "method: :delete"
+    assert_includes section_show, "FlatPack::Grid::Component"
+    assert_includes section_show, "FlatPack::Card::Component"
+    assert_includes section_show, "border: :default"
+    assert_includes section_show, "leading: clause.number"
+    assert_includes section_show, "terms_body(clause.body)"
+    assert_includes section_show, 'text: "Edit clause"'
+    assert_includes section_show, "edit_admin_term_clause_path"
+    assert_includes section_show, 'text: "Delete"'
+    assert_includes section_show, "destructive: true"
+    assert_includes section_show, 'turbo_confirm: "Remove this clause?"'
+    assert_includes section_show, "terms_clause_preview(clause.body)"
     assert_includes section_edit, "section[heading]"
     assert_includes section_edit, 'text: "Save"'
     assert_includes section_edit, 'text: "Cancel"'

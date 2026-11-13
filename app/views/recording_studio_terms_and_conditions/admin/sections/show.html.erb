@@ -32,15 +32,39 @@
   <% if @section.clauses.empty? %>
     <%= render FlatPack::EmptyState::Component.new(title: "No clauses yet", description: "Add a clause for this section.") %>
   <% else %>
-    <%= render FlatPack::List::Component.new(divider: true, class: "w-full") do %>
-      <% @section.clauses.each do |clause| %>
-        <%= render FlatPack::List::Item.new(
-          href: admin_term_clause_path(@terms_recording, clause.recording),
-          title: clause.number,
-          subtitle: terms_clause_preview(clause.body),
-          hover: true,
-          trailing: terms_changed_badge(@changes, clause.id)
-        ) %>
+    <%= render FlatPack::Grid::Component.new(cols: 2) do %>
+      <%= render FlatPack::Card::Component.new(border: :default, padding: :none) do %>
+        <%= render FlatPack::List::Component.new(divider: true, class: "w-full") do %>
+          <% @section.clauses.each do |clause| %>
+            <% dropdown = FlatPack::Button::Dropdown::Component.new(
+              text: "Clause actions",
+              icon: "ellipsis-horizontal",
+              icon_only: true,
+              style: :secondary,
+              size: :sm,
+              placement: :bottom_right
+            ) %>
+            <% dropdown.menu_item(
+              text: "Edit clause",
+              href: edit_admin_term_clause_path(@terms_recording, clause.recording)
+            ) %>
+            <% dropdown.menu_html(capture do %>
+              <%= form_with url: admin_term_clause_path(@terms_recording, clause.recording), method: :delete, data: { turbo_confirm: "Remove this clause?" }, class: "w-full" do %>
+                <%= render FlatPack::Button::DropdownItem::Component.new(text: "Delete", icon: "trash", destructive: true) %>
+              <% end %>
+            <% end) %>
+            <%= render FlatPack::List::Item.new(
+              leading: clause.number,
+              hover: true,
+              align: :start,
+              trailing: tag.span(class: "inline-flex items-center gap-2") {
+                safe_join([terms_changed_badge(@changes, clause.id), render(dropdown)].compact)
+              }
+            ) do %>
+              <%= terms_body(clause.body) %>
+            <% end %>
+          <% end %>
+        <% end %>
       <% end %>
     <% end %>
   <% end %>

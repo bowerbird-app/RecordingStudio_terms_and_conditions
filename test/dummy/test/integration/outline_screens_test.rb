@@ -78,16 +78,26 @@ class OutlineScreensTest < ActionDispatch::IntegrationTest
     assert_select ".fp-card"
     assert_includes response.body, "grid-cols-2"
 
+    long_body = "One sentence. Two sentences. Three stays on the row.\n\nSecond paragraph stays."
+    RecordingStudioTermsAndConditions::Outline.add_clause(section.recording, body: long_body, actor: @admin)
+
     get routes.admin_term_section_path(@recording, section.recording)
     assert_response :success
     assert_includes response.body, "#{section.number}. #{section.heading}"
     assert_includes response.body, clause.number
     assert_includes response.body, "Keep the door shut."
+    assert_includes response.body, "Three stays on the row."
+    assert_includes response.body, "Second paragraph stays."
     assert_includes response.body, "Add clause"
     assert_select "a", text: "Edit", count: 0
+    assert_select "a", text: "Edit clause"
+    assert_select "button", text: "Delete"
+    assert_includes response.body, "Remove this clause?"
     assert_select "button", text: "Remove", count: 0
     refute_includes response.body, "Remove this section?"
     refute_includes response.body, "edit_admin_term_section"
+    assert_select ".fp-card"
+    assert_includes response.body, "grid-cols-2"
     refute_includes response.body, "section[heading]"
     refute_includes response.body, "Save heading"
     refute_includes response.body, "clause[title]"
