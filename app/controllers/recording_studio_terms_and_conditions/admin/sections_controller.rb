@@ -18,6 +18,10 @@ module RecordingStudioTermsAndConditions
 
       def new; end
 
+      def edit
+        section
+      end
+
       def create
         recording = Outline.add_section(terms_recording, heading: section_params[:heading], actor: current_admin_actor)
         redirect_to admin_term_section_path(terms_recording, recording), notice: "Section added."
@@ -29,7 +33,7 @@ module RecordingStudioTermsAndConditions
         Outline.edit_section(section.recording, heading: section_params[:heading], actor: current_admin_actor)
         redirect_to section_path, notice: "Heading saved."
       rescue ActiveRecord::RecordInvalid => e
-        redirect_to section_path, alert: e.record.errors.full_messages.to_sentence
+        redirect_to edit_section_path, alert: e.record.errors.full_messages.to_sentence
       end
 
       def destroy
@@ -71,6 +75,10 @@ module RecordingStudioTermsAndConditions
 
       def section_path
         admin_term_section_path(terms_recording, section.recording)
+      end
+
+      def edit_section_path
+        edit_admin_term_section_path(terms_recording, section.recording)
       end
     end
   end

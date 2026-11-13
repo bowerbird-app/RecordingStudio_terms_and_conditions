@@ -72,10 +72,22 @@ class OutlineScreensTest < ActionDispatch::IntegrationTest
 
     get routes.admin_term_section_path(@recording, section.recording)
     assert_response :success
+    assert_includes response.body, "#{section.number}. #{section.heading}"
     assert_includes response.body, clause.number
     assert_includes response.body, "Keep the door shut."
     assert_includes response.body, "Add clause"
+    assert_select "a", text: "Edit"
+    refute_includes response.body, "section[heading]"
+    refute_includes response.body, "Save heading"
     refute_includes response.body, "clause[title]"
+
+    get routes.edit_admin_term_section_path(@recording, section.recording)
+    assert_response :success
+    assert_includes response.body, "section[heading]"
+    assert_includes response.body, section.heading
+    assert_select "button", text: "Save"
+    assert_select "a", text: "Cancel"
+    refute_includes response.body, "Add clause"
 
     get routes.admin_term_clause_path(@recording, clause.recording)
     assert_response :success
@@ -88,6 +100,33 @@ class OutlineScreensTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "clause[body]"
     refute_includes response.body, "clause[title]"
     refute_includes response.body, "Title"
+  end
+
+  test "saving a section heading returns to the section and stays unreleased" do
+    routes = recording_studio_terms_and_conditions
+    section = RecordingStudioTermsAndConditions::Outline.sections(@recording).first
+    snapshot = @recording.recordable_id
+    body = @recording.recordable.body
+
+    patch routes.admin_term_section_path(@recording, section.recording), params: {
+      section: { heading: "House rules" }
+    }
+
+    assert_redirected_to routes.admin_term_section_path(@recording, section.recording)
+    follow_redirect!
+    assert_includes response.body, "1. House rules"
+    refute_includes response.body, "section[heading]"
+    assert_equal snapshot, @recording.reload.recordable_id
+    assert_equal body, @recording.recordable.body
+    assert RecordingStudioTermsAndConditions::Outline.unreleased?(@recording)
+    assert_equal "House rules", RecordingStudioTermsAndConditions::Outline.sections(@recording).first.heading
+
+    patch routes.admin_term_section_path(@recording, section.recording), params: {
+      section: { heading: "" }
+    }
+
+    assert_redirected_to routes.edit_admin_term_section_path(@recording, section.recording)
+    assert_equal "House rules", RecordingStudioTermsAndConditions::Outline.sections(@recording).first.heading
   end
 
   test "reordering a section updates its number and leaves the live text alone" do

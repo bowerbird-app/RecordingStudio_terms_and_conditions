@@ -504,10 +504,20 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin_new, "New Terms and Conditions"
     refute_includes admin_new, "Write terms"
     sections_index = engine_source("#{views}/admin/sections/index.html.erb")
+    section_show = engine_source("#{views}/admin/sections/show.html.erb")
+    section_edit = engine_source("#{views}/admin/sections/edit.html.erb")
     reorder = engine_source("#{views}/admin/shared/_reorder_modal.html.erb")
     clause_edit = engine_source("#{views}/admin/clauses/edit.html.erb")
     assert_includes sections_index, "Add section"
     assert_includes sections_index, "Reorder"
+    refute_includes section_show, "section[heading]"
+    refute_includes section_show, "Save heading"
+    assert_includes section_show, 'text: "Edit"'
+    assert_includes section_show, "edit_admin_term_section_path"
+    assert_includes section_edit, "section[heading]"
+    assert_includes section_edit, 'text: "Save"'
+    assert_includes section_edit, 'text: "Cancel"'
+    refute_includes section_edit, "style: :primary"
     assert_includes reorder, "moving_recording_id"
     assert_includes reorder, "target_position"
     assert_includes reorder, "orderable: true"

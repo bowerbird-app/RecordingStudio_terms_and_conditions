@@ -1,0 +1,21 @@
+<% terms_page_nav(title: "Edit section", back_url: admin_term_section_path(@terms_recording, @section.recording), back_label: @section.heading) %>
+
+<div class="mx-auto flex w-full flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(title: "Edit section", subtitle: "Heading only.", variant: :h1) %>
+
+  <%= form_with url: admin_term_section_path(@terms_recording, @section.recording), method: :patch, scope: :section, class: "flex w-full flex-col gap-6" do %>
+    <%= render FlatPack::TextInput::Component.new(name: "section[heading]", value: @section.heading, label: "Heading", required: true) %>
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="inline-block">
+        <%= render FlatPack::Button::Component.new(text: "Save", style: :secondary, type: "submit") %>
+      </div>
+      <div class="inline-block">
+        <%= render FlatPack::Button::Component.new(
+          text: "Cancel",
+          style: :secondary,
+          href: admin_term_section_path(@terms_recording, @section.recording)
+        ) %>
+      </div>
+    </div>
+  <% end %>
+</div>

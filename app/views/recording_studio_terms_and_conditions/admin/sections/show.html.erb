@@ -14,19 +14,19 @@
     <% end %>
   <% end %>
 
-  <%= form_with url: admin_term_section_path(@terms_recording, @section.recording), method: :patch, scope: :section, class: "flex w-full flex-col gap-3" do %>
-    <%= render FlatPack::TextInput::Component.new(name: "section[heading]", value: @section.heading, label: "Heading", required: true) %>
-    <div class="inline-block">
-      <%= render FlatPack::Button::Component.new(text: "Save heading", style: :secondary, type: "submit") %>
-    </div>
-  <% end %>
-
   <div class="flex flex-wrap items-center gap-3">
     <div class="inline-block">
       <%= render FlatPack::Button::Component.new(
         text: "Add clause",
         style: :primary,
         href: new_admin_term_section_clause_path(@terms_recording, @section.recording)
+      ) %>
+    </div>
+    <div class="inline-block">
+      <%= render FlatPack::Button::Component.new(
+        text: "Edit",
+        style: :secondary,
+        href: edit_admin_term_section_path(@terms_recording, @section.recording)
       ) %>
     </div>
     <% if @section.clauses.any? %>
