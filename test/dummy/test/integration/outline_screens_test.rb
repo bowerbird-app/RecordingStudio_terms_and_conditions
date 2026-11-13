@@ -69,6 +69,12 @@ class OutlineScreensTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "1 clause"
     assert_includes response.body, "Reorder"
     assert_includes response.body, "moving_recording_id"
+    assert_select "a", text: "Edit section name"
+    assert_select "a", text: "Edit clauses"
+    assert_select "button", text: "Delete"
+    assert_includes response.body, "Remove this section?"
+    assert_select ".fp-card"
+    assert_includes response.body, "grid-cols-2"
 
     get routes.admin_term_section_path(@recording, section.recording)
     assert_response :success

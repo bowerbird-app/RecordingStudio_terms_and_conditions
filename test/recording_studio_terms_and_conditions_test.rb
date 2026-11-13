@@ -510,6 +510,14 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     clause_edit = engine_source("#{views}/admin/clauses/edit.html.erb")
     assert_includes sections_index, "Add section"
     assert_includes sections_index, "Reorder"
+    assert_includes sections_index, "FlatPack::Grid::Component"
+    assert_includes sections_index, "FlatPack::Card::Component"
+    assert_includes sections_index, "border: :default"
+    assert_includes sections_index, 'text: "Edit section name"'
+    assert_includes sections_index, 'text: "Edit clauses"'
+    assert_includes sections_index, 'text: "Delete"'
+    assert_includes sections_index, "destructive: true"
+    assert_includes sections_index, 'turbo_confirm: "Remove this section?"'
     refute_includes section_show, "section[heading]"
     refute_includes section_show, "Save heading"
     assert_includes section_show, 'text: "Edit"'
