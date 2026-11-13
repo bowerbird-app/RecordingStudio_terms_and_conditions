@@ -22,6 +22,12 @@ module RecordingStudioTermsAndConditions
       )
     end
 
+    def terms_agreed_when(time)
+      return if time.blank?
+
+      time.in_time_zone.strftime("%e %b %Y, %H:%M").squish
+    end
+
     def terms_calendar_date(time)
       return if time.blank?
 

@@ -1,0 +1,30 @@
+<% terms_page_nav(
+  title: terms_released_label(@version.released_at),
+  back_url: admin_term_users_path(@terms_recording),
+  back_label: "Agreement history"
+) %>
+
+<div class="mx-auto flex w-full flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: terms_released_label(@version.released_at),
+    subtitle: @version.title.presence || @terms.title,
+    variant: :h1
+  ) %>
+
+  <% if @acceptances.blank? %>
+    <%= render FlatPack::EmptyState::Component.new(title: "Nobody has agreed to this version yet.") %>
+  <% else %>
+    <%= render FlatPack::Table::Component.new(
+      data: @acceptances.map { |row|
+        {
+          person: row.actor.try(:email) || "Someone",
+          agreed: terms_agreed_when(row.accepted_at)
+        }
+      }
+    ) do |table| %>
+      <% table.column(title: "Person") { |row| row[:person] } %>
+      <% table.column(title: "Agreed") { |row| row[:agreed] } %>
+    <% end %>
+    <%= terms_table_pagination(@pagy) %>
+  <% end %>
+</div>

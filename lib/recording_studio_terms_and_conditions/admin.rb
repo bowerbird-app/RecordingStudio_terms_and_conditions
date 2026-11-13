@@ -245,7 +245,7 @@ module RecordingStudioTermsAndConditions
              visible_if: ->(recording, _context) { recording.present? }
 
       action :users,
-             text: "Users",
+             text: "Agreement history",
              icon: "user-group",
              url: lambda { |recording, _context|
                RecordingStudioTermsAndConditions.admin_term_users_path(recording) if recording

@@ -24,7 +24,7 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, embed
 - **Gate** on the host `ApplicationController`: redirects to Agree until every pending live kind is accepted (0..2), and again after a new publish of either kind
 - **Users hook** on `RecordingStudioUser::Auth::BaseController` so after sign in / sign up land on Agree when acceptance is still required
 - **Users create-password slot** (`recording_studio_user/auth/registrations/_extra_fields`) renders `recording_studio_terms_continue_notice` when live documents are pending. Successful `create_password` calls `accept!` for each pending version with provenance `continue_notice`. Soft: TnC still boots without Users Auth.
-- **Admin** create/edit Terms or Privacy Policy (Type select; New blocked when that kind already exists), Publishable `QuickActions`, and a Users page of receipts. SoleLive is per kind
+- **Admin** create/edit Terms or Privacy Policy (Type select; New blocked when that kind already exists), Publishable `QuickActions`, and agreement history per released snapshot. SoleLive is per kind
 - **Public Terms URL** at `/terms/:uuid/:slug` and **Privacy Policy** at `/privacy/:uuid/:slug` via Publishable
 - **FlatPack** UI component library for all views
 - **Dummy app** (`test/dummy/`) with a FlatPack sign-in screen, a home page on Recording Studio's default layout, mounted Recording Studio routes, and FlatPack's built-in rounded theme
@@ -121,7 +121,9 @@ Numbers come from order. The id used by the admin screens and the API is the sec
 
 Unreleased changes are the difference between the current outline and the last release manifest. The comparison uses wording, order, and which children exist. Putting the released wording back is not a change.
 
-Admin opens a document, then drills into it. The document page shows whether it is live, whether anything is unreleased, and links to the full text, the section list, the review, and Release. Full text is read-only and switches between the live wording and the next release. The section list shows each section's number, heading, and clause count. A section page edits that heading and lists each clause by number and a short preview. A clause page shows the full wording, then Edit and Remove. Clauses have no titles. Reorder opens a drag-and-drop list. Nothing in that flow publishes. Release still builds the parent text. The Agree screen and the public pages keep reading that parent title and body.
+Admin opens a document, then drills into it. The document page has two sections. Current version shows the live release date, the full text, and how many people agreed to that exact snapshot. Unreleased changes counts added, changed, moved, and removed sections and clauses, then offers Edit sections, Review changes, and Release. When nothing has changed, those last two stay hidden. Full text is read-only and switches between the live wording and the next release. The section list shows each section's number, heading, and clause count. A section page edits that heading and lists each clause by number and a short preview. A clause page shows the full wording, then Edit and Remove. Clauses have no titles. Reorder opens a drag-and-drop list. Nothing in that flow publishes. Release still builds the parent text.
+
+Agreement history lists released versions, newest first. Each row is one terms snapshot (`terms_id` on the receipt) with its release date and agreement count. Opening a row lists who agreed to that snapshot and when. The count is receipts for that snapshot. The gem does not know how many people ought to agree, so it does not show a share of a population. Receipts stay append-only. The Agree screen and the public pages keep reading the parent title and body.
 
 ```ruby
 RecordingStudioApi.register_recordable_type_api(

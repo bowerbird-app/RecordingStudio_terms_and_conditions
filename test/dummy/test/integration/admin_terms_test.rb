@@ -106,30 +106,35 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Terms drafted. Publish when they are ready."
     refute_select "header.fp-top-nav"
     assert_includes response.body, "House rules"
-    assert_includes response.body, "Full text"
-    assert_includes response.body, "Sections"
+    assert_includes response.body, "Current version"
+    assert_includes response.body, "Nothing is live."
+    assert_includes response.body, "Unreleased changes"
+    assert_includes response.body, "Edit sections"
     assert_includes response.body, "Review changes"
-    assert_includes response.body, "Draft"
     assert_includes response.body, "Release"
     refute_includes response.body, "Publish now"
     refute_select "a", text: "Publish"
-    assert_select "a", text: "Users"
+    assert_select "a", text: "Agreement history"
     refute_includes response.body, "Who agreed"
-    refute_includes response.body, "Nobody yet"
+    refute_includes response.body, "ticks the box"
 
     get recording_studio_terms_and_conditions.admin_term_users_path(recording)
     assert_response :success
-    assert_includes response.body, "Users"
-    assert_includes response.body, "Nobody yet"
-    assert_includes response.body, "People who ticked the box for these terms."
+    assert_includes response.body, "Agreement history"
+    assert_includes response.body, "No released versions yet."
+    refute_includes response.body, "ticks the box"
 
     publish_terms!(recording, slug: "house-rules-#{SecureRandom.hex(4)}")
     recording.reload
     RecordingStudioTermsAndConditions.accept!(@member, recording, { "source" => "clickwrap" })
     get recording_studio_terms_and_conditions.admin_term_users_path(recording)
     assert_response :success
+    assert_includes response.body, "1 agreed"
+
+    get recording_studio_terms_and_conditions.admin_term_user_path(recording, recording.recordable_id)
+    assert_response :success
     assert_includes response.body, @member.email
-    refute_includes response.body, "Nobody yet"
+    refute_includes response.body, "Nobody has agreed to this version yet."
 
     original_snapshot_id = recording.recordable_id
     original_body = recording.recordable.body
@@ -260,6 +265,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
       terms.body = "Many people tick this."
     end
     publish_terms!(recording, slug: "crowd-#{SecureRandom.hex(4)}")
+    recording.reload
     26.times do |index|
       person = User.create!(
         email: "agree-#{index}-#{SecureRandom.hex(3)}@example.com",
@@ -269,11 +275,11 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
       RecordingStudioTermsAndConditions.accept!(person, recording, { "source" => "clickwrap" })
     end
 
-    get recording_studio_terms_and_conditions.admin_term_users_path(recording)
+    get recording_studio_terms_and_conditions.admin_term_user_path(recording, recording.recordable_id)
     assert_response :success
     assert_equal 25, first_table_row_count
 
-    get recording_studio_terms_and_conditions.admin_term_users_path(recording), params: { page: 2 }
+    get recording_studio_terms_and_conditions.admin_term_user_path(recording, recording.recordable_id), params: { page: 2 }
     assert_response :success
     page_two = first_table_row_count
     assert_operator page_two, :>, 0

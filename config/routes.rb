@@ -16,7 +16,7 @@ RecordingStudioTermsAndConditions::Engine.routes.draw do
         resources :clauses, only: %i[new create]
       end
       resources :clauses, only: %i[show edit update destroy]
-      resources :users, only: :index, controller: "term_users"
+      resources :users, only: %i[index show], controller: "term_users"
     end
     get "people/:actor_type/:actor_id",
         to: "people#show",

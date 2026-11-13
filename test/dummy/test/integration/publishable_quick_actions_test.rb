@@ -82,7 +82,7 @@ class PublishableQuickActionsTest < ActionDispatch::IntegrationTest
 
     get recording_studio_terms_and_conditions.admin_term_path(recording)
     assert_response :success
-    assert_includes response.body, "Draft"
+    assert_includes response.body, "Nothing is live."
     assert_includes response.body, "Release"
     refute_includes response.body, "Publish now"
 

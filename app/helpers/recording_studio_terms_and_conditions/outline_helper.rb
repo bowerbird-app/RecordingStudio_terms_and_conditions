@@ -35,5 +35,33 @@ module RecordingStudioTermsAndConditions
     def changed_badge
       render FlatPack::Badge::Component.new(text: "Changed", style: :warning, size: :sm)
     end
+
+    def terms_change_summary(changes)
+      parts = terms_change_parts(changes)
+      return "No unreleased changes" if parts.empty?
+
+      "#{parts.join(', ')}."
+    end
+
+    def terms_agreed_count(count)
+      number = count.to_i
+      number == 1 ? "1 agreed" : "#{number} agreed"
+    end
+
+    def terms_released_label(time)
+      date = terms_calendar_date(time)
+      date.present? ? "Released #{date}" : "Released version"
+    end
+
+    def terms_change_parts(changes)
+      entries = Array(changes)
+      [%w[section added], %w[section changed], %w[section moved], %w[section removed],
+       %w[clause added], %w[clause changed], %w[clause moved], %w[clause removed]].filter_map do |kind, status|
+        count = entries.count { |entry| entry.kind == kind && entry.status == status }
+        next if count.zero?
+
+        "#{count} #{count == 1 ? kind : "#{kind}s"} #{status}"
+      end
+    end
   end
 end

@@ -39,7 +39,10 @@ module RecordingStudioTermsAndConditions
 
       def show
         @terms = terms_recording.recordable
-        @unreleased = Outline.unreleased?(terms_recording)
+        @changes = Outline.changes(terms_recording)
+        @unreleased = @changes.any?
+        @live = Outline.live?(terms_recording)
+        @agreement_count = @live ? AgreementHistory.count_for(@terms.id) : nil
       end
 
       def edit

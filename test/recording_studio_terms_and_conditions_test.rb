@@ -467,10 +467,11 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin_index, 'text: "New"'
     refute_includes admin_index, 'text: "Write terms"'
     assert_includes admin_show, "terms_heading_date"
-    assert_includes admin_show, 'text: "Full text"'
-    assert_includes admin_show, "Unreleased changes"
+    assert_includes admin_show, 'title: "Current version"'
+    assert_includes admin_show, 'text: "View full text"'
+    assert_includes admin_show, 'title: "Unreleased changes"'
     assert_includes engine_source("#{views}/admin/terms/text.html.erb"), "terms_content"
-    assert_includes admin_show, 'text: "Users"'
+    assert_includes admin_show, 'text: "Agreement history"'
     assert_includes admin_show, "terms_publishable_quick_actions"
     refute_includes admin_show, 'text: "Publish"'
     refute_includes admin_show, "Public page"
@@ -481,14 +482,18 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes controller, "RecordingStudioPublishable::ApplicationHelper"
     assert_includes admin_show, "admin_term_users_path"
     refute_includes admin_show, "Who agreed"
-    assert_includes admin_show, 'text: "Sections"'
+    assert_includes admin_show, 'text: "Edit sections"'
     assert_includes admin_show, 'text: "Release"'
     refute_includes admin_show, "snapshot"
     users = engine_source("#{views}/admin/term_users/index.html.erb")
-    assert_includes users, 'title: "Users"'
+    version = engine_source("#{views}/admin/term_users/show.html.erb")
+    assert_includes users, 'title: "Agreement history"'
     assert_includes users, "terms_users_subtitle"
-    assert_includes users, "Nobody yet"
     assert_includes users, "terms_table_pagination"
+    assert_includes version, "Nobody has agreed to this version yet."
+    refute_includes version, "ticks the box"
+    refute_includes engine_source("app/helpers/recording_studio_terms_and_conditions/agree_copy_helper.rb"),
+                    "ticked the box"
     assert_includes engine_source("config/routes.rb"), 'controller: "term_users"'
     refute_includes admin_new, "FlatPack::Card::Component"
     refute_includes admin_new, "card.footer"

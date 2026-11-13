@@ -42,12 +42,15 @@ class OutlineScreensTest < ActionDispatch::IntegrationTest
 
     get routes.admin_term_path(@recording)
     assert_response :success
-    assert_includes response.body, "Live"
-    assert_includes response.body, "Full text"
-    assert_includes response.body, "Sections"
-    assert_includes response.body, "Review changes"
-    assert_includes response.body, "Release"
+    assert_includes response.body, "Current version"
+    assert_includes response.body, "View full text"
+    assert_includes response.body, "0 agreed"
+    assert_includes response.body, "Edit sections"
+    assert_includes response.body, "No unreleased changes"
+    assert_select "a", text: "Review changes", count: 0
+    assert_select "a", text: "Release", count: 0
     refute_includes response.body, "Publish now"
+    refute_match(/agreed of \d+/, response.body)
 
     get routes.text_admin_term_path(@recording)
     assert_response :success
@@ -142,5 +145,51 @@ class OutlineScreensTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "1.1"
     assert_includes response.body, "Leave the cables coiled."
+  end
+
+  test "agreement history lists each released snapshot on its own" do
+    routes = recording_studio_terms_and_conditions
+    first_person = User.create!(
+      email: "first-#{SecureRandom.hex(3)}@example.com",
+      password: "Password",
+      password_confirmation: "Password"
+    )
+    RecordingStudioTermsAndConditions.accept!(first_person, @recording, { "source" => "clickwrap" })
+    first_snapshot = @recording.recordable_id
+    section = RecordingStudioTermsAndConditions::Outline.sections(@recording).first
+    patch routes.admin_term_clause_path(@recording, section.clauses.first.recording), params: {
+      clause: { body: "A later rule." }
+    }
+    post routes.release_admin_term_path(@recording)
+    released = RecordingStudio::Recording.find(response.location.split("/").last)
+    second_person = User.create!(
+      email: "second-#{SecureRandom.hex(3)}@example.com",
+      password: "Password",
+      password_confirmation: "Password"
+    )
+    RecordingStudioTermsAndConditions.accept!(second_person, released, { "source" => "clickwrap" })
+
+    get routes.admin_term_path(released)
+    assert_response :success
+    assert_includes response.body, "No unreleased changes"
+    assert_includes response.body, "1 agreed"
+    assert_select "a", text: "Release", count: 0
+    assert_select "a", text: "Review changes", count: 0
+
+    get routes.admin_term_users_path(released)
+    assert_response :success
+    assert_includes response.body, "Agreement history"
+    assert_equal 2, response.body.scan("1 agreed").size
+
+    get routes.admin_term_user_path(released, first_snapshot)
+    assert_response :success
+    assert_includes response.body, first_person.email
+    assert_match(/\d{4}, \d{2}:\d{2}/, response.body)
+    refute_includes response.body, second_person.email
+
+    get routes.admin_term_user_path(released, released.recordable_id)
+    assert_response :success
+    assert_includes response.body, second_person.email
+    refute_includes response.body, first_person.email
   end
 end

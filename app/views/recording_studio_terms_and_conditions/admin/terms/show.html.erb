@@ -1,44 +1,58 @@
 <% terms_page_nav(title: @terms.title, back_url: admin_terms_path, back_label: "Terms") %>
 
-<%= render FlatPack::PageTitle::Component.new(
-  title: @terms.title,
-  subtitle: [@terms.kind_label, terms_heading_date(@terms, recording: @terms_recording)].compact.join(" · "),
-  variant: :h1
-) %>
-
-<div class="mb-6 flex flex-wrap items-center gap-3">
-  <%= render FlatPack::Badge::Component.new(
-    text: @terms_recording.currently_published? ? "Live" : "Draft",
-    style: @terms_recording.currently_published? ? :success : :default,
-    size: :sm
+<div class="mx-auto flex w-full flex-col gap-10">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: @terms.title,
+    subtitle: [@terms.kind_label, terms_heading_date(@terms, recording: @terms_recording)].compact.join(" · "),
+    variant: :h1
   ) %>
-  <%= render FlatPack::Badge::Component.new(
-    text: @unreleased ? "Unreleased changes" : "Up to date",
-    style: @unreleased ? :warning : :success,
-    size: :sm
-  ) %>
-</div>
 
-<div class="flex flex-wrap items-center gap-3">
-  <div class="inline-block">
-    <%= render FlatPack::Button::Component.new(text: "Full text", style: :secondary, href: text_admin_term_path(@terms_recording)) %>
-  </div>
-  <div class="inline-block">
-    <%= render FlatPack::Button::Component.new(text: "Sections", style: :secondary, href: admin_term_sections_path(@terms_recording)) %>
-  </div>
-  <div class="inline-block">
-    <%= render FlatPack::Button::Component.new(text: "Review changes", style: :secondary, href: changes_admin_term_path(@terms_recording)) %>
-  </div>
-  <div class="inline-block">
-    <%= render FlatPack::Button::Component.new(text: "Release", style: :primary, href: preview_admin_term_path(@terms_recording)) %>
-  </div>
-  <div class="inline-block">
-    <%= render FlatPack::Button::Component.new(text: "Users", style: :secondary, href: admin_term_users_path(@terms_recording)) %>
-  </div>
-</div>
+  <section class="flex w-full flex-col gap-4">
+    <%= render FlatPack::PageTitle::Component.new(title: "Current version", variant: :h2) %>
+    <% if @live %>
+      <p class="text-sm text-[var(--surface-muted-content-color)]"><%= terms_released_label(terms_published_at(@terms_recording)) %></p>
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="inline-block">
+          <%= render FlatPack::Button::Component.new(text: "View full text", style: :secondary, href: text_admin_term_path(@terms_recording)) %>
+        </div>
+        <div class="inline-block">
+          <%= render FlatPack::Button::Component.new(
+            text: terms_agreed_count(@agreement_count),
+            style: :secondary,
+            href: admin_term_user_path(@terms_recording, @terms.id)
+          ) %>
+        </div>
+      </div>
+    <% else %>
+      <%= render FlatPack::EmptyState::Component.new(
+        title: "Nothing is live.",
+        description: "This document has not been released."
+      ) %>
+    <% end %>
+    <div class="inline-block">
+      <%= render FlatPack::Button::Component.new(text: "Agreement history", style: :secondary, href: admin_term_users_path(@terms_recording)) %>
+    </div>
+  </section>
 
-<% unless terms_has_outline?(@terms_recording) %>
-  <div class="mt-6">
+  <section class="flex w-full flex-col gap-4">
+    <%= render FlatPack::PageTitle::Component.new(title: "Unreleased changes", variant: :h2) %>
+    <p><%= terms_change_summary(@changes) %></p>
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="inline-block">
+        <%= render FlatPack::Button::Component.new(text: "Edit sections", style: :primary, href: admin_term_sections_path(@terms_recording)) %>
+      </div>
+      <% if @unreleased %>
+        <div class="inline-block">
+          <%= render FlatPack::Button::Component.new(text: "Review changes", style: :secondary, href: changes_admin_term_path(@terms_recording)) %>
+        </div>
+        <div class="inline-block">
+          <%= render FlatPack::Button::Component.new(text: "Release", style: :primary, href: preview_admin_term_path(@terms_recording)) %>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <% unless terms_has_outline?(@terms_recording) %>
     <%= terms_publishable_quick_actions(@terms_recording) %>
-  </div>
-<% end %>
+  <% end %>
+</div>
