@@ -15,9 +15,9 @@ class TermsAdminApiTest < ActionDispatch::IntegrationTest
     Current.actor = @owner
     @workspace = Workspace.create!(name: "Admin API #{SecureRandom.hex(4)}")
     @root = RecordingStudio.root_recording_for(@workspace)
-    @owner_access = bootstrap!(@root, @owner)
+    @owner_access = bootstrap_owner_access!(@owner, @root)
     @admin_root = RecordingStudio.root_recording_for(AdminRoot.find_or_create_by!(name: "Admin"))
-    bootstrap!(@admin_root, @owner)
+    bootstrap_owner_access!(@owner, @admin_root)
     @recording = record_terms(@root, title: "Studio Terms", body: "Be kind.", actor: @owner)
     publish_terms!(@recording, slug: "admin-api-#{SecureRandom.hex(4)}", actor: @owner)
     RecordingStudioTermsAndConditions::Outline.seed_recording!(@recording, actor: @owner)
@@ -84,7 +84,7 @@ class TermsAdminApiTest < ActionDispatch::IntegrationTest
     Current.actor = outsider
     other = Workspace.create!(name: "Other #{SecureRandom.hex(4)}")
     other_root = RecordingStudio.root_recording_for(other)
-    access = bootstrap!(other_root, outsider)
+    access = bootstrap_owner_access!(outsider, other_root)
     token, = token_for(access, manager: outsider)
 
     call(:get, "/workspaces/#{other_root.id}/actions/terms_documents", token)
@@ -101,13 +101,6 @@ class TermsAdminApiTest < ActionDispatch::IntegrationTest
   end
 
   private
-
-  def bootstrap!(recording, actor)
-    result = RecordingStudioAccessible.bootstrap_owner_access!(recording: recording, actor: actor)
-    raise result.error if result.respond_to?(:failure?) && result.failure?
-
-    result.respond_to?(:value) ? result.value : result
-  end
 
   def grant!(recording, actor, role, manager)
     configuration = nil
