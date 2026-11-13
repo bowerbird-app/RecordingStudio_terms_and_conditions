@@ -82,7 +82,8 @@ class OutlineScreensTest < ActionDispatch::IntegrationTest
     assert_includes response.body, clause.number
     assert_includes response.body, "Keep the door shut."
     assert_includes response.body, "Add clause"
-    assert_select "a", text: "Edit"
+    assert_select "a", text: "Edit", count: 0
+    refute_includes response.body, "edit_admin_term_section"
     refute_includes response.body, "section[heading]"
     refute_includes response.body, "Save heading"
     refute_includes response.body, "clause[title]"

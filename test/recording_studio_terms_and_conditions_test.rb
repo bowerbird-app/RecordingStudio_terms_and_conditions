@@ -520,8 +520,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes sections_index, 'turbo_confirm: "Remove this section?"'
     refute_includes section_show, "section[heading]"
     refute_includes section_show, "Save heading"
-    assert_includes section_show, 'text: "Edit"'
-    assert_includes section_show, "edit_admin_term_section_path"
+    refute_includes section_show, 'text: "Edit"'
+    refute_includes section_show, "edit_admin_term_section_path"
     assert_includes section_edit, "section[heading]"
     assert_includes section_edit, 'text: "Save"'
     assert_includes section_edit, 'text: "Cancel"'

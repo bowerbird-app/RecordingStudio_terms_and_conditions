@@ -22,13 +22,6 @@
         href: new_admin_term_section_clause_path(@terms_recording, @section.recording)
       ) %>
     </div>
-    <div class="inline-block">
-      <%= render FlatPack::Button::Component.new(
-        text: "Edit",
-        style: :secondary,
-        href: edit_admin_term_section_path(@terms_recording, @section.recording)
-      ) %>
-    </div>
     <% if @section.clauses.any? %>
       <div class="inline-block">
         <%= render FlatPack::Button::Component.new(text: "Reorder", style: :secondary, data: { modal_id: "terms-clauses-order" }) %>
