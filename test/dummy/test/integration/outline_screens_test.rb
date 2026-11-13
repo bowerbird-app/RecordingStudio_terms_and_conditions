@@ -69,6 +69,8 @@ class OutlineScreensTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "1 clause"
     assert_includes response.body, "Reorder"
     assert_includes response.body, "moving_recording_id"
+    assert_select "a", text: "Section"
+    assert_select 'a svg[data-flat-pack--icon-name-value="plus"]'
     assert_select "a", text: "Edit section name"
     assert_select "a", text: "Edit clauses"
     assert_select "button", text: "Delete"
@@ -83,6 +85,8 @@ class OutlineScreensTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Keep the door shut."
     assert_includes response.body, "Add clause"
     assert_select "a", text: "Edit", count: 0
+    assert_select "button", text: "Remove", count: 0
+    refute_includes response.body, "Remove this section?"
     refute_includes response.body, "edit_admin_term_section"
     refute_includes response.body, "section[heading]"
     refute_includes response.body, "Save heading"

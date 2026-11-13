@@ -11,7 +11,12 @@
         <%= render FlatPack::Badge::Component.new(text: "Unreleased changes", style: :warning, size: :sm) %>
       <% end %>
       <div class="inline-block">
-        <%= render FlatPack::Button::Component.new(text: "Add section", style: :primary, href: new_admin_term_section_path(@terms_recording)) %>
+        <%= render FlatPack::Button::Component.new(
+          text: "Section",
+          icon: "plus",
+          style: :primary,
+          href: new_admin_term_section_path(@terms_recording)
+        ) %>
       </div>
       <% if @sections.any? %>
         <div class="inline-block">

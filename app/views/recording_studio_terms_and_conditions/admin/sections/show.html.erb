@@ -27,9 +27,6 @@
         <%= render FlatPack::Button::Component.new(text: "Reorder", style: :secondary, data: { modal_id: "terms-clauses-order" }) %>
       </div>
     <% end %>
-    <%= form_with url: admin_term_section_path(@terms_recording, @section.recording), method: :delete, data: { turbo_confirm: "Remove this section?" } do %>
-      <%= render FlatPack::Button::Component.new(text: "Remove", style: :ghost, type: "submit") %>
-    <% end %>
   </div>
 
   <% if @section.clauses.empty? %>

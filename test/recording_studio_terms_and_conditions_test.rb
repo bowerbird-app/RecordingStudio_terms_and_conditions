@@ -508,7 +508,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     section_edit = engine_source("#{views}/admin/sections/edit.html.erb")
     reorder = engine_source("#{views}/admin/shared/_reorder_modal.html.erb")
     clause_edit = engine_source("#{views}/admin/clauses/edit.html.erb")
-    assert_includes sections_index, "Add section"
+    assert_includes sections_index, 'text: "Section"'
+    assert_includes sections_index, 'icon: "plus"'
+    refute_includes sections_index, 'text: "Add section"'
     assert_includes sections_index, "Reorder"
     assert_includes sections_index, "FlatPack::Grid::Component"
     assert_includes sections_index, "FlatPack::Card::Component"
@@ -522,6 +524,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes section_show, "Save heading"
     refute_includes section_show, 'text: "Edit"'
     refute_includes section_show, "edit_admin_term_section_path"
+    refute_includes section_show, 'text: "Remove"'
+    refute_includes section_show, "Remove this section?"
+    refute_includes section_show, "method: :delete"
     assert_includes section_edit, "section[heading]"
     assert_includes section_edit, 'text: "Save"'
     assert_includes section_edit, 'text: "Cancel"'
