@@ -141,13 +141,11 @@ module TermsDemoTestHelper
   end
 
   def switch_to_workspace(workspace)
-    # Root Switchable 0.12+ returns 403 unless the signed-in actor holds
-    # Accessible :view on the current root. Dummy's scope still lists every
-    # root; the page floor is the new requirement.
-    grant_current_root_view!(@terms_signed_in_user)
-    grant_view_access!(@terms_signed_in_user, workspace) if @terms_signed_in_user && workspace
-
     recording = RecordingStudio.root_recording_for(workspace)
+    # Root Switchable 0.12+ forbids the switch page without Accessible :view on
+    # the current root. Persist the selection on this device first so later
+    # requests land on the target even when that page returns 403.
+    remember_switch_selection!(@terms_signed_in_user, recording) if @terms_signed_in_user
     patch "/recording_studio_root_switchable/v1/root_switch", params: {
       scope: "all_workspaces",
       root_switch: {
@@ -157,14 +155,35 @@ module TermsDemoTestHelper
     }
   end
 
+  def remember_switch_selection!(actor, recording)
+    return unless actor && recording
+    return unless defined?(RecordingStudio::RootSwitchable::Selection)
+
+    RecordingStudio::RootSwitchable::Selection.upsert_for(
+      actor: actor,
+      device_key: switch_device_key,
+      scope_key: "all_workspaces",
+      root_recording: recording
+    )
+  end
+
+  def switch_device_key
+    return @switch_device_key if @switch_device_key.present?
+
+    name = RecordingStudioRootSwitchable.configuration.device_key_cookie_name
+    key = SecureRandom.uuid
+    request = ActionDispatch::TestRequest.create(Rails.application.env_config)
+    options = RecordingStudioRootSwitchable.configuration.resolved_device_key_cookie_options
+    request.cookie_jar.encrypted[name] = options.merge(value: key)
+    cookies[name.to_s] = request.cookie_jar[name]
+    @switch_device_key = key
+  end
+
   def grant_view_access!(actor, recordable)
     return unless actor && recordable
 
-    recording = if recordable.is_a?(RecordingStudio::Recording)
-                  recordable
-                else
-                  RecordingStudio.root_recording_for(recordable)
-                end
+    recording = recordable if recordable.is_a?(RecordingStudio::Recording)
+    recording ||= RecordingStudio.root_recording_for(recordable)
     return if RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: :view)
 
     manager = access_admin_for(recording)
@@ -206,7 +225,7 @@ module TermsDemoTestHelper
     workspace_roots = Workspace.order(:name).filter_map do |workspace|
       RecordingStudio.root_recording_for(workspace)
     end
-    roots = [admin_recording, *workspace_roots].compact
+    roots = [ admin_recording, *workspace_roots ].compact
     roots.find { |root| root.recordable.try(:name) == "Studio Workspace" } || roots.first
   end
 
