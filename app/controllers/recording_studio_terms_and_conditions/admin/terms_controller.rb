@@ -42,7 +42,8 @@ module RecordingStudioTermsAndConditions
         @changes = Outline.changes(terms_recording)
         @unreleased = @changes.any?
         @live = Outline.live?(terms_recording)
-        @agreement_count = @live ? AgreementHistory.count_for(@terms.id) : nil
+        @current_version = AgreementHistory.find(terms_recording, @terms.id) if @live
+        @agreement_count = @current_version&.agreement_count
       end
 
       def edit

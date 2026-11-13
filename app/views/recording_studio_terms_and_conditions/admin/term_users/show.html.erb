@@ -1,12 +1,12 @@
 <% terms_page_nav(
-  title: terms_released_label(@version.released_at),
+  title: terms_version_label(@version),
   back_url: admin_term_users_path(@terms_recording),
   back_label: "Agreement history"
 ) %>
 
 <div class="mx-auto flex w-full flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
-    title: terms_released_label(@version.released_at),
+    title: terms_version_label(@version),
     subtitle: @version.title.presence || @terms.title,
     variant: :h1
   ) %>

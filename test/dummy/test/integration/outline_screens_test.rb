@@ -147,7 +147,7 @@ class OutlineScreensTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Leave the cables coiled."
   end
 
-  test "agreement history lists each released snapshot on its own" do
+  test "agreement history numbers released snapshots in release order" do
     routes = recording_studio_terms_and_conditions
     first_person = User.create!(
       email: "first-#{SecureRandom.hex(3)}@example.com",
@@ -173,6 +173,7 @@ class OutlineScreensTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "No unreleased changes"
     assert_includes response.body, "1 agreed"
+    assert_match(/Version 2 · released \d{1,2} \w{3} \d{4}, \d{2}:\d{2}/, response.body)
     assert_select "a", text: "Release", count: 0
     assert_select "a", text: "Review changes", count: 0
 
@@ -180,15 +181,21 @@ class OutlineScreensTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Agreement history"
     assert_equal 2, response.body.scan("1 agreed").size
+    assert response.body.index("Version 2") < response.body.index("Version 1")
+    assert_includes response.body, "Live"
 
     get routes.admin_term_user_path(released, first_snapshot)
     assert_response :success
+    assert_match(/Version 1 · released \d{1,2} \w{3} \d{4}, \d{2}:\d{2}/, response.body)
+    refute_includes response.body, "Version 2"
     assert_includes response.body, first_person.email
     assert_match(/\d{4}, \d{2}:\d{2}/, response.body)
     refute_includes response.body, second_person.email
 
     get routes.admin_term_user_path(released, released.recordable_id)
     assert_response :success
+    assert_match(/Version 2 · released \d{1,2} \w{3} \d{4}, \d{2}:\d{2}/, response.body)
+    refute_includes response.body, "Version 1"
     assert_includes response.body, second_person.email
     refute_includes response.body, first_person.email
   end

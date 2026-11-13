@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Staff no longer edit the parent body directly. The parent text is rebuilt only at release. Every release is a new version people must accept again.
 - Admin outline editing is a set of screens instead of one long form. The document page splits the live version from unreleased edits. Full text toggles the live wording and the next release. Sections and clauses are their own pages. Reorder is a drag-and-drop list. Clauses have no title field.
-- Agreement history lists each released snapshot, newest first, with its agreement count. Opening one lists who agreed to that snapshot and when. Receipts stay grouped by `terms_id`. There is no acceptance schema change.
+- Agreement history lists each released snapshot, newest first, with its agreement count. A snapshot is labelled Version N in release order, with the release date and time in the host time zone. The live row is marked Live. Opening one lists who agreed to that snapshot and when. Receipts stay grouped by `terms_id`. There is no acceptance schema change.
 - Publishing a Terms document that already has an outline, from the Admin show page or from Publishable's publish path, goes through Release. The show page offers Release instead of Publish now. The hook still fires once, and one live copy per kind remains.
 - `TermsWrite` raises `TermsWrite::OutlinePresent` when the document already has an outline. It still saves a document that has none.
 - New dependency `recording_studio_moveable` `>= 4.1.0`, `< 5`. Releasing a live document moves its sections onto the new draft so section and clause ids stay put.

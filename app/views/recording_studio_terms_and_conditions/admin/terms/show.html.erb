@@ -10,7 +10,7 @@
   <section class="flex w-full flex-col gap-4">
     <%= render FlatPack::PageTitle::Component.new(title: "Current version", variant: :h2) %>
     <% if @live %>
-      <p class="text-sm text-[var(--surface-muted-content-color)]"><%= terms_released_label(terms_published_at(@terms_recording)) %></p>
+      <p class="text-sm text-[var(--surface-muted-content-color)]"><%= terms_version_label(@current_version) %></p>
       <div class="flex flex-wrap items-center gap-3">
         <div class="inline-block">
           <%= render FlatPack::Button::Component.new(text: "View full text", style: :secondary, href: text_admin_term_path(@terms_recording)) %>

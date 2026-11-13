@@ -3,7 +3,7 @@
 module RecordingStudioTermsAndConditions
   # Released snapshots for one kind on one workspace, grouped by the receipt's terms_id.
   module AgreementHistory
-    Version = Struct.new(:terms_id, :title, :released_at, :agreement_count, :live, keyword_init: true)
+    Version = Struct.new(:terms_id, :title, :released_at, :agreement_count, :live, :number, keyword_init: true)
 
     class << self
       def versions_for(anchor)
@@ -28,9 +28,13 @@ module RecordingStudioTermsAndConditions
 
       def version_list(ids, by_terms_id)
         counts = agreement_counts(ids)
-        ids.map { |terms_id| build_version(terms_id, by_terms_id[terms_id], counts[terms_id]) }
-           .sort_by { |version| [version.released_at || Time.zone.at(0), version.terms_id] }
-           .reverse
+        numbered(ids.map { |terms_id| build_version(terms_id, by_terms_id[terms_id], counts[terms_id]) })
+      end
+
+      def numbered(versions)
+        ordered = versions.sort_by { |version| [version.released_at || Time.zone.at(0), version.terms_id] }
+        ordered.each_with_index { |version, index| version.number = index + 1 }
+        ordered.reverse
       end
 
       def kind_recordings(anchor)

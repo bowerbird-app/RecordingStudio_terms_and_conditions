@@ -17,10 +17,10 @@
       <% @versions.each do |version| %>
         <%= render FlatPack::List::Item.new(
           href: admin_term_user_path(@terms_recording, version.terms_id),
-          title: terms_released_label(version.released_at),
+          title: terms_version_label(version),
           subtitle: version.title.presence,
           hover: true,
-          trailing: terms_agreed_count(version.agreement_count)
+          trailing: terms_version_trailing(version)
         ) %>
       <% end %>
     <% end %>

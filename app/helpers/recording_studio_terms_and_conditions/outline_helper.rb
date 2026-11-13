@@ -48,9 +48,18 @@ module RecordingStudioTermsAndConditions
       number == 1 ? "1 agreed" : "#{number} agreed"
     end
 
-    def terms_released_label(time)
-      date = terms_calendar_date(time)
-      date.present? ? "Released #{date}" : "Released version"
+    def terms_version_label(version)
+      when_text = terms_host_time(version.released_at)
+      return "Version #{version.number}" if when_text.blank?
+
+      "Version #{version.number} · released #{when_text}"
+    end
+
+    def terms_version_trailing(version)
+      pieces = []
+      pieces << render(FlatPack::Badge::Component.new(text: "Live", style: :success, size: :sm)) if version.live
+      pieces << content_tag(:span, terms_agreed_count(version.agreement_count))
+      safe_join(pieces, " ")
     end
 
     def terms_change_parts(changes)
