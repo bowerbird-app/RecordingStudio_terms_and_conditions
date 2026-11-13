@@ -6,11 +6,22 @@ require_relative "api/terms_payload"
 require_relative "api/pending_published_list"
 require_relative "api/current_published_for"
 require_relative "api/accepted"
+require_relative "api/admin_actions"
+require_relative "api/admin_handlers"
 
 module RecordingStudioTermsAndConditions
   module Api
     ACTION_VERSION = "1.0.0"
     KIND_DESCRIPTION = "Terms kind: terms_and_condition or privacy_policy. Defaults to terms_and_condition."
+    KIND_FIELD = {
+      kind: {
+        type: :string,
+        required: false,
+        allow_blank: true,
+        enum: %w[terms_and_condition privacy_policy],
+        description: KIND_DESCRIPTION
+      }
+    }.freeze
     ACTIONS = {
       terms_pending_published_list: {
         http_verb: :get,
@@ -53,12 +64,16 @@ module RecordingStudioTermsAndConditions
         private
 
         def register_surface(surface_name)
-          ACTIONS.each_key { |action_name| register_action(surface_name, action_name) }
+          action_map.each_key { |action_name| register_action(surface_name, action_name) }
+        end
+
+        def action_map
+          ACTIONS.merge(AdminActions.definitions)
         end
 
         def register_action(surface_name, action_name)
           existing_action(surface_name, action_name)
-          spec = ACTIONS.fetch(action_name)
+          spec = action_map.fetch(action_name)
           RecordingStudioApi.register_capability_action(action_name, api: surface_name, **action_options(spec))
         end
 
@@ -70,22 +85,16 @@ module RecordingStudioTermsAndConditions
         end
 
         def fields_for(spec)
+          return spec[:fields] if spec[:fields]
           return {} unless spec[:kind_field]
 
-          {
-            kind: {
-              type: :string,
-              required: false,
-              allow_blank: true,
-              enum: %w[terms_and_condition privacy_policy],
-              description: KIND_DESCRIPTION
-            }
-          }
+          KIND_FIELD
         end
 
         def action_options(spec)
           {
             **shared_action_options,
+            required_role: spec.fetch(:required_role, :view),
             http_verb: spec.fetch(:http_verb),
             handler: spec.fetch(:handler),
             input_contract: { reject_unknown: false, fields: fields_for(spec) },

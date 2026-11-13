@@ -15,6 +15,10 @@ module RecordingStudioTermsAndConditions
       placeholder: TERMS_BODY_PLACEHOLDER
     }.freeze
 
+    def review_words(value)
+      strip_tags(value.to_s).squish.presence || "—"
+    end
+
     def terms_page_nav(title:, back_url: nil, back_label: "Back")
       content_for(:title, title) if title.present?
       content_for(:page_nav_back_url, back_url) if back_url.present?

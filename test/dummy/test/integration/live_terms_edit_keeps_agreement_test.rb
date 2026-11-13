@@ -46,16 +46,19 @@ class LiveTermsEditKeepsAgreementTest < ActionDispatch::IntegrationTest
     publishable = live.publishable_child_recording
 
     switch_to_workspace(@admin_root)
-    patch recording_studio_terms_and_conditions.admin_term_path(live), params: {
-      terms: { title: "Booth rules", body: "Whisper in the booth." }
-    }
-    draft = RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name)
-                                      .order(:created_at).last
-    assert_redirected_to recording_studio_terms_and_conditions.admin_term_path(draft)
+    get recording_studio_terms_and_conditions.edit_admin_term_path(live)
+    assert_response :success
+    clause = RecordingStudioTermsAndConditions::Outline.sections(live.reload).first.clauses.first
+    parent_snapshot = live.recordable_id
+    assert_no_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count } do
+      patch recording_studio_terms_and_conditions.admin_term_clause_path(live, clause.recording), params: {
+        clause: { body: "Whisper in the booth." }
+      }
+    end
 
     live.reload
+    assert_equal parent_snapshot, live.recordable_id
     assert live.currently_published?
-    refute draft.currently_published?
     get "/terms/#{publishable.id}/#{slug}"
     assert_response :success
     assert_includes response.body, "Keep the door shut."
@@ -69,12 +72,17 @@ class LiveTermsEditKeepsAgreementTest < ActionDispatch::IntegrationTest
     refute RecordingStudioTermsAndConditions.requires_acceptance?(@member, @workspace)
 
     sign_in @admin
-    publish_terms!(draft, slug: "booth-rules-v2-#{SecureRandom.hex(4)}")
-    draft_publishable = draft.reload.publishable_child_recording
+    switch_to_workspace(@admin_root)
+    post recording_studio_terms_and_conditions.release_admin_term_path(live), params: {
+      terms: { title: "Booth rules" }
+    }
+    released = RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name)
+                                         .order(:created_at).last
+    released_publishable = released.reload.publishable_child_recording
 
     get "/terms/#{publishable.id}/#{slug}"
     assert_response :not_found
-    get "/terms/#{draft_publishable.id}/#{draft.current_publishable.slug}"
+    get "/terms/#{released_publishable.id}/#{released.current_publishable.slug}"
     assert_response :success
     assert_includes response.body, "Whisper in the booth."
     refute_includes response.body, "Keep the door shut."
@@ -90,8 +98,8 @@ class LiveTermsEditKeepsAgreementTest < ActionDispatch::IntegrationTest
     assert RecordingStudioTermsAndConditions.requires_acceptance?(@member, @workspace)
     assert_nil RecordingStudioTermsAndConditions::Acceptance.find_by(
       actor: @member,
-      terms_recording_id: draft.id,
-      terms_id: draft.recordable.id
+      terms_recording_id: released.id,
+      terms_id: released.recordable.id
     )
   end
 end

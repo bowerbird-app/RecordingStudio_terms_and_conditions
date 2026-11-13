@@ -52,6 +52,15 @@ GIT
       recording_studio (>= 6.1.0)
 
 GIT
+  remote: https://github.com/bowerbird-app/RecordingStudio_icons.git
+  revision: 329fbbb1d75bba3b1cc59f0b00650442f2433288
+  tag: v0.2.0
+  specs:
+    recording_studio_icons (0.2.0)
+      rails (>= 8.1.0)
+      recording_studio (>= 6.3.0)
+
+GIT
   remote: https://github.com/bowerbird-app/RecordingStudio_logs.git
   revision: 47d70f2c1d72cdc9bbb9ce7f63d98835347ce449
   tag: v0.7.4
@@ -69,6 +78,19 @@ GIT
     recording_studio_metrics (0.7.3)
       rails (~> 8.1.0)
       recording_studio (>= 6.1.0)
+
+GIT
+  remote: https://github.com/bowerbird-app/RecordingStudio_moveable.git
+  revision: 0e1cec42605b05098d63a53a0b1afa5e35a00d64
+  tag: v4.1.0
+  specs:
+    recording_studio_moveable (4.1.0)
+      flat_pack (>= 0.1.331)
+      rails (>= 8.1.0, < 9.0)
+      recording_studio (>= 6.1.0)
+      recording_studio_accessible (~> 0.6)
+      recording_studio_icons (>= 0.1.0)
+      view_component (>= 4.14, < 5)
 
 GIT
   remote: https://github.com/bowerbird-app/RecordingStudio_publishable.git
@@ -130,13 +152,14 @@ GIT
 PATH
   remote: .
   specs:
-    recording_studio_terms_and_conditions (0.17.0)
+    recording_studio_terms_and_conditions (0.18.0)
       flat_pack (>= 0.1.196)
       rails (~> 8.1.0)
       recording_studio (>= 6.3.0, < 7)
       recording_studio_accessible (>= 0.24.2, < 1)
       recording_studio_admin (>= 2.0.6, < 3)
       recording_studio_metrics (>= 0.3.0, < 1.0)
+      recording_studio_moveable (>= 4.1.0, < 5)
       recording_studio_publishable (~> 0.6)
       recording_studio_user (>= 0.12.2)
 
@@ -520,8 +543,10 @@ DEPENDENCIES
   recording_studio_admin!
   recording_studio_attachable!
   recording_studio_cache!
+  recording_studio_icons!
   recording_studio_logs!
   recording_studio_metrics!
+  recording_studio_moveable!
   recording_studio_publishable!
   recording_studio_terms_and_conditions!
   recording_studio_trashable!
@@ -634,10 +659,12 @@ CHECKSUMS
   recording_studio_admin (2.9.1)
   recording_studio_attachable (0.22.0)
   recording_studio_cache (0.6.2)
+  recording_studio_icons (0.2.0)
   recording_studio_logs (0.7.4)
   recording_studio_metrics (0.7.3)
+  recording_studio_moveable (4.1.0)
   recording_studio_publishable (0.13.0)
-  recording_studio_terms_and_conditions (0.17.0)
+  recording_studio_terms_and_conditions (0.18.0)
   recording_studio_trashable (0.12.3)
   recording_studio_user (0.27.1)
   regexp_parser (2.11.3) sha256=ca13f381a173b7a93450e53459075c9b76a10433caadcb2f1180f2c741fc55a4

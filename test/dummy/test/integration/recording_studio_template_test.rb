@@ -113,7 +113,8 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     refute RecordingStudio.capability_enabled?(:terms_and_conditions, for: Folder)
     refute RecordingStudio.capability_enabled?(:terms_and_conditions, for: Page)
     assert_equal [ "Workspace" ], RecordingStudio.configuration.enabled_recordable_types_for(:example)
-    assert_equal [ "Workspace" ], RecordingStudio.configuration.enabled_recordable_types_for(:terms_and_conditions)
+    assert_equal [ "RecordingStudioTermsAndConditions::Terms", "Workspace" ],
+                 RecordingStudio.configuration.enabled_recordable_types_for(:terms_and_conditions)
     assert_includes ApplicationController.instance_methods, :recording_studio_resolved_layout
   end
 

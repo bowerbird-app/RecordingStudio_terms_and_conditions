@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.17.0", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.18.0", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -495,7 +495,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes admin_new, "New Terms and Conditions"
     refute_includes admin_new, "Write terms"
     assert_includes engine_source("#{views}/admin/terms/edit.html.erb"), 'title: "Edit"'
-    assert_includes engine_source("#{views}/admin/terms/edit.html.erb"), "Save draft"
+    assert_includes engine_source("#{views}/admin/terms/edit.html.erb"), "Release"
     refute_includes engine_source("#{views}/admin/terms/edit.html.erb"), "Save version"
     refute_includes engine_source("#{views}/admin/terms/edit.html.erb"), "Edit terms"
     refute_includes engine_source("#{views}/admin/terms/edit.html.erb"), "FlatPack::Card::Component"
@@ -813,6 +813,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/terms_controller.rb"),
                     "perform_recording_studio_admin_action!"
     assert_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/terms_controller.rb"),
+                    "Outline.release"
+    refute_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/terms_controller.rb"),
                     "TermsWrite.call"
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/terms_write.rb"))
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/sole_live.rb"))
@@ -900,9 +902,12 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.18.0]"
+    assert_includes changelog, "Upgrade notes (0.17.0 → 0.18.0)"
+    assert_includes changelog, "compare/v0.18.0...HEAD"
     assert_includes changelog, "## [0.17.0]"
     assert_includes changelog, "Upgrade notes (0.16.0 → 0.17.0)"
-    assert_includes changelog, "compare/v0.17.0...HEAD"
+    assert_includes changelog, "compare/v0.17.0...v0.18.0"
     assert_includes changelog, "## [0.16.0]"
     assert_includes changelog, "Upgrade notes (0.15.0 → 0.16.0)"
     assert_includes changelog, "compare/v0.16.0...v0.17.0"

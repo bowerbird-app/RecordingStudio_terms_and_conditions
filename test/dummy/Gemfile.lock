@@ -192,13 +192,14 @@ GIT
 PATH
   remote: ../..
   specs:
-    recording_studio_terms_and_conditions (0.17.0)
+    recording_studio_terms_and_conditions (0.18.0)
       flat_pack (>= 0.1.196)
       rails (~> 8.1.0)
       recording_studio (>= 6.3.0, < 7)
       recording_studio_accessible (>= 0.24.2, < 1)
       recording_studio_admin (>= 2.0.6, < 3)
       recording_studio_metrics (>= 0.3.0, < 1.0)
+      recording_studio_moveable (>= 4.1.0, < 5)
       recording_studio_publishable (~> 0.6)
       recording_studio_user (>= 0.12.2)
 
@@ -883,7 +884,7 @@ CHECKSUMS
   recording_studio_moveable (4.1.0)
   recording_studio_publishable (0.13.0)
   recording_studio_root_switchable (0.11.5)
-  recording_studio_terms_and_conditions (0.17.0)
+  recording_studio_terms_and_conditions (0.18.0)
   recording_studio_trashable (0.12.3)
   recording_studio_user (0.27.1)
   redis (5.4.1) sha256=b5e675b57ad22b15c9bcc765d5ac26f60b675408af916d31527af9bd5a81faae

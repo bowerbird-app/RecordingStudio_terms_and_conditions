@@ -1,0 +1,24 @@
+<% terms_page_nav(title: "Release", back_url: edit_admin_term_path(@terms_recording), back_label: "Edit") %>
+
+<div class="mx-auto flex w-full flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: "Release",
+    subtitle: @unreleased ? "People will have to agree to this version." : "Nothing new to release.",
+    variant: :h1
+  ) %>
+
+  <%= form_with url: release_admin_term_path(@terms_recording), method: :post, scope: :terms, class: "flex w-full flex-col gap-6" do %>
+    <%= render FlatPack::TextInput::Component.new(
+      name: "terms[title]",
+      value: @preview[:title],
+      label: "Title",
+      required: true
+    ) %>
+    <%= terms_content(@preview[:body]) %>
+    <% if @unreleased %>
+      <div class="inline-block">
+        <%= render FlatPack::Button::Component.new(text: "Release", style: :primary, type: "submit") %>
+      </div>
+    <% end %>
+  <% end %>
+</div>

@@ -105,6 +105,14 @@ class TermsApiTest < ActionDispatch::IntegrationTest
       refute RecordingStudioApi.capability_action(:terms_accept_pending, api: api)
     end
     refute_includes RecordingStudioTermsAndConditions::Api::ACTIONS.keys, :terms_accept_pending
+    names = RecordingStudioTermsAndConditions::Api::ACTIONS.keys +
+            RecordingStudioTermsAndConditions::Api::AdminActions.definitions.keys
+    refute_includes names, :terms_accept
+    refute_includes names, :accept_terms
+    api_dir = RecordingStudioTermsAndConditions::Engine.root.join("lib/recording_studio_terms_and_conditions/api")
+    Dir.glob(api_dir.join("*.rb")).each do |path|
+      refute_includes File.read(path), "accept!", "#{path} must not accept Terms"
+    end
   end
 
   test "actions register on public and operations with view and collide on a second register" do

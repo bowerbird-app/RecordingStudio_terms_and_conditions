@@ -21,6 +21,10 @@ module RecordingStudioTermsAndConditions
                                 root: false,
                                 allowed_parent_types: ["Workspace"]
 
+    if defined?(RecordingStudio::Capabilities::TermsAndConditions)
+      include RecordingStudio::Capabilities::TermsAndConditions.to
+    end
+
     attribute :kind, :string, default: DEFAULT_KIND
 
     before_validation :normalize_kind

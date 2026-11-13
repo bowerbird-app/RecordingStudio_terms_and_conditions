@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_12_071025) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_13_010003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -354,11 +354,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_12_071025) do
     t.index ["terms_recording_id"], name: "index_rstac_acceptances_on_terms_recording_id"
   end
 
+  create_table "recording_studio_terms_and_conditions_clauses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.text "body", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+  end
+
+  create_table "recording_studio_terms_and_conditions_sections", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "heading", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+  end
+
   create_table "recording_studio_terms_and_conditions_terms", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.text "body", null: false
     t.datetime "created_at", null: false
     t.string "kind", default: "terms_and_condition", null: false
     t.string "title", null: false
+    t.jsonb "release_manifest"
   end
 
   create_table "recording_studio_user_identities", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

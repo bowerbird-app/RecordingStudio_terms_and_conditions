@@ -130,25 +130,33 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
 
     original_snapshot_id = recording.recordable_id
     original_body = recording.recordable.body
-    assert_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count }, 1 do
-      patch recording_studio_terms_and_conditions.admin_term_path(recording), params: {
-        terms: { title: "House rules", body: "Whisper, please." }
+    clause = RecordingStudioTermsAndConditions::Outline.sections(recording).first.clauses.first
+    assert_no_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count } do
+      patch recording_studio_terms_and_conditions.admin_term_clause_path(recording, clause.recording), params: {
+        clause: { body: "Whisper, please." }
       }
     end
 
     live = recording.reload
-    draft = RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name)
-                                      .order(:created_at).last
     assert_equal original_snapshot_id, live.recordable_id
     assert_equal original_body, live.recordable.body
     assert live.currently_published?
-    refute_equal live.id, draft.id
-    assert_equal "Whisper, please.", draft.recordable.body
-    refute draft.currently_published?
-    assert_redirected_to recording_studio_terms_and_conditions.admin_term_path(draft)
+    assert_redirected_to recording_studio_terms_and_conditions.edit_admin_term_path(recording)
     follow_redirect!
-    assert_includes response.body, "Draft saved. The live copy stays until you publish."
     assert_includes response.body, "Whisper, please."
+    assert_includes response.body, "Unreleased changes"
+
+    assert_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count }, 1 do
+      post recording_studio_terms_and_conditions.release_admin_term_path(recording), params: {
+        terms: { title: "House rules" }
+      }
+    end
+    released = RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name)
+                                         .order(:created_at).last
+    assert_redirected_to recording_studio_terms_and_conditions.admin_term_path(released)
+    assert_includes released.recordable.body, "Whisper, please."
+    assert released.currently_published?
+    refute recording.reload.currently_published?
 
     get recording_studio_terms_and_conditions.admin_terms_path
     assert_redirected_to "/admin/screens/recording_studio_terms"

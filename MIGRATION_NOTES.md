@@ -11,12 +11,32 @@ That copies Terms and Acceptance migrations, mounts the engine, writes `config/i
 
 Then:
 
-- Register `RecordingStudioTermsAndConditions::Terms` in `recordable_types`.
+- Register `RecordingStudioTermsAndConditions::Terms`, `Section`, and `Clause` in `recordable_types`.
 - Mount Publishable at `/`.
 - Enable Admin `section :terms` on an Admin root and grant Accessible access.
 - Publish with Publishable `QuickActions` on term show, or the Publish settings hub. Do not add a custom publish action.
 
 The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
+
+After migrating an existing database, seed the outline once:
+
+```bash
+ACTOR_TYPE=User ACTOR_ID=<staff id> bin/rails recording_studio_terms_and_conditions:seed_outline
+```
+
+That splits each current body into sections and clauses and, for a live document, records that version as the baseline manifest. It does not publish and does not write receipts. Running it again does nothing when the outline is already there.
+
+## Upgrade from 0.17.0 to 0.18.0
+
+Schema change. Pin `0.18.0`. Generate migrations and run `bin/rails db:migrate`. New tables are `recording_studio_terms_and_conditions_sections` and `recording_studio_terms_and_conditions_clauses`. `recording_studio_terms_and_conditions_terms` gains nullable `release_manifest` jsonb.
+
+Add GitHub sources for `recording_studio_moveable` tag `v4.1.0` and `recording_studio_icons` tag `v0.2.0`. The gemspec requires Moveable `>= 4.1.0`, `< 5`. Register Section and Clause next to Terms in `recordable_types`.
+
+Run the seed task above. Staff then edit sections and clauses and use Release. Release is the only path that rebuilds the parent text and publishes it. A child edit does not fire `published.recording_studio_terms_and_conditions`. Every release that changes the document is a new version people must accept. The show-page Publish control still publishes whatever text is already stored. Use Release when the outline should become the live copy.
+
+Public API actions are unchanged: `terms_pending_published_list`, `terms_current_published_for`, `terms_accepted`. Add `terms_documents` to the workspace `capability_actions`. Add the outline, edit, preview, and release actions to `RecordingStudioTermsAndConditions::Terms`. Set `auto_capability_actions: false` on both. Grant the API client Accessible `:view` or `:edit` on the admin root, matching the Admin screens. MCP uses `capability_action`. Do not add an accept tool. There is no accept action.
+
+Agree, `/terms/:uuid/:slug`, `/privacy/:uuid/:slug`, the gate, helpers, `:terms_acceptances`, locale keys, and the hook payload (`recording_id`, `terms_id`) are unchanged. Consumers that only read the published title and body need this version bump, the migrations, and the seed. Receipts still point at the parent Terms snapshot.
 
 ## Upgrade from 0.15.0 to 0.16.0
 

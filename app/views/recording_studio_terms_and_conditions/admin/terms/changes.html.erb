@@ -1,0 +1,34 @@
+<% terms_page_nav(title: "Review", back_url: edit_admin_term_path(@terms_recording), back_label: "Edit") %>
+
+<div class="mx-auto flex w-full flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: "Review",
+    subtitle: @unreleased ? "These changes are not live yet." : "The live copy matches this outline.",
+    variant: :h1
+  ) %>
+
+  <% if @changes.empty? %>
+    <%= render FlatPack::EmptyState::Component.new(title: "No unreleased changes", description: "Edit a section or a clause, then come back here.") %>
+  <% else %>
+    <% @changes.each do |change| %>
+      <article class="flex w-full flex-col gap-2">
+        <h2 class="text-lg font-semibold">
+          <%= change.kind == "section" ? "Section" : "Clause" %>
+          <%= change.number || change.previous_number %>
+          <%= change.status %>
+        </h2>
+        <% if change.kind == "section" %>
+          <p>Before: <%= review_words(change.previous_heading) %></p>
+          <p>After: <%= review_words(change.heading) %></p>
+        <% else %>
+          <p>Before: <%= review_words(change.previous_body) %></p>
+          <p>After: <%= review_words(change.body) %></p>
+        <% end %>
+      </article>
+    <% end %>
+  <% end %>
+
+  <div class="inline-block">
+    <%= render FlatPack::Button::Component.new(text: "Release", style: :primary, href: preview_admin_term_path(@terms_recording)) %>
+  </div>
+</div>
