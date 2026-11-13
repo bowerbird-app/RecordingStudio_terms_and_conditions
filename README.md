@@ -479,18 +479,22 @@ See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full do
 | Rails           | 8.1+    |
 | PostgreSQL      | 16      |
 | TailwindCSS     | 4       |
-| RecordingStudio | 6.x (`>= 6.3.0`, `< 7` in the gemspec; dummy GitHub tag `v6.5.0`) |
-| Accessible      | gemspec `>= 0.24.2`, `< 1`; dummy GitHub tag `v0.24.2` |
-| Admin           | gemspec `>= 2.0.6`, `< 3`; dummy GitHub tag `v2.9.1` |
-| Trashable       | dummy GitHub tag `v0.12.3` (`require: false`; Admin query helpers) |
-| Users           | gemspec `recording_studio_user >= 0.12.2`; dummy GitHub tag `v0.27.1` |
-| Publishable     | gemspec `~> 0.6`; dummy GitHub tag `v0.13.0` |
-| Attachable      | dummy GitHub tag `v0.22.0` (Users Profile needs it) |
-| Root Switchable | dummy GitHub tag `v0.11.5` |
-| Cache           | dummy GitHub tag `v0.6.2` (Users / Root Switchable rate limits) |
-| Logs            | dummy GitHub tag `v0.7.4` (Admin 2.9.1 requires it; not in this gemspec) |
-| FlatPack        | gemspec `>= 0.1.196`; dummy GitHub tag `v0.1.341` |
-| Internationalization | dummy GitHub tag `v0.2.1` (not in the gemspec) |
+| RecordingStudio | 6.x (`>= 6.3.0`, `< 7` in the gemspec; dummy GitHub tag `v6.7.0`) |
+| Accessible      | gemspec `>= 0.24.2`, `< 1`; dummy GitHub tag `v0.32.0` |
+| Admin           | gemspec `>= 2.0.6`, `< 3`; dummy GitHub tag `v2.13.0` |
+| Trashable       | dummy GitHub tag `v0.14.0` (`require: false`; Admin query helpers) |
+| Users           | gemspec `recording_studio_user >= 0.12.2`; dummy GitHub tag `v0.28.1` |
+| Publishable     | gemspec `~> 0.6`; dummy GitHub tag `v0.15.0` |
+| Attachable      | dummy GitHub tag `v0.23.0` (Users Profile needs it) |
+| API             | not a gemspec dependency; GitHub tag `v0.23.1` (Publishable 0.15 and Attachable 0.23 require it) |
+| Root Switchable | dummy GitHub tag `v0.15.0` |
+| Cache           | dummy GitHub tag `v0.6.3` (Users / Root Switchable rate limits) |
+| Logs            | dummy GitHub tag `v0.7.4` (Admin requires it; not in this gemspec) |
+| Metrics         | gemspec `>= 0.3.0`, `< 1.0`; dummy GitHub tag `v0.8.0` |
+| Moveable        | gemspec `>= 4.1.0`, `< 5`; dummy GitHub tag `v4.1.1` |
+| Icons           | dummy GitHub tag `v0.2.1` |
+| FlatPack        | gemspec `>= 0.1.196`; dummy GitHub tag `v0.1.357` |
+| Internationalization | dummy GitHub tag `v0.2.2` (not in the gemspec) |
 | Devise          | latest  |
 
 The dummy Gemfile keeps `github:` sources so Bundler can fetch those gems. Hosts also need Publishable (and Users/Attachable) migrations from those gems — this addon only ships Terms and Acceptance migrations.
