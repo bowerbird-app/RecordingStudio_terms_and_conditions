@@ -50,7 +50,7 @@ RecordingStudioTermsAndConditions.accepted?(user, workspace)
 
 Live means Publishable `currently_published?`. `kind` is `terms_and_condition` or `privacy_policy` — one lineage per kind per workspace. Admin New is blocked when that kind already exists; versions come from edit/fork. SoleLive drafts other live rows of the same kind only. `accept!` raises `NotLive` for drafts and unpublished versions. Retrying the same actor and live snapshot returns the existing receipt. Saving live Terms forks a draft; the published copy stays live. Publishing the draft drafts the previous live version of that kind. A later published version still inserts a new receipt. Acceptance rows are receipts, not recordings. New receipts store `body_digest` (read via `receipt_contract`).
 
-`pending_published_list` is the live Terms and/or Privacy Policy the actor still needs (0..2). The host gate (`ForcesAcceptance`) and Users Auth post-auth stay on until that set is empty.
+`pending_published_list` is the live Terms and/or Privacy Policy the actor still needs (0..2). The gem registers that check as the Recording Studio gate `recording_studio_terms_and_conditions.acceptance`. `ForcesAcceptance` and Users Auth post-auth follow `RecordingStudio.check_gate` until that set is empty. Agree stays exempt. A raised check still sends a signed-in person to Agree.
 
 When Users `>= 0.12.1` is loaded, this gem overrides `recording_studio_user/auth/registrations/_extra_fields` on create-password signup. Pending live Terms render `recording_studio_terms_continue_notice`. After a successful `create_password`, `accept!` runs with `{ "source" => "continue_notice" }`. Continuing the form is the agreement. The gem still boots if Users Auth is absent.
 

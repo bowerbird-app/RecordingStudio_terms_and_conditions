@@ -8,4 +8,4 @@
 - Authenticated dummy layout: `recording_studio_layout` plus FlatPack CSS/JS
 - Hooks and BaseService come from core; do not copy them into a new addon
 - Recordable declarations remain required
-- Optional example mixin: `include RecordingStudio::Capabilities::Example.to(**opts)` wraps `RecordingStudio::Capabilities.include_for`. Installing the gem does not enable it globally.
+- Clickwrap uses the Recording Studio gate `recording_studio_terms_and_conditions.acceptance`

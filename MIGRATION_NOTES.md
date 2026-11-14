@@ -16,7 +16,7 @@ Then:
 - Enable Admin `section :terms` on an Admin root and grant Accessible access.
 - Publish with Publishable `QuickActions` on term show, or the Publish settings hub. Do not add a custom publish action.
 
-The host gate and Users post-auth hook attach automatically. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
+The host gate and Users post-auth hook attach automatically. The gate is `recording_studio_terms_and_conditions.acceptance` on `RecordingStudio.check_gate`. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
 
 After migrating an existing database, seed the outline once:
 
@@ -25,6 +25,14 @@ ACTOR_TYPE=User ACTOR_ID=<staff id> bin/rails recording_studio_terms_and_conditi
 ```
 
 That splits each current body into sections and clauses and, for a live document, records that version as the baseline manifest. It does not publish and does not write receipts. Running it again does nothing when the outline is already there.
+
+## Upgrade from 0.18.0 to 0.19.0
+
+No schema change. Pin `0.19.0`. Require Recording Studio `>= 6.7.0`, `< 7` (gates shipped in 6.7.0). The clickwrap registers `recording_studio_terms_and_conditions.acceptance` once at boot. The check is `pending`. It uses the actor and an explicit `root:` or the controller's acceptance root. Pending kinds deny with `redirect_to` set to the Agree path. `ForcesAcceptance` and post-auth redirects follow that decision. A raised check denies with no redirect, and a signed-in request still goes to Agree. Agree stays exempt, so that redirect does not loop.
+
+Hosts can change priority or disable the check with `config.gate_overrides` under `recording_studio_terms_and_conditions.acceptance` / `pending`.
+
+`RecordingStudio::Capabilities::Example` is removed. Drop `include RecordingStudio::Capabilities::Example.to` if a host copied the dummy Workspace line. Agree, receipts, and the mounted path are unchanged.
 
 ## Upgrade from 0.17.0 to 0.18.0
 
