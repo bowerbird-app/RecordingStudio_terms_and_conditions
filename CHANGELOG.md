@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Gemspec `recording_studio` is `>= 6.7.0`, `< 7`.
 - `AcceptanceGateInstaller` runs from `to_prepare` only.
+- Dummy lockfile updates `omniauth` to 2.4.1 (CVE-2026-63183).
 
 ### Upgrade notes (0.18.0 → 0.19.0)
 - No schema change. Pin this gem at `0.19.0`. Require Recording Studio `>= 6.7.0`.

@@ -378,8 +378,10 @@ class GateTest < Minitest::Test
       end
     end.new
 
-    assert_equal "/after-in", controller.after_sign_in_path_for(:user)
-    assert_equal "/after-up", controller.after_sign_up_path_for(:user)
+    RecordingStudioTermsAndConditions::Gate.stub(:first_root_with_live_terms, nil) do
+      assert_equal "/after-in", controller.after_sign_in_path_for(:user)
+      assert_equal "/after-up", controller.after_sign_up_path_for(:user)
+    end
   end
 
   def test_gate_files_reuse_domain_helpers
