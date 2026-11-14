@@ -20,14 +20,16 @@ module RecordingStudioTermsAndConditions
     private
 
     def force_terms_acceptance
-      return unless signed_in_actor
+      actor = signed_in_actor
+      return unless actor
       return if Gate.exempt?(self)
 
-      pending = Gate.pending_for(self, signed_in_actor)
-      return if pending.empty?
+      decision = RecordingStudio.check_gate(Gate::GATE_NAME, actor: actor, controller: self)
+      return if decision.allowed?
 
       remember_requested_page
-      redirect_to Gate.acceptance_path(self)
+      # A raised check denies with no redirect. Agree stays exempt, so this does not loop.
+      redirect_to decision.redirect_to || Gate.acceptance_path(self)
     end
 
     def signed_in_actor

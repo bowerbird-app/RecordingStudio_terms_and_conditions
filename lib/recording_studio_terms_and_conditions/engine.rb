@@ -127,11 +127,14 @@ module RecordingStudioTermsAndConditions
     end
     # rubocop:enable Metrics/BlockLength
 
+    initializer "recording_studio_terms_and_conditions.register_acceptance_gate" do
+      RecordingStudioTermsAndConditions::Gate.register!
+    end
+
     # Run after_initialize hooks
     initializer "recording_studio_terms_and_conditions.after_initialize",
                 after: "recording_studio_terms_and_conditions.load_config" do |_app|
       RecordingStudioTermsAndConditions.configuration.hooks.run(:after_initialize, self)
-      RecordingStudioTermsAndConditions::AcceptanceGateInstaller.call
     end
 
     # Apply model extensions when models are loaded

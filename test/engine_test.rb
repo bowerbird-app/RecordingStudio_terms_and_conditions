@@ -23,6 +23,27 @@ class EngineTest < Minitest::Test
     assert_includes paths, RecordingStudioTermsAndConditions::Engine.root.join("app/javascript")
   end
 
+  def test_acceptance_gate_initializer_registers_once
+    gate = RecordingStudioTermsAndConditions::Gate
+    RecordingStudio.unregister_gate(gate::GATE_NAME, gate::CHECK_NAME)
+    initializer = find_initializer("recording_studio_terms_and_conditions.register_acceptance_gate")
+    after_initialize = File.read(
+      File.expand_path("../lib/recording_studio_terms_and_conditions/engine.rb", __dir__)
+    )
+    after_block = after_initialize[
+      /initializer "recording_studio_terms_and_conditions\.after_initialize".*?^    end/m
+    ]
+
+    initializer.block.call
+    initializer.block.call
+
+    assert_equal([gate::CHECK_NAME], RecordingStudio.gate_checks(gate::GATE_NAME).map { |check| check[:name] })
+    refute_includes after_block, "AcceptanceGateInstaller"
+    assert_includes after_initialize, "AcceptanceGateInstaller.call"
+  ensure
+    gate.register!
+  end
+
   def test_before_and_after_initialize_initializers_run_hooks
     before_called = false
     after_called = false

@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.18.0", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.19.0", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -14,7 +14,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_gemspec_pins_recording_studio_4_2
     gemspec = File.read(File.expand_path("../recording_studio_terms_and_conditions.gemspec", __dir__))
 
-    assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 6.3.0", "< 7"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 6.7.0", "< 7"'
     assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.196"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", ">= 0.24.2", "< 1"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_admin", ">= 2.0.6", "< 3"'
@@ -122,22 +122,19 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute File.exist?(File.join(lib, "services/example_service.rb"))
   end
 
-  def test_example_capability_wraps_include_for_and_is_not_enabled_globally
-    source = File.read(
-      File.expand_path("../lib/recording_studio_terms_and_conditions/capabilities/example.rb", __dir__)
-    )
+  def test_template_example_capability_is_gone_and_terms_capability_stays_opt_in
+    lib = File.expand_path("../lib/recording_studio_terms_and_conditions", __dir__)
+    entry = File.read(File.expand_path("../lib/recording_studio_terms_and_conditions.rb", __dir__))
 
-    assert_includes source, "def self.to(**)"
-    assert_includes source, "RecordingStudio::Capabilities.include_for(:example, **)"
-    terms_capability = File.read(
-      File.expand_path("../lib/recording_studio_terms_and_conditions/capabilities/terms_and_conditions.rb", __dir__)
-    )
-    assert_includes terms_capability, "RecordingStudio::Capabilities.include_for(:terms_and_conditions, **)"
-    refute_includes source, "enable_capability"
-    refute_includes source, "set_capability_options"
-    refute RecordingStudio.capability_enabled?(:example, for: "Folder")
-    refute RecordingStudio.capability_enabled?(:example, for: "Page")
+    refute File.exist?(File.join(lib, "capabilities/example.rb"))
+    refute_includes entry, "capabilities/example"
+    refute RecordingStudio.registered_capabilities.key?(:example)
     assert_empty RecordingStudio.configuration.enabled_recordable_types_for(:example)
+
+    terms_capability = File.read(File.join(lib, "capabilities/terms_and_conditions.rb"))
+    assert_includes terms_capability, "RecordingStudio::Capabilities.include_for(:terms_and_conditions, **)"
+    refute_includes terms_capability, "enable_capability"
+    refute_includes terms_capability, "set_capability_options"
     refute RecordingStudio.capability_enabled?(:terms_and_conditions, for: "Folder")
     refute RecordingStudio.capability_enabled?(:terms_and_conditions, for: "Page")
     assert_empty RecordingStudio.configuration.enabled_recordable_types_for(:terms_and_conditions)
@@ -950,9 +947,14 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.19.0]"
+    assert_includes changelog, "Upgrade notes (0.18.0 → 0.19.0)"
+    assert_includes changelog, "compare/v0.19.0...HEAD"
     assert_includes changelog, "## [0.18.0]"
     assert_includes changelog, "Upgrade notes (0.17.0 → 0.18.0)"
-    assert_includes changelog, "compare/v0.18.0...HEAD"
+    assert_includes changelog, "compare/v0.18.0...v0.19.0"
+    assert_includes notes, "Upgrade from 0.18.0 to 0.19.0"
+    assert_includes readme, "Upgrading from 0.18.0"
     assert_includes changelog, "## [0.17.0]"
     assert_includes changelog, "Upgrade notes (0.16.0 → 0.17.0)"
     assert_includes changelog, "compare/v0.17.0...v0.18.0"

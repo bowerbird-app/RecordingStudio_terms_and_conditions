@@ -1,9 +1,14 @@
 # frozen_string_literal: true
 
 module RecordingStudioTermsAndConditions
-  # Shared skip list and path helpers for the clickwrap gate.
-  # required? follows pending_published_list (live Terms the actor has not accepted).
-  module Gate
+  # Clickwrap gate registered on Recording Studio as
+  # recording_studio_terms_and_conditions.acceptance.
+  # The check follows pending_published_list (live Terms the actor has not accepted).
+  module Gate # rubocop:disable Metrics/ModuleLength
+    GATE_NAME = "recording_studio_terms_and_conditions.acceptance"
+    CHECK_NAME = "pending"
+    REASON = "pending"
+
     EXEMPT_PREFIXES = %w[
       recording_studio_terms_and_conditions/acceptances
       recording_studio_terms_and_conditions/admin
@@ -21,6 +26,24 @@ module RecordingStudioTermsAndConditions
 
     module_function
 
+    def register!
+      return CHECK_NAME if registered?
+
+      RecordingStudio.register_gate(GATE_NAME, CHECK_NAME) do |actor:, root: nil, controller: nil, **|
+        decide(actor: actor, root: root, controller: controller)
+      end
+    end
+
+    def registered?
+      RecordingStudio.gate_checks(GATE_NAME).any? { |check| check[:name] == CHECK_NAME }
+    end
+
+    def decide(actor:, root: nil, controller: nil, **)
+      return true if pending_for(actor, root: root, controller: controller).empty?
+
+      RecordingStudio::GateDecision.deny(redirect_to: redirect_for(controller), reason: REASON)
+    end
+
     def exempt?(controller)
       return true if controller.respond_to?(:devise_controller?) && controller.devise_controller?
 
@@ -28,22 +51,19 @@ module RecordingStudioTermsAndConditions
       EXEMPT_PREFIXES.any? { |prefix| path == prefix || path.start_with?("#{prefix}/") }
     end
 
-    def required?(controller, actor)
-      pending_for(controller, actor).any?
-    end
+    def pending_for(actor, root: nil, controller: nil)
+      resolved = root
+      resolved = root_for_acceptance(controller, actor) if resolved.nil? && controller
+      return [] if actor.blank? || resolved.blank?
 
-    def pending_for(controller, actor)
-      root = root_for_acceptance(controller)
-      return [] if actor.blank? || root.blank?
-
-      RecordingStudioTermsAndConditions.pending_published_list(actor, root)
+      RecordingStudioTermsAndConditions.pending_published_list(actor, resolved)
     end
 
     def after_auth_path(controller, actor)
-      refresh_root(controller, actor)
-      return unless required?(controller, actor)
+      decision = RecordingStudio.check_gate(GATE_NAME, actor: actor, controller: controller)
+      return if decision.allowed?
 
-      acceptance_path(controller)
+      decision.redirect_to || acceptance_path(controller)
     end
 
     def refresh_root(controller, actor)
@@ -90,8 +110,8 @@ module RecordingStudioTermsAndConditions
       root_for_acceptance(controller)
     end
 
-    def root_for_acceptance(controller)
-      actor = actor_from(controller)
+    def root_for_acceptance(controller, actor = nil)
+      actor ||= actor_from(controller)
       refresh_root(controller, actor)
       current = root_for(controller)
       return current if current.present? && live_terms_on?(current)
@@ -126,6 +146,12 @@ module RecordingStudioTermsAndConditions
     def live_terms_on?(root)
       RecordingStudioTermsAndConditions.current_published_for(root).present? ||
         RecordingStudioTermsAndConditions.pending_published_list(nil, root).any?
+    end
+
+    def redirect_for(controller)
+      return if controller.blank?
+
+      acceptance_path(controller)
     end
   end
 end

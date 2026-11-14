@@ -34,7 +34,6 @@ require "recording_studio_terms_and_conditions/hide_admin_access_avatars"
 require "recording_studio_terms_and_conditions/admin" if defined?(RecordingStudioAdmin)
 require "recording_studio_terms_and_conditions/metrics"
 require "recording_studio_terms_and_conditions/api"
-require "recording_studio_terms_and_conditions/capabilities/example"
 require "recording_studio_terms_and_conditions/capabilities/terms_and_conditions"
 
 module RecordingStudioTermsAndConditions

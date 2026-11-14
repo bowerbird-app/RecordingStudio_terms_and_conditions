@@ -96,6 +96,33 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     refute_redirected_to_acceptance
   end
 
+  test "acceptance gate is registered when the app boots" do
+    name = RecordingStudioTermsAndConditions::Gate::GATE_NAME
+
+    assert_equal "recording_studio_terms_and_conditions.acceptance", name
+    assert RecordingStudio.gate_registered?(name)
+    assert_equal ["pending"], RecordingStudio.gate_checks(name).map { |check| check[:name] }
+  end
+
+  test "a raised acceptance check redirects to agree without looping" do
+    publish_live_terms!
+    gate = RecordingStudioTermsAndConditions::Gate
+    RecordingStudio.unregister_gate(gate::GATE_NAME, gate::CHECK_NAME)
+    RecordingStudio.register_gate(gate::GATE_NAME, gate::CHECK_NAME) { |**| raise "terms lookup failed" }
+
+    get "/"
+    assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
+    follow_redirect!
+    assert_response :success
+    assert_equal recording_studio_terms_and_conditions.acceptance_path, path_without_query
+  ensure
+    RecordingStudio.unregister_gate(
+      RecordingStudioTermsAndConditions::Gate::GATE_NAME,
+      RecordingStudioTermsAndConditions::Gate::CHECK_NAME
+    )
+    RecordingStudioTermsAndConditions::Gate.register!
+  end
+
   test "published terms send signed-in people to the clickwrap" do
     publish_live_terms!
 
@@ -227,6 +254,10 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     recording = record_terms(@root, title: "Gate Terms", body: "Be kind.")
     publish_terms!(recording, slug: "gate-terms-#{SecureRandom.hex(4)}")
     recording
+  end
+
+  def path_without_query
+    URI.parse(request.original_url).path
   end
 
   def refute_redirected_to_acceptance

@@ -197,6 +197,10 @@ Add [Recording Studio Internationalization](https://github.com/bowerbird-app/Rec
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
 
+## Upgrading from 0.18.0
+
+Bump to **0.19.0**. No schema change. Require Recording Studio `>= 6.7.0`, `< 7`. The clickwrap registers the core gate `recording_studio_terms_and_conditions.acceptance` at boot. `ForcesAcceptance` and post-auth redirects follow `RecordingStudio.check_gate`. Pass `actor:` plus `root:` or `controller:`. A raised check denies and still sends a signed-in person to Agree. Agree stays exempt. `RecordingStudio::Capabilities::Example` is gone. Drop that `include` if a host copied it from the dummy Workspace.
+
 ## Upgrading from 0.17.0
 
 Bump to **0.18.0**. This release changes how Terms are authored. Copy the new migrations and run `bin/rails db:migrate`. Register Section and Clause in `recordable_types`. Add `recording_studio_moveable` `v4.1.0` and `recording_studio_icons` `v0.2.0` from GitHub. Run `recording_studio_terms_and_conditions:seed_outline` with `ACTOR_TYPE` and `ACTOR_ID`. The task is safe to repeat. It does not publish and does not write receipts.
@@ -376,7 +380,7 @@ That `find_by` loop is the host's N+1. The gem returns actor ids and does not lo
 
 The event name is `published.recording_studio_terms_and_conditions`. It fires when Publishable marks a Terms parent currently published, including a scheduled window. It does not fire for a `TermsWrite` draft, `accept!`, or SoleLive drafting the previous live copy. Use this event, not raw `published.recording_studio_publishable`. A subscriber exception is reported with `Rails.error` and does not fail the publish or skip SoleLive; a later `WindowTransitionJob` can notify again. A successful emit is claimed with `recording.log_event!` (`record!`), so `authorize_write` and record hooks run. A denying authorizer drops or fails that claim. A second successful job for the same window does not emit again.
 - Live means Publishable `currently_published?` (scheduled-in-the-future is not current). `accept!` raises `RecordingStudioTermsAndConditions::NotLive` for drafts and unpublished versions and does not write a receipt. `indexable` is SEO and is not used for clickwrap. Retrying `accept!` for the same actor and snapshot returns the existing receipt. Saving live Terms forks a draft; people who already agreed stay agreed until that draft is published. A new published version still needs a new tick. The “You already agreed” Alert shows when Agree lists live Terms the person has not accepted yet and they already have a receipt for an older Terms version in that workspace. First-time Agree never shows it. `reaccepting_actors_for` is scoped to that workspace root and kind. A destroyed user can still appear: acceptances have no foreign key to users, so the host must tolerate a missing actor.
-- The gem includes `ForcesAcceptance` on the host `ApplicationController` and prepends `UsersAuthRedirect` on Users Auth. Both reuse `pending_published_list` / `requires_acceptance?` and the mounted Agree screen. Auth, Agree, Admin, public Terms, and root switch stay reachable so people can sign in, accept, publish, or switch workspace.
+- The gem registers the core gate `recording_studio_terms_and_conditions.acceptance` at boot. `ForcesAcceptance` on the host `ApplicationController` asks `RecordingStudio.check_gate` and redirects to `decision.redirect_to`. Users Auth uses the same decision after sign-in and sign-up. Auth, Agree, Admin, public Terms, and root switch stay exempt so people can sign in, accept, publish, or switch workspace. A check that raises denies and still sends a signed-in person to Agree.
 - With Users `>= 0.12.1`, the gem fills the create-password `extra_fields` slot with `recording_studio_terms_continue_notice` and accepts pending live Terms on that POST (`source` `continue_notice`). Continuing the form is the agreement. `root_for_signup` falls back to another root when the current workspace has no live Terms. `NotLive` does not fail signup.
 - Hosts can render `recording_studio_terms_agree` or `recording_studio_terms_agree(inside_form: true)` inside signup or similar. The helper is the `required` `agreed` checkbox only. On the host POST, call `accept!` for the pending live version — do not invent a second receipt.
 - Agree has no on-page re-accept Alert. A new live version opens Accept with no flash. The page title is “We have updated our terms and conditions.” The Accept screen uses continue-notice and **Continue**.
@@ -437,20 +441,14 @@ RecordingStudio.allowed_parent_types_for("Page")
 
 Capability mixins are opt-in. Installing this gem does not enable mixins on host types.
 
-The dummy Workspace enables Accessible because that addon is bundled:
+The dummy Workspace enables Accessible and the Terms and Conditions mixin:
 
 ```ruby
 RecordingStudio.enable_capability(:accessible, on: Workspace)
-```
-
-The dummy also ships one example mixin that uses core `include_for`:
-
-```ruby
-include RecordingStudio::Capabilities::Example.to(label: "dummy workspace")
 include RecordingStudio::Capabilities::TermsAndConditions.to
 ```
 
-`.to` wraps `RecordingStudio::Capabilities.include_for`. It does not add a fourth verb and it does not call `enable_capability` / `set_capability_options` itself. Folder and Page stay without those mixins. `TermsAndConditions` is the mixin the API capability actions attach to.
+`.to` wraps `RecordingStudio::Capabilities.include_for`. It does not add a fourth verb and it does not call `enable_capability` / `set_capability_options` itself. Folder and Page stay without that mixin. `TermsAndConditions` is the mixin the API capability actions attach to.
 
 Use core `RecordingStudio::Hooks` and `RecordingStudio::Services::BaseService`. Do not copy those classes into this addon.
 
@@ -479,7 +477,7 @@ See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full do
 | Rails           | 8.1+    |
 | PostgreSQL      | 16      |
 | TailwindCSS     | 4       |
-| RecordingStudio | 6.x (`>= 6.3.0`, `< 7` in the gemspec; dummy GitHub tag `v6.7.0`) |
+| RecordingStudio | 6.x (`>= 6.7.0`, `< 7` in the gemspec; dummy GitHub tag `v6.7.0`) |
 | Accessible      | gemspec `>= 0.24.2`, `< 1`; dummy GitHub tag `v0.32.0` |
 | Admin           | gemspec `>= 2.0.6`, `< 3`; dummy GitHub tag `v2.13.0` |
 | Trashable       | dummy GitHub tag `v0.14.0` (`require: false`; Admin query helpers) |
