@@ -26,6 +26,10 @@ ACTOR_TYPE=User ACTOR_ID=<staff id> bin/rails recording_studio_terms_and_conditi
 
 That splits each current body into sections and clauses and, for a live document, records that version as the baseline manifest. It does not publish and does not write receipts. Running it again does nothing when the outline is already there.
 
+## Upgrade from 0.19.0 to 0.19.1
+
+No schema change. Pin `0.19.1`. Gemspec `recording_studio` stays `>= 6.7.0` and now allows `< 8.0`. Development and dummy stay on core 6.x.
+
 ## Upgrade from 0.18.0 to 0.19.0
 
 No schema change. Pin `0.19.0`. Require Recording Studio `>= 6.7.0`, `< 7` (gates shipped in 6.7.0). The clickwrap registers `recording_studio_terms_and_conditions.acceptance` once at boot. The check is `pending`. It uses the actor and an explicit `root:` or the controller's acceptance root. Pending kinds deny with `redirect_to` set to the Agree path. `ForcesAcceptance` and post-auth redirects follow that decision. A raised check denies with no redirect, and a signed-in request still goes to Agree. Agree stays exempt, so that redirect does not loop.

@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.19.0", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.19.1", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -14,7 +14,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_gemspec_pins_recording_studio_4_2
     gemspec = File.read(File.expand_path("../recording_studio_terms_and_conditions.gemspec", __dir__))
 
-    assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 6.7.0", "< 7"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 6.7.0", "< 8.0"'
     assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.196"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", ">= 0.24.2", "< 1"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_admin", ">= 2.0.6", "< 3"'
@@ -947,9 +947,12 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.19.1]"
+    assert_includes changelog, "Upgrade notes (0.19.0 → 0.19.1)"
+    assert_includes changelog, "compare/v0.19.1...HEAD"
     assert_includes changelog, "## [0.19.0]"
     assert_includes changelog, "Upgrade notes (0.18.0 → 0.19.0)"
-    assert_includes changelog, "compare/v0.19.0...HEAD"
+    assert_includes changelog, "compare/v0.19.0...v0.19.1"
     assert_includes changelog, "## [0.18.0]"
     assert_includes changelog, "Upgrade notes (0.17.0 → 0.18.0)"
     assert_includes changelog, "compare/v0.18.0...v0.19.0"
