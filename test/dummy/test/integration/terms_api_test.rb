@@ -10,7 +10,7 @@ class TermsApiTest < ActionDispatch::IntegrationTest
     @owner = user("owner")
     Current.actor = @owner
     @workspace = Workspace.create!(name: "API #{SecureRandom.hex(4)}")
-    @root = RecordingStudio.root_recording_for(@workspace)
+    @root = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor)
     @owner_access = bootstrap!(@root, @owner)
     @token = token_for(@owner_access)
     @recording = record_terms(@root, title: "Studio Terms", body: "Be kind.", actor: @owner)
@@ -79,7 +79,7 @@ class TermsApiTest < ActionDispatch::IntegrationTest
     outsider = user("foreign")
     Current.actor = outsider
     other = Workspace.create!(name: "Foreign #{SecureRandom.hex(4)}")
-    other_root = RecordingStudio.root_recording_for(other)
+    other_root = RecordingStudio.create_root_recording!(other, actor: recording_write_actor)
     other_access = bootstrap!(other_root, outsider)
     outsider_token = token_for(other_access, manager: outsider)
 
@@ -90,7 +90,7 @@ class TermsApiTest < ActionDispatch::IntegrationTest
 
   test "reads with no live terms return empty pending nil current and unaccepted" do
     empty_workspace = Workspace.create!(name: "Empty #{SecureRandom.hex(4)}")
-    empty_root = RecordingStudio.root_recording_for(empty_workspace)
+    empty_root = RecordingStudio.create_root_recording!(empty_workspace, actor: recording_write_actor)
     empty_access = bootstrap!(empty_root, @owner)
     token = token_for(empty_access)
 

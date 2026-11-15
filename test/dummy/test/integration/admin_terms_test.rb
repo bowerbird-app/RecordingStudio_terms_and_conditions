@@ -19,9 +19,9 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
       password_confirmation: "Password"
     )
     @workspace = Workspace.create!(name: "Admin write #{SecureRandom.hex(4)}")
-    RecordingStudio.root_recording_for(@workspace)
+    RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor)
     @admin_root = AdminRoot.find_or_create_by!(name: "Admin")
-    @admin_recording = RecordingStudio.root_recording_for(@admin_root)
+    @admin_recording = RecordingStudio.create_root_recording!(@admin_root, actor: recording_write_actor)
     unless RecordingStudioAccessible.authorized?(actor: @admin, recording: @admin_recording, role: :edit)
       bootstrap_owner_access!(@admin, @admin_recording)
     end
@@ -39,7 +39,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     sign_in @admin
     grant_workspace_access!(@admin, @workspace)
     switch_to_workspace(@workspace)
-    recording = RecordingStudio.root_recording_for(@workspace).record(
+    recording = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor).record(
       RecordingStudioTermsAndConditions::Terms,
       actor: @admin
     ) do |terms|
@@ -242,7 +242,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     switch_to_workspace(@admin_root)
     26.times do |index|
       workspace = Workspace.create!(name: "Page #{index} #{SecureRandom.hex(3)}")
-      root = RecordingStudio.root_recording_for(workspace)
+      root = RecordingStudio.create_root_recording!(workspace, actor: recording_write_actor)
       grant_write_access!(root, @admin)
       root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
         terms.title = "Page #{index} #{SecureRandom.hex(3)}"
@@ -258,7 +258,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     sign_in @admin
     grant_workspace_access!(@admin, @workspace)
     switch_to_workspace(@admin_root)
-    recording = RecordingStudio.root_recording_for(@workspace).record(
+    recording = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor).record(
       RecordingStudioTermsAndConditions::Terms,
       actor: @admin
     ) do |terms|
@@ -292,7 +292,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     switch_to_workspace(@admin_root)
     26.times do |index|
       workspace = Workspace.create!(name: "Hub #{index} #{SecureRandom.hex(3)}")
-      root = RecordingStudio.root_recording_for(workspace)
+      root = RecordingStudio.create_root_recording!(workspace, actor: recording_write_actor)
       grant_write_access!(root, @admin)
       root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
         terms.title = "Hub #{index} #{SecureRandom.hex(3)}"
@@ -315,7 +315,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     sign_in @admin
     grant_workspace_access!(@admin, @workspace)
     switch_to_workspace(@admin_root)
-    recording = RecordingStudio.root_recording_for(@workspace).record(
+    recording = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor).record(
       RecordingStudioTermsAndConditions::Terms,
       actor: @admin
     ) do |terms|
@@ -346,7 +346,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
   test "who agreed lists one row per person and view opens their receipts" do
     sign_in @admin
     switch_to_workspace(@admin_root)
-    root = RecordingStudio.root_recording_for(@workspace)
+    root = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor)
     terms = publish_live_kind!(root, kind: "terms_and_condition", title: "House rules", slug: "house-#{SecureRandom.hex(3)}")
     privacy = publish_live_kind!(root, kind: "privacy_policy", title: "Quiet privacy", slug: "quiet-#{SecureRandom.hex(3)}")
     person = User.create!(
@@ -379,7 +379,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
   test "dummy terms hub Flatpack Buttons render anchors from href" do
     sign_in @admin
     switch_to_workspace(@admin_root)
-    root = RecordingStudio.root_recording_for(@workspace)
+    root = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor)
     recording = publish_live_kind!(
       root,
       kind: "terms_and_condition",
@@ -398,7 +398,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     sign_in @admin
     switch_to_workspace(@admin_root)
 
-    root = RecordingStudio.root_recording_for(@workspace)
+    root = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor)
     publish_live_kind!(root, kind: "terms_and_condition", title: "House rules", slug: "house-rules-#{SecureRandom.hex(3)}")
     publish_live_kind!(root, kind: "privacy_policy", title: "Quiet privacy", slug: "quiet-privacy-#{SecureRandom.hex(3)}")
 
@@ -460,7 +460,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
   test "admin hub cards count people who agreed and versions stay a table" do
     sign_in @admin
     switch_to_workspace(@admin_root)
-    root = RecordingStudio.root_recording_for(@workspace)
+    root = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor)
     terms = publish_live_kind!(root, kind: "terms_and_condition", title: "Live rules", slug: "live-#{SecureRandom.hex(3)}")
     privacy = publish_live_kind!(root, kind: "privacy_policy", title: "Live privacy", slug: "priv-#{SecureRandom.hex(3)}")
     draft = root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |record|
@@ -541,7 +541,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     sign_in @admin
     switch_to_workspace(@admin_root)
     recording = publish_live_kind!(
-      RecordingStudio.root_recording_for(@workspace),
+      RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor),
       kind: "terms_and_condition",
       title: "Searchable",
       slug: "search-#{SecureRandom.hex(3)}"
@@ -576,7 +576,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     sign_in @admin
     switch_to_workspace(@admin_root)
     recording = publish_live_kind!(
-      RecordingStudio.root_recording_for(@workspace),
+      RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor),
       kind: "terms_and_condition",
       title: "Dated rules",
       slug: "dated-#{SecureRandom.hex(3)}"
@@ -624,7 +624,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
   test "who agreed filters people by agreed terms or privacy" do
     sign_in @admin
     switch_to_workspace(@admin_root)
-    root = RecordingStudio.root_recording_for(@workspace)
+    root = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor)
     terms = publish_live_kind!(root, kind: "terms_and_condition", title: "Filter terms", slug: "ft-#{SecureRandom.hex(3)}")
     privacy = publish_live_kind!(root, kind: "privacy_policy", title: "Filter privacy", slug: "fp-#{SecureRandom.hex(3)}")
     terms_only = User.create!(
@@ -665,7 +665,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     workspace = Workspace.find_by(name: "Studio Workspace")
     return unless workspace
 
-    root = RecordingStudio.root_recording_for(workspace)
+    root = RecordingStudio.create_root_recording!(workspace, actor: recording_write_actor)
     root.recordings_query(
       include_children: true,
       type: RecordingStudioTermsAndConditions::Terms.name

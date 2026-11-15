@@ -6,7 +6,7 @@ require "cgi"
 class SignupAgreeTest < ActionDispatch::IntegrationTest
   setup do
     @workspace = Workspace.find_or_create_by!(name: "Studio Workspace")
-    @root = RecordingStudio.root_recording_for(@workspace)
+    @root = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor)
     ensure_live_terms!
   end
 
@@ -86,7 +86,7 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
   test "create-password falls back to a live-terms root when the current root has none" do
     skip "Users first-Profile on the shared People root needs Accessible :edit (Users bootstrap gap, not a host exception)"
     empty = Workspace.create!(name: "Empty signup #{SecureRandom.hex(4)}")
-    RecordingStudio.root_recording_for(empty)
+    RecordingStudio.create_root_recording!(empty, actor: recording_write_actor)
     ensure_live_terms!
     live = RecordingStudioTermsAndConditions.current_published_for(@workspace)
     assert live

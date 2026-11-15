@@ -58,7 +58,7 @@ class OmniauthGateTest < ActionDispatch::IntegrationTest
     workspace = Workspace.find_or_create_by!(name: "Studio Workspace")
     return if RecordingStudioTermsAndConditions.current_published_for(workspace).present?
 
-    root = RecordingStudio.root_recording_for(workspace)
+    root = RecordingStudio.create_root_recording!(workspace, actor: recording_write_actor)
     recording = record_terms(root, title: "OAuth Terms", body: "Be kind.")
     publish_terms!(recording, slug: "oauth-terms-#{SecureRandom.hex(4)}")
   end

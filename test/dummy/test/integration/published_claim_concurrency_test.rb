@@ -7,7 +7,7 @@ class PublishedClaimConcurrencyTest < ActiveSupport::TestCase
 
   setup do
     @workspace = Workspace.create!(name: "Claim #{SecureRandom.hex(4)}")
-    @root = RecordingStudio.root_recording_for(@workspace)
+    @root = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor)
     @writer = recording_write_actor
     grant_write_access!(@root, @writer)
   end

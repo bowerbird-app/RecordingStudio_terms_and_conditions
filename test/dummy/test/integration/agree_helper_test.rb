@@ -14,7 +14,7 @@ class AgreeHelperTest < ActionDispatch::IntegrationTest
       password_confirmation: "Password"
     )
     @workspace = Workspace.create!(name: "Helper #{SecureRandom.hex(4)}")
-    @root = RecordingStudio.root_recording_for(@workspace)
+    @root = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor)
     @recording = record_terms(@root, title: "Studio Terms", body: "Be kind. Don't be a jerk.")
     publish_terms!(@recording, slug: "helper-terms-#{SecureRandom.hex(4)}")
     sign_in @user

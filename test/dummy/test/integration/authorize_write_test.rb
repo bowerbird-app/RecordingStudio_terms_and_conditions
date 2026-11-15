@@ -13,13 +13,23 @@ class AuthorizeWriteTest < ActiveSupport::TestCase
     assert_includes initializer, ":admin"
     refute_includes initializer, "actor.is_a?(User)"
     refute_match(/authorize_write\s*=\s*->\(actor:, \*\*\) \{ actor\.present\? \}/, initializer)
+    assert_includes initializer, "root_recording.nil?"
+  end
+
+  test "a present actor may create a root and a blank actor may not" do
+    authorizer = RecordingStudio.configuration.authorize_write
+    actor = recording_write_actor
+    workspace = Workspace.new(name: "New root #{SecureRandom.hex(4)}")
+
+    assert authorizer.call(actor: actor, root_recording: nil, recordable: workspace)
+    refute authorizer.call(actor: nil, root_recording: nil, recordable: workspace)
   end
 
   test "AccessCreationContext allows only Access rows" do
     authorizer = RecordingStudio.configuration.authorize_write
     actor = recording_write_actor
     workspace = Workspace.create!(name: "Write policy #{SecureRandom.hex(4)}")
-    root_recording = RecordingStudio.root_recording_for(workspace)
+    root_recording = RecordingStudio.create_root_recording!(workspace, actor: recording_write_actor)
     terms = RecordingStudioTermsAndConditions::Terms.new(title: "Policy", body: "No.")
     access = RecordingStudio::Access.new
 
@@ -43,7 +53,7 @@ class AuthorizeWriteTest < ActiveSupport::TestCase
       password_confirmation: "Password"
     )
     workspace = Workspace.create!(name: "Unrelated profile #{SecureRandom.hex(4)}")
-    root_recording = RecordingStudio.root_recording_for(workspace)
+    root_recording = RecordingStudio.create_root_recording!(workspace, actor: recording_write_actor)
     profile = RecordingStudioUser::Profile.new(
       user: actor,
       first_name: "No",
@@ -63,7 +73,7 @@ class AuthorizeWriteTest < ActiveSupport::TestCase
       password_confirmation: "Password"
     )
     workspace = Workspace.create!(name: "Edit-only access #{SecureRandom.hex(4)}")
-    root_recording = RecordingStudio.root_recording_for(workspace)
+    root_recording = RecordingStudio.create_root_recording!(workspace, actor: recording_write_actor)
     grant_write_access!(root_recording, admin)
     result = RecordingStudioAccessible.grant_access(
       recording: root_recording,
@@ -88,7 +98,9 @@ class AuthorizeWriteTest < ActiveSupport::TestCase
       password: "Password",
       password_confirmation: "Password"
     )
-    people_root = RecordingStudioUser.people_root
+    people = RecordingStudioUser::People.first || RecordingStudioUser::People.create!
+    people_root = RecordingStudio.root_recording_for(people) ||
+                  RecordingStudio.create_root_recording!(people, actor: recording_write_actor)
     profile = RecordingStudioUser::Profile.new(
       user: actor,
       first_name: "Gap",

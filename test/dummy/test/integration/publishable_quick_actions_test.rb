@@ -13,9 +13,9 @@ class PublishableQuickActionsTest < ActionDispatch::IntegrationTest
       password_confirmation: "Password"
     )
     @workspace = Workspace.create!(name: "Publish #{SecureRandom.hex(4)}")
-    @root = RecordingStudio.root_recording_for(@workspace)
+    @root = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor)
     @admin_root = AdminRoot.find_or_create_by!(name: "Admin")
-    @admin_recording = RecordingStudio.root_recording_for(@admin_root)
+    @admin_recording = RecordingStudio.create_root_recording!(@admin_root, actor: recording_write_actor)
     unless RecordingStudioAccessible.authorized?(actor: @admin, recording: @admin_recording, role: :edit)
       bootstrap_owner_access!(@admin, @admin_recording)
     end

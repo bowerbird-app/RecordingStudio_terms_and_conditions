@@ -25,7 +25,8 @@ RecordingStudio.configure do |config|
   # Actor resolver for events when no actor is explicitly supplied
   config.actor = -> { Current.actor }
 
-  # Core 6.5 fails closed without a write authorizer. Dummy uses Accessible.
+  # Core 7 fails closed without a write authorizer. Dummy uses Accessible.
+  # A new root is authorized with root_recording nil. A present actor may create it.
   # AccessCreationContext may allow RecordingStudio::Access rows only.
   # Access writes outside that context need Accessible :admin on the root.
   # Every other write needs Accessible :edit on the root. No identity allow.
@@ -37,8 +38,9 @@ RecordingStudio.configure do |config|
       next true
     end
 
+    next actor.present? if root_recording.nil?
+
     next false unless defined?(RecordingStudioAccessible)
-    next false unless root_recording
 
     role = if defined?(RecordingStudio::Access) && recordable.is_a?(RecordingStudio::Access)
              :admin

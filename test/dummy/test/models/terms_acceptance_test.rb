@@ -6,8 +6,8 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
   setup do
     @workspace = Workspace.create!(name: unique_name("Terms root"))
     @other_workspace = Workspace.create!(name: unique_name("Other root"))
-    @root = RecordingStudio.root_recording_for(@workspace)
-    @other_root = RecordingStudio.root_recording_for(@other_workspace)
+    @root = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor)
+    @other_root = RecordingStudio.create_root_recording!(@other_workspace, actor: recording_write_actor)
     @actor = User.create!(
       email: "accept-#{SecureRandom.hex(4)}@example.com",
       password: "Password",

@@ -29,7 +29,7 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
     accept_pending_live_terms!(user)
 
     workspace = Workspace.create!(name: "Dropdown Workspace")
-    RecordingStudio.root_recording_for(workspace)
+    RecordingStudio.create_root_recording!(workspace, actor: recording_write_actor)
     grant_workspace_access!(user, workspace)
     switch_to_workspace(workspace)
 
@@ -55,7 +55,7 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
     sign_in user
 
     workspace = Workspace.create!(name: "Switch Page Workspace")
-    RecordingStudio.root_recording_for(workspace)
+    RecordingStudio.create_root_recording!(workspace, actor: recording_write_actor)
     grant_current_root_view!(user)
     grant_view_access!(user, workspace)
 
@@ -78,8 +78,8 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
 
     source_workspace = Workspace.create!(name: "Source Workspace")
     target_workspace = Workspace.create!(name: "Target Workspace")
-    target_root_recording = RecordingStudio.root_recording_for(target_workspace)
-    RecordingStudio.root_recording_for(source_workspace)
+    target_root_recording = RecordingStudio.create_root_recording!(target_workspace, actor: recording_write_actor)
+    RecordingStudio.create_root_recording!(source_workspace, actor: recording_write_actor)
     grant_current_root_view!(user)
     grant_view_access!(user, source_workspace)
 
@@ -104,8 +104,8 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
 
     source_workspace = Workspace.create!(name: "Fallback Source Workspace")
     target_workspace = Workspace.create!(name: "Fallback Target Workspace")
-    target_root_recording = RecordingStudio.root_recording_for(target_workspace)
-    RecordingStudio.root_recording_for(source_workspace)
+    target_root_recording = RecordingStudio.create_root_recording!(target_workspace, actor: recording_write_actor)
+    RecordingStudio.create_root_recording!(source_workspace, actor: recording_write_actor)
     grant_current_root_view!(user)
     grant_view_access!(user, source_workspace)
 

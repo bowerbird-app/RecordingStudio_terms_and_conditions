@@ -28,11 +28,11 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "flat_pack", ">= 0.1.196"
   spec.add_dependency "rails", "~> 8.1.0"
-  spec.add_dependency "recording_studio", ">= 6.7.0", "< 8.0"
-  spec.add_dependency "recording_studio_accessible", ">= 0.24.2", "< 1"
-  spec.add_dependency "recording_studio_admin", ">= 2.0.6", "< 3"
-  spec.add_dependency "recording_studio_metrics", ">= 0.3.0", "< 1.0"
-  spec.add_dependency "recording_studio_moveable", ">= 4.1.0", "< 5"
-  spec.add_dependency "recording_studio_publishable", "~> 0.6"
-  spec.add_dependency "recording_studio_user", ">= 0.12.2"
+  spec.add_dependency "recording_studio", ">= 7.0", "< 8.0"
+  spec.add_dependency "recording_studio_accessible", ">= 0.44.0", "< 1.0"
+  spec.add_dependency "recording_studio_admin", ">= 2.16.0", "< 3.0"
+  spec.add_dependency "recording_studio_metrics", ">= 0.9.0", "< 1.0"
+  spec.add_dependency "recording_studio_moveable", ">= 5.0", "< 6.0"
+  spec.add_dependency "recording_studio_publishable", ">= 0.18.1", "< 1.0"
+  spec.add_dependency "recording_studio_user", ">= 0.30.0", "< 1.0"
 end

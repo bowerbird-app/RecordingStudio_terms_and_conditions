@@ -10,7 +10,7 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, embed
 
 ## What's included
 
-- **Recording Studio** 4.x gem pinned and configured
+- **Recording Studio** 7 gem pinned and configured
 - **Recording Studio Users Auth** (email, then password) with a pre-seeded admin user
 - **Workspace**, **Folder**, and **Page** recordables seeded into the dummy host app
 - **Terms** recordable (`RecordingStudioTermsAndConditions::Terms`, product label `"Terms"`) with Publishable opted in on the type. **Section** and **Clause** recordables sit under it. Staff and agents edit those. Release rebuilds the parent text.
@@ -169,7 +169,7 @@ bin/rails db:migrate
 bin/rails tailwindcss:build
 ```
 
-`recording_studio_terms_and_conditions:install` mounts the engine, copies this gem's migrations, and writes the initializer. Then register `RecordingStudioTermsAndConditions::Terms`, `Section`, and `Clause` in `recordable_types`, mount Publishable at `/`, and enable Admin `section :terms` on an Admin root with Accessible access. This gem depends on `recording_studio_moveable` `>= 4.1.0`, `< 5`. Add GitHub sources for Moveable `v4.1.0` and Icons `v0.2.0` when those gems are not on RubyGems.
+`recording_studio_terms_and_conditions:install` mounts the engine, copies this gem's migrations, and writes the initializer. Then register `RecordingStudioTermsAndConditions::Terms`, `Section`, and `Clause` in `recordable_types`, mount Publishable at `/`, and enable Admin `section :terms` on an Admin root with Accessible access. This gem depends on `recording_studio_moveable` `>= 5.0`, `< 6.0`. Add GitHub sources for Moveable `v5.0.0` and Icons `v0.2.1` when those gems are not on RubyGems.
 
 This is the kit gem for published Terms and clickwrap. Add it to the approved list in `recording-studio-gems`. Do not hand-roll acceptances.
 
@@ -196,6 +196,10 @@ Do not translate stored Terms bodies or version titles. Those are data. Buttons,
 Add [Recording Studio Internationalization](https://github.com/bowerbird-app/RecordingStudio_Internationalization) on the host when you want a language selector. This gem does not declare the host's languages.
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
+
+## Upgrading from 0.19.1
+
+Bump to **0.20.0**. Terms tables are unchanged. Require Recording Studio `>= 7.0`, `< 8.0` (tag `v7.0.0`). Copy core migration `20261114090000_add_root_recording_id_to_recording_studio_events` if `recording_studio_events.root_recording_id` is missing. Create roots with `create_root_recording!(recordable, actor:)`. `root_recording_for` only finds an existing root. Keep `config.authorize_write`. A new root is authorized with `root_recording` nil. Gemspec floors are Accessible `>= 0.44.0`, Admin `>= 2.16.0`, Metrics `>= 0.9.0`, Moveable `>= 5.0`, Publishable `>= 0.18.1`, and Users `>= 0.30.0`, each capped at the next major. Drop `site_admin_recording_resolver`. Set Accessible `admin_root_resolver` to the kept admin root, and point Admin `access_recording_resolver` at `RecordingStudioAccessible.admin_root`. Use `Recording.kept` instead of `kept_sql`. The acceptance gate still uses `register_gate` and `check_gate`.
 
 ## Upgrading from 0.19.0
 
@@ -417,7 +421,7 @@ To add new recordable types:
 4. Validate declarations and create recordings under the root:
    ```ruby
    RecordingStudio.validate_recordable_declarations!
-   root_recording = RecordingStudio.root_recording_for(workspace)
+   root_recording = RecordingStudio.create_root_recording!(workspace, actor: Current.actor)
    root_recording.record(YourNewType) do |record|
      record.title = "Example"
    end
@@ -481,22 +485,22 @@ See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full do
 | Rails           | 8.1+    |
 | PostgreSQL      | 16      |
 | TailwindCSS     | 4       |
-| RecordingStudio | 6.x (`>= 6.7.0`, `< 7` in the gemspec; dummy GitHub tag `v6.7.0`) |
-| Accessible      | gemspec `>= 0.24.2`, `< 1`; dummy GitHub tag `v0.32.0` |
-| Admin           | gemspec `>= 2.0.6`, `< 3`; dummy GitHub tag `v2.13.0` |
-| Trashable       | dummy GitHub tag `v0.14.0` (`require: false`; Admin query helpers) |
-| Users           | gemspec `recording_studio_user >= 0.12.2`; dummy GitHub tag `v0.28.1` |
-| Publishable     | gemspec `~> 0.6`; dummy GitHub tag `v0.15.0` |
-| Attachable      | dummy GitHub tag `v0.23.0` (Users Profile needs it) |
-| API             | not a gemspec dependency; GitHub tag `v0.23.1` (Publishable 0.15 and Attachable 0.23 require it) |
-| Root Switchable | dummy GitHub tag `v0.15.0` |
+| RecordingStudio | 7 (`>= 7.0`, `< 8.0` in the gemspec; dummy GitHub tag `v7.0.0`) |
+| Accessible      | gemspec `>= 0.44.0`, `< 1.0`; dummy GitHub tag `v0.44.0` |
+| Admin           | gemspec `>= 2.16.0`, `< 3.0`; dummy GitHub tag `v2.16.0` |
+| Trashable       | dummy GitHub tag `v0.17.0` (`require: false`; `Recording.kept`) |
+| Users           | gemspec `recording_studio_user >= 0.30.0`, `< 1.0`; dummy GitHub tag `v0.30.0` |
+| Publishable     | gemspec `>= 0.18.1`, `< 1.0`; dummy GitHub tag `v0.18.1` |
+| Attachable      | dummy GitHub tag `v0.28.0` (Users Profile needs it) |
+| API             | not a gemspec dependency; GitHub tag `v0.24.0` (Publishable 0.18 and Attachable 0.28 require it) |
+| Root Switchable | dummy GitHub tag `v0.16.0` |
 | Cache           | dummy GitHub tag `v0.6.3` (Users / Root Switchable rate limits) |
-| Logs            | dummy GitHub tag `v0.7.4` (Admin requires it; not in this gemspec) |
-| Metrics         | gemspec `>= 0.3.0`, `< 1.0`; dummy GitHub tag `v0.8.0` |
-| Moveable        | gemspec `>= 4.1.0`, `< 5`; dummy GitHub tag `v4.1.1` |
+| Logs            | dummy GitHub tag `v0.8.0` (API 0.24 requires it; not in this gemspec) |
+| Metrics         | gemspec `>= 0.9.0`, `< 1.0`; dummy GitHub tag `v0.9.0` |
+| Moveable        | gemspec `>= 5.0`, `< 6.0`; dummy GitHub tag `v5.0.0` |
 | Icons           | dummy GitHub tag `v0.2.1` |
-| FlatPack        | gemspec `>= 0.1.196`; dummy GitHub tag `v0.1.357` |
-| Internationalization | dummy GitHub tag `v0.2.2` (not in the gemspec) |
+| FlatPack        | gemspec `>= 0.1.196`; dummy GitHub tag `v0.1.376` |
+| Internationalization | dummy GitHub tag `v0.3.0` (not in the gemspec) |
 | Devise          | latest  |
 
 The dummy Gemfile keeps `github:` sources so Bundler can fetch those gems. Hosts also need Publishable (and Users/Attachable) migrations from those gems — this addon only ships Terms and Acceptance migrations.

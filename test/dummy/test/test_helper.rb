@@ -114,7 +114,7 @@ module TermsDemoTestHelper
   end
 
   def grant_workspace_access!(actor, workspace)
-    recording = RecordingStudio.root_recording_for(workspace)
+    recording = RecordingStudio.create_root_recording!(workspace, actor: actor)
     return recording if RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: :view)
 
     bootstrap_owner_access!(actor, recording)
@@ -141,7 +141,8 @@ module TermsDemoTestHelper
   end
 
   def switch_to_workspace(workspace)
-    recording = RecordingStudio.root_recording_for(workspace)
+    recording = RecordingStudio.root_recording_for(workspace) ||
+                RecordingStudio.create_root_recording!(workspace, actor: recording_write_actor)
     # Root Switchable 0.12+ forbids the switch page without Accessible :view on
     # the current root. Persist the selection on this device first so later
     # requests land on the target even when that page returns 403.
@@ -183,7 +184,7 @@ module TermsDemoTestHelper
     return unless actor && recordable
 
     recording = recordable if recordable.is_a?(RecordingStudio::Recording)
-    recording ||= RecordingStudio.root_recording_for(recordable)
+    recording ||= RecordingStudio.create_root_recording!(recordable, actor: actor)
     return if RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: :view)
 
     manager = access_admin_for(recording)
