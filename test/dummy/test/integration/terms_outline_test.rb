@@ -11,7 +11,7 @@ class TermsOutlineTest < ActiveSupport::TestCase
     )
     Current.actor = @actor
     @workspace = Workspace.create!(name: "Outline #{SecureRandom.hex(4)}")
-    @root = RecordingStudio.root_recording_for(@workspace)
+    @root = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor)
     grant_write_access!(@root, @actor)
   end
 

@@ -14,7 +14,7 @@ class TermsGateTest < ActionDispatch::IntegrationTest
       password_confirmation: "Password"
     )
     @workspace = Workspace.create!(name: "Gate #{SecureRandom.hex(4)}")
-    @root = RecordingStudio.root_recording_for(@workspace)
+    @root = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor)
     grant_write_access!(@root)
     @password = "Password"
     sign_in @user
@@ -36,7 +36,7 @@ class TermsGateTest < ActionDispatch::IntegrationTest
 
   test "live terms on a root the actor cannot view do not gate" do
     live_workspace = Workspace.create!(name: "Live #{SecureRandom.hex(4)}")
-    live_root = RecordingStudio.root_recording_for(live_workspace)
+    live_root = RecordingStudio.create_root_recording!(live_workspace, actor: recording_write_actor)
     live = record_terms(live_root, title: "Other booth Terms", body: "Stay out.")
     publish_terms!(live, slug: "other-booth-#{SecureRandom.hex(4)}")
 
@@ -48,7 +48,7 @@ class TermsGateTest < ActionDispatch::IntegrationTest
 
   test "current root without live terms still gates when another root has them" do
     live_workspace = Workspace.create!(name: "Live #{SecureRandom.hex(4)}")
-    live_root = RecordingStudio.root_recording_for(live_workspace)
+    live_root = RecordingStudio.create_root_recording!(live_workspace, actor: recording_write_actor)
     live = record_terms(live_root, title: "Host Terms", body: "Be kind everywhere.")
     publish_terms!(live, slug: "host-terms-#{SecureRandom.hex(4)}")
 
@@ -64,7 +64,7 @@ class TermsGateTest < ActionDispatch::IntegrationTest
 
   test "accepting fallback live terms clears the gate for that actor" do
     live_workspace = Workspace.create!(name: "Live #{SecureRandom.hex(4)}")
-    live_root = RecordingStudio.root_recording_for(live_workspace)
+    live_root = RecordingStudio.create_root_recording!(live_workspace, actor: recording_write_actor)
     live = record_terms(live_root, title: "Host Terms", body: "Be kind everywhere.")
     publish_terms!(live, slug: "host-terms-#{SecureRandom.hex(4)}")
 
@@ -86,7 +86,7 @@ class TermsGateTest < ActionDispatch::IntegrationTest
   test "already accepted fallback terms are not gated again" do
     accept_seeded_studio_terms!
     live_workspace = Workspace.create!(name: "Live #{SecureRandom.hex(4)}")
-    live_root = RecordingStudio.root_recording_for(live_workspace)
+    live_root = RecordingStudio.create_root_recording!(live_workspace, actor: recording_write_actor)
     live = record_terms(live_root, title: "Host Terms", body: "Be kind everywhere.")
     publish_terms!(live, slug: "host-terms-#{SecureRandom.hex(4)}")
     RecordingStudioTermsAndConditions.accept!(@user, live, { "source" => "continue_notice" })
@@ -174,7 +174,7 @@ class TermsGateTest < ActionDispatch::IntegrationTest
 
   test "users auth sign in lands on agree when live terms require it" do
     studio = Workspace.find_or_create_by!(name: "Studio Workspace")
-    RecordingStudio.root_recording_for(studio)
+    RecordingStudio.create_root_recording!(studio, actor: recording_write_actor)
     ensure_default_workspace_requires_acceptance!
     switch_to_workspace(studio)
     sign_out @user
@@ -205,7 +205,7 @@ class TermsGateTest < ActionDispatch::IntegrationTest
   test "admin write and public terms stay reachable while the product is gated" do
     recording = publish_live_terms!
     admin_root = AdminRoot.find_or_create_by!(name: "Admin")
-    admin_recording = RecordingStudio.root_recording_for(admin_root)
+    admin_recording = RecordingStudio.create_root_recording!(admin_root, actor: recording_write_actor)
     unless RecordingStudioAccessible.authorized?(actor: @user, recording: admin_recording, role: :edit)
       bootstrap_owner_access!(@user, admin_recording)
     end
@@ -243,7 +243,7 @@ class TermsGateTest < ActionDispatch::IntegrationTest
 
   def ensure_default_workspace_requires_acceptance!
     workspace = Workspace.find_or_create_by!(name: "Studio Workspace")
-    root = RecordingStudio.root_recording_for(workspace)
+    root = RecordingStudio.create_root_recording!(workspace, actor: recording_write_actor)
     return if RecordingStudioTermsAndConditions.requires_acceptance?(@user, workspace)
 
     recording = record_terms(root, title: "Studio Terms", body: "Be kind.")

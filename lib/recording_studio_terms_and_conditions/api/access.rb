@@ -10,8 +10,7 @@ module RecordingStudioTermsAndConditions
       def admin_root_recording
         return unless defined?(RecordingStudioAdmin)
 
-        config = RecordingStudioAdmin.configuration
-        resolver = config.site_admin_recording_resolver || config.access_recording_resolver
+        resolver = RecordingStudioAdmin.configuration.access_recording_resolver
         return unless resolver
 
         begin

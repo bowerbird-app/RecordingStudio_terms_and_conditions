@@ -4,66 +4,47 @@ require "test_helper"
 require "recording_studio_admin"
 
 class ApiAccessTest < Minitest::Test
-  def test_site_resolver_is_preferred_when_set
-    site_recording = Object.new
-    access_called = false
+  def test_admin_root_uses_access_recording_resolver
+    source = File.read(File.expand_path("../lib/recording_studio_terms_and_conditions/api/access.rb", __dir__))
+    initializer = File.read(File.expand_path("dummy/config/initializers/recording_studio_admin.rb", __dir__))
+    accessible = File.read(File.expand_path("dummy/config/initializers/recording_studio_accessible.rb", __dir__))
+
+    assert_includes source, "access_recording_resolver"
+    refute_includes source, "site_admin_recording_resolver"
+    assert_includes initializer, "access_recording_resolver"
+    assert_includes initializer, "RecordingStudioAccessible.admin_root"
+    assert_includes accessible, "admin_root_resolver"
+    assert_includes accessible, "Recording.kept"
+    refute_includes initializer, "site_admin_recording_resolver"
+    refute_includes accessible, "site_admin_recording_resolver"
+    refute_includes initializer, "kept_sql"
+    refute_includes accessible, "kept_sql"
+  end
+
+  def test_access_resolver_returns_the_admin_root
+    access_recording = Object.new
     seen_context = nil
 
-    with_resolvers(
-      site: lambda { |context|
-        seen_context = context
-        site_recording
-      },
-      access: lambda { |_context|
-        access_called = true
-        Object.new
-      }
-    ) do
-      assert_same site_recording, admin_root_recording
+    with_access_resolver(lambda { |context|
+      seen_context = context
+      access_recording
+    }) do
+      assert_same access_recording, admin_root_recording
     end
 
-    refute access_called
     assert_nil seen_context.controller
   end
 
-  def test_falls_back_to_access_resolver_when_site_resolver_is_unset
-    access_recording = Object.new
-
-    with_resolvers(site: nil, access: ->(_context) { access_recording }) do
-      assert_same access_recording, admin_root_recording
-    end
-  end
-
   def test_resolver_raising_denies_view_without_raising
-    access_called = false
-
-    with_resolvers(
-      site: ->(_context) { raise NoMethodError, "controller" },
-      access: lambda { |_context|
-        access_called = true
-        Object.new
-      }
-    ) do
+    with_access_resolver(->(_context) { raise NoMethodError, "controller" }) do
       assert_equal false, can_view?(view_context(Object.new))
     end
-
-    refute access_called
   end
 
   def test_resolver_returning_nil_denies_view
-    access_called = false
-
-    with_resolvers(
-      site: ->(_context) {},
-      access: lambda { |_context|
-        access_called = true
-        Object.new
-      }
-    ) do
+    with_access_resolver(->(_context) {}) do
       assert_equal false, can_view?(view_context(Object.new))
     end
-
-    refute access_called
   end
 
   private
@@ -81,15 +62,12 @@ class ApiAccessTest < Minitest::Test
     Struct.new(:access_grant).new(grant)
   end
 
-  def with_resolvers(site:, access:)
+  def with_access_resolver(access)
     config = RecordingStudioAdmin.configuration
-    original_site = config.site_admin_recording_resolver
     original_access = config.access_recording_resolver
-    config.site_admin_recording_resolver = site
     config.access_recording_resolver = access
     yield
   ensure
-    config.site_admin_recording_resolver = original_site
     config.access_recording_resolver = original_access
   end
 end

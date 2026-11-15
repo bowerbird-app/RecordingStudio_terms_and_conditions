@@ -14,7 +14,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
       password_confirmation: "Password"
     )
     @workspace = Workspace.create!(name: "Agree #{SecureRandom.hex(4)}")
-    @root = RecordingStudio.root_recording_for(@workspace)
+    @root = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor)
     grant_write_access!(@root)
     @recording = record_terms(@root, title: "Studio Terms", body: "Be kind. Don't be a jerk.")
     publish_terms!(@recording, slug: "studio-terms-#{SecureRandom.hex(4)}")
@@ -193,7 +193,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
 
   test "continuing when the workspace only has a draft does not write a receipt" do
     draft_workspace = Workspace.create!(name: "Draft #{SecureRandom.hex(4)}")
-    draft_root = RecordingStudio.root_recording_for(draft_workspace)
+    draft_root = RecordingStudio.create_root_recording!(draft_workspace, actor: recording_write_actor)
     record_terms(draft_root, title: "Draft terms", body: "Not live.")
     switch_to_workspace(draft_workspace)
 

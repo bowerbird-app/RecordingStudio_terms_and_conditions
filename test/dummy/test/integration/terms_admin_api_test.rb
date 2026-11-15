@@ -14,9 +14,9 @@ class TermsAdminApiTest < ActionDispatch::IntegrationTest
     )
     Current.actor = @owner
     @workspace = Workspace.create!(name: "Admin API #{SecureRandom.hex(4)}")
-    @root = RecordingStudio.root_recording_for(@workspace)
+    @root = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor)
     @owner_access = bootstrap_owner_access!(@owner, @root)
-    @admin_root = RecordingStudio.root_recording_for(AdminRoot.find_or_create_by!(name: "Admin"))
+    @admin_root = RecordingStudio.create_root_recording!(AdminRoot.find_or_create_by!(name: "Admin"), actor: recording_write_actor)
     bootstrap_owner_access!(@owner, @admin_root)
     @recording = record_terms(@root, title: "Studio Terms", body: "Be kind.", actor: @owner)
     publish_terms!(@recording, slug: "admin-api-#{SecureRandom.hex(4)}", actor: @owner)
@@ -83,7 +83,7 @@ class TermsAdminApiTest < ActionDispatch::IntegrationTest
     )
     Current.actor = outsider
     other = Workspace.create!(name: "Other #{SecureRandom.hex(4)}")
-    other_root = RecordingStudio.root_recording_for(other)
+    other_root = RecordingStudio.create_root_recording!(other, actor: recording_write_actor)
     access = bootstrap_owner_access!(outsider, other_root)
     token, = token_for(access, manager: outsider)
 

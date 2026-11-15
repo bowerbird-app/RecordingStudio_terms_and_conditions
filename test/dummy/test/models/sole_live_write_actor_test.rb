@@ -5,7 +5,7 @@ require "test_helper"
 class SoleLiveWriteActorTest < ActiveSupport::TestCase
   test "write_actor_for uses Current.actor and does not fall back to event history" do
     actor = recording_write_actor
-    root = RecordingStudio.root_recording_for(Workspace.create!(name: "Actor #{SecureRandom.hex(4)}"))
+    root = RecordingStudio.create_root_recording!(Workspace.create!(name: "Actor #{SecureRandom.hex(4)}"), actor: recording_write_actor)
     grant_write_access!(root, actor)
     recording = root.record(RecordingStudioTermsAndConditions::Terms, actor: actor) do |terms|
       terms.title = "Live"

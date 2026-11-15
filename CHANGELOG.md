@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-11-15
+
+Requires Recording Studio 7. Roots are created with `create_root_recording!`. `root_recording_for` only finds an existing root.
+
+### Changed
+- Gemspec requires `recording_studio` `>= 7.0`, `< 8.0`, Accessible `>= 0.44.0`, `< 1.0`, Admin `>= 2.16.0`, `< 3.0`, Metrics `>= 0.9.0`, `< 1.0`, Moveable `>= 5.0`, `< 6.0`, Publishable `>= 0.18.1`, `< 1.0`, and Users `>= 0.30.0`, `< 1.0`.
+- Development and the dummy pin Recording Studio `v7.0.0`, Accessible `v0.44.0`, Admin `v2.16.0`, Metrics `v0.9.0`, Moveable `v5.0.0`, Publishable `v0.18.1`, API `v0.24.0`, Users `v0.30.0`, Trashable `v0.17.0`, Attachable `v0.28.0`, and Flatpack `v0.1.376`. API 0.24 requires Logs `v0.8.0`. Root Switchable `v0.15.0` and Internationalization `v0.2.2` reject core 7, so the dummy uses `v0.16.0` and `v0.3.0`. Cache stays `v0.6.3`. Icons stay `v0.2.1`. Puma is `8.1.0`. The dummy pins `msgpack >= 1.8.7`.
+- Seeds and tests that created a root call `create_root_recording!(recordable, actor:)`. Lookups stay on `root_recording_for`.
+- The dummy `authorize_write` still requires Accessible `:edit` (or `:admin` for Access rows). A present actor may create a root, where `root_recording` is nil.
+- The dummy admin root query uses `Recording.kept`. Trashable 0.17 removed `kept_sql`. This gem does not call `RecordingStudio.kept_sql`.
+- Admin root resolution uses `access_recording_resolver`, pointed at `RecordingStudioAccessible.admin_root`. Site screens also need Accessible `admin_root_resolver`. Admin 2.16 dropped `site_admin_recording_resolver`.
+- The dummy copies core migration `20261114090000_add_root_recording_id_to_recording_studio_events`.
+- The acceptance gate still uses `RecordingStudio.register_gate` and `RecordingStudio.check_gate`.
+
+### Upgrade notes (0.19.1 → 0.20.0)
+- Terms tables are unchanged. Copy core migration `20261114090000_add_root_recording_id_to_recording_studio_events` if `recording_studio_events.root_recording_id` is missing.
+- Pin this gem at `0.20.0`. Require Recording Studio `>= 7.0`, `< 8.0` (tag `v7.0.0`) and the companion floors above.
+- Replace `root_recording_for` calls that created a root with `create_root_recording!(recordable, actor:)`. Leave lookups on `root_recording_for` and handle `nil`.
+- Keep `config.authorize_write`. A new root is authorized with `root_recording` nil. Do not set `allow_unauthorized_writes`.
+- Drop `site_admin_recording_resolver`. Set Accessible `admin_root_resolver` to the kept admin root, and point Admin `access_recording_resolver` at `RecordingStudioAccessible.admin_root`. Replace `recording_studio_trashable_kept_sql` with `Recording.kept`.
+- The gate name `recording_studio_terms_and_conditions.acceptance` and the `pending` check are unchanged.
+
 ## [0.19.1] - 2026-11-15
 
 ### Changed
@@ -672,7 +694,8 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.19.1...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.20.0...HEAD
+[0.20.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.19.1...v0.20.0
 [0.19.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.19.0...v0.19.1
 [0.19.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.17.0...v0.18.0

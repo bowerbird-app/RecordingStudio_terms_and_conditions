@@ -7,6 +7,8 @@ RecordingStudioUser.configure do |config|
   config.otp_enabled = false
   # Dummy User is not Devise :confirmable. Skip Users' existing-policy confirm write.
   config.password_registration_confirmation = :skip
+  # Users 0.30 defaults this to 12. Seed and demo passwords stay "Password".
+  config.minimum_password_length = 6
   config.additional_profile_attributes |= [:locale] if config.respond_to?(:additional_profile_attributes)
   # Users Auth 0.27 resolves recording_studio_layout from this setting. Nil
   # falls through to core DEFAULT_LAYOUT. Dummy sign-in uses layouts/application

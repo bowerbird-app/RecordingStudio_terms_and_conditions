@@ -5,7 +5,7 @@ require "test_helper"
 class TermsWriteTest < ActiveSupport::TestCase
   setup do
     @workspace = Workspace.create!(name: "Write #{SecureRandom.hex(4)}")
-    @root = RecordingStudio.root_recording_for(@workspace)
+    @root = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor)
     @actor = User.create!(
       email: "write-#{SecureRandom.hex(4)}@example.com",
       password: "Password",

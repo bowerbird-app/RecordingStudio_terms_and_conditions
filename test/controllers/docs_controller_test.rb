@@ -21,7 +21,7 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
 
     sign_in @user
     studio = Workspace.find_by(name: "Studio Workspace")
-    grant_write_access!(RecordingStudio.root_recording_for(studio), @user) if studio
+    grant_write_access!(RecordingStudio.create_root_recording!(studio, actor: recording_write_actor), @user) if studio
     accept_live_studio_terms!
   end
 
@@ -80,7 +80,7 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
 
   test "recordings tree page renders successfully" do
     workspace = Workspace.create!(name: "Tree Workspace")
-    root_recording = RecordingStudio.root_recording_for(workspace)
+    root_recording = RecordingStudio.create_root_recording!(workspace, actor: recording_write_actor)
     folder = Folder.create!(name: "Reference")
     folder_recording = record_child(folder, root_recording, root_recording)
     page = Page.create!(title: "API")
@@ -154,10 +154,11 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
 
     workspace = Workspace.create!(name: "Counted Workspace")
     2.times do
-      RecordingStudio.root_recording_for(Workspace.create!(name: "Counted Workspace #{SecureRandom.hex(4)}"))
+      RecordingStudio.create_root_recording!(Workspace.create!(name: "Counted Workspace #{SecureRandom.hex(4)}"),
+                                             actor: recording_write_actor)
     end
 
-    root_recording = RecordingStudio.root_recording_for(workspace)
+    root_recording = RecordingStudio.create_root_recording!(workspace, actor: recording_write_actor)
     folder = Folder.create!(name: "Counted Folder")
     record_child(folder, root_recording, root_recording)
 

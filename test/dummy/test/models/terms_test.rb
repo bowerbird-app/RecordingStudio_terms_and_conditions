@@ -37,7 +37,7 @@ class TermsTest < ActiveSupport::TestCase
   end
 
   test "terms can be recorded under a workspace and revised to a new snapshot" do
-    root_recording = RecordingStudio.root_recording_for(Workspace.create!(name: unique_name("Terms Workspace")))
+    root_recording = RecordingStudio.create_root_recording!(Workspace.create!(name: unique_name("Terms Workspace")), actor: recording_write_actor)
     writer = recording_write_actor
     grant_write_access!(root_recording, writer)
 

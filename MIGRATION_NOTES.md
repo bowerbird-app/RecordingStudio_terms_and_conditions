@@ -26,6 +26,16 @@ ACTOR_TYPE=User ACTOR_ID=<staff id> bin/rails recording_studio_terms_and_conditi
 
 That splits each current body into sections and clauses and, for a live document, records that version as the baseline manifest. It does not publish and does not write receipts. Running it again does nothing when the outline is already there.
 
+## Upgrade from 0.19.1 to 0.20.0
+
+Terms tables are unchanged. Pin `0.20.0`. Require Recording Studio `>= 7.0`, `< 8.0`. Copy core migration `20261114090000_add_root_recording_id_to_recording_studio_events` if `recording_studio_events.root_recording_id` is missing.
+
+Create a root with `RecordingStudio.create_root_recording!(recordable, actor:)`. `root_recording_for` only finds an existing root and returns nil when there is none. Set `config.authorize_write`. A new root is authorized with `root_recording` nil.
+
+Gemspec floors are Accessible `>= 0.44.0`, `< 1.0`, Admin `>= 2.16.0`, `< 3.0`, Metrics `>= 0.9.0`, `< 1.0`, Moveable `>= 5.0`, `< 6.0`, Publishable `>= 0.18.1`, `< 1.0`, and Users `>= 0.30.0`, `< 1.0`. Drop `site_admin_recording_resolver`. Set Accessible `admin_root_resolver` to the kept admin root, and point Admin `access_recording_resolver` at `RecordingStudioAccessible.admin_root`. Replace `recording_studio_trashable_kept_sql` with `Recording.kept`.
+
+The gate `recording_studio_terms_and_conditions.acceptance` still registers with `RecordingStudio.register_gate`. `ForcesAcceptance` and post-auth redirects still follow `RecordingStudio.check_gate`.
+
 ## Upgrade from 0.19.0 to 0.19.1
 
 No schema change. Pin `0.19.1`. Gemspec `recording_studio` stays `>= 6.7.0` and now allows `< 8.0`. Development and dummy stay on core 6.x.
