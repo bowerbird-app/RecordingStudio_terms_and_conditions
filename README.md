@@ -197,6 +197,10 @@ Add [Recording Studio Internationalization](https://github.com/bowerbird-app/Rec
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
 
+## Upgrading from 0.19.0
+
+Bump to **0.19.1**. No schema change. Gemspec `recording_studio` stays `>= 6.7.0` and now allows `< 8.0`. Development and dummy stay on core 6.x.
+
 ## Upgrading from 0.18.0
 
 Bump to **0.19.0**. No schema change. Require Recording Studio `>= 6.7.0`, `< 7`. The clickwrap registers the core gate `recording_studio_terms_and_conditions.acceptance` at boot. `ForcesAcceptance` and post-auth redirects follow `RecordingStudio.check_gate`. Pass `actor:` plus `root:` or `controller:`. A raised check denies and still sends a signed-in person to Agree. Agree stays exempt. `RecordingStudio::Capabilities::Example` is gone. Drop that `include` if a host copied it from the dummy Workspace.
