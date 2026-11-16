@@ -30,9 +30,7 @@ class SignupAcceptanceTest < Minitest::Test
 
     RecordingStudioTermsAndConditions.stub(:pending_published_list, ->(*) { [:terms] }) do
       RecordingStudioTermsAndConditions.stub(:accept!, ->(*args) { calls << args }) do
-        RecordingStudioTermsAndConditions::Gate.stub(:root_for_acceptance, :workspace) do
-          controller.create_password
-        end
+        controller.create_password
       end
     end
 
@@ -47,9 +45,7 @@ class SignupAcceptanceTest < Minitest::Test
 
     RecordingStudioTermsAndConditions.stub(:pending_published_list, ->(*) { [:terms] }) do
       RecordingStudioTermsAndConditions.stub(:accept!, ->(*args) { calls << args }) do
-        RecordingStudioTermsAndConditions::Gate.stub(:root_for_acceptance, :workspace) do
-          controller.create_password
-        end
+        controller.create_password
       end
     end
 
@@ -63,9 +59,7 @@ class SignupAcceptanceTest < Minitest::Test
 
     RecordingStudioTermsAndConditions.stub(:pending_published_list, ->(*) { [:terms] }) do
       RecordingStudioTermsAndConditions.stub(:accept!, ->(*) { raise RecordingStudioTermsAndConditions::NotLive }) do
-        RecordingStudioTermsAndConditions::Gate.stub(:root_for_acceptance, :workspace) do
-          controller.create_password
-        end
+        controller.create_password
       end
     end
 

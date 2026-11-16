@@ -183,7 +183,7 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     workspace = Workspace.find_by(name: "Studio Workspace")
     return unless workspace
 
-    RecordingStudioTermsAndConditions.pending_published_list(@user, workspace).each do |terms|
+    RecordingStudioTermsAndConditions.pending_published_list(@user).each do |terms|
       RecordingStudioTermsAndConditions.accept!(@user, terms, { "source" => "test" })
     end
   end

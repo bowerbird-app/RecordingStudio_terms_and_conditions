@@ -33,6 +33,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency "recording_studio_admin", ">= 2.16.0", "< 3.0"
   spec.add_dependency "recording_studio_metrics", ">= 0.9.0", "< 1.0"
   spec.add_dependency "recording_studio_moveable", ">= 5.0", "< 6.0"
-  spec.add_dependency "recording_studio_publishable", ">= 0.18.1", "< 1.0"
+  spec.add_dependency "recording_studio_publishable", ">= 1.0.0", "< 2.0"
   spec.add_dependency "recording_studio_user", ">= 0.30.0", "< 1.0"
 end

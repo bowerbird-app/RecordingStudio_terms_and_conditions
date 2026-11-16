@@ -37,7 +37,7 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "body[data-recording-studio-default-layout='true']", count: 1
-    assert_select "a[data-fp-style=secondary]", text: "Admin"
+    assert_select "a[data-fp-style=secondary], button[data-fp-style=secondary]", text: "Admin"
     assert_select "a[data-fp-style=secondary]", text: "Helper"
     refute_select ".fp-card"
     refute_includes response.body, "What's working"
@@ -120,13 +120,46 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
     assert_redirected_to "/"
   end
 
+  test "the home admin button switches onto the admin root" do
+    user = User.find_or_create_by!(email: "admin-button@example.com") do |record|
+      record.password = "Password123!"
+      record.password_confirmation = "Password123!"
+    end
+    sign_in user
+    accept_pending_live_terms!(user)
+
+    workspace = Workspace.create!(name: "Admin Button Workspace")
+    RecordingStudio.create_root_recording!(workspace, actor: recording_write_actor)
+    grant_workspace_access!(user, workspace)
+    switch_to_workspace(workspace)
+
+    admin_root = AdminRoot.find_or_create_by!(name: "Admin")
+    admin_recording = RecordingStudio.root_recording_for(admin_root) ||
+                      RecordingStudio.create_root_recording!(admin_root, actor: recording_write_actor)
+    bootstrap_owner_access!(user, admin_recording) unless RecordingStudioAccessible.authorized?(
+      actor: user, recording: admin_recording, role: :edit
+    )
+
+    get "/"
+
+    assert_response :success
+    assert_select "form[action=?]", "/recording_studio_root_switchable/v1/root_switch?scope=all_workspaces"
+    assert_select "input[name='root_switch[root_recording_id]'][value=?]", admin_recording.id
+    assert_select "button", text: "Admin"
+
+    patch "/recording_studio_root_switchable/v1/root_switch?scope=all_workspaces", params: {
+      root_switch: { root_recording_id: admin_recording.id, return_to: "/admin" }
+    }
+
+    assert_redirected_to "/admin"
+    follow_redirect!
+    assert_response :success
+  end
+
   private
 
   def accept_pending_live_terms!(user)
-    studio = Workspace.find_by(name: "Studio Workspace")
-    return unless studio
-
-    RecordingStudioTermsAndConditions.pending_published_list(user, studio).each do |terms|
+    RecordingStudioTermsAndConditions.pending_published_list(user).each do |terms|
       RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "continue_notice" })
     end
   end

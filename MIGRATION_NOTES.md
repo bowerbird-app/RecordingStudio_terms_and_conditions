@@ -11,7 +11,7 @@ That copies Terms and Acceptance migrations, mounts the engine, writes `config/i
 
 Then:
 
-- Register `RecordingStudioTermsAndConditions::Terms`, `Section`, and `Clause` in `recordable_types`.
+- Register `RecordingStudioTermsAndConditions::Library`, `Terms`, `Section`, and `Clause` in `recordable_types`.
 - Mount Publishable at `/`.
 - Enable Admin `section :terms` on an Admin root and grant Accessible access.
 - Publish with Publishable `QuickActions` on term show, or the Publish settings hub. Do not add a custom publish action.
@@ -25,6 +25,18 @@ ACTOR_TYPE=User ACTOR_ID=<staff id> bin/rails recording_studio_terms_and_conditi
 ```
 
 That splits each current body into sections and clauses and, for a live document, records that version as the baseline manifest. It does not publish and does not write receipts. Running it again does nothing when the outline is already there.
+
+## Upgrade from 0.20.0 to 0.21.0
+
+Breaking. A person accepts the live Terms once. The document lives on one shared library root, the same shape as People. Switching workspace does not ask again. A new published version still asks once.
+
+Copy the libraries migration and migrate. Register `RecordingStudioTermsAndConditions::Library` in `recordable_types`. There is no backfill of workspace Terms or old receipts.
+
+Record Terms with `RecordingStudioTermsAndConditions.library_root(actor:)`. Drop the root argument from the acceptance helpers. Accessible refuses a grant on the library. Point `authorize_write` at staff some other way. The dummy allows the write when the actor has Accessible `:edit` on the admin root.
+
+Workspace member API paths stay. They authorize on that workspace and read the library. Register the outline and release actions on the workspace and pass `terms_id`. Terms is an accessible child of the library. The first writer is the access owner.
+
+Require Publishable `>= 1.0.0`, `< 2.0`. Pin tag `v1.0.0` (this gem previously pinned `v0.18.1`). Publishable 1.0.0 deleted `RecordingStudioPublishable.configuration.hooks`. Do not register service hooks there. `RecordingStudioPublishable.subscribe(:published)` still works. Featured In bumps Terms and Publishable in the same release.
 
 ## Upgrade from 0.19.1 to 0.20.0
 

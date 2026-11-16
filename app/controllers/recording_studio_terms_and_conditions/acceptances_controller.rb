@@ -18,9 +18,8 @@ module RecordingStudioTermsAndConditions
     private
 
     def load_acceptance_context
-      @root = acceptance_root
-      @pending_terms = RecordingStudioTermsAndConditions.pending_published_list(current_actor, @root)
-      @terms = @pending_terms.first || RecordingStudioTermsAndConditions.current_published_for(@root)
+      @pending_terms = RecordingStudioTermsAndConditions.pending_published_list(current_actor)
+      @terms = @pending_terms.first || RecordingStudioTermsAndConditions.current_published_for
       @already_accepted = @pending_terms.empty? && @terms.present?
       @reaccepting = RecordingStudioTermsAndConditions.accepted_any?(current_actor)
     end
@@ -60,10 +59,6 @@ module RecordingStudioTermsAndConditions
       return stored if stored.present? && stored != acceptance_path
 
       main_app.root_path
-    end
-
-    def acceptance_root
-      Gate.root_for_acceptance(self)
     end
 
     def current_actor

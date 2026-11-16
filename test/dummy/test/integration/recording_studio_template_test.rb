@@ -17,9 +17,11 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
 
   test "dummy app validates recordable declarations" do
     assert RecordingStudio.validate_recordable_declarations!
-    assert_equal [ "AdminRoot", "RecordingStudioUser::People", "Workspace" ].sort, RecordingStudio.root_recordable_types.sort
+    assert_equal [ "AdminRoot", "RecordingStudioTermsAndConditions::Library", "RecordingStudioUser::People", "Workspace" ].sort,
+                 RecordingStudio.root_recordable_types.sort
     assert_equal [ "Workspace", "Folder" ], RecordingStudio.allowed_parent_types_for("Page")
-    assert_equal [ "Workspace" ], RecordingStudio.allowed_parent_types_for("RecordingStudioTermsAndConditions::Terms")
+    assert_equal [ "RecordingStudioTermsAndConditions::Library" ],
+                 RecordingStudio.allowed_parent_types_for("RecordingStudioTermsAndConditions::Terms")
   end
 
   test "dummy app schema keeps accessible grants and excludes removed core tables" do
@@ -46,8 +48,8 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     folder = Folder.find_by!(name: "Product Docs")
     page = Page.find_by!(title: "Getting Started")
     admin_root = AdminRoot.find_by!(name: "Admin")
-    terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
-    privacy = RecordingStudioTermsAndConditions.current_published_for(workspace, kind: "privacy_policy")
+    terms = RecordingStudioTermsAndConditions.current_published_for
+    privacy = RecordingStudioTermsAndConditions.current_published_for(kind: "privacy_policy")
     root_recording = RecordingStudio::Recording.find_by!(recordable: workspace)
     accessible_root_recording = RecordingStudio::Recording.find_by!(recordable: accessible_workspace)
     private_root_recording = RecordingStudio::Recording.find_by!(recordable: private_workspace)

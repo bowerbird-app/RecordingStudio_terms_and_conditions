@@ -13,10 +13,10 @@ module RecordingStudioTermsAndConditions
       end
 
       def new
-        @available_kinds = KindPresence.available_kinds(terms_parent_root)
+        @available_kinds = KindPresence.available_kinds
         if @available_kinds.empty?
           redirect_to admin_terms_path,
-                      alert: "This workspace already has Terms and a Privacy Policy. Edit a version to change them."
+                      alert: "Terms and a Privacy Policy already exist. Edit a version to change them."
           return
         end
 
@@ -24,7 +24,6 @@ module RecordingStudioTermsAndConditions
       end
 
       def create
-        return render_missing_workspace if terms_parent_root.blank?
         return render_create_blocked if create_kind_taken?
 
         recording = write_terms_resource!(:new, terms_parent_root, audit_action: :create) do
@@ -33,7 +32,7 @@ module RecordingStudioTermsAndConditions
         Outline.seed_recording!(recording, actor: current_admin_actor)
         redirect_to admin_term_path(recording), notice: "Terms drafted. Publish when they are ready."
       rescue ActiveRecord::RecordInvalid => e
-        @available_kinds = KindPresence.available_kinds(terms_parent_root)
+        @available_kinds = KindPresence.available_kinds
         render_invalid_terms(:new, e, "Could not save that draft.")
       end
 
@@ -115,13 +114,6 @@ module RecordingStudioTermsAndConditions
         end
       end
 
-      def render_missing_workspace
-        flash.now[:alert] = "Pick a workspace first."
-        @available_kinds = KindPresence.available_kinds(nil)
-        assign_form_fields_from_params
-        render :new, status: :unprocessable_entity
-      end
-
       def render_invalid_terms(template, error, fallback)
         flash.now[:alert] = error.record.errors.full_messages.to_sentence.presence || fallback
         assign_form_fields_from_params
@@ -166,17 +158,17 @@ module RecordingStudioTermsAndConditions
 
       def create_blocked_message(kind)
         label = Terms.kind_label_for(kind)
-        "This workspace already has #{label}. Open that version and edit to make a new draft."
+        "#{label} already exists. Open that version and edit to make a new draft."
       end
 
       def create_kind_taken?
-        KindPresence.exists?(terms_parent_root, kind: Terms.normalize_kind(terms_params[:kind]))
+        KindPresence.exists?(kind: Terms.normalize_kind(terms_params[:kind]))
       end
 
       def render_create_blocked
         kind = Terms.normalize_kind(terms_params[:kind])
         flash.now[:alert] = create_blocked_message(kind)
-        @available_kinds = KindPresence.available_kinds(terms_parent_root)
+        @available_kinds = KindPresence.available_kinds
         assign_form_fields_from_params
         render :new, status: :unprocessable_entity
       end

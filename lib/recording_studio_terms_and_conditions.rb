@@ -8,6 +8,9 @@ require "recording_studio_terms_and_conditions/sample_terms"
 require "recording_studio_terms_and_conditions/configuration"
 require "recording_studio_terms_and_conditions/body_digest"
 require "recording_studio_terms_and_conditions/engine"
+require "recording_studio_terms_and_conditions/library_root"
+require "recording_studio_terms_and_conditions/library_staff_access"
+require "recording_studio_terms_and_conditions/library_moves"
 require "recording_studio_terms_and_conditions/terms_acceptance"
 require "recording_studio_terms_and_conditions/terms_write"
 require "recording_studio_terms_and_conditions/outline"
@@ -48,36 +51,40 @@ module RecordingStudioTermsAndConditions
       yield(configuration) if block_given?
     end
 
-    def current_published_for(root, kind: Terms::DEFAULT_KIND)
-      TermsAcceptance.current_published_for(root, kind: kind)
+    def library_root(actor: nil)
+      LibraryRoot.recording(actor: actor)
     end
 
-    def current_published_by_kind(root)
-      TermsAcceptance.current_published_by_kind(root)
+    def current_published_for(kind: Terms::DEFAULT_KIND)
+      TermsAcceptance.current_published_for(kind: kind)
     end
 
-    def pending_published_for(actor, root)
-      TermsAcceptance.pending_published_for(actor, root)
+    def current_published_by_kind
+      TermsAcceptance.current_published_by_kind
     end
 
-    def pending_published_list(actor, root)
-      TermsAcceptance.pending_published_list(actor, root)
+    def pending_published_for(actor)
+      TermsAcceptance.pending_published_for(actor)
     end
 
-    def accepted?(actor, root, kind: Terms::DEFAULT_KIND)
-      TermsAcceptance.accepted?(actor, root, kind: kind)
+    def pending_published_list(actor, *)
+      TermsAcceptance.pending_published_list(actor)
     end
 
-    def requires_acceptance?(actor, root)
-      TermsAcceptance.requires_acceptance?(actor, root)
+    def accepted?(actor, kind: Terms::DEFAULT_KIND)
+      TermsAcceptance.accepted?(actor, kind: kind)
+    end
+
+    def requires_acceptance?(actor)
+      TermsAcceptance.requires_acceptance?(actor)
     end
 
     def accept!(actor, version, provenance = {})
       TermsAcceptance.accept!(actor, version, provenance)
     end
 
-    def reaccepting?(actor, root)
-      TermsAcceptance.reaccepting?(actor, root)
+    def reaccepting?(actor)
+      TermsAcceptance.reaccepting?(actor)
     end
 
     def reaccepting_actors_for(recording_id:, terms_id:)

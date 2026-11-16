@@ -10,15 +10,25 @@ module RecordingStudioTermsAndConditions
     class << self
       def install!
         return unless defined?(RecordingStudioPublishable)
-        return if RecordingStudioPublishable.configuration.hooks.registered?(LATCH)
 
-        RecordingStudioPublishable.configuration.hooks.on(LATCH) { true }
+        hooks = RecordingStudio.configuration.hooks
+        return if hooks.registered?(LATCH)
+
+        hooks.on(LATCH) { true }
+        subscribe_publishable!
+      end
+
+      def subscribe_publishable!
+        return if @publishable_subscribed
+
+        @publishable_subscribed = true
         RecordingStudioPublishable.subscribe(:published) do |event|
           next unless installed?
 
           emit_from(event.payload)
         end
       end
+      private :subscribe_publishable!
 
       def subscribe(&block)
         ActiveSupport::Notifications.subscribe(EVENT) do |*args|
@@ -31,8 +41,7 @@ module RecordingStudioTermsAndConditions
       end
 
       def installed?
-        defined?(RecordingStudioPublishable) &&
-          RecordingStudioPublishable.configuration.hooks.registered?(LATCH)
+        defined?(RecordingStudio) && RecordingStudio.configuration.hooks.registered?(LATCH)
       end
 
       def claim_emit?(recording, terms_id)
@@ -58,7 +67,7 @@ module RecordingStudioTermsAndConditions
         return if recording == :failed
 
         if recording
-          emit_for_recording(recording, terms_id)
+          emit_for_recording(recording, terms_id, actor: actor_from(publishable_payload))
         else
           instrument_terms_event(recording_id, terms_id)
         end
@@ -79,14 +88,26 @@ module RecordingStudioTermsAndConditions
         [payload[:recording_id], payload[:recordable_id]]
       end
 
-      def emit_for_recording(recording, terms_id)
-        SoleLive.call(recording)
+      def emit_for_recording(recording, terms_id, actor: nil)
+        SoleLive.call(recording, actor: actor)
         recording.with_lock do
           next if claimed?(recording, terms_id)
           next unless instrument_terms_event(recording.id, terms_id)
 
-          take_claim?(recording, idempotency_key(recording, terms_id))
+          take_claim?(recording, idempotency_key(recording, terms_id), actor: actor)
         end
+      end
+
+      def actor_from(payload)
+        data = payload.to_h.symbolize_keys
+        type = data[:actor_type].to_s
+        id = data[:actor_id]
+        return if type.blank? || id.blank?
+
+        klass = type.safe_constantize
+        return unless klass.respond_to?(:find_by)
+
+        klass.find_by(id: id)
       end
 
       def lookup_terms_recording(recording_id)
@@ -116,12 +137,12 @@ module RecordingStudioTermsAndConditions
         false
       end
 
-      def take_claim?(recording, key)
+      def take_claim?(recording, key, actor: nil)
         before_ids = recording.events.where(idempotency_key: key).pluck(:id)
         event = recording.log_event!(
           action: "published",
           idempotency_key: key,
-          actor: SoleLive.write_actor_for(recording)
+          actor: SoleLive.write_actor_for(recording, actor: actor)
         )
         created_claim?(before_ids, event)
       end

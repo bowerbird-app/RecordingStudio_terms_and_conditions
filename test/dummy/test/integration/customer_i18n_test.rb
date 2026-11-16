@@ -139,7 +139,7 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
   end
 
   def ensure_live_kind!(kind, title:, body:, slug_prefix:)
-    return if RecordingStudioTermsAndConditions.current_published_for(@workspace, kind: kind)
+    return if RecordingStudioTermsAndConditions.current_published_for(kind: kind)
 
     recording = record_terms(@root, title: title, body: body, kind: kind)
     publish_terms!(recording, slug: "#{slug_prefix}-#{SecureRandom.hex(4)}")
@@ -154,7 +154,7 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
   end
 
   def accept_pending_live_terms!(user)
-    RecordingStudioTermsAndConditions.pending_published_list(user, @workspace).each do |terms|
+    RecordingStudioTermsAndConditions.pending_published_list(user).each do |terms|
       RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "continue_notice" })
     end
   end

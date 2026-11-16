@@ -69,7 +69,7 @@ class AgreeHelperTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_response :success
     refute_includes CGI.unescapeHTML(response.body), "You're in. Thanks for reading."
-    assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
+    assert RecordingStudioTermsAndConditions.accepted?(@user)
     receipt = RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last
     assert_equal({ "source" => "continue_notice" }, receipt.provenance)
 
@@ -84,7 +84,7 @@ class AgreeHelperTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_response :success
     refute_includes CGI.unescapeHTML(response.body), "You're in. Thanks for reading."
-    assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
+    assert RecordingStudioTermsAndConditions.accepted?(@user)
     receipt = RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last
     assert_equal({ "source" => "clickwrap" }, receipt.provenance)
 
@@ -108,7 +108,7 @@ class AgreeHelperTest < ActionDispatch::IntegrationTest
     end
 
     assert_redirected_to "/agree_helper"
-    refute RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
+    refute RecordingStudioTermsAndConditions.accepted?(@user)
 
     get "/"
     assert_redirected_to recording_studio_terms_and_conditions.acceptance_path

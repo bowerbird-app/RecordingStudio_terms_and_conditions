@@ -70,8 +70,9 @@ module RecordingStudioTermsAndConditions
         root = context.recording
         raise RecordingStudioApi::NotFoundError, "Workspace not found" unless root.recordable_type == "Workspace"
 
+        library = RecordingStudioTermsAndConditions.library_root
         kind = context.params[:kind].presence
-        documents = Outline.children(root, Terms.name).map { |recording| AdminPayload.document(recording) }
+        documents = Outline.children(library, Terms.name).map { |recording| AdminPayload.document(recording) }
         documents.select! { |document| document[:kind] == kind } if kind
         { documents: documents }
       end
@@ -85,9 +86,26 @@ module RecordingStudioTermsAndConditions
 
       def self.terms!(context)
         recording = context.recording
-        return recording if recording.recordable_type == Terms.name
+        return recording if recording&.recordable_type == Terms.name
+
+        found = library_terms(context.params[:terms_id])
+        return found if found
 
         raise RecordingStudioApi::NotFoundError, "Terms not found"
+      end
+
+      def self.library_terms(id)
+        return if id.blank?
+
+        library = RecordingStudioTermsAndConditions.library_root
+        return if library.blank?
+
+        RecordingStudio::Recording.find_by(
+          id: id,
+          root_recording_id: library.id,
+          recordable_type: Terms.name,
+          trashed_at: nil
+        )
       end
     end
 

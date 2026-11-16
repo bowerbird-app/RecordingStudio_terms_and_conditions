@@ -8,11 +8,21 @@
   ) %>
 
   <div class="flex flex-wrap items-center gap-3">
-    <%= render FlatPack::Button::Component.new(
-      text: "Admin",
-      style: :secondary,
-      href: "/admin"
-    ) %>
+    <% if (admin_recording = dummy_admin_root_recording) %>
+      <%= render FlatPack::Button::Component.new(
+        text: "Admin",
+        style: :secondary,
+        url: "/recording_studio_root_switchable/v1/root_switch?scope=all_workspaces",
+        method: :patch,
+        params: { root_switch: { root_recording_id: admin_recording.id, return_to: "/admin" } }
+      ) %>
+    <% else %>
+      <%= render FlatPack::Button::Component.new(
+        text: "Admin",
+        style: :secondary,
+        href: "/admin"
+      ) %>
+    <% end %>
     <% if (terms_page = dummy_published_page_url(RecordingStudioTermsAndConditions::Terms::KIND_TERMS)) %>
       <%= render FlatPack::Button::Component.new(
         text: "Terms and Condition page",

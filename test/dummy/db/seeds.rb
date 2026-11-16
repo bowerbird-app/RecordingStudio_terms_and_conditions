@@ -17,16 +17,17 @@ find_or_record_child = lambda do |recordable, root_recording, parent_recording|
   ).recording
 end
 
-terms_recording_for_kind = lambda do |root_recording, kind|
-  RecordingStudioTermsAndConditions::KindPresence.recordings_for(root_recording, kind: kind)
+terms_recording_for_kind = lambda do |_root_recording, kind|
+  RecordingStudioTermsAndConditions::KindPresence.recordings_for(kind: kind)
     .max_by { |recording| recording.created_at || Time.at(0) }
 end
 
-ensure_published_terms = lambda do |root_recording, user, kind:, title:, body:, slug:|
-  recording = terms_recording_for_kind.call(root_recording, kind)
+ensure_published_terms = lambda do |_root_recording, user, kind:, title:, body:, slug:|
+  recording = terms_recording_for_kind.call(nil, kind)
+  parent = RecordingStudioTermsAndConditions.library_root(actor: user)
 
   if recording.blank?
-    recording = root_recording.record(
+    recording = parent.record(
       RecordingStudioTermsAndConditions::Terms,
       actor: user
     ) do |terms|
@@ -134,5 +135,5 @@ puts "Seeded: Workspace '#{accessible_workspace.name}' with root recording ##{ac
 puts "Seeded: Workspace '#{private_workspace.name}' with root recording ##{private_root_recording.id}"
 puts "Seeded: Folder '#{folder.name}' and page '#{page.title}'"
 puts "Seeded: AdminRoot '#{admin_root.name}' with root recording ##{admin_root_recording.id}"
-puts "Seeded: published Terms and Conditions under '#{workspace.name}'"
-puts "Seeded: published Privacy Policy under '#{workspace.name}'"
+puts "Seeded: published Terms and Conditions on the shared library"
+puts "Seeded: published Privacy Policy on the shared library"

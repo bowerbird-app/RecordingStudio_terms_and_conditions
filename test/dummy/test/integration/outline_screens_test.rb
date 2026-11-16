@@ -25,7 +25,7 @@ class OutlineScreensTest < ActionDispatch::IntegrationTest
     Current.actor = @admin
     sign_in @admin
     switch_to_workspace(@workspace)
-    @recording = @root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
+    @recording = terms_library.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
       terms.title = "Booth rules"
       terms.body = "Keep the door shut."
     end

@@ -70,6 +70,22 @@ GIT
       recording_studio_metrics (>= 0.9.0, < 1.0)
 
 GIT
+  remote: https://github.com/bowerbird-app/RecordingStudio_broadcasts.git
+  revision: 2abfd11663e57432eda77912a1840dfd9ea48c39
+  tag: v0.6.0
+  specs:
+    recording_studio_broadcasts (0.6.0)
+      flat_pack (>= 0.1.376, < 0.2)
+      rails (~> 8.1.0)
+      recording_studio (>= 7.0, < 8.0)
+      recording_studio_accessible (>= 0.44.0, < 1.0)
+      recording_studio_admin (>= 2.16.0, < 3.0)
+      recording_studio_attachable (>= 0.28.0, < 1.0)
+      recording_studio_notifications (>= 0.18.0, < 1.0)
+      recording_studio_notifications_email (>= 0.5.4, < 1.0)
+      recording_studio_publishable (>= 1.0.0)
+
+GIT
   remote: https://github.com/bowerbird-app/RecordingStudio_cache.git
   revision: 0d8676b02a351f91e3522024bb0dd75e2a153bde
   tag: v0.6.3
@@ -120,11 +136,34 @@ GIT
       view_component (>= 4.14, < 5)
 
 GIT
-  remote: https://github.com/bowerbird-app/RecordingStudio_publishable.git
-  revision: 19a6b92de4727489a7d76ebdc42a89584e11d264
-  tag: v0.18.1
+  remote: https://github.com/bowerbird-app/RecordingStudio_notifications.git
+  revision: 36a0832f077a70dfed412974210aaad37986eb13
+  tag: v0.18.0
   specs:
-    recording_studio_publishable (0.18.1)
+    recording_studio_notifications (0.18.0)
+      flat_pack (>= 0.1.353)
+      rails (~> 8.1.0)
+      recording_studio (>= 7.0, < 8.0)
+      recording_studio_accessible (>= 0.44.0, < 1.0)
+      recording_studio_metrics (>= 0.9.0, < 1.0)
+      view_component (>= 4.14, < 5)
+
+GIT
+  remote: https://github.com/bowerbird-app/RecordingStudio_notifications_email.git
+  revision: fe855a541eb4b18bce0170ef0964993a859c122e
+  tag: v0.5.4
+  specs:
+    recording_studio_notifications_email (0.5.4)
+      rails (~> 8.1.0)
+      recording_studio (>= 7.0, < 8.0)
+      recording_studio_notifications (>= 0.18.0, < 1.0)
+
+GIT
+  remote: https://github.com/bowerbird-app/RecordingStudio_publishable.git
+  revision: f8753d33ba17b762cc1728023cae4d48ea1820df
+  tag: v1.0.0
+  specs:
+    recording_studio_publishable (1.0.0)
       flat_pack (>= 0.1.341)
       rails (~> 8.1.0)
       recording_studio (>= 7.0, < 8.0)
@@ -194,7 +233,7 @@ GIT
 PATH
   remote: ../..
   specs:
-    recording_studio_terms_and_conditions (0.20.0)
+    recording_studio_terms_and_conditions (0.21.0)
       flat_pack (>= 0.1.196)
       rails (~> 8.1.0)
       recording_studio (>= 7.0, < 8.0)
@@ -202,7 +241,7 @@ PATH
       recording_studio_admin (>= 2.16.0, < 3.0)
       recording_studio_metrics (>= 0.9.0, < 1.0)
       recording_studio_moveable (>= 5.0, < 6.0)
-      recording_studio_publishable (>= 0.18.1, < 1.0)
+      recording_studio_publishable (>= 1.0.0, < 2.0)
       recording_studio_user (>= 0.30.0, < 1.0)
 
 GEM
@@ -715,12 +754,15 @@ DEPENDENCIES
   recording_studio_admin!
   recording_studio_api!
   recording_studio_attachable!
+  recording_studio_broadcasts!
   recording_studio_cache!
   recording_studio_icons!
   recording_studio_internationalization!
   recording_studio_logs!
   recording_studio_metrics!
   recording_studio_moveable!
+  recording_studio_notifications!
+  recording_studio_notifications_email!
   recording_studio_publishable!
   recording_studio_root_switchable!
   recording_studio_terms_and_conditions!
@@ -879,15 +921,18 @@ CHECKSUMS
   recording_studio_admin (2.16.0)
   recording_studio_api (0.24.0)
   recording_studio_attachable (0.28.0)
+  recording_studio_broadcasts (0.6.0)
   recording_studio_cache (0.6.3)
   recording_studio_icons (0.2.1)
   recording_studio_internationalization (0.3.0)
   recording_studio_logs (0.8.0)
   recording_studio_metrics (0.9.0)
   recording_studio_moveable (5.0.0)
-  recording_studio_publishable (0.18.1)
+  recording_studio_notifications (0.18.0)
+  recording_studio_notifications_email (0.5.4)
+  recording_studio_publishable (1.0.0)
   recording_studio_root_switchable (0.16.0)
-  recording_studio_terms_and_conditions (0.20.0)
+  recording_studio_terms_and_conditions (0.21.0)
   recording_studio_trashable (0.17.0)
   recording_studio_user (0.30.0)
   redis (5.4.1) sha256=b5e675b57ad22b15c9bcc765d5ac26f60b675408af916d31527af9bd5a81faae

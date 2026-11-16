@@ -27,7 +27,7 @@ class PublishableQuickActionsTest < ActionDispatch::IntegrationTest
   test "term show publishes inline from QuickActions" do
     sign_in @admin
     switch_to_workspace(@workspace)
-    recording = @root.record(
+    recording = terms_library(@admin).record(
       RecordingStudioTermsAndConditions::Terms,
       actor: @admin
     ) do |terms|
@@ -62,7 +62,7 @@ class PublishableQuickActionsTest < ActionDispatch::IntegrationTest
   test "publishing a draft after a clause edit releases the assembled text" do
     sign_in @admin
     switch_to_workspace(@workspace)
-    recording = @root.record(
+    recording = terms_library(@admin).record(
       RecordingStudioTermsAndConditions::Terms,
       actor: @admin
     ) do |terms|

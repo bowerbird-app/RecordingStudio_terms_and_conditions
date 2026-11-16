@@ -7,7 +7,7 @@ This Rails app exists to validate the Recording Studio Terms and Conditions addo
 - Recording Studio Users Auth (email, then password) with a seeded admin user
 - `Current.actor` wiring for Recording Studio events
 - Root workspace plus seeded folder and page recordables
-- Recording Studio default layout with PageNav, FlatPack assets, and Tailwind source scanning (including `/usr/local/lib/ruby/gems/**/bundler/gems/flatpack-*`)
+- Recording Studio default layout with PageNav and FlatPack assets. `tailwindcss:build` and `tailwindcss:watch` first link `flat_pack` and the loaded `recording_studio*` gems into `vendor/engines` (from `Gem.loaded_specs` `full_gem_path`) and write `app/assets/tailwind/bundled_sources.css`. `application.css` imports that file. Both the links and the generated file stay out of git. Tokens stay on the `flat_pack/variables` stylesheet.
 - Dummy importmap imports `@hotwired/turbo-rails` so Admin turbo frames (hub widgets and tables) finish loading instead of staying on skeletons
 - Mounted `RecordingStudio::Engine` route behavior inside a host app
 - Dummy-only `/docs/*` pages for gem-specific onboarding
@@ -39,7 +39,7 @@ Then open `/users/sign_in`, continue with email, and sign in with:
 
 - `/` - dummy home: a row of links to Admin, the live Terms page, the live Privacy Policy page, and Helper
 - `/recording_studio_terms_and_conditions/acceptance` - Agree screen (signed-in clickwrap, not the public page). The engine root redirects here.
-- `/admin` - Terms hub. Actions are the live pages plus Edit Terms and Edit Privacy Policy
+- `/admin` - Terms hub. The home Admin button switches to the Admin root first, then opens this page. Actions are the live pages plus Edit Terms and Edit Privacy Policy
 - `/admin/sections` and `/admin/sections/terms` - redirect to `/admin`
 - `/recording_studio_terms_and_conditions/admin/terms` - redirects to `/admin/screens/recording_studio_terms`. Show, edit, and new stay on the engine. Switch to the Admin root first.
 - `/terms/:uuid/:slug` - public published Terms

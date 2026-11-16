@@ -5,16 +5,19 @@ module RecordingStudioTermsAndConditions
   module OutlinePublish
     LATCH = :recording_studio_terms_outline_publish
     FLAG = :recording_studio_terms_outline_releasing
+    # Broadcasts 0.6.0 registers SentPublishableLock at priority 0, outside the default 100.
+    # A higher number runs inside that lock, including a release that never calls the block.
+    AROUND_PRIORITY = ::RecordingStudio::Hooks::DEFAULT_PRIORITY + 100
 
     class << self
       def install!
         return unless defined?(RecordingStudioPublishable)
-        return if RecordingStudioPublishable.configuration.hooks.registered?(LATCH)
 
-        RecordingStudioPublishable.configuration.hooks.on(LATCH) { true }
-        RecordingStudioPublishable.configuration.hooks.around_service do |service, block|
-          publish_through_release(service, block)
-        end
+        hooks = RecordingStudio.configuration.hooks
+        return if hooks.registered?(LATCH)
+
+        hooks.on(LATCH) { true }
+        hooks.around_service(priority: AROUND_PRIORITY) { |service, block| publish_through_release(service, block) }
       end
 
       def publish_through_release(service, block)

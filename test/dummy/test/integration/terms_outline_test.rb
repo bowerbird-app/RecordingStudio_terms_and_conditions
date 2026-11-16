@@ -9,6 +9,7 @@ class TermsOutlineTest < ActiveSupport::TestCase
       password: "Password",
       password_confirmation: "Password"
     )
+    @actor = library_writer(@actor)
     Current.actor = @actor
     @workspace = Workspace.create!(name: "Outline #{SecureRandom.hex(4)}")
     @root = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor)
@@ -103,7 +104,7 @@ class TermsOutlineTest < ActiveSupport::TestCase
 
   test "accept stays live only and idempotent" do
     recording = publish_seeded!("Agreed copy.")
-    draft = @root.record(RecordingStudioTermsAndConditions::Terms, actor: @actor) do |terms|
+    draft = terms_library.record(RecordingStudioTermsAndConditions::Terms, actor: @actor) do |terms|
       terms.title = "Draft"
       terms.body = "Not live."
     end
@@ -153,9 +154,10 @@ class TermsOutlineTest < ActiveSupport::TestCase
   private
 
   def publish_seeded!(body)
-    recording = record_terms(@root, title: "House rules", body: body, actor: @actor)
-    publish_terms!(recording, slug: "house-#{SecureRandom.hex(4)}", actor: @actor)
-    RecordingStudioTermsAndConditions::Outline.seed_recording!(recording, actor: @actor)
+    writer = library_writer(@actor)
+    recording = record_terms(@root, title: "House rules", body: body, actor: writer)
+    publish_terms!(recording, slug: "house-#{SecureRandom.hex(4)}", actor: writer)
+    RecordingStudioTermsAndConditions::Outline.seed_recording!(recording, actor: writer)
     recording.reload
   end
 

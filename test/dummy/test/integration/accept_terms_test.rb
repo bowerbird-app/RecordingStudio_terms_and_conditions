@@ -73,7 +73,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
 
   test "re-gate after a new live version shows the flash date and Continue" do
     RecordingStudioTermsAndConditions.accept!(@user, @recording, { "source" => "continue_notice" })
-    revised = @root.revise(@recording, actor: recording_write_actor) do |terms|
+    revised = @recording.root_recording.revise(@recording, actor: recording_write_actor) do |terms|
       terms.body = "Be kinder."
     end
     publish_terms!(revised, slug: "studio-terms-#{SecureRandom.hex(4)}")
@@ -81,8 +81,8 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     get recording_studio_terms_and_conditions.acceptance_path
 
     assert_response :success
-    assert RecordingStudioTermsAndConditions.reaccepting?(@user, @workspace)
-    refute RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
+    assert RecordingStudioTermsAndConditions.reaccepting?(@user)
+    refute RecordingStudioTermsAndConditions.accepted?(@user)
     assert_includes response.body, "We have updated our terms and conditions."
     refute_includes CGI.unescapeHTML(response.body), "We've updated our Terms and Conditions"
     refute_includes response.body, "Terms updated"
@@ -106,7 +106,7 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     follow_redirect!
     refute_includes CGI.unescapeHTML(response.body), "You're in. Thanks for reading."
     refute_includes response.body, "You're in"
-    assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
+    assert RecordingStudioTermsAndConditions.accepted?(@user)
     receipt = RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last
     assert_equal RecordingStudioTermsAndConditions::BodyDigest.call("Be kind. Don't be a jerk."), receipt.body_digest
     assert_equal({ "source" => "continue_notice" }, receipt.provenance)
@@ -165,16 +165,15 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     RecordingStudioTermsAndConditions.configuration.require_scroll_to_end = false
   end
 
-  test "empty state when the current workspace has no live terms" do
+  test "empty state when nothing is published" do
+    unpublish_live_terms!
     empty = Workspace.create!(name: "Empty #{SecureRandom.hex(4)}")
     switch_to_workspace(empty)
 
-    without_live_terms_fallback do
-      get recording_studio_terms_and_conditions.acceptance_path
+    get recording_studio_terms_and_conditions.acceptance_path
 
-      assert_response :success
-      assert_includes response.body, "Nothing to agree to yet"
-    end
+    assert_response :success
+    assert_includes response.body, "Nothing to agree to yet"
   end
 
   test "accept screen falls back to live terms from another accessible root" do
@@ -191,16 +190,12 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     assert_select "button[type=submit]", text: "Continue"
   end
 
-  test "continuing when the workspace only has a draft does not write a receipt" do
-    draft_workspace = Workspace.create!(name: "Draft #{SecureRandom.hex(4)}")
-    draft_root = RecordingStudio.create_root_recording!(draft_workspace, actor: recording_write_actor)
-    record_terms(draft_root, title: "Draft terms", body: "Not live.")
-    switch_to_workspace(draft_workspace)
+  test "continuing when the library only has a draft does not write a receipt" do
+    unpublish_live_terms!
+    record_terms(title: "Draft terms", body: "Not live.")
 
-    without_live_terms_fallback do
-      assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
-        post recording_studio_terms_and_conditions.acceptance_path
-      end
+    assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
+      post recording_studio_terms_and_conditions.acceptance_path
     end
 
     assert_response :unprocessable_entity

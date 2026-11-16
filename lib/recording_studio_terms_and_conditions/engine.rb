@@ -187,6 +187,8 @@ module RecordingStudioTermsAndConditions
         RecordingStudioTermsAndConditions::SoleLive.install!
         RecordingStudioTermsAndConditions::Published.install!
         RecordingStudioTermsAndConditions::OutlinePublish.install!
+        RecordingStudioTermsAndConditions::LibraryStaffAccess.install!
+        RecordingStudioTermsAndConditions::LibraryMoves.install!
       end
     end
 
@@ -208,6 +210,8 @@ module RecordingStudioTermsAndConditions
         RecordingStudioTermsAndConditions::SoleLive.install!
         RecordingStudioTermsAndConditions::Published.install!
         RecordingStudioTermsAndConditions::OutlinePublish.install!
+        RecordingStudioTermsAndConditions::LibraryStaffAccess.install!
+        RecordingStudioTermsAndConditions::LibraryMoves.install!
         RecordingStudioTermsAndConditions::Engine.prepend_users_signup_view_path
       end
     end

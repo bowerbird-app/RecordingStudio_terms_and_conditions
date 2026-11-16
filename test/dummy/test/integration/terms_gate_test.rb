@@ -21,29 +21,32 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     switch_to_workspace(@workspace)
   end
 
-  test "unpublished workspace leaves home and docs free when no root has live terms" do
+  test "a library with only a draft leaves home and docs free" do
+    unpublish_live_terms!
     record_terms(@root, title: "Draft only", body: "Not live.")
-
-    without_live_terms_fallback do
-      get "/"
-      assert_response :success
-      refute_redirected_to_acceptance
-
-      get "/docs/install"
-      assert_response :success
-    end
-  end
-
-  test "live terms on a root the actor cannot view do not gate" do
-    live_workspace = Workspace.create!(name: "Live #{SecureRandom.hex(4)}")
-    live_root = RecordingStudio.create_root_recording!(live_workspace, actor: recording_write_actor)
-    live = record_terms(live_root, title: "Other booth Terms", body: "Stay out.")
-    publish_terms!(live, slug: "other-booth-#{SecureRandom.hex(4)}")
 
     get "/"
     assert_response :success
     refute_redirected_to_acceptance
-    refute_includes response.body, "Other booth Terms"
+
+    get "/docs/install"
+    assert_response :success
+  end
+
+  test "live terms gate a person who cannot view the workspace they are in" do
+    outsider = User.create!(
+      email: "outsider-#{SecureRandom.hex(4)}@example.com",
+      password: "Password",
+      password_confirmation: "Password"
+    )
+    sign_in outsider
+    live = record_terms(@root, title: "Shared Terms", body: "Be kind everywhere.")
+    publish_terms!(live, slug: "shared-#{SecureRandom.hex(4)}")
+
+    get "/"
+    assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
+    follow_redirect!
+    assert_includes response.body, "Shared Terms"
   end
 
   test "current root without live terms still gates when another root has them" do
@@ -159,7 +162,7 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     get "/"
     assert_response :success
 
-    revised = @root.revise(recording, actor: recording_write_actor) { |terms| terms.body = "Be kinder." }
+    revised = recording.root_recording.revise(recording, actor: recording_write_actor) { |terms| terms.body = "Be kinder." }
     publish_terms!(revised, slug: "gate-terms-#{SecureRandom.hex(4)}")
 
     get "/"
@@ -168,8 +171,8 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     assert_includes CGI.unescapeHTML(response.body), "We have updated our terms and conditions."
     refute_includes CGI.unescapeHTML(response.body), "We've updated our Terms and Conditions"
     refute_includes response.body, "Terms updated"
-    refute RecordingStudioTermsAndConditions.accepted?(@user, @workspace)
-    assert RecordingStudioTermsAndConditions.reaccepting?(@user, @workspace)
+    refute RecordingStudioTermsAndConditions.accepted?(@user)
+    assert RecordingStudioTermsAndConditions.reaccepting?(@user)
   end
 
   test "users auth sign in lands on agree when live terms require it" do
@@ -227,24 +230,19 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     studio = Workspace.find_by(name: "Studio Workspace")
     return unless studio
 
-    RecordingStudioTermsAndConditions.pending_published_list(@user, studio).each do |terms|
+    RecordingStudioTermsAndConditions.pending_published_list(@user).each do |terms|
       RecordingStudioTermsAndConditions.accept!(@user, terms, { "source" => "continue_notice" })
     end
   end
 
-  def with_fallback_terms_root(workspace)
-    gate = RecordingStudioTermsAndConditions::Gate
-    original = gate.method(:first_root_with_live_terms)
-    gate.define_singleton_method(:first_root_with_live_terms) { |_actor = nil| workspace }
+  def with_fallback_terms_root(_workspace)
     yield
-  ensure
-    gate.define_singleton_method(:first_root_with_live_terms, original)
   end
 
   def ensure_default_workspace_requires_acceptance!
     workspace = Workspace.find_or_create_by!(name: "Studio Workspace")
     root = RecordingStudio.create_root_recording!(workspace, actor: recording_write_actor)
-    return if RecordingStudioTermsAndConditions.requires_acceptance?(@user, workspace)
+    return if RecordingStudioTermsAndConditions.requires_acceptance?(@user)
 
     recording = record_terms(root, title: "Studio Terms", body: "Be kind.")
     publish_terms!(recording, slug: "studio-terms-#{SecureRandom.hex(4)}")

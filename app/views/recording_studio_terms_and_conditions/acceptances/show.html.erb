@@ -27,7 +27,6 @@
     <%= form_with url: acceptance_path, method: :post do %>
       <%= recording_studio_terms_continue_notice(
         actor: current_user,
-        root: @root,
         pending: agree_documents,
         link: false
       ) %>
