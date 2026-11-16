@@ -8,30 +8,10 @@
 @source "../../../../../app/components/**/*.{rb,erb}";
 
 /*
-  Flatpack and Recording Studio checkouts. Paths that start with ../ are
-  relative to this file, so they cannot reach the system gem directory.
-  Absolute paths can. Directory names are case-sensitive (flatpack-*, RecordingStudio*).
+  RecordingStudio_gem_template 0.3.0 links FlatPack::Engine.root and
+  RecordingStudio::Engine.root into vendor/engines before tailwindcss:build.
+  This app does the same for flat_pack and every loaded recording_studio* gem,
+  using Gem.loaded_specs full_gem_path, then writes bundled_sources.css.
+  Tokens stay in flat_pack/variables. Do not redeclare them here.
 */
-@source "../../../vendor/bundle/**/flatpack-*/app/components/**/*.{rb,erb}";
-@source "../../../vendor/bundle/**/RecordingStudio*/app/**/*.{rb,erb}";
-@source "../../../vendor/bundle/**/recording_studio*/app/**/*.{rb,erb}";
-@source "../../../vendor/bundle/**/recordingstudio*/app/**/*.{rb,erb}";
-@source "../../../../../vendor/bundle/**/flatpack-*/app/components/**/*.{rb,erb}";
-@source "../../../../../vendor/bundle/**/RecordingStudio*/app/**/*.{rb,erb}";
-@source "../../../../../vendor/bundle/**/recording_studio*/app/**/*.{rb,erb}";
-@source "../../../../../vendor/bundle/**/recordingstudio*/app/**/*.{rb,erb}";
-
-@source "/usr/local/lib/ruby/gems/*/bundler/gems/flatpack-*/app/components/**/*.{rb,erb}";
-@source "/usr/local/lib/ruby/gems/*/bundler/gems/RecordingStudio*/app/**/*.{rb,erb}";
-@source "/usr/local/lib/ruby/gems/*/bundler/gems/recording_studio*/app/**/*.{rb,erb}";
-@source "/usr/local/lib/ruby/gems/*/bundler/gems/recordingstudio*/app/**/*.{rb,erb}";
-
-@source "/usr/local/bundle/ruby/*/bundler/gems/flatpack-*/app/components/**/*.{rb,erb}";
-@source "/usr/local/bundle/ruby/*/bundler/gems/RecordingStudio*/app/**/*.{rb,erb}";
-@source "/usr/local/bundle/ruby/*/bundler/gems/recording_studio*/app/**/*.{rb,erb}";
-@source "/usr/local/bundle/ruby/*/bundler/gems/recordingstudio*/app/**/*.{rb,erb}";
-
-@source "/opt/hostedtoolcache/Ruby/*/x64/lib/ruby/gems/*/bundler/gems/flatpack-*/app/components/**/*.{rb,erb}";
-@source "/opt/hostedtoolcache/Ruby/*/x64/lib/ruby/gems/*/bundler/gems/RecordingStudio*/app/**/*.{rb,erb}";
-@source "/opt/hostedtoolcache/Ruby/*/x64/lib/ruby/gems/*/bundler/gems/recording_studio*/app/**/*.{rb,erb}";
-@source "/opt/hostedtoolcache/Ruby/*/x64/lib/ruby/gems/*/bundler/gems/recordingstudio*/app/**/*.{rb,erb}";
+@import "./bundled_sources.css";

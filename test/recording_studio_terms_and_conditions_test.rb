@@ -619,11 +619,10 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_dummy_tailwind_keeps_flatpack_theme_selection_in_flatpack
     tailwind_source = File.read(File.expand_path("dummy/app/assets/tailwind/application.css", __dir__))
 
-    assert_includes tailwind_source, "../../../vendor/bundle/**/flatpack/app/components/**/*.{rb,erb}"
-    assert_includes tailwind_source, "flatpack-*/app/components/**/*.{rb,erb}"
-    assert_includes tailwind_source, "usr/local/lib/ruby/gems/**/bundler/gems/flatpack-"
-    assert_includes tailwind_source, "../../../vendor/bundle/**/recording_studio/app/views/**/*.erb"
-    assert_includes tailwind_source, "recordingstudio-*/app/views/**/*.erb"
+    assert_includes tailwind_source, '@import "./bundled_sources.css"'
+    assert_includes tailwind_source, "vendor/engines"
+    refute_includes tailwind_source, "/usr/local"
+    refute_includes tailwind_source, "hostedtoolcache"
     refute_includes tailwind_source, "@theme"
     refute_includes tailwind_source, ":root {"
     refute_includes tailwind_source, "--color-fp-primary"

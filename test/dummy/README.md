@@ -7,7 +7,7 @@ This Rails app exists to validate the Recording Studio Terms and Conditions addo
 - Recording Studio Users Auth (email, then password) with a seeded admin user
 - `Current.actor` wiring for Recording Studio events
 - Root workspace plus seeded folder and page recordables
-- Recording Studio default layout with PageNav and FlatPack assets. Tailwind `@source` paths are absolute (`/usr/local/lib/ruby/gems`, `/usr/local/bundle`, GitHub's hosted Ruby, and `vendor/bundle`) so Collapse and the other Flatpack components are in the built CSS. A relative climb to `usr/local` never leaves the repo.
+- Recording Studio default layout with PageNav and FlatPack assets. `tailwindcss:build` and `tailwindcss:watch` first link `flat_pack` and the loaded `recording_studio*` gems into `vendor/engines` (from `Gem.loaded_specs` `full_gem_path`) and write `app/assets/tailwind/bundled_sources.css`. `application.css` imports that file. Both the links and the generated file stay out of git. Tokens stay on the `flat_pack/variables` stylesheet.
 - Dummy importmap imports `@hotwired/turbo-rails` so Admin turbo frames (hub widgets and tables) finish loading instead of staying on skeletons
 - Mounted `RecordingStudio::Engine` route behavior inside a host app
 - Dummy-only `/docs/*` pages for gem-specific onboarding
