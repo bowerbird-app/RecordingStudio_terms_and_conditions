@@ -26,6 +26,10 @@ ACTOR_TYPE=User ACTOR_ID=<staff id> bin/rails recording_studio_terms_and_conditi
 
 That splits each current body into sections and clauses and, for a live document, records that version as the baseline manifest. It does not publish and does not write receipts. Running it again does nothing when the outline is already there.
 
+## Upgrade from 0.21.0 to 0.22.0
+
+No schema change. Pin `0.22.0`. Accessible, Metrics, and Users are capped at `< 2.0`. Moveable is capped at `< 7.0`. Floors are unchanged. Core stays `< 8.0`, Admin stays `< 3.0`, and Publishable stays `< 2.0`.
+
 ## Upgrade from 0.20.0 to 0.21.0
 
 Breaking. A person accepts the live Terms once. The document lives on one shared library root, the same shape as People. Switching workspace does not ask again. A new published version still asks once.

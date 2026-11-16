@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-11-16
+
+### Changed
+- Gemspec caps now stop at the next major. Accessible, Metrics, and Users move from `< 1.0` to `< 2.0`. Moveable moves from `< 6.0` to `< 7.0`. Floors stay: core `>= 7.0`, `< 8.0`; Accessible `>= 0.44.0`; Admin `>= 2.16.0`, `< 3.0`; Metrics `>= 0.9.0`; Moveable `>= 5.0`; Publishable `>= 1.0.0`, `< 2.0`; Users `>= 0.30.0`. Development and dummy pins are unchanged.
+
+### Upgrade notes (0.21.0 → 0.22.0)
+- No schema change. Pin this gem at `0.22.0`.
+- Allow Accessible, Metrics, and Users below `2.0`, and Moveable below `7.0`. Lower bounds are unchanged. Core stays `< 8.0`, Admin stays `< 3.0`, and Publishable stays `< 2.0`.
+
 ## [0.21.0] - 2026-11-15
 
 A person accepts Terms once. The live document for each kind sits on one shared library root, the same shape as People. Switching workspace does not ask again. Publishing a new version still asks everyone once.
@@ -727,7 +736,8 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.21.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.22.0...HEAD
+[0.22.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.21.0...v0.22.0
 [0.21.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.19.1...v0.20.0
 [0.19.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.19.0...v0.19.1
