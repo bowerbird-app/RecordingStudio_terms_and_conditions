@@ -14,17 +14,6 @@ module ApplicationHelper
     flat_pack_page_nav(**kwargs)
   end
 
-  def dummy_admin_hub_switch_href
-    recording = dummy_admin_root_recording
-    return "/admin" unless recording
-
-    query = {
-      scope: "all_workspaces",
-      root_switch: { root_recording_id: recording.id, return_to: "/admin" }
-    }.to_query
-    "/recording_studio_root_switchable/v1/root_switch?#{query}"
-  end
-
   def dummy_published_page_url(kind)
     RecordingStudioTermsAndConditions::Admin.live_page_url(kind)
   end
