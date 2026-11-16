@@ -5,8 +5,7 @@
 RecordingStudioUser.configure do |config|
   config.user_class_name = "User"
   config.otp_enabled = false
-  # Dummy User is not Devise :confirmable. Skip Users' existing-policy confirm write.
-  config.password_registration_confirmation = :skip
+  # Users 0.32 confirms password signups with an email code. Seed and test users call skip_confirmation!.
   # Users 0.30 defaults this to 12. Seed and demo passwords stay "Password".
   config.minimum_password_length = 6
   config.additional_profile_attributes |= [:locale] if config.respond_to?(:additional_profile_attributes)

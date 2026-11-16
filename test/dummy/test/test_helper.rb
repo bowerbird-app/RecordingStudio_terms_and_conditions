@@ -5,6 +5,8 @@ ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
 
+User.before_create { skip_confirmation! if respond_to?(:skip_confirmation!) }
+
 module TermsDemoTestHelper
   def bootstrap_owner_access!(actor, recording)
     result = RecordingStudioAccessible.bootstrap_owner_access!(recording: recording, actor: actor)

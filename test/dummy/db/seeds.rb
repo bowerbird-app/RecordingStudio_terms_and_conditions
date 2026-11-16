@@ -63,7 +63,10 @@ end
 user = User.find_or_create_by!(email: "admin@admin.com") do |u|
   u.password = "Password"
   u.password_confirmation = "Password"
+  u.skip_confirmation! if u.respond_to?(:skip_confirmation!)
 end
+user.skip_confirmation! if user.respond_to?(:skip_confirmation!) && !user.confirmed?
+user.save! if user.changed?
 
 # Create the workspace recordables
 workspace = Workspace.find_or_create_by!(name: "Studio Workspace")

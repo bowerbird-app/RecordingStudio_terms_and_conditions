@@ -52,22 +52,22 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     gemfile = File.read(File.expand_path("dummy/Gemfile", __dir__))
     root_gemfile = File.read(File.expand_path("../Gemfile", __dir__))
 
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v7.0.0"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v7.0.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.44.0"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.44.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.28.0"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.28.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_publishable", tag: "v1.0.0"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_publishable", tag: "v1.0.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v7.3.0"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v7.3.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.45.1"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.45.1"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.31.0"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.31.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_publishable", tag: "v1.1.0"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_publishable", tag: "v1.1.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_broadcasts", tag: "v0.6.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.16.0"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.16.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v0.24.0"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v0.24.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_moveable", tag: "v5.0.0"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_moveable", tag: "v5.0.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_icons", tag: "v0.2.1"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.18.0"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.18.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v1.2.1"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v1.2.1"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_moveable", tag: "v6.0.0"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_moveable", tag: "v6.0.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_icons", tag: "v0.4.0"'
     assert_includes gemfile, 'gem "redis", "~> 5.3"'
     gemspec = File.read(File.expand_path("../recording_studio_terms_and_conditions.gemspec", __dir__))
     refute_includes gemspec, "recording_studio_api"
@@ -75,28 +75,46 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.9.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_logs", tag: "v0.8.0"'
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_logs", tag: "v0.8.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.17.0"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.17.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v1.0.1"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v1.0.1"'
     assert_match(/recording_studio_trashable.*,\n\s+require: false/, gemfile)
     assert_match(/recording_studio_trashable.*,\n\s+require: false/, root_gemfile)
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.30.0"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.30.0"'
-    assert_includes gemfile, 'gem "puma", "8.1.0"'
-    assert_includes root_gemfile, 'gem "puma", "8.1.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.32.0"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.32.0"'
+    assert_includes gemfile, 'gem "puma", "8.1.1"'
+    assert_includes root_gemfile, 'gem "puma", "8.1.1"'
     assert_includes gemfile, 'gem "msgpack", ">= 1.8.7"'
     refute_includes gemfile, "0b1d229693041093200420b318154ff07acca33e"
     refute_includes root_gemfile, "0b1d229693041093200420b318154ff07acca33e"
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.16.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.6.3"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.6.3"'
-    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.376"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.376"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.7.0"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.7.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.377"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.377"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_Internationalization", tag: "v0.3.0"'
     refute_includes gemspec, "recording_studio_internationalization"
     refute_includes gemfile, "recording_studio/v3.0.0"
     refute_includes gemfile, 'tag: "v0.1.133"'
     refute_includes gemfile, 'tag: "v0.5.3"'
     refute_includes gemfile, 'tag: "0.3.1"'
+    notifications_line = gemfile.lines.find { |line| line.include?('gem "recording_studio_notifications"') }
+    assert_includes notifications_line, 'tag: "v0.19.1"'
+    refute_includes notifications_line, "require: false"
+  end
+
+  def test_dummy_users_confirmable_schema_skips_confirmation_for_seeded_users
+    schema = File.read(File.expand_path("dummy/db/schema.rb", __dir__))
+    initializer = File.read(File.expand_path("dummy/config/initializers/recording_studio_user.rb", __dir__))
+    seeds = File.read(File.expand_path("dummy/db/seeds.rb", __dir__))
+    helper = File.read(File.expand_path("dummy/test/test_helper.rb", __dir__))
+
+    refute_includes initializer, "password_registration_confirmation"
+    %w[confirmation_token confirmed_at confirmation_sent_at unconfirmed_email registered_with].each do |column|
+      assert_includes schema, column
+    end
+    assert_includes schema, "create_table \"recording_studio_user_otp_challenges\""
+    assert_includes seeds, "skip_confirmation!"
+    assert_includes helper, "skip_confirmation!"
   end
 
   def test_dummy_schema_includes_accessible_depends_on_recording_id
@@ -692,12 +710,12 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes readme, "v0.3.1"
     assert_includes readme, "v0.18.1"
     assert_includes readme, "v0.11.5"
-    assert_includes readme, "v0.28.0"
+    assert_includes readme, "v0.31.0"
     assert_includes readme, "v0.24.2"
     assert_includes readme, "v0.24.1"
     assert_includes readme, "v0.27.1"
     assert_includes readme, "v0.27.0"
-    assert_includes readme, "v0.6.3"
+    assert_includes readme, "v0.7.0"
     assert_includes readme, "recording_studio_metrics"
     assert_includes readme, "v0.2.0"
     assert_includes readme, "/recording_studio_api/apis/operations/v1/metrics/terms_acceptances/total"
