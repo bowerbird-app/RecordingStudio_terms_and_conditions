@@ -166,8 +166,16 @@ module TermsDemoTestHelper
     ).find_each do |recording|
       next unless recording.respond_to?(:currently_published?) && recording.currently_published?
 
-      publish_terms!(recording, slug: "draft-#{recording.id.to_s.first(8)}", status: "draft")
+      draft_published_recording!(recording)
     end
+  end
+
+  def draft_published_recording!(recording)
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: recording,
+      attributes: { slug: "draft-#{recording.id.to_s.first(8)}", status: "draft" },
+      actor: library_writer
+    ).value!
   end
 
   def publish_terms!(recording, slug:, status: "published", actor: nil)
@@ -290,4 +298,13 @@ end
 
 class ActiveSupport::TestCase
   include TermsDemoTestHelper
+
+  # db:prepare loads seeds. Those live documents sit on the shared library, so
+  # they would gate every actor. Draft them for the example, then restore the actor.
+  setup do
+    previous_actor = defined?(Current) ? Current.actor : nil
+    unpublish_live_terms!
+  ensure
+    Current.actor = previous_actor if defined?(Current) && Current.respond_to?(:actor=)
+  end
 end

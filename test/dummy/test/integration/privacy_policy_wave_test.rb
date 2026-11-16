@@ -74,13 +74,15 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
   end
 
   test "trashed recordings do not block a new document of that kind" do
-    privacy = record_terms(
+    record_terms(
       @root,
       title: "Old Privacy",
       body: "Gone.",
       kind: RecordingStudioTermsAndConditions::Terms::KIND_PRIVACY
     )
-    privacy.update_columns(trashed_at: Time.current)
+    RecordingStudioTermsAndConditions::KindPresence.recordings_for(kind: "privacy_policy").each do |recording|
+      recording.update_columns(trashed_at: Time.current)
+    end
 
     refute RecordingStudioTermsAndConditions::KindPresence.exists?(kind: "privacy_policy")
     assert_includes RecordingStudioTermsAndConditions::KindPresence.available_kinds, "privacy_policy"
