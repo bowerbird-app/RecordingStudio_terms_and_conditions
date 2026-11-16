@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.21.0", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.22.0", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -16,12 +16,12 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
 
     assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 7.0", "< 8.0"'
     assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.196"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", ">= 0.44.0", "< 1.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", ">= 0.44.0", "< 2.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_admin", ">= 2.16.0", "< 3.0"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_metrics", ">= 0.9.0", "< 1.0"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_moveable", ">= 5.0", "< 6.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_metrics", ">= 0.9.0", "< 2.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_moveable", ">= 5.0", "< 7.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_publishable", ">= 1.0.0", "< 2.0"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_user", ">= 0.30.0", "< 1.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_user", ">= 0.30.0", "< 2.0"'
   end
 
   def test_gemspec_excludes_cursor_config
@@ -959,9 +959,14 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.22.0]"
+    assert_includes changelog, "Upgrade notes (0.21.0 → 0.22.0)"
+    assert_includes changelog, "compare/v0.22.0...HEAD"
+    assert_includes changelog, "compare/v0.21.0...v0.22.0"
+    assert_includes changelog, "< 2.0"
+    assert_includes changelog, "Moveable moves from `< 6.0` to `< 7.0`"
     assert_includes changelog, "## [0.21.0]"
     assert_includes changelog, "Upgrade notes (0.20.0 → 0.21.0)"
-    assert_includes changelog, "compare/v0.21.0...HEAD"
     assert_includes changelog, "compare/v0.20.0...v0.21.0"
     assert_includes changelog, "## [0.20.0]"
     assert_includes changelog, "Upgrade notes (0.19.1 → 0.20.0)"
@@ -974,6 +979,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "## [0.18.0]"
     assert_includes changelog, "Upgrade notes (0.17.0 → 0.18.0)"
     assert_includes changelog, "compare/v0.18.0...v0.19.0"
+    assert_includes notes, "Upgrade from 0.21.0 to 0.22.0"
+    assert_includes notes, "Moveable is capped at `< 7.0`"
+    assert_includes readme, "Upgrading from 0.21.0"
     assert_includes notes, "Upgrade from 0.20.0 to 0.21.0"
     assert_includes notes, "Upgrade from 0.19.1 to 0.20.0"
     assert_includes notes, "create_root_recording!"
