@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_15_010001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_16_110061) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -96,7 +96,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_010001) do
     t.check_constraint "action IS NULL OR char_length(action::text) <= 120", name: "recording_studio_access_requests_action_length"
     t.check_constraint "message IS NULL OR char_length(message) <= 2000", name: "recording_studio_access_requests_message_length"
     t.check_constraint "review_note IS NULL OR char_length(review_note) <= 2000", name: "recording_studio_access_requests_note_length"
-    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'approved'::character varying, 'denied'::character varying]::text[])", name: "recording_studio_access_requests_status"
+    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying::text, 'approved'::character varying::text, 'denied'::character varying::text])", name: "recording_studio_access_requests_status"
   end
 
   create_table "recording_studio_access_rules", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -444,6 +444,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_010001) do
     t.index ["user_id"], name: "index_recording_studio_user_identities_on_user_id"
   end
 
+  create_table "recording_studio_user_otp_challenges", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.string "purpose", null: false
+    t.string "code_digest", null: false
+    t.text "delivery_code_ciphertext"
+    t.datetime "expires_at", null: false
+    t.integer "attempts_count", default: 0, null: false
+    t.datetime "verified_at"
+    t.datetime "consumed_at"
+    t.datetime "revoked_at"
+    t.datetime "delivery_requested_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["expires_at"], name: "index_recording_studio_user_otp_challenges_on_expires_at"
+    t.index ["user_id", "purpose"], name: "idx_on_user_id_purpose_2b7c2a59c4"
+    t.index ["user_id", "purpose"], name: "index_rs_user_otp_challenges_open_purpose", unique: true, where: "((consumed_at IS NULL) AND (revoked_at IS NULL))"
+    t.index ["user_id"], name: "index_recording_studio_user_otp_challenges_on_user_id"
+  end
+
   create_table "recording_studio_user_people", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
   end
@@ -466,8 +485,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_010001) do
     t.datetime "reset_password_sent_at"
     t.string "reset_password_token"
     t.datetime "updated_at", null: false
+    t.string "registered_with", default: "password", null: false
+    t.string "confirmation_token"
+    t.datetime "confirmed_at"
+    t.datetime "confirmation_sent_at"
+    t.string "unconfirmed_email"
+    t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.check_constraint "registered_with::text = ANY (ARRAY['password'::character varying, 'otp'::character varying]::text[])", name: "users_registered_with_check"
   end
 
   create_table "workspaces", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -486,5 +512,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_010001) do
   add_foreign_key "recording_studio_recordings", "recording_studio_recordings", column: "root_recording_id"
   add_foreign_key "recording_studio_trashable_retention_settings", "recording_studio_recordings", column: "recording_id"
   add_foreign_key "recording_studio_user_identities", "users"
+  add_foreign_key "recording_studio_user_otp_challenges", "users"
   add_foreign_key "recording_studio_user_profiles", "users"
 end
