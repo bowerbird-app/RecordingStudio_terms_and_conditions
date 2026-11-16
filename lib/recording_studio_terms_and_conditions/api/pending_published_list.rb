@@ -5,10 +5,7 @@ module RecordingStudioTermsAndConditions
     class PendingPublishedList
       def self.call(context)
         ActorRoot.authorize!(context)
-        list = RecordingStudioTermsAndConditions.pending_published_list(
-          Access.actor_for(context),
-          ActorRoot.root(context)
-        )
+        list = RecordingStudioTermsAndConditions.pending_published_list(Access.actor_for(context))
 
         { terms: list.map { |terms| TermsPayload.terms_hash(terms) } }
       end

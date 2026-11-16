@@ -19,7 +19,8 @@ module RecordingStudioTermsAndConditions
 
     recording_studio_recordable label: "Terms",
                                 root: false,
-                                allowed_parent_types: ["Workspace"]
+                                allowed_parent_types: ["RecordingStudioTermsAndConditions::Library"]
+    RecordingStudio.enable_capability(:accessible, on: self) if defined?(RecordingStudioAccessible)
 
     if defined?(RecordingStudio::Capabilities::TermsAndConditions)
       include RecordingStudio::Capabilities::TermsAndConditions.to

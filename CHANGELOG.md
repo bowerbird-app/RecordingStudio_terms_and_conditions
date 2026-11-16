@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-11-15
+
+A person accepts Terms once. The live document for each kind sits on one shared library root, the same shape as People. Switching workspace does not ask again. Publishing a new version still asks everyone once.
+
+### Added
+- `RecordingStudioTermsAndConditions::Library`, a shared root (`root: true, shared: true`). `library_root(actor:)` finds or creates that one recording.
+- Migration `create_recording_studio_terms_and_conditions_libraries`.
+
+### Changed
+- Terms `allowed_parent_types` is `RecordingStudioTermsAndConditions::Library`. Terms is an accessible child of that root, the same shape as Profile under People. The first writer is the access owner. Other people who can edit the admin root get edit on that document.
+- Moveable allows an admin-root editor to move recordings in the library. The library itself still cannot hold a grant.
+- Authoring API actions take `terms_id` and are registered on the workspace. The workspace grant is the access check. The document is not in that tree.
+- Acceptance helpers no longer take a workspace. `current_published_for`, `current_published_by_kind`, `pending_published_list`, `pending_published_for`, `accepted?`, `requires_acceptance?`, and `reaccepting?` read the library.
+- The gate ignores the current root and the first-accessible-root fallback.
+- Admin creates under the library. The index lists every untrashed Terms recording.
+- Workspace member API paths still authorize on that workspace. The payload is the library document.
+- The dummy `authorize_write` allows a library write when the actor has Accessible `:edit` on the admin root. Accessible will not grant on the library itself.
+- Gemspec requires `recording_studio_publishable` `>= 1.0.0`, `< 2.0`. Development and the dummy pin tag `v1.0.0`.
+- SoleLive's `after_service`, OutlinePublish's `around_service`, and the Published install latch register on `RecordingStudio.configuration.hooks`. `subscribe(:published)` is unchanged. OutlinePublish runs inside the Broadcasts 0.6.0 sent-publishable lock (`SentPublishableLock::PRIORITY`, which is 0).
+
+### Upgrade notes (0.20.0 → 0.21.0)
+- Breaking. Not a data migration. Do not backfill workspace Terms or old receipts.
+- Pin `0.21.0` and Publishable `1.0.0` together. Featured In bumps Terms and Publishable in the same release. Copy the libraries migration and run `bin/rails db:migrate`.
+- Register `RecordingStudioTermsAndConditions::Library` in `recordable_types`.
+- Record Terms on `RecordingStudioTermsAndConditions.library_root(actor:)`.
+- Drop the root argument from the helpers above, and drop `root:` from `recording_studio_terms_agree` and `recording_studio_terms_continue_notice`.
+- `authorize_write` must allow staff writes on the library. A grant on that root is rejected. Enable Accessible on Terms. The gem bootstraps the writer.
+- Move the outline, clause, and release API actions onto the workspace registration and pass `terms_id`. A workspace token cannot see a recording under the library.
+- Require `recording_studio_publishable` `>= 1.0.0`, `< 2.0`. Publishable `1.0.0` removed `RecordingStudioPublishable.configuration.hooks`. SoleLive, OutlinePublish, and the Published latch register on `RecordingStudio.configuration.hooks`. `RecordingStudioPublishable.subscribe(:published)` is unchanged. There is no shim back to the old registry.
+- OutlinePublish's `around_service` uses priority 200. Broadcasts 0.6.0 registers its sent-publishable lock at priority 0, so the release runs inside that lock even when it returns without calling the block.
+- A `~> 0.20` constraint will not take `0.21.0`. A Publishable `< 1.0` constraint will not take `1.0.0`.
+
 ## [0.20.0] - 2026-11-15
 
 Requires Recording Studio 7. Roots are created with `create_root_recording!`. `root_recording_for` only finds an existing root.
@@ -694,7 +726,8 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.20.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.21.0...HEAD
+[0.21.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.19.1...v0.20.0
 [0.19.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.19.0...v0.19.1
 [0.19.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.18.0...v0.19.0

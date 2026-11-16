@@ -111,7 +111,7 @@ The actor is the access grant's actor (`access_grant.actor`). Do not send one in
 
 ## Authoring
 
-A Terms document is a tree. Sections belong to one Terms recording. Clauses belong to one section. Sections are not shared between documents. One lineage per kind per workspace still applies.
+A Terms document is a tree. Sections belong to one Terms recording. Clauses belong to one section. Sections are not shared between documents. One lineage per kind lives on the shared library.
 
 People edit a section or a clause. That writes a new snapshot of that child only. It does not publish, and it does not fire `published.recording_studio_terms_and_conditions`.
 
@@ -134,14 +134,6 @@ RecordingStudioApi.register_recordable_type_api(
     terms_current_published_for
     terms_accepted
     terms_documents
-  ],
-  auto_capability_actions: false
-)
-
-RecordingStudioApi.register_recordable_type_api(
-  "RecordingStudioTermsAndConditions::Terms",
-  operations: %i[show],
-  capability_actions: %i[
     terms_outline terms_section terms_clause terms_changes terms_preview
     terms_add_section terms_edit_section terms_move_section terms_remove_section
     terms_add_clause terms_edit_clause terms_move_clause terms_remove_clause
@@ -151,7 +143,7 @@ RecordingStudioApi.register_recordable_type_api(
 )
 ```
 
-`terms_documents` is a workspace action. The rest run on the Terms recording, including `terms_release`. Reads need Accessible `:view` on the admin root. Writes and release need `:edit` there, using the same admin access recording as the Admin screens. The workspace grant still has to be able to see that recording. MCP calls these through `capability_action`. There is no accept action. A draft that already has an outline is released from the show page. Publishable's publish path for that document also releases, so the stored parent text is rebuilt and the hook fires once. `TermsWrite` still saves a document with no outline, and raises when an outline is already there.
+Register these on the workspace. The workspace grant is the access check. Pass `terms_id` for every authoring action. That id is the document on the shared library, which is not inside the workspace tree. Reads need Accessible `:view` on the admin root. Writes and release need `:edit` there. MCP calls these through `capability_action`. There is no accept action. A draft that already has an outline is released from the show page. Publishable's publish path for that document also releases, so the stored parent text is rebuilt and the hook fires once. `TermsWrite` still saves a document with no outline, and raises when an outline is already there.
 
 The home page in `test/dummy/app/views/home/index.html.erb` is a starting point for a minimal demo of the gem's primary behavior. Keep deeper explanations on the dummy docs pages, not in this README.
 
@@ -196,6 +188,20 @@ Do not translate stored Terms bodies or version titles. Those are data. Buttons,
 Add [Recording Studio Internationalization](https://github.com/bowerbird-app/RecordingStudio_Internationalization) on the host when you want a language selector. This gem does not declare the host's languages.
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
+
+## Upgrading from 0.20.0
+
+Bump to **0.21.0**. This is a breaking change. Acceptance is once per person, not once per workspace.
+
+Register `RecordingStudioTermsAndConditions::Library` in `recordable_types`. Copy the libraries migration and run `bin/rails db:migrate`. There is no backfill. Old Terms rows parented on a workspace are not moved. Record new Terms under `RecordingStudioTermsAndConditions.library_root(actor:)`.
+
+Drop the root argument from `current_published_for`, `current_published_by_kind`, `pending_published_list`, `pending_published_for`, `accepted?`, `requires_acceptance?`, and `reaccepting?`. Drop `root:` from `recording_studio_terms_agree` and `recording_studio_terms_continue_notice`.
+
+The library is a shared root, the same shape as People. Accessible will not grant on that root. `authorize_write` has to allow staff writes there by some other check. The dummy allows a write on the library when the actor has Accessible `:edit` on `RecordingStudioAccessible.admin_root`.
+
+Member API paths stay on the workspace. The workspace id is only the access check. The document is the library. A new published version still asks everyone once. Switching workspace does not.
+
+Require Publishable `>= 1.0.0`, `< 2.0` (tag `v1.0.0`, up from `v0.18.1`). Publishable 1.0.0 removed its hook registry. This gem registers SoleLive, OutlinePublish, and the Published latch on `RecordingStudio.configuration.hooks`. Leave `RecordingStudioPublishable.subscribe(:published)` as it is. Featured In bumps Terms and Publishable together.
 
 ## Upgrading from 0.19.1
 
@@ -346,16 +352,17 @@ Bump to **0.6.0**. Set `config.app_name` if you want a fixed product name. When 
 The dummy host follows Recording Studio's root recording pattern:
 
 - **Workspace** is the dummy content root. Users also registers shared **People**.
+- **Library** is this gem's shared root. It holds the one live Terms document per kind. Nobody owns it. Do not grant Accessible on it.
 - **Folder** and **Page** demonstrate nested host recordables under the workspace root
-- **Terms** is this gem's nested recordable under Workspace. Enable Publishable on the class with `RecordingStudio::Capabilities::Publishable.to` — installing the gem does not publish anything by itself. Staff publish from term show with `QuickActions` (or the Publish settings hub)
+- **Terms** is nested under Library. Enable Publishable on the class with `RecordingStudio::Capabilities::Publishable.to`. Installing the gem does not publish anything by itself. Staff publish from term show with `QuickActions` (or the Publish settings hub)
 - **Acceptance** rows are receipts, not tree nodes: actor, terms recording id, terms snapshot id, timestamps, SHA-256 `body_digest`, provenance. Old receipts stay untouched. `Acceptance#receipt_contract` is the readable shape
 - Hosts ask the module for the live published version and whether an actor still needs to accept:
   ```ruby
-  terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
-  RecordingStudioTermsAndConditions.pending_published_list(user, workspace)
-  RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace)
+  terms = RecordingStudioTermsAndConditions.current_published_for
+  RecordingStudioTermsAndConditions.pending_published_list(user)
+  RecordingStudioTermsAndConditions.requires_acceptance?(user)
   RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap" })
-  RecordingStudioTermsAndConditions.accepted?(user, workspace)
+  RecordingStudioTermsAndConditions.accepted?(user)
   terms_recording = RecordingStudio::Recording.find_by(
     recordable_type: RecordingStudioTermsAndConditions::Terms.name,
     recordable_id: terms.id
@@ -433,7 +440,8 @@ Every configured ActiveRecord recordable type must declare its hierarchy rules. 
 
 - `Workspace` declares `root: true`
 - `Folder` and `Page` declare `root: false, allowed_parent_types: ["Workspace", "Folder"]`
-- `RecordingStudioTermsAndConditions::Terms` declares `label: "Terms"`, `root: false`, `allowed_parent_types: ["Workspace"]`
+- `RecordingStudioTermsAndConditions::Library` declares `label: "Terms library"`, `root: true`, `shared: true`
+- `RecordingStudioTermsAndConditions::Terms` declares `label: "Terms"`, `root: false`, `allowed_parent_types: ["RecordingStudioTermsAndConditions::Library"]`
 - Dummy also registers Users (`People`, `Profile`), Publishable, and Attachable types so those kit gems can boot
 - `config.require_recordable_declarations = true` remains enabled in the dummy app initializer
 
@@ -490,9 +498,9 @@ See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full do
 | Admin           | gemspec `>= 2.16.0`, `< 3.0`; dummy GitHub tag `v2.16.0` |
 | Trashable       | dummy GitHub tag `v0.17.0` (`require: false`; `Recording.kept`) |
 | Users           | gemspec `recording_studio_user >= 0.30.0`, `< 1.0`; dummy GitHub tag `v0.30.0` |
-| Publishable     | gemspec `>= 0.18.1`, `< 1.0`; dummy GitHub tag `v0.18.1` |
+| Publishable     | gemspec `>= 1.0.0`, `< 2.0`; dummy GitHub tag `v1.0.0` |
 | Attachable      | dummy GitHub tag `v0.28.0` (Users Profile needs it) |
-| API             | not a gemspec dependency; GitHub tag `v0.24.0` (Publishable 0.18 and Attachable 0.28 require it) |
+| API             | not a gemspec dependency; GitHub tag `v0.24.0` (Publishable 1.0 and Attachable 0.28 require it) |
 | Root Switchable | dummy GitHub tag `v0.16.0` |
 | Cache           | dummy GitHub tag `v0.6.3` (Users / Root Switchable rate limits) |
 | Logs            | dummy GitHub tag `v0.8.0` (API 0.24 requires it; not in this gemspec) |

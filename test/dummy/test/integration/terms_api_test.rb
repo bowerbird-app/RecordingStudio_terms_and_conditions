@@ -88,15 +88,16 @@ class TermsApiTest < ActionDispatch::IntegrationTest
     assert_equal "not_found", json.dig("error", "code")
   end
 
-  test "reads with no live terms return empty pending nil current and unaccepted" do
+  test "a workspace with no terms of its own still reads the shared library" do
     empty_workspace = Workspace.create!(name: "Empty #{SecureRandom.hex(4)}")
     empty_root = RecordingStudio.create_root_recording!(empty_workspace, actor: recording_write_actor)
     empty_access = bootstrap!(empty_root, @owner)
     token = token_for(empty_access)
 
-    assert_empty call(:get, "/workspaces/#{empty_root.id}/actions/terms_pending_published_list", token).fetch("terms")
+    pending = call(:get, "/workspaces/#{empty_root.id}/actions/terms_pending_published_list", token)
+    assert_equal "Studio Terms", pending.fetch("terms").fetch(0).fetch("title")
     current = call(:get, "/workspaces/#{empty_root.id}/actions/terms_current_published_for", token)
-    assert_nil current.fetch("terms")
+    assert_equal @recording.recordable.id.to_s, current.fetch("terms").fetch("id")
     assert_equal false, call(:get, "/workspaces/#{empty_root.id}/actions/terms_accepted", token).fetch("accepted")
   end
 

@@ -68,8 +68,12 @@ module RecordingStudioTermsAndConditions
           summary: summary,
           description: summary,
           required_role: role,
-          fields: fields
+          fields: with_terms_id(fields)
         }.freeze
+      end
+
+      def with_terms_id(fields)
+        fields.merge(terms_id: string_field("Terms document id on the shared library.", required: false))
       end
 
       def string_field(description, required: true, enum: nil)

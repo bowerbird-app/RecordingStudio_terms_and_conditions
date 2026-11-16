@@ -36,13 +36,10 @@ class GateTest < Minitest::Test
     refute RecordingStudioTermsAndConditions::Gate.exempt?(FakeController.new("docs", false))
   end
 
-  def test_after_auth_path_is_nil_without_a_root_or_actor
+  def test_after_auth_path_is_nil_when_nothing_is_pending
     controller = Object.new
-    def controller.current_root_recordable
-      nil
-    end
 
-    RecordingStudioTermsAndConditions::Gate.stub(:first_root_with_live_terms, nil) do
+    RecordingStudioTermsAndConditions.stub(:pending_published_list, ->(*) { [] }) do
       assert_nil RecordingStudioTermsAndConditions::Gate.after_auth_path(controller, :actor)
       assert_nil RecordingStudioTermsAndConditions::Gate.after_auth_path(controller, nil)
     end
@@ -68,65 +65,24 @@ class GateTest < Minitest::Test
     assert_equal "/local-agree", RecordingStudioTermsAndConditions::Gate.acceptance_path(controller)
   end
 
-  def test_root_for_prefers_the_recordable_then_the_recording
-    both = Object.new
-    def both.current_root_recordable
-      :workspace
-    end
-
-    def both.current_root_recording
-      :recording
-    end
-    recording_only = Object.new
-    def recording_only.current_root_recording
-      :recording
-    end
-
-    assert_equal :workspace, RecordingStudioTermsAndConditions::Gate.root_for(both)
-    assert_equal :recording, RecordingStudioTermsAndConditions::Gate.root_for(recording_only)
-  end
-
-  def test_root_for_signup_is_the_shared_acceptance_root
+  def test_pending_for_ignores_the_current_workspace
     controller = Object.new
-    def controller.current_root_recordable
-      :workspace
-    end
-
-    RecordingStudioTermsAndConditions.stub(:current_published_for, :terms) do
-      RecordingStudioTermsAndConditions.stub(:pending_published_list, ->(*) { [] }) do
-        assert_equal RecordingStudioTermsAndConditions::Gate.root_for_acceptance(controller),
-                     RecordingStudioTermsAndConditions::Gate.root_for_signup(controller)
-      end
-    end
-  end
-
-  def test_pending_for_falls_back_when_current_root_has_no_live_terms
-    controller = Object.new
-    def controller.current_root_recordable
-      :empty_workspace
-    end
-
     def controller.acceptance_path
       "/agree"
     end
 
-    RecordingStudioTermsAndConditions.stub(:current_published_for, ->(*) {}) do
-      RecordingStudioTermsAndConditions.stub(:pending_published_list, lambda { |_actor, root|
-        root == :live_workspace ? [:terms] : []
-      }) do
-        RecordingStudioTermsAndConditions::Gate.stub(:first_root_with_live_terms, :live_workspace) do
-          assert_equal [:terms],
-                       RecordingStudioTermsAndConditions::Gate.pending_for(:actor, controller: controller)
-          decision = RecordingStudio.check_gate(
-            RecordingStudioTermsAndConditions::Gate::GATE_NAME,
-            actor: :actor,
-            controller: controller
-          )
-          assert_predicate decision, :denied?
-          assert_equal "/agree", decision.redirect_to
-          assert_equal "pending", decision.reason
-        end
-      end
+    RecordingStudioTermsAndConditions.stub(:pending_published_list, ->(actor) { actor == :actor ? [:terms] : [] }) do
+      assert_equal [:terms],
+                   RecordingStudioTermsAndConditions::Gate.pending_for(:actor, root: :workspace, controller: controller)
+      decision = RecordingStudio.check_gate(
+        RecordingStudioTermsAndConditions::Gate::GATE_NAME,
+        actor: :actor,
+        root: :other_workspace,
+        controller: controller
+      )
+      assert_predicate decision, :denied?
+      assert_equal "/agree", decision.redirect_to
+      assert_equal "pending", decision.reason
     end
   end
 
@@ -153,10 +109,10 @@ class GateTest < Minitest::Test
     Rails.logger = previous
   end
 
-  def test_check_denies_when_an_explicit_root_still_has_pending_terms
+  def test_check_denies_when_the_shared_library_still_has_pending_terms
     seen = nil
-    RecordingStudioTermsAndConditions.stub(:pending_published_list, lambda { |actor, root|
-      seen = [actor, root]
+    RecordingStudioTermsAndConditions.stub(:pending_published_list, lambda { |actor|
+      seen = actor
       [:terms]
     }) do
       decision = RecordingStudio.check_gate(
@@ -166,7 +122,7 @@ class GateTest < Minitest::Test
         recording: :ignored
       )
 
-      assert_equal(%i[ada workspace], seen)
+      assert_equal :ada, seen
       assert_predicate decision, :denied?
       assert_nil decision.redirect_to
       assert_equal "pending", decision.reason
@@ -175,24 +131,19 @@ class GateTest < Minitest::Test
     end
   end
 
-  def test_explicit_root_skips_controller_lookup
+  def test_pending_for_does_not_read_the_passed_root
     controller = Object.new
-    pending = lambda { |_actor, root|
-      root == :explicit ? [] : [:terms]
-    }
-    RecordingStudioTermsAndConditions::Gate.stub(:root_for_acceptance, ->(*) { raise "controller lookup" }) do
-      RecordingStudioTermsAndConditions.stub(:pending_published_list, pending) do
-        assert_empty RecordingStudioTermsAndConditions::Gate.pending_for(
-          :actor, root: :explicit, controller: controller
-        )
-        decision = RecordingStudio.check_gate(
-          RecordingStudioTermsAndConditions::Gate::GATE_NAME,
-          actor: :actor,
-          root: :explicit,
-          controller: controller
-        )
-        assert_predicate decision, :allowed?
-      end
+    RecordingStudioTermsAndConditions.stub(:pending_published_list, ->(actor) { actor == :actor ? [] : [:terms] }) do
+      assert_empty RecordingStudioTermsAndConditions::Gate.pending_for(
+        :actor, root: :explicit, controller: controller
+      )
+      decision = RecordingStudio.check_gate(
+        RecordingStudioTermsAndConditions::Gate::GATE_NAME,
+        actor: :actor,
+        root: :explicit,
+        controller: controller
+      )
+      assert_predicate decision, :allowed?
     end
   end
 
@@ -266,101 +217,6 @@ class GateTest < Minitest::Test
     end
   end
 
-  def test_root_for_signup_stays_on_current_when_it_has_live_terms
-    both = Object.new
-    def both.current_root_recordable
-      :workspace
-    end
-
-    def both.current_root_recording
-      :recording
-    end
-
-    RecordingStudioTermsAndConditions.stub(:current_published_for, ->(root) { root == :workspace ? :terms : nil }) do
-      RecordingStudioTermsAndConditions.stub(:pending_published_list, ->(*) { [] }) do
-        RecordingStudioTermsAndConditions::Gate.stub(:first_root_with_live_terms, :other) do
-          assert_equal :workspace, RecordingStudioTermsAndConditions::Gate.root_for_signup(both)
-        end
-      end
-    end
-  end
-
-  def test_root_for_signup_falls_back_when_current_has_no_live_terms
-    both = Object.new
-    def both.current_root_recordable
-      :empty_workspace
-    end
-
-    def both.current_root_recording
-      :recording
-    end
-
-    RecordingStudioTermsAndConditions.stub(:current_published_for, ->(*) {}) do
-      RecordingStudioTermsAndConditions.stub(:pending_published_list, ->(*) { [] }) do
-        RecordingStudioTermsAndConditions::Gate.stub(:first_root_with_live_terms, :live_workspace) do
-          assert_equal :live_workspace, RecordingStudioTermsAndConditions::Gate.root_for_signup(both)
-        end
-      end
-    end
-  end
-
-  def test_root_for_signup_keeps_empty_current_when_no_root_has_live_terms
-    both = Object.new
-    def both.current_root_recordable
-      :empty_workspace
-    end
-
-    RecordingStudioTermsAndConditions.stub(:current_published_for, ->(*) {}) do
-      RecordingStudioTermsAndConditions.stub(:pending_published_list, ->(*) { [] }) do
-        RecordingStudioTermsAndConditions::Gate.stub(:first_root_with_live_terms, nil) do
-          assert_equal :empty_workspace, RecordingStudioTermsAndConditions::Gate.root_for_signup(both)
-        end
-      end
-    end
-  end
-
-  def test_root_for_signup_uses_first_live_root_when_current_is_blank
-    blank = Object.new
-    def blank.current_root_recordable
-      nil
-    end
-
-    RecordingStudioTermsAndConditions::Gate.stub(:switchable_current_root, nil) do
-      RecordingStudioTermsAndConditions::Gate.stub(:first_root_with_live_terms, :live_workspace) do
-        assert_equal :live_workspace, RecordingStudioTermsAndConditions::Gate.root_for_signup(blank)
-      end
-    end
-  end
-
-  def test_root_for_falls_back_to_switchable_current_root
-    blank = Object.new
-    def blank.current_root_recordable
-      nil
-    end
-
-    RecordingStudioTermsAndConditions::Gate.stub(:switchable_current_root, :studio) do
-      assert_equal :studio, RecordingStudioTermsAndConditions::Gate.root_for(blank)
-    end
-  end
-
-  def test_first_root_with_live_terms_uses_accessible_roots
-    actor = Object.new
-    allowed = Struct.new(:recordable).new(:live_workspace)
-    other = Struct.new(:recordable).new(:other_workspace)
-
-    RecordingStudioTermsAndConditions::Gate.stub(:accessible_root_recordings_for, [other, allowed]) do
-      RecordingStudioTermsAndConditions::Gate.stub(:live_terms_on?, ->(root) { root.equal?(allowed) }) do
-        assert_equal :live_workspace,
-                     RecordingStudioTermsAndConditions::Gate.first_root_with_live_terms(actor)
-      end
-    end
-  end
-
-  def test_first_root_with_live_terms_is_blank_without_an_actor
-    assert_equal [], RecordingStudioTermsAndConditions::Gate.accessible_root_recordings_for(nil)
-    assert_nil RecordingStudioTermsAndConditions::Gate.first_root_with_live_terms(nil)
-  end
-
   def test_users_auth_redirect_falls_through_when_acceptance_is_not_required
     controller = Class.new do
       prepend RecordingStudioTermsAndConditions::UsersAuthRedirect
@@ -378,7 +234,7 @@ class GateTest < Minitest::Test
       end
     end.new
 
-    RecordingStudioTermsAndConditions::Gate.stub(:first_root_with_live_terms, nil) do
+    RecordingStudioTermsAndConditions.stub(:pending_published_list, ->(*) { [] }) do
       assert_equal "/after-in", controller.after_sign_in_path_for(:user)
       assert_equal "/after-up", controller.after_sign_up_path_for(:user)
     end
@@ -391,11 +247,9 @@ class GateTest < Minitest::Test
 
     assert_includes gate, "pending_published_list"
     assert_includes gate, "def pending_for"
-    assert_includes gate, "root_for_acceptance"
-    assert_includes gate, "accessible_root_recordings_for"
-    assert_includes gate, "root_recordings_for"
-    assert_includes gate, "switchable_current_root"
-    assert_includes gate, "resolve_current_root"
+    refute_includes gate, "root_for_acceptance"
+    refute_includes gate, "first_root_with_live_terms"
+    refute_includes gate, "live_terms_on?"
     assert_includes gate, "recording_studio_terms_and_conditions.acceptance"
     assert_includes gate, "RecordingStudio.register_gate"
     assert_includes gate, "RecordingStudio.check_gate"
@@ -417,10 +271,11 @@ class GateTest < Minitest::Test
     acceptance = File.read(
       File.expand_path("../app/controllers/recording_studio_terms_and_conditions/acceptances_controller.rb", __dir__)
     )
-    assert_includes acceptance, "Gate.root_for_acceptance"
+    refute_includes acceptance, "Gate.root_for_acceptance"
     assert_includes acceptance, "accepted_any?"
     signup = File.read(File.expand_path("../lib/recording_studio_terms_and_conditions/signup_acceptance.rb", __dir__))
-    assert_includes signup, "Gate.root_for_acceptance"
+    refute_includes signup, "Gate.root_for_acceptance"
+    assert_includes signup, "pending_published_list"
   end
 
   private

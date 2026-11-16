@@ -18,7 +18,7 @@ en:
           both: "We have updated our terms and conditions and privacy policy."
         continue: "Continue"
         empty_title: "Nothing to agree to yet"
-        empty_description: "Someone still needs to publish terms for this workspace."
+        empty_description: "Someone still needs to publish terms."
         heading_fallback: "Terms and Conditions"
       continue_notice:
         with_app_html: "By continuing, you agree to %{app_name}'s %{documents}."

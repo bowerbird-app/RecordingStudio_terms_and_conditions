@@ -14,6 +14,7 @@ class PublishedClaimConcurrencyTest < ActiveSupport::TestCase
 
   teardown do
     cleanup_claim_workspace(@workspace)
+    cleanup_claim_documents
   end
 
   test "two concurrent claimants yield one win and one notification" do
@@ -67,9 +68,25 @@ class PublishedClaimConcurrencyTest < ActiveSupport::TestCase
     Workspace.unscoped.where(id: workspace.id).delete_all
   end
 
+  def cleanup_claim_documents
+    ids = Array(@claim_document_ids)
+    return if ids.empty?
+
+    all = ids.dup
+    loop do
+      more = RecordingStudio::Recording.where(parent_recording_id: all).pluck(:id) - all
+      break if more.empty?
+
+      all.concat(more)
+    end
+    RecordingStudio::Event.where(recording_id: all).delete_all
+    RecordingStudioTermsAndConditions::Acceptance.where(terms_recording_id: all).delete_all
+    RecordingStudio::Recording.where(id: all).delete_all
+  end
+
   def publish_without_terms_event(body)
-    hooks = RecordingStudioPublishable.configuration.hooks
-    recording = @root.record(RecordingStudioTermsAndConditions::Terms, actor: @writer) do |terms|
+    hooks = RecordingStudio.configuration.hooks
+    recording = terms_library.record(RecordingStudioTermsAndConditions::Terms, actor: library_writer(@writer)) do |terms|
       terms.title = "Live"
       terms.body = body
     end
@@ -77,8 +94,9 @@ class PublishedClaimConcurrencyTest < ActiveSupport::TestCase
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: recording,
       attributes: { slug: "claim-#{SecureRandom.hex(4)}", status: "published" },
-      actor: @writer
+      actor: library_writer(@writer)
     ).value!
+    (@claim_document_ids ||= []) << recording.id
     recording.reload
   ensure
     hooks.on(RecordingStudioTermsAndConditions::Published::LATCH) { true }

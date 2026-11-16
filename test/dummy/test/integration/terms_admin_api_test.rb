@@ -37,36 +37,36 @@ class TermsAdminApiTest < ActionDispatch::IntegrationTest
     assert_equal false, document.fetch("unreleased_changes")
     assert_equal true, document.fetch("live")
 
-    outline = call(:get, "/terms/#{@recording.id}/actions/terms_outline", @token)
+    outline = call(:get, "/workspaces/#{@root.id}/actions/terms_outline", @token, { terms_id: @recording.id })
     clause_id = outline.dig("outline", "sections", 0, "clauses", 0, "id")
     section_id = outline.dig("outline", "sections", 0, "id")
     parent_snapshot = @recording.recordable_id
     events = []
     subscription = RecordingStudioTermsAndConditions::Published.subscribe { |event| events << event }
 
-    call(:post, "/terms/#{@recording.id}/actions/terms_edit_clause", @token, { clause_id: clause_id, body: "Whisper." })
+    call(:post, "/workspaces/#{@root.id}/actions/terms_edit_clause", @token, { terms_id: @recording.id, clause_id: clause_id, body: "Whisper." })
     assert_response :success, response.body
     assert_empty events
     assert_equal parent_snapshot, @recording.reload.recordable_id
 
-    call(:post, "/terms/#{@recording.id}/actions/terms_add_section", @token, { heading: "Gear" })
+    call(:post, "/workspaces/#{@root.id}/actions/terms_add_section", @token, { terms_id: @recording.id, heading: "Gear" })
     assert_response :success, response.body
-    changes = call(:get, "/terms/#{@recording.id}/actions/terms_changes", @token)
+    changes = call(:get, "/workspaces/#{@root.id}/actions/terms_changes", @token, { terms_id: @recording.id })
     statuses = changes.fetch("changes").map { |change| [change["kind"], change["status"]] }
     assert_includes statuses, [ "clause", "changed" ]
     assert_includes statuses, [ "section", "added" ]
 
-    preview = call(:get, "/terms/#{@recording.id}/actions/terms_preview", @token)
+    preview = call(:get, "/workspaces/#{@root.id}/actions/terms_preview", @token, { terms_id: @recording.id })
     assert_includes preview.dig("preview", "body"), "Whisper."
     assert_includes preview.dig("preview", "body"), "1.1"
 
-    call(:post, "/terms/#{@recording.id}/actions/terms_release", @token, { title: "Studio Terms" })
+    call(:post, "/workspaces/#{@root.id}/actions/terms_release", @token, { terms_id: @recording.id, title: "Studio Terms" })
     assert_response :success, response.body
     assert_equal true, json.dig("release", "released")
     assert_equal 1, events.size
     assert_includes json.dig("release", "body"), "Whisper."
 
-    call(:post, "/terms/#{json.dig("release", "id")}/actions/terms_release", @token, { title: "Studio Terms" })
+    call(:post, "/workspaces/#{@root.id}/actions/terms_release", @token, { terms_id: json.dig("release", "id"), title: "Studio Terms" })
     assert_response :success, response.body
     assert_equal false, json.dig("release", "released")
     assert_equal 1, events.size

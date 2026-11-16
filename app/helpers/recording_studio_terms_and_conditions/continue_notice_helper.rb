@@ -7,8 +7,8 @@ module RecordingStudioTermsAndConditions
 
     CONTINUE_NOTICE_SIZES = { xs: "text-xs", sm: "text-sm" }.freeze
 
-    def recording_studio_terms_continue_notice(actor: nil, root: nil, pending: nil, size: :xs, link: true)
-      documents = continue_notice_documents(actor, root, pending)
+    def recording_studio_terms_continue_notice(actor: nil, pending: nil, size: :xs, link: true, **)
+      documents = continue_notice_documents(actor, pending)
       return if documents.blank?
 
       content_tag(:div, class: "mt-3 mb-3") do
@@ -31,13 +31,12 @@ module RecordingStudioTermsAndConditions
       safe_join(parts)
     end
 
-    def continue_notice_documents(actor, root, pending)
-      root ||= recording_studio_terms_agree_root
+    def continue_notice_documents(actor, pending)
       actor ||= recording_studio_terms_agree_actor
       return if pending.nil? && actor.present? &&
-                !RecordingStudioTermsAndConditions.requires_acceptance?(actor, root)
+                !RecordingStudioTermsAndConditions.requires_acceptance?(actor)
 
-      recording_studio_terms_pending_list(actor, root, pending)
+      recording_studio_terms_pending_list(actor, pending)
     end
 
     def continue_notice_copy(documents, terms_modal_id, privacy_modal_id, size = :xs, link: true)

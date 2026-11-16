@@ -39,7 +39,7 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "page-title"
     assert_includes response.body, "fp-content"
     refute_includes response.body, "--modal-title-color"
-    live = RecordingStudioTermsAndConditions.current_published_for(@workspace)
+    live = RecordingStudioTermsAndConditions.current_published_for
     assert_includes response.body, live.title
     assert_includes CGI.unescapeHTML(response.body), live.body.to_s
   end
@@ -48,7 +48,7 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
     skip "Users first-Profile on the shared People root needs Accessible :edit (Users bootstrap gap, not a host exception)"
     email = "signup-accept-#{SecureRandom.hex(4)}@example.com"
     open_create_password(email)
-    pending_count = RecordingStudioTermsAndConditions.pending_published_list(nil, @workspace).size
+    pending_count = RecordingStudioTermsAndConditions.pending_published_list(nil).size
 
     assert_difference -> { RecordingStudioTermsAndConditions::Acceptance.count }, pending_count do
       post "/users/sign_up/password", params: {
@@ -57,8 +57,8 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
     end
 
     user = User.find_by!(email: email)
-    assert RecordingStudioTermsAndConditions.accepted?(user, @workspace, kind: "terms_and_condition")
-    assert RecordingStudioTermsAndConditions.accepted?(user, @workspace, kind: "privacy_policy") if pending_count > 1
+    assert RecordingStudioTermsAndConditions.accepted?(user, kind: "terms_and_condition")
+    assert RecordingStudioTermsAndConditions.accepted?(user, kind: "privacy_policy") if pending_count > 1
     receipt = RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last
     assert_equal({ "source" => "continue_notice" }, receipt.provenance)
     assert_equal user.id, receipt.actor_id
@@ -88,7 +88,7 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
     empty = Workspace.create!(name: "Empty signup #{SecureRandom.hex(4)}")
     RecordingStudio.create_root_recording!(empty, actor: recording_write_actor)
     ensure_live_terms!
-    live = RecordingStudioTermsAndConditions.current_published_for(@workspace)
+    live = RecordingStudioTermsAndConditions.current_published_for
     assert live
 
     email = "signup-fallback-#{SecureRandom.hex(4)}@example.com"
@@ -102,7 +102,7 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
       assert_select "input#user_password[type=password]"
       assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
       assert_includes response.body, live.title
-      pending_count = RecordingStudioTermsAndConditions.pending_published_list(nil, @workspace).size
+      pending_count = RecordingStudioTermsAndConditions.pending_published_list(nil).size
 
       assert_difference -> { RecordingStudioTermsAndConditions::Acceptance.count }, pending_count do
         post "/users/sign_up/password", params: {
@@ -112,8 +112,8 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
     end
 
     user = User.find_by!(email: email)
-    assert RecordingStudioTermsAndConditions.accepted?(user, @workspace, kind: "terms_and_condition")
-    refute RecordingStudioTermsAndConditions.current_published_for(empty)
+    assert RecordingStudioTermsAndConditions.accepted?(user, kind: "terms_and_condition")
+    refute RecordingStudioTermsAndConditions.current_published_for
     receipt = RecordingStudioTermsAndConditions::Acceptance.where(actor: user, terms_id: live.id).first
     assert receipt
     assert_equal({ "source" => "continue_notice" }, receipt.provenance)
@@ -139,7 +139,7 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
   end
 
   def ensure_live_document!(kind:, title:, body:, slug_prefix:)
-    live = RecordingStudioTermsAndConditions.current_published_for(@workspace, kind: kind)
+    live = RecordingStudioTermsAndConditions.current_published_for(kind: kind)
     return if live
 
     recording = record_terms(@root, title: title, body: body, kind: kind)

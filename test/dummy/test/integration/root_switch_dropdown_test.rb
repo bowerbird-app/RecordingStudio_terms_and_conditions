@@ -123,10 +123,7 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
   private
 
   def accept_pending_live_terms!(user)
-    studio = Workspace.find_by(name: "Studio Workspace")
-    return unless studio
-
-    RecordingStudioTermsAndConditions.pending_published_list(user, studio).each do |terms|
+    RecordingStudioTermsAndConditions.pending_published_list(user).each do |terms|
       RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "continue_notice" })
     end
   end

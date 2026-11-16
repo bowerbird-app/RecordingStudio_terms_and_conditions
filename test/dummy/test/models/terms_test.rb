@@ -8,7 +8,8 @@ class TermsTest < ActiveSupport::TestCase
 
     assert_equal "Terms", declaration.label
     refute declaration.root?
-    assert_equal ["Workspace"], RecordingStudio.allowed_parent_types_for(RecordingStudioTermsAndConditions::Terms)
+    assert_equal ["RecordingStudioTermsAndConditions::Library"],
+                 RecordingStudio.allowed_parent_types_for(RecordingStudioTermsAndConditions::Terms)
     assert RecordingStudio.capability_enabled?(:publishable, for: RecordingStudioTermsAndConditions::Terms)
   end
 
@@ -36,10 +37,9 @@ class TermsTest < ActiveSupport::TestCase
     assert_includes terms.errors[:kind], "is not included in the list"
   end
 
-  test "terms can be recorded under a workspace and revised to a new snapshot" do
-    root_recording = RecordingStudio.create_root_recording!(Workspace.create!(name: unique_name("Terms Workspace")), actor: recording_write_actor)
-    writer = recording_write_actor
-    grant_write_access!(root_recording, writer)
+  test "terms can be recorded under the shared library and revised to a new snapshot" do
+    writer = library_writer
+    root_recording = terms_library(writer)
 
     event = RecordingStudio.record!(
       action: "created",

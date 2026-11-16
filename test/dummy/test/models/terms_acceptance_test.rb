@@ -29,34 +29,34 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     recording = record_terms("Live terms", "Be kind.")
     publish_terms!(recording, slug: "live-terms")
 
-    published = RecordingStudioTermsAndConditions.current_published_for(@workspace)
+    published = RecordingStudioTermsAndConditions.current_published_for
 
     assert_equal recording.recordable, published
     assert_equal "Live terms", published.title
-    assert_nil RecordingStudioTermsAndConditions.current_published_for(@other_workspace)
-    assert_equal published, RecordingStudioTermsAndConditions.current_published_for(@root)
+    assert_nil RecordingStudioTermsAndConditions.current_published_for(kind: "privacy_policy")
   end
 
   test "current_published_for ignores a draft terms recording" do
+    unpublish_live_terms!
     record_terms("Draft", "Not live.")
 
-    assert_nil RecordingStudioTermsAndConditions.current_published_for(@workspace)
+    assert_nil RecordingStudioTermsAndConditions.current_published_for
   end
 
   test "current_published_for ignores scheduled Terms that are not live yet" do
+    unpublish_live_terms!
     recording = record_terms("Soon", "Wait.")
     publish_terms!(recording, slug: "soon-terms", publish_at: 1.day.from_now)
 
-    assert_nil RecordingStudioTermsAndConditions.current_published_for(@workspace)
+    assert_nil RecordingStudioTermsAndConditions.current_published_for
   end
 
   test "accepted? and requires_acceptance? follow the current published version" do
     recording = record_terms("Clickwrap", "I agree.")
     publish_terms!(recording, slug: "clickwrap")
 
-    assert RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace)
-    refute RecordingStudioTermsAndConditions.accepted?(@actor, @workspace)
-    refute RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @other_workspace)
+    assert RecordingStudioTermsAndConditions.requires_acceptance?(@actor)
+    refute RecordingStudioTermsAndConditions.accepted?(@actor)
 
     live = recording.recordable
     expected_digest = RecordingStudioTermsAndConditions::BodyDigest.call(live.body)
@@ -73,10 +73,10 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     assert_equal "sha256", receipt.receipt_contract.fetch("body_digest_algorithm")
     assert_equal live.id.to_s, receipt.receipt_contract.fetch("terms_id")
     refute receipt.provenance.key?("body_digest")
-    assert RecordingStudioTermsAndConditions.accepted?(@actor, @workspace)
-    refute RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace)
-    refute RecordingStudioTermsAndConditions.accepted?(@other_actor, @workspace)
-    assert RecordingStudioTermsAndConditions.requires_acceptance?(@other_actor, @workspace)
+    assert RecordingStudioTermsAndConditions.accepted?(@actor)
+    refute RecordingStudioTermsAndConditions.requires_acceptance?(@actor)
+    refute RecordingStudioTermsAndConditions.accepted?(@other_actor)
+    assert RecordingStudioTermsAndConditions.requires_acceptance?(@other_actor)
   end
 
   test "accept! records the Terms snapshot so a later revision requires acceptance again" do
@@ -85,14 +85,14 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     first = recording.recordable
 
     RecordingStudioTermsAndConditions.accept!(@actor, first, source: "clickwrap")
-    assert RecordingStudioTermsAndConditions.accepted?(@actor, @workspace)
+    assert RecordingStudioTermsAndConditions.accepted?(@actor)
 
-    revised = @root.revise(recording, actor: @actor) { |terms| terms.body = "Second." }
+    revised = recording.root_recording.revise(recording, actor: library_writer(@actor)) { |terms| terms.body = "Second." }
     publish_terms!(revised, slug: "versioned-terms")
 
-    refute RecordingStudioTermsAndConditions.accepted?(@actor, @workspace)
-    assert RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace)
-    assert_equal "Second.", RecordingStudioTermsAndConditions.current_published_for(@workspace).body
+    refute RecordingStudioTermsAndConditions.accepted?(@actor)
+    assert RecordingStudioTermsAndConditions.requires_acceptance?(@actor)
+    assert_equal "Second.", RecordingStudioTermsAndConditions.current_published_for.body
   end
 
   test "accept! requires an actor and a Terms version" do
@@ -190,7 +190,7 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     publish_terms!(recording, slug: "retry-versioned")
     first = RecordingStudioTermsAndConditions.accept!(@actor, recording, source: "clickwrap")
 
-    revised = @root.revise(recording, actor: @actor) { |terms| terms.body = "Second." }
+    revised = recording.root_recording.revise(recording, actor: library_writer(@actor)) { |terms| terms.body = "Second." }
     publish_terms!(revised, slug: "retry-versioned")
     second = RecordingStudioTermsAndConditions.accept!(@actor, revised, source: "clickwrap")
 
@@ -214,7 +214,7 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
 
     draft = RecordingStudioTermsAndConditions::TermsWrite.call(
       recording: recording,
-      actor: @actor,
+      actor: library_writer(@actor),
       title: "v2",
       body: "Second."
     )
@@ -235,31 +235,18 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     )
   end
 
-  test "reaccepting_actors_for stays on one workspace root" do
+  test "reaccepting_actors_for follows the shared document" do
     home = record_terms("Home v1", "Home first.")
     publish_terms!(home, slug: "home-#{SecureRandom.hex(4)}")
     RecordingStudioTermsAndConditions.accept!(@actor, home, source: "clickwrap")
-    away = @other_root.record(RecordingStudioTermsAndConditions::Terms, actor: @other_actor) do |terms|
-      terms.title = "Away v1"
-      terms.body = "Away first."
-    end
-    publish_terms!(away, slug: "away-#{SecureRandom.hex(4)}")
-    RecordingStudioTermsAndConditions.accept!(@other_actor, away, source: "clickwrap")
 
     home_v2 = RecordingStudioTermsAndConditions::TermsWrite.call(
       recording: home,
-      actor: @actor,
+      actor: library_writer(@actor),
       title: "Home v2",
       body: "Home second."
     )
-    away_v2 = RecordingStudioTermsAndConditions::TermsWrite.call(
-      recording: away,
-      actor: @other_actor,
-      title: "Away v2",
-      body: "Away second."
-    )
     publish_terms!(home_v2, slug: "home-v2-#{SecureRandom.hex(4)}")
-    publish_terms!(away_v2, slug: "away-v2-#{SecureRandom.hex(4)}")
 
     assert_equal(
       [[@actor.class.base_class.name, @actor.id]],
@@ -268,12 +255,9 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
         terms_id: home_v2.recordable.id
       )
     )
-    assert_equal(
-      [[@other_actor.class.base_class.name, @other_actor.id]],
-      RecordingStudioTermsAndConditions.reaccepting_actors_for(
-        recording_id: away_v2.id,
-        terms_id: away_v2.recordable.id
-      )
+    assert_empty RecordingStudioTermsAndConditions.reaccepting_actors_for(
+      recording_id: home.id,
+      terms_id: home.recordable.id
     )
   end
 
@@ -281,7 +265,7 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     terms = record_terms("Terms v1", "Terms first.")
     publish_terms!(terms, slug: "kind-terms-#{SecureRandom.hex(4)}")
     RecordingStudioTermsAndConditions.accept!(@actor, terms, source: "clickwrap")
-    privacy = @root.record(RecordingStudioTermsAndConditions::Terms, actor: @actor) do |row|
+    privacy = terms_library.record(RecordingStudioTermsAndConditions::Terms, actor: library_writer(@actor)) do |row|
       row.title = "Privacy v1"
       row.body = "Privacy first."
       row.kind = RecordingStudioTermsAndConditions::Terms::KIND_PRIVACY
@@ -291,7 +275,7 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
 
     terms_v2 = RecordingStudioTermsAndConditions::TermsWrite.call(
       recording: terms,
-      actor: @actor,
+      actor: library_writer(@actor),
       title: "Terms v2",
       body: "Terms second."
     )
@@ -316,7 +300,7 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     RecordingStudioTermsAndConditions.accept!(@actor, first, source: "clickwrap")
     draft = RecordingStudioTermsAndConditions::TermsWrite.call(
       recording: first,
-      actor: @actor,
+      actor: library_writer(@actor),
       title: "v2",
       body: "Second."
     )
@@ -326,7 +310,7 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
 
     assert first.reload.currently_published?
     assert draft.reload.currently_published?
-    assert_equal draft.recordable, RecordingStudioTermsAndConditions.current_published_for(@workspace)
+    assert_equal draft.recordable, RecordingStudioTermsAndConditions.current_published_for
     assert_equal(
       [[@actor.class.base_class.name, @actor.id]],
       RecordingStudioTermsAndConditions.reaccepting_actors_for(
@@ -342,7 +326,7 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     RecordingStudioTermsAndConditions.accept!(@actor, first, source: "clickwrap")
     draft = RecordingStudioTermsAndConditions::TermsWrite.call(
       recording: first,
-      actor: @actor,
+      actor: library_writer(@actor),
       title: "v2",
       body: "Second."
     )
@@ -371,7 +355,7 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     @actor.destroy!
     draft = RecordingStudioTermsAndConditions::TermsWrite.call(
       recording: first,
-      actor: @other_actor,
+      actor: library_writer(@other_actor),
       title: "v2",
       body: "Second."
     )
@@ -392,7 +376,7 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     RecordingStudioTermsAndConditions.accept!(@actor, recording, source: "clickwrap")
     draft = RecordingStudioTermsAndConditions::TermsWrite.call(
       recording: recording,
-      actor: @actor,
+      actor: library_writer(@actor),
       title: "v2",
       body: "Second."
     )
@@ -408,20 +392,20 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     recording = record_terms("v1", "First.")
     publish_terms!(recording, slug: "reaccept-#{SecureRandom.hex(4)}")
 
-    refute RecordingStudioTermsAndConditions.reaccepting?(@actor, @workspace)
+    refute RecordingStudioTermsAndConditions.reaccepting?(@actor)
     RecordingStudioTermsAndConditions.accept!(@actor, recording, source: "clickwrap")
-    refute RecordingStudioTermsAndConditions.reaccepting?(@actor, @workspace)
+    refute RecordingStudioTermsAndConditions.reaccepting?(@actor)
 
     draft = RecordingStudioTermsAndConditions::TermsWrite.call(
       recording: recording,
-      actor: @actor,
+      actor: library_writer(@actor),
       title: "v2",
       body: "Second."
     )
     publish_terms!(draft, slug: "reaccept-#{SecureRandom.hex(4)}")
 
-    assert RecordingStudioTermsAndConditions.reaccepting?(@actor, @workspace)
-    refute RecordingStudioTermsAndConditions.accepted?(@actor, @workspace)
+    assert RecordingStudioTermsAndConditions.reaccepting?(@actor)
+    refute RecordingStudioTermsAndConditions.accepted?(@actor)
   end
 
   test "accepted_any? is true after any Terms or Privacy Policy receipt" do
@@ -443,7 +427,7 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
 
     draft = RecordingStudioTermsAndConditions::TermsWrite.call(
       recording: recording,
-      actor: @actor,
+      actor: library_writer(@actor),
       title: "Booth rules",
       body: "ABCDE"
     )
@@ -454,10 +438,10 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     refute draft.currently_published?
     assert_equal "ABC", recording.recordable.body
     assert_equal "ABCDE", draft.recordable.body
-    assert_equal "ABC", RecordingStudioTermsAndConditions.current_published_for(@workspace).body
-    assert RecordingStudioTermsAndConditions.accepted?(@actor, @workspace)
-    refute RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace)
-    refute RecordingStudioTermsAndConditions.reaccepting?(@actor, @workspace)
+    assert_equal "ABC", RecordingStudioTermsAndConditions.current_published_for.body
+    assert RecordingStudioTermsAndConditions.accepted?(@actor)
+    refute RecordingStudioTermsAndConditions.requires_acceptance?(@actor)
+    refute RecordingStudioTermsAndConditions.reaccepting?(@actor)
     assert_equal receipt.id, RecordingStudioTermsAndConditions::Acceptance.find(receipt.id).id
 
     publish_terms!(draft, slug: "booth-rules-v2-#{SecureRandom.hex(4)}")
@@ -466,14 +450,14 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     draft.reload
     refute recording.currently_published?
     assert draft.currently_published?
-    assert_equal "ABCDE", RecordingStudioTermsAndConditions.current_published_for(@workspace).body
-    refute RecordingStudioTermsAndConditions.accepted?(@actor, @workspace)
-    assert RecordingStudioTermsAndConditions.requires_acceptance?(@actor, @workspace)
-    assert RecordingStudioTermsAndConditions.reaccepting?(@actor, @workspace)
+    assert_equal "ABCDE", RecordingStudioTermsAndConditions.current_published_for.body
+    refute RecordingStudioTermsAndConditions.accepted?(@actor)
+    assert RecordingStudioTermsAndConditions.requires_acceptance?(@actor)
+    assert RecordingStudioTermsAndConditions.reaccepting?(@actor)
     assert_equal receipt.body_digest, receipt.reload.body_digest
     assert_equal recording.id, receipt.terms_recording_id
     assert_nil RecordingStudioTermsAndConditions::Acceptance.find_by(
-      actor: @actor,
+      actor: library_writer(@actor),
       terms_recording_id: draft.id,
       terms_id: draft.recordable.id
     )
@@ -483,23 +467,25 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     terms = record_terms("Live terms", "Be kind.")
     publish_terms!(terms, slug: "pending-list-terms")
 
-    pending = RecordingStudioTermsAndConditions.pending_published_list(@actor, @workspace)
+    pending = RecordingStudioTermsAndConditions.pending_published_list(@actor)
 
     assert_equal [terms.recordable], pending
     RecordingStudioTermsAndConditions.accept!(@actor, terms, source: "clickwrap")
-    assert_empty RecordingStudioTermsAndConditions.pending_published_list(@actor, @workspace)
-    assert_nil RecordingStudioTermsAndConditions.pending_published_for(@actor, @workspace)
+    assert_empty RecordingStudioTermsAndConditions.pending_published_list(@actor)
+    assert_nil RecordingStudioTermsAndConditions.pending_published_for(@actor)
   end
 
   private
 
-  def record_terms(title, body)
+  def record_terms(title, body, kind: RecordingStudioTermsAndConditions::Terms::DEFAULT_KIND)
+    writer = library_writer(@actor)
+    parent = terms_library(writer)
     RecordingStudio.record!(
       action: "created",
-      recordable: RecordingStudioTermsAndConditions::Terms.new(title: title, body: body),
-      root_recording: @root,
-      parent_recording: @root,
-      actor: @actor
+      recordable: RecordingStudioTermsAndConditions::Terms.new(title: title, body: body, kind: kind),
+      root_recording: parent,
+      parent_recording: parent,
+      actor: writer
     ).recording
   end
 
@@ -509,7 +495,7 @@ class TermsAcceptanceTest < ActiveSupport::TestCase
     result = RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: recording,
       attributes: attributes,
-      actor: @actor
+      actor: library_writer(@actor)
     )
     result.value!
   end

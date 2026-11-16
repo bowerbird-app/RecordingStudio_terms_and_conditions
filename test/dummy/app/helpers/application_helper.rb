@@ -30,8 +30,7 @@ module ApplicationHelper
   end
 
   def recording_studio_terms_demo_documents
-    root = recording_studio_terms_agree_root
-    RecordingStudioTermsAndConditions.current_published_by_kind(root).values.compact
+    RecordingStudioTermsAndConditions.current_published_by_kind.values.compact
   end
 
   def dummy_admin_root_recording

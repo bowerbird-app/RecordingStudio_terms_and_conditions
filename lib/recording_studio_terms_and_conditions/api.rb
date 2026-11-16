@@ -28,14 +28,14 @@ module RecordingStudioTermsAndConditions
         handler: PendingPublishedList,
         title: "Terms - Pending published list",
         summary: "List pending Terms",
-        description: "Live Terms documents in this workspace the access grant's actor has not accepted yet."
+        description: "Live Terms the actor has not accepted. The document is the shared library."
       }.freeze,
       terms_current_published_for: {
         http_verb: :get,
         handler: CurrentPublishedFor,
         title: "Terms - Current published",
         summary: "Show current published Terms",
-        description: "The live Terms document for a kind in this workspace.",
+        description: "The live Terms document for a kind. It is the shared library.",
         kind_field: true
       }.freeze,
       terms_accepted: {

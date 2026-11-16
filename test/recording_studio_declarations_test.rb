@@ -10,11 +10,17 @@ require_relative "dummy/test/test_helper"
 class RecordingStudioDeclarationsTest < ActiveSupport::TestCase
   test "dummy recordable declarations validate and expose parent/root introspection" do
     assert RecordingStudio.validate_recordable_declarations!
-    expected_roots = ["AdminRoot", "RecordingStudioUser::People", "Workspace"]
+    expected_roots = [
+      "AdminRoot",
+      "RecordingStudioTermsAndConditions::Library",
+      "RecordingStudioUser::People",
+      "Workspace"
+    ]
     assert_equal expected_roots.sort, RecordingStudio.root_recordable_types.sort
     assert_equal %w[Workspace Folder], RecordingStudio.allowed_parent_types_for("Folder")
     assert_equal %w[Workspace Folder], RecordingStudio.allowed_parent_types_for(Page)
-    assert_equal ["Workspace"], RecordingStudio.allowed_parent_types_for(RecordingStudioTermsAndConditions::Terms)
+    assert_equal ["RecordingStudioTermsAndConditions::Library"],
+                 RecordingStudio.allowed_parent_types_for(RecordingStudioTermsAndConditions::Terms)
     assert_equal ["RecordingStudioTermsAndConditions::Terms"],
                  RecordingStudio.allowed_parent_types_for(RecordingStudioTermsAndConditions::Section)
     assert_equal ["RecordingStudioTermsAndConditions::Section"],

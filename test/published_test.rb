@@ -53,7 +53,7 @@ class PublishedTest < Minitest::Test
   end
 
   def test_removing_install_stops_the_event
-    hooks = RecordingStudioPublishable.configuration.hooks
+    hooks = RecordingStudio.configuration.hooks
     hooks.clear(RecordingStudioTermsAndConditions::Published::LATCH)
 
     refute RecordingStudioTermsAndConditions::Published.installed?

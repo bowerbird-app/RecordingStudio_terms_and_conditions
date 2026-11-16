@@ -44,6 +44,7 @@ module TermsDemoTestHelper
     return writer if recording.blank?
 
     root = recording.respond_to?(:root_recording) ? (recording.root_recording || recording) : recording
+    return library_writer(writer) if root&.recordable_type == "RecordingStudioTermsAndConditions::Library"
     return writer if RecordingStudioAccessible.authorized?(actor: writer, recording: root, role: :edit)
 
     admin = held_access_admin
@@ -120,19 +121,57 @@ module TermsDemoTestHelper
     bootstrap_owner_access!(actor, recording)
   end
 
-  def record_terms(root_recording, title:, body:, kind: RecordingStudioTermsAndConditions::Terms::DEFAULT_KIND, actor: nil)
+  def library_writer(actor = nil)
     writer = actor || recording_write_actor
-    grant_write_access!(root_recording, writer)
-    root_recording.record(RecordingStudioTermsAndConditions::Terms, actor: writer) do |terms|
+    admin = seeded_admin_recording
+    return writer if admin && RecordingStudioAccessible.authorized?(actor: writer, recording: admin, role: :edit)
+
+    staff = held_access_admin
+    ensure_held_admin_on!(admin, staff) if admin
+    Current.actor = staff if defined?(Current) && Current.respond_to?(:actor=)
+    staff
+  end
+
+  def seeded_admin_recording
+    return RecordingStudioAccessible.admin_root if RecordingStudioAccessible.respond_to?(:admin_root) &&
+                                                   RecordingStudioAccessible.admin_root
+
+    admin = AdminRoot.find_or_create_by!(name: "Admin")
+    RecordingStudio.root_recording_for(admin) ||
+      RecordingStudio.create_root_recording!(admin, actor: held_access_admin)
+  end
+
+  def terms_library(actor = nil)
+    writer = library_writer(actor)
+    RecordingStudioTermsAndConditions.library_root(actor: writer)
+  end
+
+  def record_terms(_root_recording = nil, title:, body:, kind: RecordingStudioTermsAndConditions::Terms::DEFAULT_KIND, actor: nil)
+    writer = library_writer(actor)
+    terms_library(writer).record(RecordingStudioTermsAndConditions::Terms, actor: writer) do |terms|
       terms.title = title
       terms.body = body
       terms.kind = kind
     end
   end
 
+  def unpublish_live_terms!
+    library = RecordingStudioTermsAndConditions.library_root
+    return if library.blank?
+
+    RecordingStudio::Recording.where(
+      root_recording_id: library.id,
+      recordable_type: RecordingStudioTermsAndConditions::Terms.name,
+      trashed_at: nil
+    ).find_each do |recording|
+      next unless recording.respond_to?(:currently_published?) && recording.currently_published?
+
+      publish_terms!(recording, slug: "draft-#{recording.id.to_s.first(8)}", status: "draft")
+    end
+  end
+
   def publish_terms!(recording, slug:, status: "published", actor: nil)
-    writer = actor || recording_write_actor
-    grant_write_access!(recording, writer)
+    writer = library_writer(actor)
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: recording,
       attributes: { slug: slug, status: status },
@@ -231,12 +270,7 @@ module TermsDemoTestHelper
   end
 
   def without_live_terms_fallback
-    gate = RecordingStudioTermsAndConditions::Gate
-    original = gate.method(:first_root_with_live_terms)
-    gate.define_singleton_method(:first_root_with_live_terms) { |_actor = nil| nil }
     yield
-  ensure
-    gate.define_singleton_method(:first_root_with_live_terms, original)
   end
 end
 

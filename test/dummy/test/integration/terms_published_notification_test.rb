@@ -65,7 +65,7 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
 
     RecordingStudioTermsAndConditions::TermsWrite.call(
       recording: recording,
-      actor: actor,
+      actor: library_writer(actor),
       title: "Live",
       body: "ABCDE"
     )
@@ -81,7 +81,7 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
     RecordingStudioTermsAndConditions.accept!(actor, first, source: "clickwrap")
     draft = RecordingStudioTermsAndConditions::TermsWrite.call(
       recording: first,
-      actor: actor,
+      actor: library_writer(actor),
       title: "v2",
       body: "Second."
     )
@@ -108,7 +108,7 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
     RecordingStudioTermsAndConditions.accept!(actor, first, source: "clickwrap")
     draft = RecordingStudioTermsAndConditions::TermsWrite.call(
       recording: first,
-      actor: actor,
+      actor: library_writer(actor),
       title: "v2",
       body: "Later."
     )
@@ -116,7 +116,7 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: draft,
       attributes: { slug: "sched-v2-#{SecureRandom.hex(4)}", status: "published", publish_at: publish_at },
-      actor: actor
+      actor: library_writer(actor)
     ).value!
 
     found = nil
@@ -148,7 +148,7 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
     actor = create_actor("boom")
     draft = RecordingStudioTermsAndConditions::TermsWrite.call(
       recording: first,
-      actor: actor,
+      actor: library_writer(actor),
       title: "v2",
       body: "Second."
     )
@@ -161,7 +161,7 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
       RecordingStudioPublishable::Services::Publishables::Update.call(
         parent_recording: draft,
         attributes: { slug: "boom-v2-#{SecureRandom.hex(4)}", status: "published" },
-        actor: actor
+        actor: library_writer(actor)
       )
     end
 
@@ -266,7 +266,7 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
     publish_terms!(first, slug: "sole-#{SecureRandom.hex(4)}")
     draft = RecordingStudioTermsAndConditions::TermsWrite.call(
       recording: first,
-      actor: create_actor("sole"),
+      actor: library_writer(create_actor("sole")),
       title: "v2",
       body: "Second."
     )
@@ -291,7 +291,7 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
   end
 
   def record_terms(title:, body:)
-    @root.record(RecordingStudioTermsAndConditions::Terms, actor: recording_write_actor) do |terms|
+    terms_library.record(RecordingStudioTermsAndConditions::Terms, actor: library_writer) do |terms|
       terms.title = title
       terms.body = body
     end
@@ -301,7 +301,7 @@ class TermsPublishedNotificationTest < ActiveSupport::TestCase
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: recording,
       attributes: { slug: slug, status: "published" },
-      actor: recording_write_actor
+      actor: library_writer
     ).value!
   end
 

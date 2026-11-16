@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.20.0", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.21.0", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -20,7 +20,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes gemspec, 'spec.add_dependency "recording_studio_admin", ">= 2.16.0", "< 3.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_metrics", ">= 0.9.0", "< 1.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_moveable", ">= 5.0", "< 6.0"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_publishable", ">= 0.18.1", "< 1.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_publishable", ">= 1.0.0", "< 2.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_user", ">= 0.30.0", "< 1.0"'
   end
 
@@ -58,8 +58,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.44.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.28.0"'
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.28.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_publishable", tag: "v0.18.1"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_publishable", tag: "v0.18.1"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_publishable", tag: "v1.0.0"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_publishable", tag: "v1.0.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_broadcasts", tag: "v0.6.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.16.0"'
     assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.16.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v0.24.0"'
@@ -162,7 +163,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes terms_source, 'public_controller: "recording_studio_terms_and_conditions/published_terms"'
     assert_includes terms_source, 'path: "/terms/:uuid/:slug"'
     assert_includes terms_source, '"/privacy/:uuid/:slug"'
-    refute_includes terms_source, "enable_capability"
+    assert_includes terms_source, "enable_capability(:accessible, on: self)"
     assert_includes acceptance_source, 'self.table_name = "recording_studio_terms_and_conditions_acceptances"'
     assert_includes acceptance_source, "def receipt_contract"
     assert_includes acceptance_source, "body_digest"
@@ -205,15 +206,22 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_module_exposes_terms_acceptance_helpers
     source = File.read(File.expand_path("../lib/recording_studio_terms_and_conditions.rb", __dir__))
 
-    assert_includes source, "def current_published_for(root"
+    assert_includes source, "def current_published_for(kind:"
+    refute_includes source, "def current_published_for(root"
     refute_includes source, "category:"
     refute_includes source, "def current_published_by_category(root)"
-    assert_includes source, "def current_published_by_kind(root)"
-    assert_includes source, "def pending_published_for(actor, root)"
-    assert_includes source, "def pending_published_list(actor, root)"
-    assert_includes source, "def accepted?(actor, root"
-    assert_includes source, "def requires_acceptance?(actor, root)"
-    assert_includes source, "def reaccepting?(actor, root)"
+    assert_includes source, "def current_published_by_kind"
+    refute_includes source, "def current_published_by_kind(root)"
+    assert_includes source, "def pending_published_for(actor)"
+    refute_includes source, "def pending_published_for(actor, root)"
+    assert_includes source, "def pending_published_list(actor, *)"
+    refute_includes source, "def pending_published_list(actor, root)"
+    assert_includes source, "def accepted?(actor, kind:"
+    refute_includes source, "def accepted?(actor, root"
+    assert_includes source, "def requires_acceptance?(actor)"
+    refute_includes source, "def requires_acceptance?(actor, root)"
+    assert_includes source, "def reaccepting?(actor)"
+    refute_includes source, "def reaccepting?(actor, root)"
     assert_includes source, "def reaccepting_actors_for(recording_id:, terms_id:)"
     assert_includes source, "def accepted_any?(actor)"
     assert_includes source, "class NotLive < StandardError"
@@ -443,8 +451,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
                     "CategoryUniqueness.install!"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/gate.rb"), "agree_helpers"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/gate.rb"), "pending_published_list"
-    assert_includes engine_source("lib/recording_studio_terms_and_conditions/gate.rb"), "live_terms_on?"
-    assert_includes engine_source("lib/recording_studio_terms_and_conditions/gate.rb"), "first_root_with_live_terms"
+    refute_includes engine_source("lib/recording_studio_terms_and_conditions/gate.rb"), "live_terms_on?"
+    refute_includes engine_source("lib/recording_studio_terms_and_conditions/gate.rb"), "first_root_with_live_terms"
     refute_includes agree, "help_text"
     refute_includes agree, "Read them, tick the box"
     refute_includes agree, "FlatPack::Alert::Component"
@@ -853,7 +861,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     base_controller = engine_source("app/controllers/recording_studio_terms_and_conditions/admin/base_controller.rb")
     refute_includes base_controller, "return true unless defined?(RecordingStudioAccessible)"
     assert_includes base_controller, "return false unless defined?(RecordingStudioAccessible)"
-    assert_includes base_controller, "root_recordings_for"
+    assert_includes base_controller, "library_root"
     assert_includes base_controller, "def terms_scope"
     refute_includes base_controller, "parent_recording_id: nil"
     people = engine_source("app/controllers/recording_studio_terms_and_conditions/admin/people_controller.rb")
@@ -952,9 +960,12 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.21.0]"
+    assert_includes changelog, "Upgrade notes (0.20.0 → 0.21.0)"
+    assert_includes changelog, "compare/v0.21.0...HEAD"
+    assert_includes changelog, "compare/v0.20.0...v0.21.0"
     assert_includes changelog, "## [0.20.0]"
     assert_includes changelog, "Upgrade notes (0.19.1 → 0.20.0)"
-    assert_includes changelog, "compare/v0.20.0...HEAD"
     assert_includes changelog, "## [0.19.1]"
     assert_includes changelog, "Upgrade notes (0.19.0 → 0.19.1)"
     assert_includes changelog, "compare/v0.19.1...v0.20.0"
@@ -964,8 +975,10 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "## [0.18.0]"
     assert_includes changelog, "Upgrade notes (0.17.0 → 0.18.0)"
     assert_includes changelog, "compare/v0.18.0...v0.19.0"
+    assert_includes notes, "Upgrade from 0.20.0 to 0.21.0"
     assert_includes notes, "Upgrade from 0.19.1 to 0.20.0"
     assert_includes notes, "create_root_recording!"
+    assert_includes readme, "Upgrading from 0.20.0"
     assert_includes readme, "Upgrading from 0.19.1"
     assert_includes notes, "Upgrade from 0.18.0 to 0.19.0"
     assert_includes readme, "Upgrading from 0.18.0"

@@ -33,7 +33,7 @@ class LiveTermsEditKeepsAgreementTest < ActionDispatch::IntegrationTest
   test "agreed member stays on ABC until admin publishes ABCDE" do
     sign_in @admin
     switch_to_workspace(@workspace)
-    live = @root.record(
+    live = terms_library(@admin).record(
       RecordingStudioTermsAndConditions::Terms,
       actor: @admin
     ) do |terms|
@@ -68,8 +68,8 @@ class LiveTermsEditKeepsAgreementTest < ActionDispatch::IntegrationTest
     switch_to_workspace(@workspace)
     get "/"
     assert_response :success
-    assert RecordingStudioTermsAndConditions.accepted?(@member, @workspace)
-    refute RecordingStudioTermsAndConditions.requires_acceptance?(@member, @workspace)
+    assert RecordingStudioTermsAndConditions.accepted?(@member)
+    refute RecordingStudioTermsAndConditions.requires_acceptance?(@member)
 
     sign_in @admin
     switch_to_workspace(@admin_root)
@@ -94,8 +94,8 @@ class LiveTermsEditKeepsAgreementTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_includes response.body, "Whisper in the booth."
     refute_includes response.body, "Keep the door shut."
-    refute RecordingStudioTermsAndConditions.accepted?(@member, @workspace)
-    assert RecordingStudioTermsAndConditions.requires_acceptance?(@member, @workspace)
+    refute RecordingStudioTermsAndConditions.accepted?(@member)
+    assert RecordingStudioTermsAndConditions.requires_acceptance?(@member)
     assert_nil RecordingStudioTermsAndConditions::Acceptance.find_by(
       actor: @member,
       terms_recording_id: released.id,

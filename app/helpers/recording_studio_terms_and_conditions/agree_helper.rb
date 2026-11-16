@@ -8,12 +8,11 @@ module RecordingStudioTermsAndConditions
     include AgreeCopyHelper
     include TermsContextHelper
 
-    def recording_studio_terms_agree(inside_form: false, actor: nil, root: nil, link_terms: false, pending: nil)
-      root ||= recording_studio_terms_agree_root
+    def recording_studio_terms_agree(inside_form: false, actor: nil, link_terms: false, pending: nil)
       actor ||= recording_studio_terms_agree_actor
-      pending_terms = recording_studio_terms_pending_list(actor, root, pending)
+      pending_terms = recording_studio_terms_pending_list(actor, pending)
       return if pending.nil? && actor.present? &&
-                !RecordingStudioTermsAndConditions.requires_acceptance?(actor, root)
+                !RecordingStudioTermsAndConditions.requires_acceptance?(actor)
       return if pending_terms.blank?
 
       recording_studio_terms_agree_fields(pending_terms, inside_form, link_terms: link_terms)

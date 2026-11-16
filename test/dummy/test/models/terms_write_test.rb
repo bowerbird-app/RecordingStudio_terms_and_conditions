@@ -11,6 +11,7 @@ class TermsWriteTest < ActiveSupport::TestCase
       password: "Password",
       password_confirmation: "Password"
     )
+    @actor = library_writer(@actor)
     Current.actor = @actor if defined?(Current)
     grant_write_access!(@root, @actor)
   end
@@ -72,7 +73,7 @@ class TermsWriteTest < ActiveSupport::TestCase
   private
 
   def record_terms(title, body)
-    @root.record(RecordingStudioTermsAndConditions::Terms, actor: @actor) do |terms|
+    terms_library.record(RecordingStudioTermsAndConditions::Terms, actor: library_writer(@actor)) do |terms|
       terms.title = title
       terms.body = body
     end
@@ -82,7 +83,7 @@ class TermsWriteTest < ActiveSupport::TestCase
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: recording,
       attributes: { slug: slug, status: "published" },
-      actor: @actor
+      actor: library_writer(@actor)
     ).value!
   end
 end

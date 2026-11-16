@@ -6,7 +6,6 @@ module RecordingStudioTermsAndConditions
       def self.call(context)
         ActorRoot.authorize!(context)
         terms = RecordingStudioTermsAndConditions.current_published_for(
-          ActorRoot.root(context),
           kind: TermsPayload.kind_from(context.params)
         )
 

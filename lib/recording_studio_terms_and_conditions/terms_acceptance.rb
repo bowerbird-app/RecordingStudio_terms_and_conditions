@@ -3,24 +3,24 @@
 module RecordingStudioTermsAndConditions
   class TermsAcceptance # rubocop:disable Metrics/ClassLength
     class << self
-      def current_published_for(root, kind: Terms::DEFAULT_KIND)
+      def current_published_for(kind: Terms::DEFAULT_KIND)
         wanted = Terms.normalize_kind(kind)
         return if Terms::KINDS.exclude?(wanted)
 
-        current_published_by_kind(root)[wanted]
+        current_published_by_kind[wanted]
       end
 
-      def current_published_by_kind(root)
-        root_recording = resolve_root_recording(root)
+      def current_published_by_kind
+        root_recording = library_recording
         return {} if root_recording.blank?
 
         published_recordables_by_kind(root_recording)
       end
 
-      def accepted?(actor, root, kind: Terms::DEFAULT_KIND)
+      def accepted?(actor, kind: Terms::DEFAULT_KIND)
         return false if actor.blank?
 
-        terms = current_published_for(root, kind: kind)
+        terms = current_published_for(kind: kind)
         return false if terms.blank?
 
         recording = recording_for_terms(terms)
@@ -29,12 +29,12 @@ module RecordingStudioTermsAndConditions
         acceptance_exists?(actor: actor, terms_recording_id: recording.id, terms_id: terms.id)
       end
 
-      def requires_acceptance?(actor, root)
-        pending_published_list(actor, root).any?
+      def requires_acceptance?(actor)
+        pending_published_list(actor).any?
       end
 
-      def reaccepting?(actor, root)
-        pending_published_list(actor, root).any? do |terms|
+      def reaccepting?(actor)
+        pending_published_list(actor).any? do |terms|
           reaccepting_kind?(actor, terms)
         end
       end
@@ -55,15 +55,15 @@ module RecordingStudioTermsAndConditions
         ).exists?
       end
 
-      def pending_published_for(actor, root)
-        pending_published_list(actor, root).first
+      def pending_published_for(actor)
+        pending_published_list(actor).first
       end
 
-      def pending_published_list(actor, root)
+      def pending_published_list(actor, *)
         Terms::KINDS.filter_map do |kind|
-          terms = current_published_for(root, kind: kind)
+          terms = current_published_for(kind: kind)
           next if terms.blank?
-          next if actor.present? && accepted?(actor, root, kind: kind)
+          next if actor.present? && accepted?(actor, kind: kind)
 
           terms
         end
@@ -156,20 +156,8 @@ module RecordingStudioTermsAndConditions
         )
       end
 
-      def resolve_root_recording(root)
-        return if root.blank?
-        return recording_root(root) if root.is_a?(RecordingStudio::Recording)
-        return unless persisted_root_recordable?(root)
-
-        RecordingStudio.root_recording_for(root)
-      end
-
-      def recording_root(recording)
-        recording.parent_recording_id.blank? ? recording : recording.root_recording
-      end
-
-      def persisted_root_recordable?(root)
-        root.respond_to?(:id) && root.id.present? && RecordingStudio.root_allowed?(root.class.name)
+      def library_recording
+        RecordingStudioTermsAndConditions.library_root
       end
 
       def sibling_terms_recording_ids(recording, kind:)

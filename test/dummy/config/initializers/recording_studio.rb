@@ -7,6 +7,7 @@ RecordingStudio.configure do |config|
     "Workspace",
     "Folder",
     "Page",
+    "RecordingStudioTermsAndConditions::Library",
     "RecordingStudioTermsAndConditions::Terms",
     "RecordingStudioTermsAndConditions::Section",
     "RecordingStudioTermsAndConditions::Clause",
@@ -41,6 +42,13 @@ RecordingStudio.configure do |config|
     next actor.present? if root_recording.nil?
 
     next false unless defined?(RecordingStudioAccessible)
+
+    if root_recording.recordable_type == "RecordingStudioTermsAndConditions::Library"
+      admin = RecordingStudioAccessible.admin_root if RecordingStudioAccessible.respond_to?(:admin_root)
+      next false if actor.blank? || admin.blank?
+
+      next RecordingStudioAccessible.authorized?(actor: actor, recording: admin, role: :edit)
+    end
 
     role = if defined?(RecordingStudio::Access) && recordable.is_a?(RecordingStudio::Access)
              :admin

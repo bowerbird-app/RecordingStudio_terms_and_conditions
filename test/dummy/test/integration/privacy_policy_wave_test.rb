@@ -41,9 +41,9 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
     assert_equal "privacy_policy", privacy.recordable.kind
     assert_equal "Privacy Policy", privacy.recordable.kind_label
 
-    assert RecordingStudioTermsAndConditions::KindPresence.exists?(@root, kind: "terms_and_condition")
-    assert RecordingStudioTermsAndConditions::KindPresence.exists?(@root, kind: "privacy_policy")
-    assert_empty RecordingStudioTermsAndConditions::KindPresence.available_kinds(@root)
+    assert RecordingStudioTermsAndConditions::KindPresence.exists?(kind: "terms_and_condition")
+    assert RecordingStudioTermsAndConditions::KindPresence.exists?(kind: "privacy_policy")
+    assert_empty RecordingStudioTermsAndConditions::KindPresence.available_kinds
 
     sign_in @admin
     grant_workspace_access!(@admin, @workspace)
@@ -70,7 +70,7 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
       }
     end
     assert_response :unprocessable_entity
-    assert_includes response.body, "already has Privacy Policy"
+    assert_includes response.body, "Privacy Policy already exists"
   end
 
   test "trashed recordings do not block a new document of that kind" do
@@ -82,8 +82,8 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
     )
     privacy.update_columns(trashed_at: Time.current)
 
-    refute RecordingStudioTermsAndConditions::KindPresence.exists?(@root, kind: "privacy_policy")
-    assert_includes RecordingStudioTermsAndConditions::KindPresence.available_kinds(@root), "privacy_policy"
+    refute RecordingStudioTermsAndConditions::KindPresence.exists?(kind: "privacy_policy")
+    assert_includes RecordingStudioTermsAndConditions::KindPresence.available_kinds, "privacy_policy"
   end
 
   test "SoleLive is per kind" do
@@ -97,7 +97,7 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
     )
     publish_terms!(privacy_v1, slug: "privacy-v1-#{SecureRandom.hex(4)}")
 
-    terms_v2 = @root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
+    terms_v2 = terms_library.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
       terms.title = "Terms v2"
       terms.body = "Two."
       terms.kind = "terms_and_condition"
@@ -123,7 +123,7 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
     )
     publish_terms!(privacy, slug: "both-privacy-#{SecureRandom.hex(4)}")
 
-    pending = RecordingStudioTermsAndConditions.pending_published_list(@user, @workspace)
+    pending = RecordingStudioTermsAndConditions.pending_published_list(@user)
     assert_equal 2, pending.size
     assert_equal %w[terms_and_condition privacy_policy], pending.map(&:kind)
 
@@ -145,9 +145,9 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
       post recording_studio_terms_and_conditions.acceptance_path
     end
     assert_redirected_to "/"
-    assert_empty RecordingStudioTermsAndConditions.pending_published_list(@user, @workspace)
-    assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace, kind: "terms_and_condition")
-    assert RecordingStudioTermsAndConditions.accepted?(@user, @workspace, kind: "privacy_policy")
+    assert_empty RecordingStudioTermsAndConditions.pending_published_list(@user)
+    assert RecordingStudioTermsAndConditions.accepted?(@user, kind: "terms_and_condition")
+    assert RecordingStudioTermsAndConditions.accepted?(@user, kind: "privacy_policy")
 
     assert_no_difference -> { RecordingStudioTermsAndConditions::Acceptance.count } do
       RecordingStudioTermsAndConditions.accept!(@user, terms.recordable, { "source" => "continue_notice" })
@@ -169,9 +169,9 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
     RecordingStudioTermsAndConditions.accept!(@user, terms, { "source" => "clickwrap" })
     RecordingStudioTermsAndConditions.accept!(@user, privacy, { "source" => "clickwrap" })
 
-    revised_terms = @root.revise(terms, actor: @admin) { |doc| doc.body = "Be kinder." }
+    revised_terms = terms.root_recording.revise(terms, actor: @admin) { |doc| doc.body = "Be kinder." }
     publish_terms!(revised_terms, slug: "re-terms-v2-#{SecureRandom.hex(4)}")
-    revised_privacy = @root.revise(privacy, actor: @admin) { |doc| doc.body = "We keep more receipts." }
+    revised_privacy = privacy.root_recording.revise(privacy, actor: @admin) { |doc| doc.body = "We keep more receipts." }
     publish_terms!(revised_privacy, slug: "re-privacy-v2-#{SecureRandom.hex(4)}")
 
     sign_in @user
@@ -183,6 +183,7 @@ class PrivacyPolicyWaveTest < ActionDispatch::IntegrationTest
   end
 
   test "first-time privacy-only accept page names Privacy Policy" do
+    unpublish_live_terms!
     privacy = record_terms(
       @root,
       title: "Studio Privacy",

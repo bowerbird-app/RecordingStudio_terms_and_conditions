@@ -5,7 +5,7 @@ class AgreeHelpersController < ApplicationController
   end
 
   def create
-    pending = RecordingStudioTermsAndConditions.pending_published_list(current_user, current_root_recordable)
+    pending = RecordingStudioTermsAndConditions.pending_published_list(current_user)
     if pending.blank?
       redirect_to agree_helper_path, alert: RecordingStudioTermsAndConditions::Copy.t("flashes.no_live_terms")
       return

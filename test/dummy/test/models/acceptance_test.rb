@@ -28,14 +28,14 @@ class AcceptanceTest < ActiveSupport::TestCase
   test "acceptance stores an immutable receipt for an actor and terms version" do
     user = User.create!(email: "terms-#{SecureRandom.hex(4)}@example.com", password: "Password",
                         password_confirmation: "Password")
-    root_recording = RecordingStudio.create_root_recording!(Workspace.create!(name: "Accept #{SecureRandom.hex(4)}"), actor: recording_write_actor)
-    grant_write_access!(root_recording, user)
+    writer = library_writer(user)
+    library = terms_library(writer)
     event = RecordingStudio.record!(
       action: "created",
       recordable: RecordingStudioTermsAndConditions::Terms.new(title: "Clickwrap", body: "I agree."),
-      root_recording: root_recording,
-      parent_recording: root_recording,
-      actor: user
+      root_recording: library,
+      parent_recording: library,
+      actor: writer
     )
     terms = event.recording.recordable
 

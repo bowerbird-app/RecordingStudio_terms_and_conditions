@@ -39,7 +39,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     sign_in @admin
     grant_workspace_access!(@admin, @workspace)
     switch_to_workspace(@workspace)
-    recording = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor).record(
+    recording = terms_library(@admin).record(
       RecordingStudioTermsAndConditions::Terms,
       actor: @admin
     ) do |terms|
@@ -244,7 +244,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
       workspace = Workspace.create!(name: "Page #{index} #{SecureRandom.hex(3)}")
       root = RecordingStudio.create_root_recording!(workspace, actor: recording_write_actor)
       grant_write_access!(root, @admin)
-      root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
+      terms_library(@admin).record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
         terms.title = "Page #{index} #{SecureRandom.hex(3)}"
         terms.body = "Body #{index}."
       end
@@ -258,7 +258,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     sign_in @admin
     grant_workspace_access!(@admin, @workspace)
     switch_to_workspace(@admin_root)
-    recording = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor).record(
+    recording = terms_library(@admin).record(
       RecordingStudioTermsAndConditions::Terms,
       actor: @admin
     ) do |terms|
@@ -294,7 +294,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
       workspace = Workspace.create!(name: "Hub #{index} #{SecureRandom.hex(3)}")
       root = RecordingStudio.create_root_recording!(workspace, actor: recording_write_actor)
       grant_write_access!(root, @admin)
-      root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
+      terms_library(@admin).record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
         terms.title = "Hub #{index} #{SecureRandom.hex(3)}"
         terms.body = "Hub body #{index}."
       end
@@ -315,7 +315,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     sign_in @admin
     grant_workspace_access!(@admin, @workspace)
     switch_to_workspace(@admin_root)
-    recording = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor).record(
+    recording = terms_library(@admin).record(
       RecordingStudioTermsAndConditions::Terms,
       actor: @admin
     ) do |terms|
@@ -445,16 +445,19 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
   end
 
-  test "admin without workspace access cannot pick a write workspace" do
+  test "admin without workspace access still drafts on the shared library" do
     sign_in @admin
     switch_to_workspace(@admin_root)
+    clear_terms_on_write_workspace!
 
     post recording_studio_terms_and_conditions.admin_terms_path, params: {
       terms: { title: "House rules", body: "No yelling in the booth.", kind: "terms_and_condition" }
     }
 
-    assert_response :unprocessable_entity
-    assert_includes response.body, "Pick a workspace first."
+    assert_response :redirect
+    follow_redirect!
+    assert_response :success
+    assert_includes response.body, "House rules"
   end
 
   test "admin hub cards count people who agreed and versions stay a table" do
@@ -463,7 +466,7 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     root = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor)
     terms = publish_live_kind!(root, kind: "terms_and_condition", title: "Live rules", slug: "live-#{SecureRandom.hex(3)}")
     privacy = publish_live_kind!(root, kind: "privacy_policy", title: "Live privacy", slug: "priv-#{SecureRandom.hex(3)}")
-    draft = root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |record|
+    draft = terms_library(@admin).record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |record|
       record.title = "Older draft"
       record.body = "Not live."
     end
@@ -662,16 +665,14 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
   private
 
   def clear_terms_on_write_workspace!
-    workspace = Workspace.find_by(name: "Studio Workspace")
-    return unless workspace
+    library = RecordingStudioTermsAndConditions.library_root
+    return if library.blank?
 
-    root = RecordingStudio.create_root_recording!(workspace, actor: recording_write_actor)
-    root.recordings_query(
-      include_children: true,
-      type: RecordingStudioTermsAndConditions::Terms.name
-    ).each do |recording|
-      recording.update_columns(trashed_at: Time.current)
-    end
+    RecordingStudio::Recording.where(
+      root_recording_id: library.id,
+      recordable_type: RecordingStudioTermsAndConditions::Terms.name,
+      trashed_at: nil
+    ).update_all(trashed_at: Time.current)
   end
 
   def stamp_acceptance!(actor, recording, at:)
@@ -686,9 +687,8 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     )
   end
 
-  def publish_live_kind!(root, kind:, title:, slug:)
-    grant_write_access!(root, @admin)
-    recording = root.record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
+  def publish_live_kind!(_root, kind:, title:, slug:)
+    recording = terms_library(@admin).record(RecordingStudioTermsAndConditions::Terms, actor: @admin) do |terms|
       terms.title = title
       terms.body = "Bring headphones."
       terms.kind = kind
