@@ -24,6 +24,7 @@ A person accepts Terms once. The live document for each kind sits on one shared 
 - Admin creates under the library. The index lists every untrashed Terms recording.
 - Workspace member API paths still authorize on that workspace. The payload is the library document.
 - The dummy `authorize_write` allows a library write when the actor has Accessible `:edit` on the admin root. Accessible will not grant on the library itself.
+- The dummy Tailwind build scans Flatpack and Recording Studio with absolute `@source` paths. Collapse and the other components pick up their utilities. A relative path to the system gem directory never left the repo, so those classes were missing from the CSS. That source list was already wrong on `main`.
 - Gemspec requires `recording_studio_publishable` `>= 1.0.0`, `< 2.0`. Development and the dummy pin tag `v1.0.0`.
 - SoleLive's `after_service`, OutlinePublish's `around_service`, and the Published install latch register on `RecordingStudio.configuration.hooks`. `subscribe(:published)` is unchanged. OutlinePublish runs inside the Broadcasts 0.6.0 sent-publishable lock (`SentPublishableLock::PRIORITY`, which is 0).
 
