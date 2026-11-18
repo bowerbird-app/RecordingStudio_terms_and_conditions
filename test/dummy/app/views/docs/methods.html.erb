@@ -18,6 +18,7 @@
       terms = RecordingStudioTermsAndConditions.current_published_for(workspace)
       RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "clickwrap" })
       RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "continue_notice" })
+      RecordingStudioTermsAndConditions.accept!(user, terms, { "source" => "signup", "method" => "password" })
       RecordingStudioTermsAndConditions.pending_published_list(user, workspace)
       RecordingStudioTermsAndConditions.requires_acceptance?(user, workspace)
     CODE

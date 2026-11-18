@@ -273,7 +273,7 @@ class GateTest < Minitest::Test
     )
     refute_includes acceptance, "Gate.root_for_acceptance"
     assert_includes acceptance, "accepted_any?"
-    signup = File.read(File.expand_path("../lib/recording_studio_terms_and_conditions/signup_acceptance.rb", __dir__))
+    signup = File.read(File.expand_path("../lib/recording_studio_terms_and_conditions/signup_registration.rb", __dir__))
     refute_includes signup, "Gate.root_for_acceptance"
     assert_includes signup, "pending_published_list"
   end

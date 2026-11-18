@@ -260,8 +260,8 @@ class InstallGeneratorTest < Minitest::Test
     assert_includes skill, "pending_published_list"
     assert_includes skill, "recording_studio_terms_continue_notice"
     assert_includes skill, "continue_notice"
-    assert_includes skill, "signup"
-    assert_includes skill, "extra_fields"
+    assert_includes skill, "signup_notice_partials"
+    assert_includes skill, "after_registration"
     refute_includes skill, "required_categories"
   end
 

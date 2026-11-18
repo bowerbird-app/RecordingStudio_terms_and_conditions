@@ -11,8 +11,18 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     assert_includes ApplicationController.ancestors, RecordingStudioTermsAndConditions::ForcesAcceptance
     assert_includes RecordingStudioUser::Auth::BaseController.ancestors,
                     RecordingStudioTermsAndConditions::UsersAuthRedirect
-    assert_includes RecordingStudioUser::Auth::RegistrationsController.ancestors,
-                    RecordingStudioTermsAndConditions::SignupAcceptance
+    refute_includes RecordingStudioUser::Auth::RegistrationsController.ancestors,
+                    RecordingStudioTermsAndConditions::SignupRegistration
+    assert_includes RecordingStudioUser.config.after_registration_hooks,
+                    RecordingStudioTermsAndConditions::SignupRegistration
+    assert_includes RecordingStudioUser.config.signup_notice_partials,
+                    "recording_studio_terms_and_conditions/signup_notice"
+    assert_equal 1, RecordingStudioUser.config.after_registration_hooks.count(
+      RecordingStudioTermsAndConditions::SignupRegistration
+    )
+    assert_equal 1, RecordingStudioUser.config.signup_notice_partials.count(
+      "recording_studio_terms_and_conditions/signup_notice"
+    )
   end
 
   test "dummy app validates recordable declarations" do

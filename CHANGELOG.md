@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.23.0] - 2026-11-18
+
+### Changed
+- Signup consent uses Recording Studio Users `0.36.0`. The engine appends `recording_studio_terms_and_conditions/signup_notice` to `config.signup_notice_partials`. The partial renders the continue-notice only when live terms exist, beside the submit button on unsigned auth and signup forms.
+- The engine appends an `after_registration` hook. For each `pending_published_list(user)` it calls `accept!` with `{ "source" => "signup", "method" => method.to_s }`. `method` is `:password`, `:oauth`, or `:otp`. An app hook registered before or after this one still runs. `NotLive` and any other error from this hook do not fail account creation. Receipts still store `body_digest`.
+- Require `recording_studio_user` `>= 0.36.0`, `< 2.0`. Development and the dummy pin tag `v0.36.0`. The dummy copies the Users sign-in lockout and sign-in link migrations.
+
+### Removed
+- The Users view-path prepend, `app/views/recording_studio_user/auth/registrations/_extra_fields.html.erb`, and the `SignupAcceptance` prepend on `RegistrationsController`.
+
+### Upgrade notes (0.22.0 → 0.23.0)
+- Breaking. No Terms migration. Pin this gem at `0.23.0` and Users at `>= 0.36.0`, `< 2.0`.
+- Delete a host override of `recording_studio_user/auth/registrations/_extra_fields` that only rendered the old notice.
+- Signup receipts use `source` `signup` plus the signup `method`. Agree for someone who already has an account is unchanged and still writes `continue_notice` when a new version is published.
+- Users `0.36.0` runs `after_registration` from password confirmation, OAuth account creation, and OTP registration completion. `Directory.create_user!`, the operations create API, and seeds do not emit it. There is no invite method. Those accounts never saw the notice, so this gem does not write a signup receipt for them.
+- Coming from Users `0.32` or `0.35`, copy the sign-in lockout and sign-in link migrations and migrate.
+
 ## [0.22.0] - 2026-11-16
 
 ### Changed
@@ -736,7 +753,8 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.22.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.23.0...HEAD
+[0.23.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.22.0...v0.23.0
 [0.22.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.21.0...v0.22.0
 [0.21.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.19.1...v0.20.0

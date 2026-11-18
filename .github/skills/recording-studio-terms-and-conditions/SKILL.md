@@ -52,7 +52,7 @@ Live means Publishable `currently_published?`. `kind` is `terms_and_condition` o
 
 `pending_published_list` is the live Terms and/or Privacy Policy the actor still needs (0..2). The gem registers that check as the Recording Studio gate `recording_studio_terms_and_conditions.acceptance`. `ForcesAcceptance` and Users Auth post-auth follow `RecordingStudio.check_gate` until that set is empty. Agree stays exempt. A raised check still sends a signed-in person to Agree.
 
-When Users `>= 0.12.1` is loaded, this gem overrides `recording_studio_user/auth/registrations/_extra_fields` on create-password signup. Pending live Terms render `recording_studio_terms_continue_notice`. After a successful `create_password`, `accept!` runs with `{ "source" => "continue_notice" }`. Continuing the form is the agreement. The gem still boots if Users Auth is absent.
+When Users `>= 0.36.0` is loaded, this gem appends `recording_studio_terms_and_conditions/signup_notice` to `config.signup_notice_partials` and appends an `after_registration` hook. The partial renders `recording_studio_terms_continue_notice` only when live Terms exist. Password, OAuth, and OTP signup call `accept!` with `{ "source" => "signup", "method" => method.to_s }`. An app hook registered before or after this one still runs. `NotLive` does not fail account creation. Users does not run the hook for staff-created, API-created, or seeded accounts, and there is no invite method, so those accounts are not accepted here. The gem still boots if Users is absent.
 
 Drop the host helper onto a form:
 
@@ -82,6 +82,10 @@ Or wrap a host clickwrap with `recording_studio_terms_scroll_to_end(require_scro
 Set `config.capture_request_provenance = true` only if the gem Agree screen should store IP and user agent (default off). Product config is `mount_path`, `app_name`, `require_scroll_to_end`, and `capture_request_provenance`. There is no API key.
 
 Agree is still the post-auth destination. It has no PageNav. Live pending copy sits in closed Flatpack Collapse rows wrapping Content (one row per pending kind). First-time Accept PageTitle names the pending set (“Terms and Conditions”, “Privacy Policy”, or both). After any prior receipt, it uses “We have updated our…” for those kinds. No on-page re-accept Alert, and the gate does not flash. Continue-notice (`link: false` on Accept) and **Continue** stay at the bottom (no checkbox), including after someone has already agreed. Agreeing again to the same live copy keeps the original receipt time. The notice wrapper is `mt-3 mb-3` on Accept and create-password. Signup continue-notice, the signed-in gate, and Accept all read the shared library. The current workspace is not part of the check. Switching workspace does not ask again. A new published version still asks once.
+
+## Upgrade (0.22.0 → 0.23.0)
+
+No Terms migrations. Pin `recording_studio_user` `>= 0.36.0`, `< 2.0`. Delete a host override of `recording_studio_user/auth/registrations/_extra_fields` that only showed this notice. Signup receipts use `source` `signup`. Agree for an existing account still uses `continue_notice`. Copy the Users sign-in lockout and sign-in link migrations when those tables are missing.
 
 ## Upgrade (0.8.1 → 0.9.0)
 

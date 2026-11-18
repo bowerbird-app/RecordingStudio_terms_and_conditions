@@ -292,9 +292,8 @@ class EngineTest < Minitest::Test
     [true, auth, registrations]
   end
 
-  def assert_users_gate_installed(auth, registrations)
+  def assert_users_gate_installed(auth, _registrations)
     assert_includes auth.ancestors, RecordingStudioTermsAndConditions::UsersAuthRedirect
-    assert_includes registrations.ancestors, RecordingStudioTermsAndConditions::SignupAcceptance
   end
 
   def test_apply_controller_extensions_matches_demodulized_name

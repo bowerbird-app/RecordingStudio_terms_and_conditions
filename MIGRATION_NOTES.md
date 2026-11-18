@@ -16,7 +16,19 @@ Then:
 - Enable Admin `section :terms` on an Admin root and grant Accessible access.
 - Publish with Publishable `QuickActions` on term show, or the Publish settings hub. Do not add a custom publish action.
 
-The host gate and Users post-auth hook attach automatically. The gate is `recording_studio_terms_and_conditions.acceptance` on `RecordingStudio.check_gate`. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
+The host gate and Users post-auth hook attach automatically. The gate is `recording_studio_terms_and_conditions.acceptance` on `RecordingStudio.check_gate`. Users `>= 0.36.0` also gets the signup notice partial and an `after_registration` hook. That hook calls `accept!` with provenance `source` `signup` and `method` `password`, `oauth`, or `otp`. Agree stays in place for someone who already has an account when a new version is published.
+
+## Upgrade from 0.22.0 to 0.23.0
+
+No Terms schema change. Pin `0.23.0` and `recording_studio_user` `>= 0.36.0`, `< 2.0`.
+
+The engine appends `recording_studio_terms_and_conditions/signup_notice` to `signup_notice_partials` and appends its own `after_registration` hook. An app hook registered before or after boot still runs. The notice renders only when live terms exist. Continuing signup is the agreement. There is no checkbox.
+
+Users 0.36 runs that hook for password, OAuth, and OTP signup only. Staff create, the operations API, `Directory.create_user!`, and seeds do not emit it. There is no invite path on the hook. This gem does not record signup acceptance for those accounts.
+
+Delete a host `recording_studio_user/auth/registrations/_extra_fields` override that only existed for the old continue-notice. Accept on the re-gate screen is unchanged and still writes `continue_notice`. Receipts still store `body_digest`.
+
+If the host is coming from Users `0.32` or `0.35`, copy the Users sign-in lockout and sign-in link migrations and migrate. Terms itself adds no migration.
 
 After migrating an existing database, seed the outline once:
 
