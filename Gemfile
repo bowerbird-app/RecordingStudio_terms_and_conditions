@@ -22,7 +22,6 @@ gem "recording_studio_moveable", github: "bowerbird-app/RecordingStudio_moveable
 gem "recording_studio_publishable", github: "bowerbird-app/RecordingStudio_publishable", tag: "v1.1.0"
 gem "recording_studio_trashable", github: "bowerbird-app/RecordingStudio_trashable", tag: "v1.0.1",
                                   require: false
-gem "recording_studio_user", github: "bowerbird-app/RecordingStudio_users", tag: "v0.36.0"
 
 gem "devise"
 gem "puma", "8.1.1"

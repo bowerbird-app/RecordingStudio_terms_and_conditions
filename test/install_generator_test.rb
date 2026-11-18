@@ -202,10 +202,9 @@ class InstallGeneratorTest < Minitest::Test
     assert_includes initializer, "config.mount_path"
     assert_includes initializer, "require_scroll_to_end"
     assert_includes initializer, "capture_request_provenance"
-    notice = 'config.signup_notice_partials << "recording_studio_terms_and_conditions/signup_notice"'
-    hook = "config.after_registration(RecordingStudioTermsAndConditions::SignupRegistration)"
-    assert_includes initializer, notice
-    assert_includes initializer, hook
+    assert_includes initializer, "config.gate_exempt_controllers"
+    assert_includes initializer, "config.actor_name_search"
+    refute_includes initializer, "RecordingStudioUser"
     refute_includes initializer, "required_categories"
     refute_includes initializer, "enable_feature_x"
     refute_includes initializer, "api_key"

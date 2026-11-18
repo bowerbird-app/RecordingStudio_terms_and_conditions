@@ -3,7 +3,21 @@
 module RecordingStudioTermsAndConditions
   class Configuration
     attr_accessor :mount_path
-    attr_reader :hooks, :layout, :require_scroll_to_end, :capture_request_provenance
+    attr_reader :hooks, :layout, :require_scroll_to_end, :capture_request_provenance,
+                :gate_exempt_controllers, :actor_name_search
+
+    DEFAULT_GATE_EXEMPT_CONTROLLERS = %w[
+      recording_studio_terms_and_conditions/acceptances
+      recording_studio_terms_and_conditions/admin
+      recording_studio_terms_and_conditions/published_terms
+      agree_helpers
+      recording_studio_publishable
+      recording_studio_admin
+      recording_studio_accessible
+      recording_studio_root_switchable
+      devise
+      rails/health
+    ].freeze
 
     def initialize
       @mount_path = "/recording_studio_terms_and_conditions"
@@ -11,6 +25,8 @@ module RecordingStudioTermsAndConditions
       @layout = nil
       @require_scroll_to_end = false
       @capture_request_provenance = false
+      @gate_exempt_controllers = DEFAULT_GATE_EXEMPT_CONTROLLERS.dup
+      @actor_name_search = nil
       @hooks = RecordingStudio::Hooks.new
     end
 
@@ -35,6 +51,16 @@ module RecordingStudioTermsAndConditions
 
     def capture_request_provenance=(value)
       @capture_request_provenance = self.class.flag?(value)
+    end
+
+    def gate_exempt_controllers=(value)
+      @gate_exempt_controllers = Array(value).map { |name| name.to_s.strip }.reject(&:empty?)
+    end
+
+    def actor_name_search=(value)
+      raise ArgumentError, "actor_name_search must be a callable" if value && !value.respond_to?(:call)
+
+      @actor_name_search = value
     end
 
     def to_h

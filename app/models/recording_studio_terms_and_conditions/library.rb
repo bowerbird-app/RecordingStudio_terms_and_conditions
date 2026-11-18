@@ -2,7 +2,7 @@
 
 module RecordingStudioTermsAndConditions
   # App-level bucket for the one live Terms document per kind.
-  # Same shape as RecordingStudioUser::People: a shared root nobody owns.
+  # A shared root nobody owns.
   class Library < ApplicationRecord
     self.table_name = "recording_studio_terms_and_conditions_libraries"
     self.record_timestamps = false

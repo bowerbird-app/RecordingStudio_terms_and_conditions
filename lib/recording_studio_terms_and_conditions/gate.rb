@@ -9,21 +9,6 @@ module RecordingStudioTermsAndConditions
     CHECK_NAME = "pending"
     REASON = "pending"
 
-    EXEMPT_PREFIXES = %w[
-      recording_studio_terms_and_conditions/acceptances
-      recording_studio_terms_and_conditions/admin
-      recording_studio_terms_and_conditions/published_terms
-      agree_helpers
-      recording_studio_publishable
-      recording_studio_admin
-      recording_studio_accessible
-      recording_studio_root_switchable
-      recording_studio_user/auth
-      recording_studio_user/omniauth
-      devise
-      rails/health
-    ].freeze
-
     module_function
 
     def register!
@@ -48,7 +33,7 @@ module RecordingStudioTermsAndConditions
       return true if controller.respond_to?(:devise_controller?) && controller.devise_controller?
 
       path = controller.controller_path.to_s
-      EXEMPT_PREFIXES.any? { |prefix| path == prefix || path.start_with?("#{prefix}/") }
+      exempt_controllers.any? { |prefix| path == prefix || path.start_with?("#{prefix}/") }
     end
 
     def pending_for(actor, **)
@@ -70,6 +55,11 @@ module RecordingStudioTermsAndConditions
       else
         controller.acceptance_path
       end
+    end
+
+    def exempt_controllers
+      # Built-in screens plus whatever the host appended.
+      RecordingStudioTermsAndConditions.configuration.gate_exempt_controllers
     end
 
     def redirect_for(controller)

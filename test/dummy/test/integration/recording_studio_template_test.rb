@@ -9,10 +9,16 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     assert_includes ApplicationController.ancestors, RecordingStudio::RootSwitchable::ControllerSupport
     assert_includes ApplicationController.instance_methods, :recording_studio_resolved_layout
     assert_includes ApplicationController.ancestors, RecordingStudioTermsAndConditions::ForcesAcceptance
-    assert_includes RecordingStudioUser::Auth::BaseController.ancestors,
-                    RecordingStudioTermsAndConditions::UsersAuthRedirect
-    refute_includes RecordingStudioUser::Auth::RegistrationsController.ancestors,
-                    RecordingStudioTermsAndConditions::SignupRegistration
+    refute RecordingStudioTermsAndConditions.const_defined?(:UsersAuthRedirect)
+    assert_includes RecordingStudioUser::Auth::BaseController.ancestors, DummyTermsAfterAuth
+    assert_includes RecordingStudioUser::OmniauthCallbacksController.ancestors, DummyTermsAfterAuth
+    exempt = RecordingStudioTermsAndConditions.configuration.gate_exempt_controllers
+    assert_includes exempt, "recording_studio_user/auth"
+    assert_includes exempt, "recording_studio_user/omniauth"
+    assert_respond_to RecordingStudioTermsAndConditions.configuration.actor_name_search, :call
+    auth = Struct.new(:controller_path).new("recording_studio_user/auth/sessions")
+    auth.define_singleton_method(:devise_controller?) { false }
+    assert RecordingStudioTermsAndConditions::Gate.exempt?(auth)
     assert_includes RecordingStudioUser.config.after_registration_hooks,
                     RecordingStudioTermsAndConditions::SignupRegistration
     assert_includes RecordingStudioUser.config.signup_notice_partials,

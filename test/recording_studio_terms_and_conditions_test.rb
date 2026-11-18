@@ -21,7 +21,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes gemspec, 'spec.add_dependency "recording_studio_metrics", ">= 0.9.0", "< 2.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_moveable", ">= 5.0", "< 7.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_publishable", ">= 1.0.0", "< 2.0"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_user", ">= 0.36.0", "< 2.0"'
+    refute_includes gemspec, "recording_studio_user"
   end
 
   def test_gemspec_excludes_cursor_config
@@ -80,7 +80,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_match(/recording_studio_trashable.*,\n\s+require: false/, gemfile)
     assert_match(/recording_studio_trashable.*,\n\s+require: false/, root_gemfile)
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.36.0"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_users", tag: "v0.36.0"'
+    refute_includes root_gemfile, "recording_studio_user"
     assert_includes gemfile, 'gem "puma", "8.1.1"'
     assert_includes root_gemfile, 'gem "puma", "8.1.1"'
     assert_includes gemfile, 'gem "msgpack", ">= 1.8.7"'
@@ -939,7 +939,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes dummy_routes, "recording_studio_admin_for :admin"
     assert File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/gate.rb"))
     assert File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/forces_acceptance.rb"))
-    assert File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/users_auth_redirect.rb"))
+    refute File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/users_auth_redirect.rb"))
     assert File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/acceptance_gate_installer.rb"))
     assert File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/signup_registration.rb"))
     refute File.exist?(File.join(engine_root, "lib/recording_studio_terms_and_conditions/signup_acceptance.rb"))
@@ -999,8 +999,15 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     hook = "config.after_registration(RecordingStudioTermsAndConditions::SignupRegistration)"
     assert_includes users_initializer, notice
     assert_includes users_initializer, hook
-    assert_includes host_initializer, notice
-    assert_includes host_initializer, hook
+    refute_includes host_initializer, "RecordingStudioUser"
+    assert_includes host_initializer, "config.gate_exempt_controllers"
+    assert_includes host_initializer, "config.actor_name_search"
+    dummy_terms = File.read(
+      File.join(engine_root, "test/dummy/config/initializers/recording_studio_terms_and_conditions.rb")
+    )
+    assert_includes dummy_terms, "config.gate_exempt_controllers"
+    assert_includes dummy_terms, "config.actor_name_search"
+    assert_includes dummy_terms, "recording_studio_user/auth"
     assert_includes File.read(skill), '{ "source" => "continue_notice" }'
     assert_includes File.read(skill), "root_for_signup"
   end
