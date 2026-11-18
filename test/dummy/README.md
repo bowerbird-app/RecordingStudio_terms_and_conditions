@@ -12,7 +12,7 @@ This Rails app exists to validate the Recording Studio Terms and Conditions addo
 - Mounted `RecordingStudio::Engine` route behavior inside a host app
 - Dummy-only `/docs/*` pages for gem-specific onboarding
 - Acceptance gate: a workspace with live published Terms sends signed-in people to Agree until they accept
-- Create-password signup shows the continue-notice in the Users extra_fields slot when live Terms are pending; submitting the form writes a `continue_notice` receipt
+- Signup shows the continue-notice beside the submit button when live Terms exist. The dummy Users initializer appends that partial and registers `SignupRegistration` on `after_registration`, which writes a `signup` receipt for password, OAuth, and OTP. Sign-in lands on Agree through the gate on the next request. Auth controllers are listed on `config.gate_exempt_controllers`. Who-agreed search uses `config.actor_name_search`. A new published version still sends an existing person to Agree
 - Dummy does **not** turn on `require_scroll_to_end`. The gem Accept screen uses continue-notice with `link: false` (plain text, no modal; the Collapse already shows the terms) plus **Continue** (no checkbox).
 - Dummy sets `config.app_name = "Terms Dummy"`
 - Dummy offers English and French via Recording Studio Internationalization (`v0.1.2`, dummy Gemfile only). The language selector sits in PageNav. French keys live in `config/locales/fr.yml`. The engine does not ship French.

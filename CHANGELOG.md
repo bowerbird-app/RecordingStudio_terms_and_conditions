@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.23.0] - 2026-11-18
+
+### Changed
+- Signup consent is host wiring. The partial `recording_studio_terms_and_conditions/signup_notice` renders the continue-notice only when live terms exist. `SignupRegistration.call(user:, method:)` accepts each pending live document with `{ "source" => "signup", "method" => method.to_s }` for `:password`, `:oauth`, and `:otp`. `NotLive` skips that document. Any other error returns nil so account creation still succeeds. Receipts still store `body_digest`. The dummy registers that partial and callable in its Users initializer.
+- `config.gate_exempt_controllers` lists controller paths the clickwrap skips. Defaults cover Agree, Admin, Publishable, and health. The host appends its auth controllers. The dummy adds `recording_studio_user/auth` and `recording_studio_user/omniauth`.
+- `config.actor_name_search` is an optional callable `(relation, term)` for who-agreed search. The dummy matches email and profile name. With no callable, the name filter does not narrow the list.
+- `recording_studio_user` is not a gemspec dependency. The dummy still pins tag `v0.36.0` and copies the Users sign-in lockout and sign-in link migrations.
+
+### Removed
+- `UsersAuthRedirect` and any prepend onto Users Auth. Users 0.36 has no after-sign-in or after-sign-up setting. `Auth::BaseController#after_sign_in_path_for` is private, and sign-in calls it with `public_send`. A host prepends a public method that returns `Gate.after_auth_path(self, user) || super`. The dummy does that for auth and OAuth callbacks.
+- Engine registration of the signup notice and the `after_registration` hook. Terms does not reference Users.
+- The Users view-path prepend, `app/views/recording_studio_user/auth/registrations/_extra_fields.html.erb`, and the `SignupAcceptance` prepend on `RegistrationsController`.
+
+### Upgrade notes (0.22.0 → 0.23.0)
+- Breaking. No Terms migration. Pin this gem at `0.23.0`. Drop `recording_studio_user` from the Terms gemspec. Keep it on the host if you use Users. The dummy pins tag `v0.36.0`.
+- Add these lines where you configure Users:
+
+```ruby
+config.signup_notice_partials << "recording_studio_terms_and_conditions/signup_notice"
+config.after_registration(RecordingStudioTermsAndConditions::SignupRegistration)
+```
+
+- In the Terms initializer, append auth controller paths and, if you search who agreed by name, set the callable:
+
+```ruby
+config.gate_exempt_controllers += %w[recording_studio_user/auth recording_studio_user/omniauth]
+config.actor_name_search = ->(relation, term) { relation } # host narrows relation
+```
+
+- Delete a host override of `recording_studio_user/auth/registrations/_extra_fields` that only rendered the old notice. Delete any host copy of `UsersAuthRedirect`.
+- Signup receipts use `source` `signup` plus the signup `method`. Agree for someone who already has an account is unchanged and still writes `continue_notice` when a new version is published.
+- Users `0.36.0` runs `after_registration` from password confirmation, OAuth account creation, and OTP registration completion. `Directory.create_user!`, the operations create API, and seeds do not emit it. There is no invite method. Those accounts never saw the notice, so a host that only registers this callable does not write a signup receipt for them.
+- Coming from Users `0.32` or `0.35`, copy the sign-in lockout and sign-in link migrations and migrate.
+
 ## [0.22.0] - 2026-11-16
 
 ### Changed
@@ -736,7 +770,8 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.22.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.23.0...HEAD
+[0.23.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.22.0...v0.23.0
 [0.22.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.21.0...v0.22.0
 [0.21.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.19.1...v0.20.0

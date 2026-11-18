@@ -17,9 +17,6 @@ class GateTest < Minitest::Test
     assert RecordingStudioTermsAndConditions::Gate.exempt?(
       FakeController.new("recording_studio_terms_and_conditions/acceptances", false)
     )
-    assert RecordingStudioTermsAndConditions::Gate.exempt?(
-      FakeController.new("recording_studio_user/auth/registrations", false)
-    )
     assert RecordingStudioTermsAndConditions::Gate.exempt?(FakeController.new("agree_helpers", false))
     assert RecordingStudioTermsAndConditions::Gate.exempt?(
       FakeController.new("recording_studio_terms_and_conditions/admin/terms", false)
@@ -206,6 +203,17 @@ class GateTest < Minitest::Test
     gate.register!
   end
 
+  def test_host_gate_exempt_controllers_skip_the_clickwrap
+    config = RecordingStudioTermsAndConditions.configuration
+    previous = config.gate_exempt_controllers.dup
+    config.gate_exempt_controllers += ["host/auth"]
+
+    assert RecordingStudioTermsAndConditions::Gate.exempt?(FakeController.new("host/auth/sessions", false))
+    refute RecordingStudioTermsAndConditions::Gate.exempt?(FakeController.new("home", false))
+  ensure
+    config.gate_exempt_controllers = previous
+  end
+
   def test_after_auth_path_uses_a_denied_gate_decision
     controller = Object.new
     def controller.acceptance_path
@@ -217,33 +225,20 @@ class GateTest < Minitest::Test
     end
   end
 
-  def test_users_auth_redirect_falls_through_when_acceptance_is_not_required
-    controller = Class.new do
-      prepend RecordingStudioTermsAndConditions::UsersAuthRedirect
-
-      def after_sign_in_path_for(_resource)
-        "/after-in"
-      end
-
-      def after_sign_up_path_for(_resource)
-        "/after-up"
-      end
-
-      def current_root_recordable
-        nil
-      end
-    end.new
+  def test_after_auth_path_is_nil_when_acceptance_is_not_required
+    controller = Object.new
+    def controller.acceptance_path
+      "/agree"
+    end
 
     RecordingStudioTermsAndConditions.stub(:pending_published_list, ->(*) { [] }) do
-      assert_equal "/after-in", controller.after_sign_in_path_for(:user)
-      assert_equal "/after-up", controller.after_sign_up_path_for(:user)
+      assert_nil RecordingStudioTermsAndConditions::Gate.after_auth_path(controller, :user)
     end
   end
 
   def test_gate_files_reuse_domain_helpers
     gate = File.read(File.expand_path("../lib/recording_studio_terms_and_conditions/gate.rb", __dir__))
     forces = File.read(File.expand_path("../lib/recording_studio_terms_and_conditions/forces_acceptance.rb", __dir__))
-    users = File.read(File.expand_path("../lib/recording_studio_terms_and_conditions/users_auth_redirect.rb", __dir__))
 
     assert_includes gate, "pending_published_list"
     assert_includes gate, "def pending_for"
@@ -264,8 +259,8 @@ class GateTest < Minitest::Test
     refute_includes forces, "terms_gate_notice"
     refute_includes forces, "We've updated our Terms and Conditions"
     refute_includes forces, "notice:"
-    assert_includes users, "after_sign_up_path_for"
-    assert_includes users, "Gate.after_auth_path"
+    refute_includes gate, "RecordingStudioUser"
+    refute_includes forces, "RecordingStudioUser"
     refute_includes forces, "Acceptance.create"
     refute_includes gate, "accepted?"
     acceptance = File.read(
@@ -273,7 +268,7 @@ class GateTest < Minitest::Test
     )
     refute_includes acceptance, "Gate.root_for_acceptance"
     assert_includes acceptance, "accepted_any?"
-    signup = File.read(File.expand_path("../lib/recording_studio_terms_and_conditions/signup_acceptance.rb", __dir__))
+    signup = File.read(File.expand_path("../lib/recording_studio_terms_and_conditions/signup_registration.rb", __dir__))
     refute_includes signup, "Gate.root_for_acceptance"
     assert_includes signup, "pending_published_list"
   end

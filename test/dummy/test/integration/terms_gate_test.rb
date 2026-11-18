@@ -175,7 +175,7 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     assert RecordingStudioTermsAndConditions.reaccepting?(@user)
   end
 
-  test "users auth sign in lands on agree when live terms require it" do
+  test "sign in lands on agree through the gate when live terms require it" do
     studio = Workspace.find_or_create_by!(name: "Studio Workspace")
     RecordingStudio.create_root_recording!(studio, actor: recording_write_actor)
     ensure_default_workspace_requires_acceptance!
@@ -194,15 +194,15 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "I agree to these terms"
   end
 
-  test "users auth after sign up uses the same clickwrap" do
+  test "the gate sends a signed-in person to agree until they accept" do
     recording = publish_live_terms!
-    controller = users_auth_controller_for(@workspace)
+    controller = agree_controller_for
 
-    assert_equal recording_studio_terms_and_conditions.acceptance_path, controller.after_sign_up_path_for(@user)
-    assert_equal recording_studio_terms_and_conditions.acceptance_path, controller.after_sign_in_path_for(@user)
+    assert_equal recording_studio_terms_and_conditions.acceptance_path,
+                 RecordingStudioTermsAndConditions::Gate.after_auth_path(controller, @user)
 
     RecordingStudioTermsAndConditions.accept!(@user, recording, { "source" => "clickwrap" })
-    assert_equal "/after-auth", controller.after_sign_up_path_for(@user)
+    assert_nil RecordingStudioTermsAndConditions::Gate.after_auth_path(controller, @user)
   end
 
   test "admin write and public terms stay reachable while the product is gated" do
@@ -262,31 +262,12 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     refute_equal recording_studio_terms_and_conditions.acceptance_path, response.redirect_url.to_s.split("?").first
   end
 
-  def users_auth_controller_for(workspace)
+  def agree_controller_for
     agree_path = recording_studio_terms_and_conditions.acceptance_path
-    Class.new do
-      prepend RecordingStudioTermsAndConditions::UsersAuthRedirect
-
-      def initialize(workspace, agree_path)
-        @workspace = workspace
-        @agree_path = agree_path
+    Object.new.tap do |controller|
+      controller.define_singleton_method(:recording_studio_terms_and_conditions) do
+        Struct.new(:acceptance_path).new(agree_path)
       end
-
-      def after_sign_in_path_for(_resource)
-        "/after-auth"
-      end
-
-      def after_sign_up_path_for(_resource)
-        "/after-auth"
-      end
-
-      def current_root_recordable
-        @workspace
-      end
-
-      def recording_studio_terms_and_conditions
-        Struct.new(:acceptance_path).new(@agree_path)
-      end
-    end.new(workspace, agree_path)
+    end
   end
 end

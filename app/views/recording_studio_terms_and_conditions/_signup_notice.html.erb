@@ -1,0 +1,4 @@
+<% pending = RecordingStudioTermsAndConditions.pending_published_list(nil) %>
+<% if pending.any? %>
+  <%= recording_studio_terms_continue_notice(pending: pending) %>
+<% end %>

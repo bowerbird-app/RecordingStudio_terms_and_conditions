@@ -1,5 +1,0 @@
-<% actor = current_user if respond_to?(:current_user)
-   pending = RecordingStudioTermsAndConditions.pending_published_list(actor) %>
-<% if pending.any? %>
-  <%= recording_studio_terms_continue_notice(actor: actor, pending: pending) %>
-<% end %>

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module RecordingStudioTermsAndConditions
-  # One shared root for every Terms document. Mirrors RecordingStudioUser::Directory#people_root.
+  # One shared root for every Terms document. Nobody owns it.
   module LibraryRoot
     module_function
 

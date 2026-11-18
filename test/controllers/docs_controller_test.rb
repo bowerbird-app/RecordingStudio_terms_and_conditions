@@ -130,6 +130,7 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "recording_studio_terms_agree"
     assert_includes response.body, "recording_studio_terms_continue_notice"
     assert_includes response.body, "continue_notice"
+    assert_includes response.body, "signup"
     assert_includes response.body, "recording_studio_terms_scroll_to_end"
     assert_includes response.body, "require_scroll_to_end: true"
     assert_includes response.body, "accept!"

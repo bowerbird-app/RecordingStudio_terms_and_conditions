@@ -49,6 +49,9 @@ class ConfigurationTest < Minitest::Test
     assert_equal "", configuration.app_name
     assert_equal false, configuration.require_scroll_to_end
     assert_equal false, configuration.capture_request_provenance
+    assert_includes configuration.gate_exempt_controllers, "recording_studio_terms_and_conditions/acceptances"
+    refute_includes configuration.gate_exempt_controllers, "host/auth"
+    assert_nil configuration.actor_name_search
     assert_instance_of RecordingStudio::Hooks, configuration.hooks
   end
 

@@ -16,7 +16,37 @@ Then:
 - Enable Admin `section :terms` on an Admin root and grant Accessible access.
 - Publish with Publishable `QuickActions` on term show, or the Publish settings hub. Do not add a custom publish action.
 
-The host gate and Users post-auth hook attach automatically. The gate is `recording_studio_terms_and_conditions.acceptance` on `RecordingStudio.check_gate`. Users `>= 0.12.1` also gets the create-password continue-notice and `accept!` with provenance `continue_notice`.
+The host includes the gate on `ApplicationController`. The gate is `recording_studio_terms_and_conditions.acceptance` on `RecordingStudio.check_gate`. Append auth controllers to `config.gate_exempt_controllers`. Set `config.actor_name_search` for who-agreed. Signup is separate. Where you configure Users, append `recording_studio_terms_and_conditions/signup_notice` to `signup_notice_partials` and register `SignupRegistration` with `after_registration`. That callable calls `accept!` with provenance `source` `signup` and `method` `password`, `oauth`, or `otp`. Users 0.36 has no after-sign-in setting, so the next signed-in request is what lands on Agree. Agree stays in place when a new version is published.
+
+## Upgrade from 0.22.0 to 0.23.0
+
+No Terms schema change. Pin `0.23.0`. `recording_studio_user` is not a Terms dependency. Keep it on the host. The dummy pins tag `v0.36.0`.
+
+The engine does not install signup and does not touch Users controllers. Add these lines where you configure Users:
+
+```ruby
+config.signup_notice_partials << "recording_studio_terms_and_conditions/signup_notice"
+config.after_registration(RecordingStudioTermsAndConditions::SignupRegistration)
+```
+
+On the Terms initializer:
+
+```ruby
+config.gate_exempt_controllers += %w[recording_studio_user/auth recording_studio_user/omniauth]
+config.actor_name_search = ->(relation, term) { relation } # replace with the host's actor match
+```
+
+The install generator comments those two Terms settings.
+
+The notice renders only when live terms exist. Continuing signup is the agreement. There is no checkbox.
+
+Users 0.36 runs `after_registration` for password, OAuth, and OTP signup only. Staff create, the operations API, `Directory.create_user!`, and seeds do not emit it. There is no invite path on the hook. Those accounts do not get a signup receipt. Users 0.36 also has no after-sign-in config. `Auth::BaseController#after_sign_in_path_for` is private, and sign-in calls it with `public_send`, so the private method raises. Prepend a public `after_sign_in_path_for` and `after_sign_up_path_for` on the auth controller (and the OAuth callbacks controller) that return `Gate.after_auth_path(self, user) || super`. Do not add that prepend inside Terms.
+
+Delete a host `recording_studio_user/auth/registrations/_extra_fields` override that only existed for the old continue-notice. Accept on the re-gate screen is unchanged and still writes `continue_notice`. Receipts still store `body_digest`.
+
+Delete a host `recording_studio_user/auth/registrations/_extra_fields` override that only existed for the old continue-notice. Accept on the re-gate screen is unchanged and still writes `continue_notice`. Receipts still store `body_digest`.
+
+If the host is coming from Users `0.32` or `0.35`, copy the Users sign-in lockout and sign-in link migrations and migrate. Terms itself adds no migration.
 
 After migrating an existing database, seed the outline once:
 

@@ -8,10 +8,6 @@ module RecordingStudioTermsAndConditions
       ActiveSupport.on_load(:action_controller_base) do
         helper RecordingStudioTermsAndConditions::ApplicationHelper
         helper RecordingStudioTermsAndConditions::TermsDateHelper
-        if defined?(RecordingStudioUser)
-          views = RecordingStudioTermsAndConditions::Engine.root.join("app/views").to_s
-          prepend_view_path(views) unless view_paths.first.to_s == views
-        end
       end
       ActiveSupport.on_load(:action_view) do
         include RecordingStudioTermsAndConditions::ApplicationHelper
@@ -25,16 +21,6 @@ module RecordingStudioTermsAndConditions
 
     class << self
       APPLIED_EXTENSIONS_IVAR = :@recording_studio_terms_and_conditions_applied_extensions
-
-      def prepend_users_signup_view_path
-        return unless defined?(RecordingStudioUser)
-        return unless defined?(ActionController::Base)
-
-        views = root.join("app/views").to_s
-        return if ActionController::Base.view_paths.first.to_s == views
-
-        ActionController::Base.prepend_view_path(views)
-      end
 
       def apply_model_extensions(target)
         apply_extensions(target, extensions_for(:model, extension_keys_for(target)))
@@ -212,7 +198,6 @@ module RecordingStudioTermsAndConditions
         RecordingStudioTermsAndConditions::OutlinePublish.install!
         RecordingStudioTermsAndConditions::LibraryStaffAccess.install!
         RecordingStudioTermsAndConditions::LibraryMoves.install!
-        RecordingStudioTermsAndConditions::Engine.prepend_users_signup_view_path
       end
     end
   end

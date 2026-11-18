@@ -150,8 +150,7 @@ module RecordingStudioTermsAndConditions
       end
 
       def matching_name_or_email(relation, raw)
-        term = "%#{Acceptance.sanitize_sql_like(raw.to_s.strip)}%"
-        relation.joins(people_join).where(people_match_sql, term: term)
+        ActorSearch.apply(relation, raw)
       end
 
       def with_kind(relation, kind, agreed:)
@@ -161,19 +160,6 @@ module RecordingStudioTermsAndConditions
         else
           relation.having("#{clause} IS NULL")
         end
-      end
-
-      def people_join
-        acceptances = Acceptance.table_name
-        "LEFT JOIN users ON users.id = #{acceptances}.actor_id " \
-          "AND #{acceptances}.actor_type = 'User' " \
-          "LEFT JOIN recording_studio_user_profiles profiles ON profiles.user_id = users.id"
-      end
-
-      def people_match_sql
-        "users.email ILIKE :term OR profiles.first_name ILIKE :term OR " \
-          "profiles.last_name ILIKE :term OR " \
-          "(profiles.first_name || ' ' || profiles.last_name) ILIKE :term"
       end
 
       def kind_date_sql(kind, alias_name)

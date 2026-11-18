@@ -10,7 +10,7 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
     ensure_live_terms!
   end
 
-  test "create-password shows the continue notice in extra_fields when terms are pending" do
+  test "signup notice renders beside the button only when live terms exist" do
     email = "signup-notice-#{SecureRandom.hex(4)}@example.com"
 
     post "/users/sign_up", params: { user: { email: email } }
@@ -44,33 +44,34 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
     assert_includes CGI.unescapeHTML(response.body), live.body.to_s
   end
 
-  test "create-password writes a continue_notice receipt and clears the gate" do
-    skip "Users first-Profile on the shared People root needs Accessible :edit (Users bootstrap gap, not a host exception)"
-    email = "signup-accept-#{SecureRandom.hex(4)}@example.com"
-    open_create_password(email)
-    pending_count = RecordingStudioTermsAndConditions.pending_published_list(nil).size
+  test "host after_registration accepts pending live terms for password oauth and otp" do
+    assert_includes RecordingStudioUser.config.after_registration_hooks,
+                    RecordingStudioTermsAndConditions::SignupRegistration
 
-    assert_difference -> { RecordingStudioTermsAndConditions::Acceptance.count }, pending_count do
-      post "/users/sign_up/password", params: {
-        user: { email: email, password: "Password" }
-      }
+    %i[password oauth otp].each do |method|
+      user = User.create!(
+        email: "signup-#{method}-#{SecureRandom.hex(4)}@example.com",
+        password: "Password",
+        password_confirmation: "Password"
+      )
+      pending = RecordingStudioTermsAndConditions.pending_published_list(user)
+      assert_predicate pending, :any?
+
+      assert_difference -> { RecordingStudioTermsAndConditions::Acceptance.where(actor: user).count }, pending.size do
+        RecordingStudioUser::AfterRegistration.run!(user_id: user.id, method: method)
+      end
+
+      pending.each do |terms|
+        receipt = RecordingStudioTermsAndConditions::Acceptance.find_by!(actor: user, terms_id: terms.id)
+        assert_equal({ "source" => "signup", "method" => method.to_s }, receipt.provenance)
+        assert_equal RecordingStudioTermsAndConditions::BodyDigest.call(terms.body), receipt.body_digest
+        assert RecordingStudioTermsAndConditions.accepted?(user, kind: terms.kind)
+      end
+      refute RecordingStudioTermsAndConditions.requires_acceptance?(user)
     end
-
-    user = User.find_by!(email: email)
-    assert RecordingStudioTermsAndConditions.accepted?(user, kind: "terms_and_condition")
-    assert RecordingStudioTermsAndConditions.accepted?(user, kind: "privacy_policy") if pending_count > 1
-    receipt = RecordingStudioTermsAndConditions::Acceptance.order(:created_at).last
-    assert_equal({ "source" => "continue_notice" }, receipt.provenance)
-    assert_equal user.id, receipt.actor_id
-
-    follow_redirect!
-    follow_redirect! if response.redirect?
-    get "/"
-    assert_response :success
-    refute_equal recording_studio_terms_and_conditions.acceptance_path, response.redirect_url.to_s.split("?").first
   end
 
-  test "create-password stays blank when the current workspace has no live terms" do
+  test "signup notice stays blank when nothing is live" do
     empty_pending_published_list do
       email = "signup-empty-#{SecureRandom.hex(4)}@example.com"
       post "/users/sign_up", params: { user: { email: email } }
@@ -81,44 +82,6 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
       assert_select "input[type=checkbox][name=agreed]", count: 0
       refute_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
     end
-  end
-
-  test "create-password falls back to a live-terms root when the current root has none" do
-    skip "Users first-Profile on the shared People root needs Accessible :edit (Users bootstrap gap, not a host exception)"
-    empty = Workspace.create!(name: "Empty signup #{SecureRandom.hex(4)}")
-    RecordingStudio.create_root_recording!(empty, actor: recording_write_actor)
-    ensure_live_terms!
-    live = RecordingStudioTermsAndConditions.current_published_for
-    assert live
-
-    email = "signup-fallback-#{SecureRandom.hex(4)}@example.com"
-
-    with_current_root_for_gate(empty) do
-      post "/users/sign_up", params: { user: { email: email } }
-      assert_redirected_to "/users/sign_up/password"
-      follow_redirect!
-
-      assert_response :success
-      assert_select "input#user_password[type=password]"
-      assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
-      assert_includes response.body, live.title
-      pending_count = RecordingStudioTermsAndConditions.pending_published_list(nil).size
-
-      assert_difference -> { RecordingStudioTermsAndConditions::Acceptance.count }, pending_count do
-        post "/users/sign_up/password", params: {
-          user: { email: email, password: "Password" }
-        }
-      end
-    end
-
-    user = User.find_by!(email: email)
-    assert RecordingStudioTermsAndConditions.accepted?(user, kind: "terms_and_condition")
-    refute RecordingStudioTermsAndConditions.current_published_for
-    receipt = RecordingStudioTermsAndConditions::Acceptance.where(actor: user, terms_id: live.id).first
-    assert receipt
-    assert_equal({ "source" => "continue_notice" }, receipt.provenance)
-    assert_equal user.id, receipt.actor_id
-    assert_equal live.id, receipt.terms_id
   end
 
   private
@@ -146,13 +109,6 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
     publish_terms!(recording, slug: "#{slug_prefix}-#{SecureRandom.hex(4)}")
   end
 
-  def open_create_password(email)
-    post "/users/sign_up", params: { user: { email: email } }
-    assert_redirected_to "/users/sign_up/password"
-    follow_redirect!
-    assert_response :success
-  end
-
   def empty_pending_published_list
     mod = RecordingStudioTermsAndConditions.singleton_class
     mod.class_eval do
@@ -164,20 +120,6 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
     mod.class_eval do
       alias_method :pending_published_list, :pending_published_list_without_signup
       remove_method :pending_published_list_without_signup
-    end
-  end
-
-  def with_current_root_for_gate(root)
-    gate = RecordingStudioTermsAndConditions::Gate
-    gate.module_eval do
-      alias_method :root_for_without_signup_fallback, :root_for
-      define_method(:root_for) { |_controller| root }
-    end
-    yield
-  ensure
-    gate.module_eval do
-      alias_method :root_for, :root_for_without_signup_fallback
-      remove_method :root_for_without_signup_fallback
     end
   end
 end

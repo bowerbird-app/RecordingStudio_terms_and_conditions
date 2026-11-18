@@ -34,5 +34,4 @@ Gem::Specification.new do |spec|
   spec.add_dependency "recording_studio_metrics", ">= 0.9.0", "< 2.0"
   spec.add_dependency "recording_studio_moveable", ">= 5.0", "< 7.0"
   spec.add_dependency "recording_studio_publishable", ">= 1.0.0", "< 2.0"
-  spec.add_dependency "recording_studio_user", ">= 0.30.0", "< 2.0"
 end
