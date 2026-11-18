@@ -470,7 +470,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
                     "helper RecordingStudioTermsAndConditions::TermsDateHelper"
     refute_includes engine_source("lib/recording_studio_terms_and_conditions/engine.rb"),
                     "CategoryUniqueness.install!"
-    assert_includes engine_source("lib/recording_studio_terms_and_conditions/gate.rb"), "agree_helpers"
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/configuration.rb"), "agree_helpers"
+    assert_includes engine_source("lib/recording_studio_terms_and_conditions/gate.rb"), "gate_exempt_controllers"
     assert_includes engine_source("lib/recording_studio_terms_and_conditions/gate.rb"), "pending_published_list"
     refute_includes engine_source("lib/recording_studio_terms_and_conditions/gate.rb"), "live_terms_on?"
     refute_includes engine_source("lib/recording_studio_terms_and_conditions/gate.rb"), "first_root_with_live_terms"
