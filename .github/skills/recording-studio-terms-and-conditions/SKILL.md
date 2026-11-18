@@ -52,7 +52,7 @@ Live means Publishable `currently_published?`. `kind` is `terms_and_condition` o
 
 `pending_published_list` is the live Terms and/or Privacy Policy the actor still needs (0..2). The gem registers that check as the Recording Studio gate `recording_studio_terms_and_conditions.acceptance`. `ForcesAcceptance` and Users Auth post-auth follow `RecordingStudio.check_gate` until that set is empty. Agree stays exempt. A raised check still sends a signed-in person to Agree.
 
-When Users `>= 0.36.0` is loaded, this gem appends `recording_studio_terms_and_conditions/signup_notice` to `config.signup_notice_partials` and appends an `after_registration` hook. The partial renders `recording_studio_terms_continue_notice` only when live Terms exist. Password, OAuth, and OTP signup call `accept!` with `{ "source" => "signup", "method" => method.to_s }`. An app hook registered before or after this one still runs. `NotLive` does not fail account creation. Users does not run the hook for staff-created, API-created, or seeded accounts, and there is no invite method, so those accounts are not accepted here. The gem still boots if Users is absent.
+Signup stays in the host. Append `recording_studio_terms_and_conditions/signup_notice` to `config.signup_notice_partials` and register `RecordingStudioTermsAndConditions::SignupRegistration` with `after_registration`. The partial renders `recording_studio_terms_continue_notice` only when live Terms exist. `SignupRegistration.call(user:, method:)` calls `accept!` with `{ "source" => "signup", "method" => method.to_s }`. `NotLive` skips that document. Any other error returns nil so account creation still succeeds. Users does not run the hook for staff-created, API-created, or seeded accounts, and there is no invite method, so those accounts are not accepted here. The engine does not read or write Users signup config.
 
 Drop the host helper onto a form:
 
@@ -85,7 +85,7 @@ Agree is still the post-auth destination. It has no PageNav. Live pending copy s
 
 ## Upgrade (0.22.0 → 0.23.0)
 
-No Terms migrations. Pin `recording_studio_user` `>= 0.36.0`, `< 2.0`. Delete a host override of `recording_studio_user/auth/registrations/_extra_fields` that only showed this notice. Signup receipts use `source` `signup`. Agree for an existing account still uses `continue_notice`. Copy the Users sign-in lockout and sign-in link migrations when those tables are missing.
+No Terms migrations. Pin `recording_studio_user` `>= 0.36.0`, `< 2.0`. The engine does not install signup. Add the notice partial to `signup_notice_partials` and register `SignupRegistration` with `after_registration`. The install generator writes those lines into the Terms initializer. Delete a host override of `recording_studio_user/auth/registrations/_extra_fields` that only showed this notice. Signup receipts use `source` `signup`. Agree for an existing account still uses `continue_notice`. Copy the Users sign-in lockout and sign-in link migrations when those tables are missing.
 
 ## Upgrade (0.8.1 → 0.9.0)
 

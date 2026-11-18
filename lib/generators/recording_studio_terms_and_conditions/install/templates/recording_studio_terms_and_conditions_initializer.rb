@@ -19,3 +19,9 @@ RecordingStudioTermsAndConditions.configure do |config|
   # Default stays off. Direct accept! callers pass their own provenance hash.
   # config.capture_request_provenance = false
 end
+
+# Signup is host wiring. Terms does not register this.
+RecordingStudioUser.configure do |config|
+  config.signup_notice_partials << "recording_studio_terms_and_conditions/signup_notice"
+  config.after_registration(RecordingStudioTermsAndConditions::SignupRegistration)
+end

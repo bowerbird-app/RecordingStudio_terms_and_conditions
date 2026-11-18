@@ -977,12 +977,30 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     engine = File.read(File.join(engine_root, "lib/recording_studio_terms_and_conditions/engine.rb"))
     refute_includes engine, "prepend_view_path"
     refute_includes engine, "SignupAcceptance"
-    assert_includes engine, "SignupRegistration.install!"
+    refute_includes engine, "SignupRegistration"
+    refute_includes engine, "signup_notice_partials"
     registration = File.read(File.join(engine_root, "lib/recording_studio_terms_and_conditions/signup_registration.rb"))
-    assert_includes registration, "signup_notice_partials"
-    assert_includes registration, "after_registration"
+    refute_includes registration, "RecordingStudioUser"
+    refute_includes registration, "signup_notice_partials"
+    refute_includes registration, "after_registration"
     assert_includes registration, '"source" => "signup"'
     assert_includes registration, "NotLive"
+    users_initializer = File.read(
+      File.join(engine_root, "test/dummy/config/initializers/recording_studio_user.rb")
+    )
+    host_initializer = File.read(
+      File.join(
+        engine_root,
+        "lib/generators/recording_studio_terms_and_conditions/install/templates/" \
+        "recording_studio_terms_and_conditions_initializer.rb"
+      )
+    )
+    notice = 'config.signup_notice_partials << "recording_studio_terms_and_conditions/signup_notice"'
+    hook = "config.after_registration(RecordingStudioTermsAndConditions::SignupRegistration)"
+    assert_includes users_initializer, notice
+    assert_includes users_initializer, hook
+    assert_includes host_initializer, notice
+    assert_includes host_initializer, hook
     assert_includes File.read(skill), '{ "source" => "continue_notice" }'
     assert_includes File.read(skill), "root_for_signup"
   end

@@ -193,7 +193,6 @@ module RecordingStudioTermsAndConditions
           RecordingStudioTermsAndConditions::Engine.apply_controller_extensions(controller)
         end
         RecordingStudioTermsAndConditions::AcceptanceGateInstaller.call
-        RecordingStudioTermsAndConditions::SignupRegistration.install!
         RecordingStudioTermsAndConditions::SoleLive.install!
         RecordingStudioTermsAndConditions::Published.install!
         RecordingStudioTermsAndConditions::OutlinePublish.install!

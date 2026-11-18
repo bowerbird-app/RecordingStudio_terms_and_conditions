@@ -44,7 +44,10 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
     assert_includes CGI.unescapeHTML(response.body), live.body.to_s
   end
 
-  test "signup hook accepts pending live terms for password oauth and otp" do
+  test "host after_registration accepts pending live terms for password oauth and otp" do
+    assert_includes RecordingStudioUser.config.after_registration_hooks,
+                    RecordingStudioTermsAndConditions::SignupRegistration
+
     %i[password oauth otp].each do |method|
       user = User.create!(
         email: "signup-#{method}-#{SecureRandom.hex(4)}@example.com",
@@ -55,7 +58,7 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
       assert_predicate pending, :any?
 
       assert_difference -> { RecordingStudioTermsAndConditions::Acceptance.where(actor: user).count }, pending.size do
-        RecordingStudioTermsAndConditions::SignupRegistration.call(user: user, method: method)
+        RecordingStudioUser::AfterRegistration.run!(user_id: user.id, method: method)
       end
 
       pending.each do |terms|

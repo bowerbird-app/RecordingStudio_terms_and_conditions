@@ -8,6 +8,8 @@ RecordingStudioUser.configure do |config|
   # Users 0.36 confirms password signups with an email code. Seed and test users call skip_confirmation!.
   # Users 0.30 defaults this to 12. Seed and demo passwords stay "Password".
   config.minimum_password_length = 6
+  config.signup_notice_partials << "recording_studio_terms_and_conditions/signup_notice"
+  config.after_registration(RecordingStudioTermsAndConditions::SignupRegistration)
   config.additional_profile_attributes |= [:locale] if config.respond_to?(:additional_profile_attributes)
   # Users Auth 0.27 resolves recording_studio_layout from this setting. Nil
   # falls through to core DEFAULT_LAYOUT. Dummy sign-in uses layouts/application
