@@ -10,8 +10,9 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     assert_includes ApplicationController.instance_methods, :recording_studio_resolved_layout
     assert_includes ApplicationController.ancestors, RecordingStudioTermsAndConditions::ForcesAcceptance
     refute RecordingStudioTermsAndConditions.const_defined?(:UsersAuthRedirect)
-    assert_includes RecordingStudioUser::Auth::BaseController.ancestors, DummyTermsAfterAuth
-    assert_includes RecordingStudioUser::OmniauthCallbacksController.ancestors, DummyTermsAfterAuth
+    refute Object.const_defined?(:DummyTermsAfterAuth)
+    assert_instance_of RecordingStudioTermsAndConditions::UsersAfterAuthPath::Callable,
+                       RecordingStudioUser.config.after_auth_path
     exempt = RecordingStudioTermsAndConditions.configuration.gate_exempt_controllers
     assert_includes exempt, "recording_studio_user/auth"
     assert_includes exempt, "recording_studio_user/omniauth"

@@ -21,8 +21,8 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, embed
 - **Agree screen** for pending live Terms and/or Privacy Policy (Continue + continue-notice, no checkbox on Accept). No PageNav. Each pending document sits in a Flatpack Collapse wrapping `FlatPack::Content`. Continue and the “By continuing…” line stay after someone has already agreed, and a second continue does not change the receipt time. Continue `accept!`s every pending live version. First-time Accept titles name the pending kinds; a later live version still uses “We have updated our…”
 - **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`. Wraps in `mt-3 mb-6` so there is a comfortable gap before the host Agree / Accept button. Pass `link_terms: true` to link “terms” (same tab) and “privacy policy” (`target=_blank`) when those documents are pending. Prefer `recording_studio_terms_agree_button` (Flatpack primary) for the CTA. On submit, call `accept!` for each pending live version
 - **Host helper** `recording_studio_terms_continue_notice` — “By continuing, you agree to [app name]'s Terms & Conditions” and, when privacy is pending, “and privacy policy”. Default size is `:xs` with muted Flatpack copy. The notice sits in `mt-3 mb-3` above the button that follows it (Accept **Continue**, signup **Sign up**). Terms and privacy each open their own Flatpack Modal. Pass `link: false` for plain text (Accept does this). On a host POST that uses the helper, `accept!` each pending live version with `{ "source" => "continue_notice" }`
-- **Gate** on the host `ApplicationController`: the next signed-in request redirects to Agree until every pending live kind is accepted (0..2), and again after a new publish of either kind. Hosts append auth controllers to `config.gate_exempt_controllers` so sign-in can finish
-- **Signup pieces** the host wires: partial `recording_studio_terms_and_conditions/signup_notice` and callable `SignupRegistration`. The partial renders `recording_studio_terms_continue_notice` only when live documents exist. `call(user:, method:)` `accept!`s each pending live version with `{ "source" => "signup", "method" => method }` for `:password`, `:oauth`, and `:otp`. The dummy appends the partial to `signup_notice_partials` and registers the callable with `after_registration`. Users 0.36 has no after-sign-in setting, so Agree after sign-in is the gate on the next request
+- **Gate** on the host `ApplicationController`: the next signed-in request redirects to Agree until every pending live kind is accepted (0..2), and again after a new publish of either kind. Defaults exempt `recording_studio_user/auth` and `recording_studio_user/omniauth`. Hosts append any other auth controllers to `config.gate_exempt_controllers`
+- **Signup pieces** the host wires: partial `recording_studio_terms_and_conditions/signup_notice` and callable `SignupRegistration`. The partial renders `recording_studio_terms_continue_notice` only when live documents exist. `call(user:, method:)` `accept!`s each pending live version with `{ "source" => "signup", "method" => method }` for `:password`, `:oauth`, and `:otp`. The dummy appends the partial to `signup_notice_partials` and registers the callable with `after_registration`. On Users >= 0.37.0, Terms hooks `config.after_auth_path` so sign-in and sign-up land on Agree while Terms are pending. Set `config.users_after_auth_path = false` to wire that yourself
 - **Who agreed** lists acceptance rows. `config.actor_name_search` is an optional callable the host uses to match names and email. The dummy searches the user and profile tables
 - **Admin** create/edit Terms or Privacy Policy (Type select; New blocked when that kind already exists), Publishable `QuickActions`, and agreement history per released snapshot. SoleLive is per kind
 - **Public Terms URL** at `/terms/:uuid/:slug` and **Privacy Policy** at `/privacy/:uuid/:slug` via Publishable
@@ -161,7 +161,7 @@ bin/rails db:migrate
 bin/rails tailwindcss:build
 ```
 
-`recording_studio_terms_and_conditions:install` mounts the engine, copies this gem's migrations, and writes the initializer. Then register `RecordingStudioTermsAndConditions::Terms`, `Section`, and `Clause` in `recordable_types`, mount Publishable at `/`, and enable Admin `section :terms` on an Admin root with Accessible access. This gem depends on `recording_studio_moveable` `>= 5.0`, `< 7.0`. Add GitHub sources for Moveable `v6.0.0` and Icons `v0.4.0` when those gems are not on RubyGems.
+`recording_studio_terms_and_conditions:install` mounts the engine, copies this gem's migrations, and writes the initializer. Then register `RecordingStudioTermsAndConditions::Terms`, `Section`, and `Clause` in `recordable_types`, mount Publishable at `/`, and enable Admin `section :terms` on an Admin root with Accessible access. This gem depends on `recording_studio_moveable` `>= 5.0`, `< 7.0`. Add GitHub sources for Moveable `v6.1.0` and Icons `v0.5.0` when those gems are not on RubyGems.
 
 This is the kit gem for published Terms and clickwrap. Add it to the approved list in `recording-studio-gems`. Do not hand-roll acceptances.
 
@@ -189,15 +189,25 @@ Add [Recording Studio Internationalization](https://github.com/bowerbird-app/Rec
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
 
+## Upgrading from 0.23.0
+
+Bump to **0.24.0**. No Terms schema change. Hosts moving from 0.22.0 must also read the 0.23.0 notes. `recording_studio_user` stays off the gemspec. The dummy pins Users `v0.42.1`.
+
+Hosts on Users >= 0.37.0 get the Agree redirect automatically after sign-in and sign-up. Delete any host copy of `UsersAuthRedirect` or a host prepend of `after_sign_in_path_for`. Set `config.users_after_auth_path = false` to opt out. Set a host `config.after_auth_path` callable in an initializer. A `to_prepare` assignment after boot replaces the wrap.
+
+`recording_studio_user/auth` and `recording_studio_user/omniauth` are on the default exempt list. Signup consent stays the host partial and `after_registration` lines from 0.23.0.
+
+flat_pack 0.2.0 is supported. Hosts moving to 0.2 must remove the manual `flat_pack/heroicons` importmap pin and any `flat-pack--icon` controller registration. Hosts MUST run the Recording Studio 7.4, 7.5 and 7.7 migrations if they have not. The dummy moves Attachable off `v0.31.0` and Cache off `v0.7.0`, and pins Broadcasts `v0.7.0`.
+
 ## Upgrading from 0.22.0
 
 Bump to **0.23.0**. No Terms schema change. `recording_studio_user` is no longer a gemspec dependency. The dummy still pins tag `v0.36.0`.
 
 The host wires signup. Append `recording_studio_terms_and_conditions/signup_notice` to `signup_notice_partials`, and register `RecordingStudioTermsAndConditions::SignupRegistration` with `after_registration`. The dummy puts those lines in its Users initializer. Password, OAuth, and OTP signup accept each pending live document with provenance `source` `signup` and `method` set to that signup method. Receipts still store `body_digest`.
 
-Append auth controller paths to `config.gate_exempt_controllers`. The dummy adds `recording_studio_user/auth` and `recording_studio_user/omniauth`. Set `config.actor_name_search` to match who-agreed by name or email. The install generator comments both settings. The dummy search joins `users` and `recording_studio_user_profiles`.
+`recording_studio_user/auth` and `recording_studio_user/omniauth` are default exempt prefixes. A host appends any other auth controllers to `config.gate_exempt_controllers`. Set `config.actor_name_search` to match who-agreed by name or email. The install generator comments both settings. The dummy search joins `users` and `recording_studio_user_profiles`.
 
-Users 0.36 does not offer an after-sign-in or after-sign-up config. `Auth::BaseController#after_sign_in_path_for` is private, and sign-in calls it with `public_send`, which raises. The dummy prepends a public method on the auth controller and the OAuth callbacks controller: `Gate.after_auth_path(self, user) || super`. This gem does not ship that prepend. A signed-in request on a controller that is not exempt still goes to Agree through `ForcesAcceptance` and `RecordingStudio.check_gate`.
+Terms wraps Users' `config.after_auth_path` with `UsersAfterAuthPath::Callable`. The engine installs that wrap in `after_initialize`. Installing again does not nest the wrap. Set `config.users_after_auth_path = false` to opt out and wire the landing path yourself. A host callable set in an initializer is wrapped. A `to_prepare` assignment after boot replaces the wrap. A signed-in request on a controller that is not exempt still goes to Agree through `ForcesAcceptance` and `RecordingStudio.check_gate`.
 
 Users 0.36 does not run `after_registration` for accounts created by staff, the operations API, `Directory.create_user!`, or seeds. There is no invite method on the hook. Those people never see the notice, so this callable does not write a signup receipt for them. A later published version still sends them to Agree.
 
@@ -416,12 +426,12 @@ That `find_by` loop is the host's N+1. The gem returns actor ids and does not lo
 The event name is `published.recording_studio_terms_and_conditions`. It fires when Publishable marks a Terms parent currently published, including a scheduled window. It does not fire for a `TermsWrite` draft, `accept!`, or SoleLive drafting the previous live copy. Use this event, not raw `published.recording_studio_publishable`. A subscriber exception is reported with `Rails.error` and does not fail the publish or skip SoleLive; a later `WindowTransitionJob` can notify again. A successful emit is claimed with `recording.log_event!` (`record!`), so `authorize_write` and record hooks run. A denying authorizer drops or fails that claim. A second successful job for the same window does not emit again.
 - Live means Publishable `currently_published?` (scheduled-in-the-future is not current). `accept!` raises `RecordingStudioTermsAndConditions::NotLive` for drafts and unpublished versions and does not write a receipt. `indexable` is SEO and is not used for clickwrap. Retrying `accept!` for the same actor and snapshot returns the existing receipt. Saving live Terms forks a draft; people who already agreed stay agreed until that draft is published. A new published version still needs a new tick. The “You already agreed” Alert shows when Agree lists live Terms the person has not accepted yet and they already have a receipt for an older Terms version in that workspace. First-time Agree never shows it. `reaccepting_actors_for` is scoped to that workspace root and kind. A destroyed user can still appear: acceptances have no foreign key to users, so the host must tolerate a missing actor.
 - The gem registers the core gate `recording_studio_terms_and_conditions.acceptance` at boot. `ForcesAcceptance` on the host `ApplicationController` asks `RecordingStudio.check_gate` and redirects to `decision.redirect_to`. Users Auth uses the same decision after sign-in and sign-up. Auth, Agree, Admin, public Terms, and root switch stay exempt so people can sign in, accept, publish, or switch workspace. A check that raises denies and still sends a signed-in person to Agree.
-- With Users `>= 0.36.0`, the host appends `recording_studio_terms_and_conditions/signup_notice` to `signup_notice_partials` and registers `SignupRegistration` on `after_registration`. The notice shows only when live Terms exist. A finished password, OAuth, or OTP signup calls `accept!` with `{ "source" => "signup", "method" => method }`. `NotLive` and any other Terms error do not fail account creation. Agree still gates someone who already has an account when a new version is published. Add auth paths to `config.gate_exempt_controllers`. Set `config.actor_name_search` for who-agreed. Users 0.36 has no post-auth redirect setting, so the next request uses the gate.
+- With Users `>= 0.36.0`, the host appends `recording_studio_terms_and_conditions/signup_notice` to `signup_notice_partials` and registers `SignupRegistration` on `after_registration`. The notice shows only when live Terms exist. A finished password, OAuth, or OTP signup calls `accept!` with `{ "source" => "signup", "method" => method }`. `NotLive` and any other Terms error do not fail account creation. Agree still gates someone who already has an account when a new version is published. Set `config.actor_name_search` for who-agreed. On Users >= 0.37.0, Terms hooks `config.after_auth_path` so sign-in and sign-up land on Agree while live Terms are pending. Set `config.users_after_auth_path = false` to wire that callable yourself, in an initializer rather than `to_prepare`.
 - Hosts can render `recording_studio_terms_agree` or `recording_studio_terms_agree(inside_form: true)` inside signup or similar. The helper is the `required` `agreed` checkbox only. On the host POST, call `accept!` for the pending live version — do not invent a second receipt.
 - Agree has no on-page re-accept Alert. A new live version opens Accept with no flash. The page title is “We have updated our terms and conditions.” The Accept screen uses continue-notice and **Continue**.
 - Hosts can also render `recording_studio_terms_continue_notice`. Default is xs and muted. Pass `size: :sm` for `text-sm`. The link opens a Flatpack Modal with the standalone terms view (same document as the public show). Pass `link: false` for plain text with no modal when the terms are already on the page. On that POST, call `accept!` with `{ "source" => "continue_notice" }`.
 - The gem Agree screen does not apply scroll-to-end. Hosts that still want a scroll gate wrap their own copy with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` and `recording_studio_terms_agree_button(require_scroll_to_end: true)`, and pin the engine Stimulus controller in the host importmap. The checkbox stays required either way. Missing IntersectionObserver leaves Agree enabled.
-- Product configuration is `mount_path`, `app_name`, `require_scroll_to_end`, and `capture_request_provenance` (IP/UA on gem UI accepts, default off). There is no API key. `app_name` is optional. A blank value uses Site Settings `name_for` when that gem is loaded.
+- Product configuration is `mount_path`, `app_name`, `require_scroll_to_end`, `capture_request_provenance` (IP/UA on gem UI accepts, default off), `users_after_auth_path` (default on), `gate_exempt_controllers`, and `actor_name_search`. There is no API key. `app_name` is optional. A blank value uses Site Settings `name_for` when that gem is loaded.
 - Each configured recordable declares `recording_studio_recordable(...)`; strict declaration validation stays enabled
 - A root `RecordingStudio::Recording` wraps the Workspace
 - `Current.actor` is set from `current_user` (Devise) in `ApplicationController`
@@ -513,21 +523,23 @@ See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full do
 | Rails           | 8.1+    |
 | PostgreSQL      | 16      |
 | TailwindCSS     | 4       |
-| RecordingStudio | 7 (`>= 7.0`, `< 8.0` in the gemspec; dummy GitHub tag `v7.3.0`) |
-| Accessible      | gemspec `>= 0.44.0`, `< 2.0`; dummy GitHub tag `v0.45.1` |
-| Admin           | gemspec `>= 2.16.0`, `< 3.0`; dummy GitHub tag `v2.18.0` |
-| Trashable       | dummy GitHub tag `v1.0.1` (`require: false`; `Recording.kept`) |
-| Users           | dummy GitHub tag `v0.36.0` only. Not a gemspec dependency |
-| Publishable     | gemspec `>= 1.0.0`, `< 2.0`; dummy GitHub tag `v1.1.0` |
-| Attachable      | dummy GitHub tag `v0.31.0` (Users Profile needs it) |
-| API             | not a gemspec dependency; GitHub tag `v1.2.1` (Publishable 1.1 and Attachable 0.31 require it) |
-| Root Switchable | dummy GitHub tag `v0.16.0` |
-| Cache           | dummy GitHub tag `v0.7.0` (Users / Root Switchable rate limits) |
-| Logs            | dummy GitHub tag `v0.8.0` (API 1.2 requires it; not in this gemspec) |
-| Metrics         | gemspec `>= 0.9.0`, `< 2.0`; dummy GitHub tag `v0.9.0` |
-| Moveable        | gemspec `>= 5.0`, `< 7.0`; dummy GitHub tag `v6.0.0` |
-| Icons           | dummy GitHub tag `v0.4.0` |
-| FlatPack        | gemspec `>= 0.1.196`; dummy GitHub tag `v0.1.377` |
+| RecordingStudio | 7 (`>= 7.0`, `< 8.0` in the gemspec; dummy GitHub tag `v7.8.0`) |
+| Accessible      | gemspec `>= 0.44.0`, `< 2.0`; dummy GitHub tag `v0.58.0` |
+| Admin           | gemspec `>= 2.16.0`, `< 3.0`; dummy GitHub tag `v2.20.0` |
+| Trashable       | dummy GitHub tag `v1.3.0` (`require: false`; `Recording.kept`) |
+| Users           | dummy GitHub tag `v0.42.1` only. Not a gemspec dependency |
+| Publishable     | gemspec `>= 1.0.0`, `< 2.0`; dummy GitHub tag `v1.5.0` |
+| Attachable      | dummy GitHub tag `v0.34.0` (Users Profile needs it) |
+| API             | not a gemspec dependency; GitHub tag `v1.21.2` (Publishable 1.5 and Attachable 0.34 require it) |
+| Root Switchable | dummy GitHub tag `v0.17.0` |
+| Cache           | dummy GitHub tag `v0.8.0` (Users / Root Switchable rate limits) |
+| Logs            | dummy GitHub tag `v0.9.0` (API 1.21 requires it; not in this gemspec) |
+| Metrics         | gemspec `>= 0.9.0`, `< 2.0`; dummy GitHub tag `v0.10.0` |
+| Moveable        | gemspec `>= 5.0`, `< 7.0`; dummy GitHub tag `v6.1.0` |
+| Icons           | dummy GitHub tag `v0.5.0` |
+| FlatPack        | gemspec `>= 0.1.196`; dummy GitHub tag `v0.2.0` |
+| Broadcasts      | dummy GitHub tag `v0.7.0` (`require: false`; outline order test) |
+| Notifications   | dummy GitHub tag `v0.21.0` (Users email codes) |
 | Internationalization | dummy GitHub tag `v0.3.0` (not in the gemspec) |
 | Devise          | latest  |
 

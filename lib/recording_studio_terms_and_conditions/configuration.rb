@@ -4,7 +4,7 @@ module RecordingStudioTermsAndConditions
   class Configuration
     attr_accessor :mount_path
     attr_reader :hooks, :layout, :require_scroll_to_end, :capture_request_provenance,
-                :gate_exempt_controllers, :actor_name_search
+                :users_after_auth_path, :gate_exempt_controllers, :actor_name_search
 
     DEFAULT_GATE_EXEMPT_CONTROLLERS = %w[
       recording_studio_terms_and_conditions/acceptances
@@ -16,6 +16,8 @@ module RecordingStudioTermsAndConditions
       recording_studio_accessible
       recording_studio_root_switchable
       devise
+      recording_studio_user/auth
+      recording_studio_user/omniauth
       rails/health
     ].freeze
 
@@ -25,6 +27,7 @@ module RecordingStudioTermsAndConditions
       @layout = nil
       @require_scroll_to_end = false
       @capture_request_provenance = false
+      @users_after_auth_path = true
       @gate_exempt_controllers = DEFAULT_GATE_EXEMPT_CONTROLLERS.dup
       @actor_name_search = nil
       @hooks = RecordingStudio::Hooks.new
@@ -53,6 +56,10 @@ module RecordingStudioTermsAndConditions
       @capture_request_provenance = self.class.flag?(value)
     end
 
+    def users_after_auth_path=(value)
+      @users_after_auth_path = self.class.flag?(value)
+    end
+
     def gate_exempt_controllers=(value)
       @gate_exempt_controllers = Array(value).map { |name| name.to_s.strip }.reject(&:empty?)
     end
@@ -69,6 +76,7 @@ module RecordingStudioTermsAndConditions
         app_name: app_name,
         require_scroll_to_end: require_scroll_to_end,
         capture_request_provenance: capture_request_provenance,
+        users_after_auth_path: users_after_auth_path,
         hooks_registered: hooks.instance_variable_get(:@registry).transform_values(&:size)
       }
     end

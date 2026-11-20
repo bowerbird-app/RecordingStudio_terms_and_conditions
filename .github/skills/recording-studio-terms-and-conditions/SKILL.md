@@ -7,7 +7,7 @@ description: Published Terms, clickwrap acceptance, and the host gate for Record
 
 This is the kit gem for **published Terms** and **clickwrap acceptance**. Do not invent a second acceptance table, accept screen, or post-auth redirect.
 
-Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.9.0**.
+Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.24.0**.
 
 ## Need
 
@@ -50,7 +50,7 @@ RecordingStudioTermsAndConditions.accepted?(user, workspace)
 
 Live means Publishable `currently_published?`. `kind` is `terms_and_condition` or `privacy_policy`. One lineage per kind lives on the shared `Library` root (`root: true, shared: true`), the same shape as People. Admin New is blocked when that kind already exists; versions come from edit/fork. SoleLive drafts other live rows of the same kind only. `accept!` raises `NotLive` for drafts and unpublished versions. Retrying the same actor and live snapshot returns the existing receipt. Saving live Terms forks a draft; the published copy stays live. Publishing the draft drafts the previous live version of that kind. A later published version still inserts a new receipt. Acceptance rows are receipts, not recordings. New receipts store `body_digest` (read via `receipt_contract`).
 
-`pending_published_list` is the live Terms and/or Privacy Policy the actor still needs (0..2). The gem registers that check as the Recording Studio gate `recording_studio_terms_and_conditions.acceptance`. `ForcesAcceptance` on the host `ApplicationController` follows `RecordingStudio.check_gate` until that set is empty. Agree stays exempt. Append auth controller paths to `config.gate_exempt_controllers` so sign-in can finish. A raised check still sends a signed-in person to Agree. Users 0.36 has no after-sign-in setting. `after_sign_in_path_for` on the auth base controller is private and sign-in calls it with `public_send`. The host prepends a public method that returns `Gate.after_auth_path(self, user) || super`. This gem does not.
+`pending_published_list` is the live Terms and/or Privacy Policy the actor still needs (0..2). The gem registers that check as the Recording Studio gate `recording_studio_terms_and_conditions.acceptance`. `ForcesAcceptance` on the host `ApplicationController` follows `RecordingStudio.check_gate` until that set is empty. Agree stays exempt. Defaults also exempt `recording_studio_user/auth` and `recording_studio_user/omniauth`. Append any other auth controller paths to `config.gate_exempt_controllers`. A raised check still sends a signed-in person to Agree. On Users >= 0.37.0, `UsersAfterAuthPath` hooks `config.after_auth_path` so sign-in and sign-up land on Agree while live Terms are pending. Set `config.users_after_auth_path = false` to wire that yourself. Set a host callable in an initializer. A `to_prepare` assignment replaces the wrap.
 
 Signup stays in the host. Append `recording_studio_terms_and_conditions/signup_notice` to `config.signup_notice_partials` and register `RecordingStudioTermsAndConditions::SignupRegistration` with `after_registration`. The partial renders `recording_studio_terms_continue_notice` only when live Terms exist. `SignupRegistration.call(user:, method:)` calls `accept!` with `{ "source" => "signup", "method" => method.to_s }`. `NotLive` skips that document. Any other error returns nil so account creation still succeeds. Users does not run the hook for staff-created, API-created, or seeded accounts, and there is no invite method, so those accounts are not accepted here.
 
@@ -81,9 +81,13 @@ end
 
 Or wrap a host clickwrap with `recording_studio_terms_scroll_to_end(require_scroll_to_end: true)` and `recording_studio_terms_agree_button(require_scroll_to_end: true)`. Pin `recording_studio_terms_and_conditions/controllers` in the host importmap. The checkbox is still required. Missing IntersectionObserver leaves Agree enabled.
 
-Set `config.capture_request_provenance = true` only if the gem Agree screen should store IP and user agent (default off). Product config is `mount_path`, `app_name`, `require_scroll_to_end`, `capture_request_provenance`, `gate_exempt_controllers`, and `actor_name_search`. There is no API key. `recording_studio_user` is not a gemspec dependency.
+Set `config.capture_request_provenance = true` only if the gem Agree screen should store IP and user agent (default off). Product config is `mount_path`, `app_name`, `require_scroll_to_end`, `capture_request_provenance`, `users_after_auth_path`, `gate_exempt_controllers`, and `actor_name_search`. There is no API key. `recording_studio_user` is not a gemspec dependency.
 
 Agree is still the post-auth destination. It has no PageNav. Live pending copy sits in closed Flatpack Collapse rows wrapping Content (one row per pending kind). First-time Accept PageTitle names the pending set (“Terms and Conditions”, “Privacy Policy”, or both). After any prior receipt, it uses “We have updated our…” for those kinds. No on-page re-accept Alert, and the gate does not flash. Continue-notice (`link: false` on Accept) and **Continue** stay at the bottom (no checkbox), including after someone has already agreed. Agreeing again to the same live copy keeps the original receipt time. The notice wrapper is `mt-3 mb-3` on Accept and create-password. Signup continue-notice, the signed-in gate, and Accept all read the shared library. The current workspace is not part of the check. Switching workspace does not ask again. A new published version still asks once.
+
+## Upgrade (0.23.0 → 0.24.0)
+
+No Terms migrations. `recording_studio_user` is not a gemspec dependency. The dummy pins tag `v0.42.1`. Hosts on Users >= 0.37.0 get the Agree redirect after sign-in and sign-up. Delete any host copy of `UsersAuthRedirect` or a host prepend of `after_sign_in_path_for`. Set `config.users_after_auth_path = false` to opt out. Set a host callable in an initializer, not in `to_prepare`. Hosts moving from 0.22.0 must also read the 0.23.0 notes. flat_pack 0.2.0 is supported; remove the manual `flat_pack/heroicons` importmap pin and any `flat-pack--icon` controller registration. Hosts MUST run the Recording Studio 7.4, 7.5 and 7.7 migrations if they have not.
 
 ## Upgrade (0.22.0 → 0.23.0)
 

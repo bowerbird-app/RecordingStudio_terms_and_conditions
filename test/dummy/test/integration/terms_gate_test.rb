@@ -187,11 +187,32 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     follow_redirect!
     post "/users/sign_in/password", params: { user: { email: @user.email, password: @password } }
 
-    assert_response :redirect
+    assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
     follow_redirect!
-    follow_redirect! if response.redirect?
     assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
     refute_includes response.body, "I agree to these terms"
+  end
+
+  test "sign in with nothing pending lands on the root" do
+    RecordingStudioTermsAndConditions.pending_published_list(@user).each do |terms|
+      RecordingStudioTermsAndConditions.accept!(@user, terms, { "source" => "continue_notice" })
+    end
+    sign_out @user
+
+    post "/users/sign_in", params: { user: { email: @user.email } }
+    follow_redirect!
+    post "/users/sign_in/password", params: { user: { email: @user.email, password: @password } }
+
+    assert_redirected_to "/"
+  end
+
+  test "a signed-in person with pending terms can still reach sign out" do
+    publish_live_terms!
+
+    delete "/users/sign_out"
+
+    assert_response :redirect
+    refute_equal recording_studio_terms_and_conditions.acceptance_path, URI.parse(response.location).path
   end
 
   test "the gate sends a signed-in person to agree until they accept" do

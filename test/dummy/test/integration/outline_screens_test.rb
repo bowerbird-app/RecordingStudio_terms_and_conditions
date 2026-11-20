@@ -69,8 +69,12 @@ class OutlineScreensTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "1 clause"
     assert_includes response.body, "Reorder"
     assert_includes response.body, "moving_recording_id"
-    assert_select "a", text: "Section"
-    assert_select 'a svg[data-flat-pack--icon-name-value="plus"]'
+    assert_select "a", text: "Section" do |links|
+      svg = links.first.css("svg").first
+      assert svg, "expected a server-rendered plus icon"
+      assert_includes svg.to_html, "M12 4.5v15m7.5-7.5h-15"
+    end
+    refute_includes response.body, 'data-flat-pack--icon-name-value="plus"'
     assert_select "a", text: "Edit section name"
     assert_select "a", text: "Edit clauses"
     assert_select "button", text: "Delete"

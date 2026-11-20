@@ -12,13 +12,15 @@ class ConfigurationTest < Minitest::Test
       mount_path: "/terms",
       app_name: "Harbor",
       require_scroll_to_end: "true",
-      capture_request_provenance: "1"
+      capture_request_provenance: "1",
+      users_after_auth_path: "false"
     )
 
     assert_equal "/terms", @configuration.mount_path
     assert_equal "Harbor", @configuration.app_name
     assert_equal true, @configuration.require_scroll_to_end
     assert_equal true, @configuration.capture_request_provenance
+    assert_equal false, @configuration.users_after_auth_path
   end
 
   def test_merge_ignores_unknown_keys
@@ -49,7 +51,14 @@ class ConfigurationTest < Minitest::Test
     assert_equal "", configuration.app_name
     assert_equal false, configuration.require_scroll_to_end
     assert_equal false, configuration.capture_request_provenance
+    assert_equal true, configuration.users_after_auth_path
     assert_includes configuration.gate_exempt_controllers, "recording_studio_terms_and_conditions/acceptances"
+    assert_includes configuration.gate_exempt_controllers, "recording_studio_user/auth"
+    assert_includes configuration.gate_exempt_controllers, "recording_studio_user/omniauth"
+    assert_includes RecordingStudioTermsAndConditions::Configuration::DEFAULT_GATE_EXEMPT_CONTROLLERS,
+                    "recording_studio_user/auth"
+    assert_includes RecordingStudioTermsAndConditions::Configuration::DEFAULT_GATE_EXEMPT_CONTROLLERS,
+                    "recording_studio_user/omniauth"
     refute_includes configuration.gate_exempt_controllers, "host/auth"
     assert_nil configuration.actor_name_search
     assert_instance_of RecordingStudio::Hooks, configuration.hooks
@@ -74,6 +83,7 @@ class ConfigurationTest < Minitest::Test
     assert_equal "", result.fetch(:app_name)
     assert_equal false, result.fetch(:require_scroll_to_end)
     assert_equal false, result.fetch(:capture_request_provenance)
+    assert_equal true, result.fetch(:users_after_auth_path)
     refute result.key?(:required_categories)
     refute result.key?(:api_key)
     refute result.key?(:enable_feature_x)

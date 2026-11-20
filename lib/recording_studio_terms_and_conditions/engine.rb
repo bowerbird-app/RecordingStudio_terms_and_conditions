@@ -178,6 +178,13 @@ module RecordingStudioTermsAndConditions
       end
     end
 
+    # After host initializers so a host-set callable is wrapped, not overwritten.
+    # A later to_prepare assignment replaces this wrap. Set the host callable in
+    # an initializer instead.
+    initializer "recording_studio_terms_and_conditions.users_after_auth_path" do
+      config.after_initialize { RecordingStudioTermsAndConditions::UsersAfterAuthPath.install! }
+    end
+
     initializer "recording_studio_terms_and_conditions.privacy_route" do |app|
       app.routes.append do
         RecordingStudioTermsAndConditions::PrivacyRoute.draw!(self)

@@ -91,32 +91,44 @@ class AuthorizeWriteTest < ActiveSupport::TestCase
       RecordingStudioTermsAndConditions::Terms.new(title: "Edit ok", body: "Yes."))
   end
 
-  test "Users first Profile on People root needs Accessible edit" do
+  test "a person may record their own Profile on the People root" do
     authorizer = RecordingStudio.configuration.authorize_write
     actor = User.create!(
-      email: "users-gap-#{SecureRandom.hex(4)}@example.com",
+      email: "own-profile-#{SecureRandom.hex(4)}@example.com",
+      password: "Password",
+      password_confirmation: "Password"
+    )
+    other = User.create!(
+      email: "other-profile-#{SecureRandom.hex(4)}@example.com",
       password: "Password",
       password_confirmation: "Password"
     )
     people = RecordingStudioUser::People.first || RecordingStudioUser::People.create!
     people_root = RecordingStudio.root_recording_for(people) ||
                   RecordingStudio.create_root_recording!(people, actor: recording_write_actor)
-    profile = RecordingStudioUser::Profile.new(
+    own = RecordingStudioUser::Profile.new(
       user: actor,
-      first_name: "Gap",
-      last_name: "User",
+      first_name: "Own",
+      last_name: "Profile",
+      time_zone: "UTC"
+    )
+    theirs = RecordingStudioUser::Profile.new(
+      user: other,
+      first_name: "Other",
+      last_name: "Profile",
       time_zone: "UTC"
     )
 
-    refute authorizer.call(actor: actor, root_recording: people_root, recordable: profile)
-    error = assert_raises(RecordingStudio::AuthorizationError) do
-      people_root.record(RecordingStudioUser::Profile, actor: actor) do |row|
-        row.user_id = actor.id
-        row.first_name = "Gap"
-        row.last_name = "User"
-        row.time_zone = "UTC"
-      end
+    assert authorizer.call(actor: actor, root_recording: people_root, recordable: own)
+    refute authorizer.call(actor: actor, root_recording: people_root, recordable: theirs)
+
+    recording = people_root.record(RecordingStudioUser::Profile, actor: actor) do |row|
+      row.user_id = actor.id
+      row.first_name = "Own"
+      row.last_name = "Profile"
+      row.time_zone = "UTC"
     end
-    assert_match(/denied/i, error.message)
+
+    assert_equal actor.id, recording.recordable.user_id
   end
 end

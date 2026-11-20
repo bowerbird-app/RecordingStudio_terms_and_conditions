@@ -4,35 +4,35 @@ source "https://rubygems.org"
 gem "recording_studio_terms_and_conditions", path: "../.."
 
 # RecordingStudio engine
-gem "recording_studio", github: "bowerbird-app/RecordingStudio", tag: "v7.3.0"
-gem "recording_studio_accessible", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.45.1"
-gem "recording_studio_attachable", github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.31.0"
-gem "recording_studio_publishable", github: "bowerbird-app/RecordingStudio_publishable", tag: "v1.1.0"
-# Users 0.36 email codes need Notifications loaded.
-gem "recording_studio_notifications", github: "bowerbird-app/RecordingStudio_notifications", tag: "v0.19.1"
-gem "recording_studio_notifications_email",
-    github: "bowerbird-app/RecordingStudio_notifications_email", tag: "v0.5.4", require: false
-# The outline order test installs Broadcasts 0.6.0's real sent-publishable lock.
+gem "recording_studio", "~> 7.8", github: "bowerbird-app/RecordingStudio", tag: "v7.8.0"
+gem "recording_studio_accessible", "~> 0.58", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.58.0"
+gem "recording_studio_attachable", "~> 0.34", github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.34.0"
+gem "recording_studio_publishable", "~> 1.5", github: "bowerbird-app/RecordingStudio_publishable", tag: "v1.5.0"
+# Users email codes need Notifications loaded.
+gem "recording_studio_notifications", "~> 0.21", github: "bowerbird-app/RecordingStudio_notifications", tag: "v0.21.0"
+gem "recording_studio_notifications_email", "~> 0.7",
+    github: "bowerbird-app/RecordingStudio_notifications_email", tag: "v0.7.0", require: false
+# The outline order test installs Broadcasts 0.7.0's real sent-publishable lock.
 # require: false so the engine does not boot for the rest of the dummy.
-gem "recording_studio_broadcasts", github: "bowerbird-app/RecordingStudio_broadcasts", tag: "v0.6.0",
+gem "recording_studio_broadcasts", "~> 0.7", github: "bowerbird-app/RecordingStudio_broadcasts", tag: "v0.7.0",
                                    require: false
-gem "recording_studio_admin", github: "bowerbird-app/RecordingStudio_admin", tag: "v2.18.0"
+gem "recording_studio_admin", "~> 2.20", github: "bowerbird-app/RecordingStudio_admin", tag: "v2.20.0"
 # Dummy-only JSON API. This gem does not add a runtime gemspec dependency on RecordingStudio API.
-# Publishable 1.1 and Attachable 0.31 also require API at runtime.
-gem "recording_studio_api", github: "bowerbird-app/RecordingStudio_api", tag: "v1.2.1"
-gem "recording_studio_icons", github: "bowerbird-app/RecordingStudio_icons", tag: "v0.4.0"
-gem "recording_studio_moveable", github: "bowerbird-app/RecordingStudio_moveable", tag: "v6.0.0"
+# Publishable 1.5 and Attachable 0.34 also require API at runtime.
+gem "recording_studio_api", "~> 1.21", github: "bowerbird-app/RecordingStudio_api", tag: "v1.21.2"
+gem "recording_studio_icons", "~> 0.5", github: "bowerbird-app/RecordingStudio_icons", tag: "v0.5.0"
+gem "recording_studio_moveable", "~> 6.1", github: "bowerbird-app/RecordingStudio_moveable", tag: "v6.1.0"
 gem "redis", "~> 5.3"
-gem "recording_studio_cache", github: "bowerbird-app/RecordingStudio_cache", tag: "v0.7.0"
-# API 1.2 requires Logs >= 0.8. Logs 0.7.4 does not declare core 7.
-gem "recording_studio_logs", github: "bowerbird-app/RecordingStudio_logs", tag: "v0.8.0"
-gem "recording_studio_metrics", github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.9.0"
-gem "recording_studio_trashable", github: "bowerbird-app/RecordingStudio_trashable", tag: "v1.0.1",
+gem "recording_studio_cache", "~> 0.8", github: "bowerbird-app/RecordingStudio_cache", tag: "v0.8.0"
+# API 1.21 requires Logs. Not a gemspec dependency of this gem.
+gem "recording_studio_logs", "~> 0.9", github: "bowerbird-app/RecordingStudio_logs", tag: "v0.9.0"
+gem "recording_studio_metrics", "~> 0.10", github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.10.0"
+gem "recording_studio_trashable", "~> 1.3", github: "bowerbird-app/RecordingStudio_trashable", tag: "v1.3.0",
                                   require: false
-gem "recording_studio_user", github: "bowerbird-app/RecordingStudio_users", tag: "v0.36.0"
+gem "recording_studio_user", "~> 0.42", github: "bowerbird-app/RecordingStudio_users", tag: "v0.42.1"
 
 # Root switcher for the top nav. 0.15 requires core < 7.
-gem "recording_studio_root_switchable", github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.16.0"
+gem "recording_studio_root_switchable", "~> 0.17", github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.17.0"
 
 # Dummy-only language switching. This gem ships English; hosts own other languages.
 # 0.2.2 requires core < 7.
@@ -64,7 +64,7 @@ gem "jbuilder"
 gem "tailwindcss-rails"
 
 # FlatPack UI component library [https://github.com/bowerbird-app/flatpack]
-gem "flat_pack", github: "bowerbird-app/flatpack", tag: "v0.1.377"
+gem "flat_pack", "~> 0.2", github: "bowerbird-app/flatpack", tag: "v0.2.0"
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
@@ -90,6 +90,11 @@ gem "thruster", require: false
 gem "image_processing", "~> 1.2"
 
 group :development, :test do
+  # Google sign-up in test mode. Users already depends on these; the dummy
+  # lists them so the callback is an explicit dummy concern.
+  gem "omniauth", "~> 2.1"
+  gem "omniauth-google-oauth2", "~> 1.2"
+
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
 

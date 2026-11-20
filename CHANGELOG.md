@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.0] - 2026-11-20
+
+### Added
+- `UsersAfterAuthPath` hooks Users' public `config.after_auth_path` (Users >= 0.37.0). Sign-in and sign-up land on Agree while live Terms are pending. Terms still does not depend on Users. `install!` does nothing when Users or the setting is absent, and it does not nest when it runs twice. A host callable set in an initializer is wrapped. Terms wins when it returns a path; nil hands over to the host callable.
+- `config.users_after_auth_path` (default `true`). Set it to `false` to wire the landing path yourself.
+- Default gate-exempt prefixes `recording_studio_user/auth` and `recording_studio_user/omniauth`, so sign-out still finishes while Terms are pending. Duplicates from a host that already appended them are ignored.
+
+### Changed
+- Development and the dummy pin Recording Studio `v7.8.0`, Flatpack `v0.2.0`, Accessible `v0.58.0`, Admin `v2.20.0`, API `v1.21.2`, Attachable `v0.34.0`, Cache `v0.8.0`, Icons `v0.5.0`, Logs `v0.9.0`, Metrics `v0.10.0`, Moveable `v6.1.0`, Publishable `v1.5.0`, and Trashable `v1.3.0`. The dummy also pins Notifications `v0.21.0`, Notifications Email `v0.7.0`, Broadcasts `v0.7.0`, Root Switchable `v0.17.0`, and Users `v0.42.1`. Internationalization stays `v0.3.0`.
+- flat_pack 0.2.0 is supported; hosts moving to 0.2 must remove the manual `flat_pack/heroicons` importmap pin and any `flat-pack--icon` controller registration.
+- Hosts MUST run the Recording Studio 7.4, 7.5 and 7.7 migrations if they have not.
+
+### Upgrade notes (0.23.0 → 0.24.0)
+- No Terms migration. Pin `0.24.0`. Hosts moving from 0.22.0 must also read 0.23.0's notes.
+- Hosts on Users >= 0.37.0 get the Agree redirect automatically after sign-in and sign-up. Delete any host copy of `UsersAuthRedirect` or a host prepend of `after_sign_in_path_for`.
+- Set `config.users_after_auth_path = false` to opt out.
+- Set a host `config.after_auth_path` callable in an initializer. A `to_prepare` assignment after boot replaces the wrap. This gem does not add a `to_prepare` hook for that setting.
+- Signup consent stays host wiring (`signup_notice_partials` and `after_registration`). This release does not restore `SignupAcceptance` or a Users view override.
+
 ## [0.23.0] - 2026-11-18
 
 ### Changed
@@ -770,7 +789,8 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.23.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.24.0...HEAD
+[0.24.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.23.0...v0.24.0
 [0.23.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.22.0...v0.23.0
 [0.22.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.21.0...v0.22.0
 [0.21.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.20.0...v0.21.0

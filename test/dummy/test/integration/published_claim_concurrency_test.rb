@@ -27,7 +27,7 @@ class PublishedClaimConcurrencyTest < ActiveSupport::TestCase
 
     claims = threaded_results(2) do
       recording = RecordingStudio::Recording.find(claim_recording.id)
-      Current.actor = @writer if defined?(Current)
+      Current.actor = library_writer(@writer) if defined?(Current)
       RecordingStudioTermsAndConditions::Published.send(
         :claim_emit?,
         recording,
@@ -39,7 +39,7 @@ class PublishedClaimConcurrencyTest < ActiveSupport::TestCase
     assert_equal 1, claims.count(false)
 
     threaded_results(2) do
-      Current.actor = @writer if defined?(Current)
+      Current.actor = library_writer(@writer) if defined?(Current)
       ActiveSupport::Notifications.instrument(
         "published.recording_studio_publishable",
         recordable_type: RecordingStudioTermsAndConditions::Published::TERMS_TYPE,
