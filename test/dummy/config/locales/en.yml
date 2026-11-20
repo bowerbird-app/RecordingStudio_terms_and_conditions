@@ -29,3 +29,8 @@
 
 en:
   hello: "Hello world"
+  dummy:
+    signup:
+      trial:
+        title: "Start a trial"
+        subtitle: "Agree to the live terms first."

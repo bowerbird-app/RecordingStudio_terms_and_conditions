@@ -78,7 +78,11 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
     hold_otp_mail!
     email = "signup-gate-#{SecureRandom.hex(4)}@example.com"
 
-    post "/users/sign_up", params: { user: { email: email } }
+    get "/users/sign_up", params: { variant: "trial" }
+    assert_response :success
+    assert_includes response.body, "Start a trial"
+
+    post "/users/sign_up", params: { user: { email: email }, variant: "trial" }
     assert_redirected_to "/users/sign_up/password"
     follow_redirect!
     assert_response :success

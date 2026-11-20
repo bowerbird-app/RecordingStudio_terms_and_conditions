@@ -87,7 +87,7 @@ Agree is still the post-auth destination. It has no PageNav. Live pending copy s
 
 ## Upgrade (0.23.0 → 0.24.0)
 
-No Terms migrations. `recording_studio_user` is not a gemspec dependency. The dummy pins tag `v0.41.0`. Hosts on Users >= 0.37.0 get the Agree redirect after sign-in and sign-up. Delete any host copy of `UsersAuthRedirect` or a host prepend of `after_sign_in_path_for`. Set `config.users_after_auth_path = false` to opt out. Set a host callable in an initializer, not in `to_prepare`. Hosts moving from 0.22.0 must also read the 0.23.0 notes. flat_pack 0.2.0 is supported; remove the manual `flat_pack/heroicons` importmap pin and any `flat-pack--icon` controller registration. Hosts MUST run the Recording Studio 7.4, 7.5 and 7.7 migrations if they have not.
+No Terms migrations. `recording_studio_user` is not a gemspec dependency. The dummy pins tag `v0.42.1`. Hosts on Users >= 0.37.0 get the Agree redirect after sign-in and sign-up. Delete any host copy of `UsersAuthRedirect` or a host prepend of `after_sign_in_path_for`. Set `config.users_after_auth_path = false` to opt out. Set a host callable in an initializer, not in `to_prepare`. Hosts moving from 0.22.0 must also read the 0.23.0 notes. flat_pack 0.2.0 is supported; remove the manual `flat_pack/heroicons` importmap pin and any `flat-pack--icon` controller registration. Hosts MUST run the Recording Studio 7.4, 7.5 and 7.7 migrations if they have not.
 
 ## Upgrade (0.22.0 → 0.23.0)
 

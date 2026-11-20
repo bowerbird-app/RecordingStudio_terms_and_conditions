@@ -10,6 +10,20 @@ RecordingStudioUser.configure do |config|
   config.minimum_password_length = 6
   config.signup_notice_partials << "recording_studio_terms_and_conditions/signup_notice"
   config.after_registration(RecordingStudioTermsAndConditions::SignupRegistration)
+  # Dummy-only Google callback. The defaults are placeholders, not a real app.
+  # A host leaves omniauth_providers empty and puts the real pair in credentials.
+  config.omniauth_providers = {
+    google_oauth2: {
+      client_id: ENV.fetch("GOOGLE_OAUTH_CLIENT_ID", "dev_placeholder"),
+      client_secret: ENV.fetch("GOOGLE_OAUTH_CLIENT_SECRET", "dev_placeholder")
+    }
+  }
+  config.sign_up_variants = {
+    trial: {
+      title: "dummy.signup.trial.title",
+      subtitle: "dummy.signup.trial.subtitle"
+    }
+  }
   config.additional_profile_attributes |= [:locale] if config.respond_to?(:additional_profile_attributes)
   # Users Auth 0.27 resolves recording_studio_layout from this setting. Nil
   # falls through to core DEFAULT_LAYOUT. Dummy sign-in uses layouts/application

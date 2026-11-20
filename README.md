@@ -191,7 +191,7 @@ Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay Engli
 
 ## Upgrading from 0.23.0
 
-Bump to **0.24.0**. No Terms schema change. Hosts moving from 0.22.0 must also read the 0.23.0 notes. `recording_studio_user` stays off the gemspec. The dummy pins Users `v0.41.0`.
+Bump to **0.24.0**. No Terms schema change. Hosts moving from 0.22.0 must also read the 0.23.0 notes. `recording_studio_user` stays off the gemspec. The dummy pins Users `v0.42.1`.
 
 Hosts on Users >= 0.37.0 get the Agree redirect automatically after sign-in and sign-up. Delete any host copy of `UsersAuthRedirect` or a host prepend of `after_sign_in_path_for`. Set `config.users_after_auth_path = false` to opt out. Set a host `config.after_auth_path` callable in an initializer. A `to_prepare` assignment after boot replaces the wrap.
 
@@ -527,7 +527,7 @@ See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full do
 | Accessible      | gemspec `>= 0.44.0`, `< 2.0`; dummy GitHub tag `v0.58.0` |
 | Admin           | gemspec `>= 2.16.0`, `< 3.0`; dummy GitHub tag `v2.20.0` |
 | Trashable       | dummy GitHub tag `v1.3.0` (`require: false`; `Recording.kept`) |
-| Users           | dummy GitHub tag `v0.41.0` only. Not a gemspec dependency |
+| Users           | dummy GitHub tag `v0.42.1` only. Not a gemspec dependency |
 | Publishable     | gemspec `>= 1.0.0`, `< 2.0`; dummy GitHub tag `v1.5.0` |
 | Attachable      | dummy GitHub tag `v0.34.0` (Users Profile needs it) |
 | API             | not a gemspec dependency; GitHub tag `v1.21.2` (Publishable 1.5 and Attachable 0.34 require it) |

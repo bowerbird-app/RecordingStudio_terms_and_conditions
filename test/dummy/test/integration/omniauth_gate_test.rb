@@ -5,20 +5,22 @@ require "cgi"
 
 class OmniauthGateTest < ActionDispatch::IntegrationTest
   setup do
-    skip "OmniAuth Google callback is not wired in this dummy app" unless omniauth_google_callback?
-    skip "OmniAuth is not loaded" unless defined?(OmniAuth)
-
+    # This is the host that does not accept Terms during sign-up. The dummy
+    # still registers SignupRegistration for the password screens.
+    @registration_hooks = RecordingStudioUser.config.after_registration_hooks
+    @removed_signup = @registration_hooks.delete(RecordingStudioTermsAndConditions::SignupRegistration)
     OmniAuth.config.test_mode = true
     OmniAuth.config.mock_auth[:google_oauth2] = nil
-    @original_create_account = RecordingStudioUser.config.omniauth_create_account if defined?(RecordingStudioUser)
-    RecordingStudioUser.config.omniauth_create_account = true if defined?(RecordingStudioUser)
+    @original_create_account = RecordingStudioUser.config.omniauth_create_account
+    RecordingStudioUser.config.omniauth_create_account = true
   end
 
   teardown do
-    if defined?(OmniAuth)
-      OmniAuth.config.mock_auth[:google_oauth2] = nil
+    OmniAuth.config.mock_auth[:google_oauth2] = nil
+    RecordingStudioUser.config.omniauth_create_account = @original_create_account
+    if @removed_signup && !@registration_hooks.include?(@removed_signup)
+      @registration_hooks << @removed_signup
     end
-    RecordingStudioUser.config.omniauth_create_account = @original_create_account if defined?(RecordingStudioUser)
   end
 
   test "new Google user lands on the agree screen" do
@@ -46,13 +48,6 @@ class OmniauthGateTest < ActionDispatch::IntegrationTest
   end
 
   private
-
-  def omniauth_google_callback?
-    Rails.application.routes.recognize_path("/users/auth/google_oauth2/callback", method: :get)
-    true
-  rescue ActionController::RoutingError
-    false
-  end
 
   def ensure_host_has_live_terms!
     workspace = Workspace.find_or_create_by!(name: "Studio Workspace")

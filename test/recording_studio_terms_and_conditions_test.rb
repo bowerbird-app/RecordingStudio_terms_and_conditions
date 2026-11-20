@@ -81,7 +81,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes root_gemfile, 'gem "recording_studio_trashable", "~> 1.3", github: "bowerbird-app/RecordingStudio_trashable", tag: "v1.3.0"'
     assert_match(/recording_studio_trashable.*,\n\s+require: false/, gemfile)
     assert_match(/recording_studio_trashable.*,\n\s+require: false/, root_gemfile)
-    assert_includes gemfile, 'gem "recording_studio_user", "~> 0.41", github: "bowerbird-app/RecordingStudio_users", tag: "v0.41.0"'
+    assert_includes gemfile, 'gem "recording_studio_user", "~> 0.42", github: "bowerbird-app/RecordingStudio_users", tag: "v0.42.1"'
     refute_includes root_gemfile, "recording_studio_user"
     assert_includes gemfile, 'gem "puma", "8.1.1"'
     assert_includes root_gemfile, 'gem "puma", "8.1.1"'

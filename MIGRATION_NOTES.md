@@ -20,7 +20,7 @@ The host includes the gate on `ApplicationController`. The gate is `recording_st
 
 ## Upgrade from 0.23.0 to 0.24.0
 
-No Terms schema change. Pin `0.24.0`. Hosts moving from 0.22.0 must also read the 0.23.0 notes. `recording_studio_user` is still not a Terms dependency. The dummy pins Users `v0.41.0`.
+No Terms schema change. Pin `0.24.0`. Hosts moving from 0.22.0 must also read the 0.23.0 notes. `recording_studio_user` is still not a Terms dependency. The dummy pins Users `v0.42.1`.
 
 Hosts on Users >= 0.37.0 get the Agree redirect automatically after sign-in and sign-up. Delete any host copy of `UsersAuthRedirect` or a host prepend of `after_sign_in_path_for` / `after_sign_up_path_for`.
 

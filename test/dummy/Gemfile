@@ -29,7 +29,7 @@ gem "recording_studio_logs", "~> 0.9", github: "bowerbird-app/RecordingStudio_lo
 gem "recording_studio_metrics", "~> 0.10", github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.10.0"
 gem "recording_studio_trashable", "~> 1.3", github: "bowerbird-app/RecordingStudio_trashable", tag: "v1.3.0",
                                   require: false
-gem "recording_studio_user", "~> 0.41", github: "bowerbird-app/RecordingStudio_users", tag: "v0.41.0"
+gem "recording_studio_user", "~> 0.42", github: "bowerbird-app/RecordingStudio_users", tag: "v0.42.1"
 
 # Root switcher for the top nav. 0.15 requires core < 7.
 gem "recording_studio_root_switchable", "~> 0.17", github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.17.0"
@@ -90,6 +90,11 @@ gem "thruster", require: false
 gem "image_processing", "~> 1.2"
 
 group :development, :test do
+  # Google sign-up in test mode. Users already depends on these; the dummy
+  # lists them so the callback is an explicit dummy concern.
+  gem "omniauth", "~> 2.1"
+  gem "omniauth-google-oauth2", "~> 1.2"
+
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
 

@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Default gate-exempt prefixes `recording_studio_user/auth` and `recording_studio_user/omniauth`, so sign-out still finishes while Terms are pending. Duplicates from a host that already appended them are ignored.
 
 ### Changed
-- Development and the dummy pin Recording Studio `v7.8.0`, Flatpack `v0.2.0`, Accessible `v0.58.0`, Admin `v2.20.0`, API `v1.21.2`, Attachable `v0.34.0`, Cache `v0.8.0`, Icons `v0.5.0`, Logs `v0.9.0`, Metrics `v0.10.0`, Moveable `v6.1.0`, Publishable `v1.5.0`, and Trashable `v1.3.0`. The dummy also pins Notifications `v0.21.0`, Notifications Email `v0.7.0`, Broadcasts `v0.7.0`, Root Switchable `v0.17.0`, and Users `v0.41.0`. Internationalization stays `v0.3.0`.
+- Development and the dummy pin Recording Studio `v7.8.0`, Flatpack `v0.2.0`, Accessible `v0.58.0`, Admin `v2.20.0`, API `v1.21.2`, Attachable `v0.34.0`, Cache `v0.8.0`, Icons `v0.5.0`, Logs `v0.9.0`, Metrics `v0.10.0`, Moveable `v6.1.0`, Publishable `v1.5.0`, and Trashable `v1.3.0`. The dummy also pins Notifications `v0.21.0`, Notifications Email `v0.7.0`, Broadcasts `v0.7.0`, Root Switchable `v0.17.0`, and Users `v0.42.1`. Internationalization stays `v0.3.0`.
 - flat_pack 0.2.0 is supported; hosts moving to 0.2 must remove the manual `flat_pack/heroicons` importmap pin and any `flat-pack--icon` controller registration.
 - Hosts MUST run the Recording Studio 7.4, 7.5 and 7.7 migrations if they have not.
 
