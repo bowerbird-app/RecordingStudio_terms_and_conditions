@@ -69,7 +69,7 @@ class OutlinePublishOrderTest < ActiveSupport::TestCase
 
   def broadcasts_lock
     spec = Gem.loaded_specs.fetch("recording_studio_broadcasts")
-    assert_equal Gem::Version.new("0.6.0"), spec.version
+    assert_equal Gem::Version.new("0.7.0"), spec.version
     require "recording_studio_broadcasts"
     register_broadcast_type
     root = File.join(spec.full_gem_path, "app/models/recording_studio_broadcasts")

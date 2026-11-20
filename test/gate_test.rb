@@ -28,6 +28,9 @@ class GateTest < Minitest::Test
       FakeController.new("recording_studio_publishable/publishables", false)
     )
     assert RecordingStudioTermsAndConditions::Gate.exempt?(FakeController.new("devise/sessions", false))
+    assert RecordingStudioTermsAndConditions::Gate.exempt?(
+      FakeController.new("recording_studio_user/auth/sessions", false)
+    )
     assert RecordingStudioTermsAndConditions::Gate.exempt?(FakeController.new("home", true))
     refute RecordingStudioTermsAndConditions::Gate.exempt?(FakeController.new("home", false))
     refute RecordingStudioTermsAndConditions::Gate.exempt?(FakeController.new("docs", false))
@@ -201,6 +204,21 @@ class GateTest < Minitest::Test
   ensure
     RecordingStudio.unregister_gate(gate::GATE_NAME, gate::CHECK_NAME)
     gate.register!
+  end
+
+  def test_exempt_controllers_drop_duplicate_user_prefixes
+    config = RecordingStudioTermsAndConditions.configuration
+    previous = config.gate_exempt_controllers.dup
+    config.gate_exempt_controllers += ["recording_studio_user/auth"]
+
+    listed = RecordingStudioTermsAndConditions::Gate.exempt_controllers
+
+    assert_equal 1, listed.count("recording_studio_user/auth")
+    assert RecordingStudioTermsAndConditions::Gate.exempt?(
+      FakeController.new("recording_studio_user/auth/sessions", false)
+    )
+  ensure
+    config.gate_exempt_controllers = previous
   end
 
   def test_host_gate_exempt_controllers_skip_the_clickwrap

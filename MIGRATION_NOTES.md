@@ -16,7 +16,19 @@ Then:
 - Enable Admin `section :terms` on an Admin root and grant Accessible access.
 - Publish with Publishable `QuickActions` on term show, or the Publish settings hub. Do not add a custom publish action.
 
-The host includes the gate on `ApplicationController`. The gate is `recording_studio_terms_and_conditions.acceptance` on `RecordingStudio.check_gate`. Append auth controllers to `config.gate_exempt_controllers`. Set `config.actor_name_search` for who-agreed. Signup is separate. Where you configure Users, append `recording_studio_terms_and_conditions/signup_notice` to `signup_notice_partials` and register `SignupRegistration` with `after_registration`. That callable calls `accept!` with provenance `source` `signup` and `method` `password`, `oauth`, or `otp`. Users 0.36 has no after-sign-in setting, so the next signed-in request is what lands on Agree. Agree stays in place when a new version is published.
+The host includes the gate on `ApplicationController`. The gate is `recording_studio_terms_and_conditions.acceptance` on `RecordingStudio.check_gate`. Defaults already exempt `recording_studio_user/auth` and `recording_studio_user/omniauth`. Append any other auth controllers to `config.gate_exempt_controllers`. Set `config.actor_name_search` for who-agreed. Signup is separate. Where you configure Users, append `recording_studio_terms_and_conditions/signup_notice` to `signup_notice_partials` and register `SignupRegistration` with `after_registration`. That callable calls `accept!` with provenance `source` `signup` and `method` `password`, `oauth`, or `otp`. On Users >= 0.37.0, Terms hooks `config.after_auth_path` so sign-in and sign-up land on Agree while live Terms are pending. Set `config.users_after_auth_path = false` to wire that yourself. Set a host callable in an initializer. A `to_prepare` assignment replaces the wrap. Agree stays in place when a new version is published.
+
+## Upgrade from 0.23.0 to 0.24.0
+
+No Terms schema change. Pin `0.24.0`. Hosts moving from 0.22.0 must also read the 0.23.0 notes. `recording_studio_user` is still not a Terms dependency. The dummy pins Users `v0.41.0`.
+
+Hosts on Users >= 0.37.0 get the Agree redirect automatically after sign-in and sign-up. Delete any host copy of `UsersAuthRedirect` or a host prepend of `after_sign_in_path_for` / `after_sign_up_path_for`.
+
+Set `config.users_after_auth_path = false` to opt out and assign `RecordingStudioUser.config.after_auth_path` yourself. Put that assignment in an initializer. A `to_prepare` block that runs after boot replaces the wrap. This gem does not re-install the wrap from `to_prepare`.
+
+`recording_studio_user/auth` and `recording_studio_user/omniauth` are on the default exempt list, so sign-out still works while Terms are pending. A host that already appended them can leave that line.
+
+flat_pack 0.2.0 is supported. Hosts moving to 0.2 must remove the manual `flat_pack/heroicons` importmap pin and any `flat-pack--icon` controller registration. Hosts MUST run the Recording Studio 7.4, 7.5 and 7.7 migrations if they have not. Development moved off Attachable `v0.31.0` and Cache `v0.7.0`.
 
 ## Upgrade from 0.22.0 to 0.23.0
 

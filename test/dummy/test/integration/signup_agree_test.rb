@@ -71,6 +71,35 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "password sign up with live terms and no registration hook redirects to agree" do
+    hooks = RecordingStudioUser.config.after_registration_hooks
+    removed = hooks.delete(RecordingStudioTermsAndConditions::SignupRegistration)
+    hold_signup_confirmation!
+    hold_otp_mail!
+    email = "signup-gate-#{SecureRandom.hex(4)}@example.com"
+
+    post "/users/sign_up", params: { user: { email: email } }
+    assert_redirected_to "/users/sign_up/password"
+    follow_redirect!
+    assert_response :success
+
+    post "/users/sign_up/password", params: {
+      user: { email: email, password: "Password", password_confirmation: "Password" }
+    }
+    assert_redirected_to "/users/sign_up/verify"
+    code = RecordingStudioUser::OtpChallenge.find(session[:otp_challenge_id]).decrypt_delivery_code!
+
+    post "/users/sign_up/verify", params: { code: code }
+
+    assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
+    user = User.find_by!(email: email)
+    assert RecordingStudioTermsAndConditions.requires_acceptance?(user)
+  ensure
+    release_otp_mail!
+    release_signup_confirmation!
+    hooks << removed if removed && !hooks.include?(removed)
+  end
+
   test "signup notice stays blank when nothing is live" do
     empty_pending_published_list do
       email = "signup-empty-#{SecureRandom.hex(4)}@example.com"
@@ -85,6 +114,45 @@ class SignupAgreeTest < ActionDispatch::IntegrationTest
   end
 
   private
+
+  # Dummy tests confirm every new user so seed accounts can sign in. This
+  # signup has to stay unconfirmed long enough for Users to send the code.
+  # Password signup sends the code through the email channel. This dummy does
+  # not load recording_studio_notifications_email, so the test keeps the code
+  # on the challenge and skips the mail send.
+  def hold_otp_mail!
+    singleton = class << RecordingStudioNotifications; self; end
+    @otp_mail_notify = singleton.instance_method(:notify)
+    singleton.define_method(:notify) { |**| true }
+    @otp_mail_held = true
+  end
+
+  def release_otp_mail!
+    return unless @otp_mail_held
+
+    singleton = class << RecordingStudioNotifications; self; end
+    singleton.define_method(:notify, @otp_mail_notify)
+    @otp_mail_notify = nil
+    @otp_mail_held = false
+  end
+
+  def hold_signup_confirmation!
+    User.class_eval do
+      alias_method :skip_confirmation_before_signup_gate!, :skip_confirmation!
+      define_method(:skip_confirmation!) {}
+    end
+    @signup_confirmation_held = true
+  end
+
+  def release_signup_confirmation!
+    return unless @signup_confirmation_held
+
+    User.class_eval do
+      alias_method :skip_confirmation!, :skip_confirmation_before_signup_gate!
+      remove_method :skip_confirmation_before_signup_gate!
+    end
+    @signup_confirmation_held = false
+  end
 
   def ensure_live_terms!
     ensure_live_document!(

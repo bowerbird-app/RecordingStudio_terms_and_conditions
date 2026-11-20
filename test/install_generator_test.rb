@@ -202,6 +202,7 @@ class InstallGeneratorTest < Minitest::Test
     assert_includes initializer, "config.mount_path"
     assert_includes initializer, "require_scroll_to_end"
     assert_includes initializer, "capture_request_provenance"
+    assert_includes initializer, "config.users_after_auth_path"
     assert_includes initializer, "config.gate_exempt_controllers"
     assert_includes initializer, "config.actor_name_search"
     refute_includes initializer, "RecordingStudioUser"

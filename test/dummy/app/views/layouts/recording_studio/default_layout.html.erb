@@ -103,7 +103,7 @@
                   ) %>
                 <% else %>
                   <button name="button" type="button" id="recording-studio-back-button" class="inline-flex items-center justify-center gap-2 rounded-[var(--button-border-radius)] font-medium cursor-pointer transition-colors duration-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--button-focus-ring-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--button-focus-ring-offset-color)] disabled:pointer-events-none disabled:opacity-[var(--button-disabled-opacity)] bg-[var(--button-secondary-background-color)] hover:bg-[var(--button-secondary-hover-background-color)] text-[var(--button-secondary-text-color)] border border-[var(--button-secondary-border-color)] p-[var(--button-icon-only-padding-md)]" aria-label="<%= back_label %>">
-                    <svg class="inline-block w-5 h-5" data-controller="flat-pack--icon" data-flat-pack--icon-name-value="<%= back_icon %>" data-flat-pack--icon-variant-value="outline" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"></path></svg>
+                    <%= render FlatPack::Shared::IconComponent.new(name: back_icon, size: :md) %>
                   </button>
                   <%= javascript_tag nonce: true do %>
                     document.getElementById("recording-studio-back-button").addEventListener("click", function() {

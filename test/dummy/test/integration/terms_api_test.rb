@@ -42,7 +42,7 @@ class TermsApiTest < ActionDispatch::IntegrationTest
     assert_equal "authentication_failed", json.dig("error", "code")
   end
 
-  test "trashing the manager Access the client depends on is 403" do
+  test "trashing the manager Access the client depends on is not in scope" do
     provision = RecordingStudioApi::Services::ProvisionApiClient.call(
       access_point_recording: @root,
       manager_actor: @owner,
@@ -71,8 +71,8 @@ class TermsApiTest < ActionDispatch::IntegrationTest
     @owner_access.update!(trashed_at: Time.current)
 
     call(:get, "/workspaces/#{@root.id}/actions/terms_pending_published_list", issued.value.fetch(:access_token))
-    assert_response :forbidden, response.body
-    assert_equal "forbidden", json.dig("error", "code")
+    assert_response :not_found, response.body
+    assert_equal "not_found", json.dig("error", "code")
   end
 
   test "foreign workspace is 404" do

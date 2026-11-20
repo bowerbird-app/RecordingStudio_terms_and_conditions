@@ -58,8 +58,9 @@ module RecordingStudioTermsAndConditions
     end
 
     def exempt_controllers
-      # Built-in screens plus whatever the host appended.
-      RecordingStudioTermsAndConditions.configuration.gate_exempt_controllers
+      # Built-in screens plus whatever the host appended. Hosts that already
+      # appended the Users prefixes get duplicates; keep one of each.
+      RecordingStudioTermsAndConditions.configuration.gate_exempt_controllers.uniq
     end
 
     def redirect_for(controller)

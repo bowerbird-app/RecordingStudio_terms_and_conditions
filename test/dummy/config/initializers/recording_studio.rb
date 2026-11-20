@@ -30,7 +30,9 @@ RecordingStudio.configure do |config|
   # A new root is authorized with root_recording nil. A present actor may create it.
   # AccessCreationContext may allow RecordingStudio::Access rows only.
   # Access writes outside that context need Accessible :admin on the root.
-  # Every other write needs Accessible :edit on the root. No identity allow.
+  # A person may record their own Profile on the shared People root. Users writes
+  # that row during password sign-up, before the person has edit on People.
+  # Every other write needs Accessible :edit on the root.
   config.authorize_write = lambda { |actor:, root_recording:, recordable:, **|
     if defined?(RecordingStudioAccessible::AccessCreationContext) &&
        RecordingStudioAccessible::AccessCreationContext.allowed? &&
@@ -40,6 +42,15 @@ RecordingStudio.configure do |config|
     end
 
     next actor.present? if root_recording.nil?
+
+    if defined?(RecordingStudioUser::Profile) &&
+       recordable.is_a?(RecordingStudioUser::Profile) &&
+       actor.respond_to?(:id) &&
+       recordable.user_id.present? &&
+       recordable.user_id == actor.id &&
+       root_recording.recordable_type == "RecordingStudioUser::People"
+      next true
+    end
 
     next false unless defined?(RecordingStudioAccessible)
 
