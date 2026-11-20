@@ -43,7 +43,6 @@ class OmniauthGateTest < ActionDispatch::IntegrationTest
     assert_equal recording_studio_terms_and_conditions.acceptance_path, path_without_query
     assert_includes CGI.unescapeHTML(response.body), "By continuing, you agree"
     user = User.find_by!(email: email)
-    studio = Workspace.find_by!(name: "Studio Workspace")
     refute RecordingStudioTermsAndConditions.pending_published_list(user).empty?
   end
 
