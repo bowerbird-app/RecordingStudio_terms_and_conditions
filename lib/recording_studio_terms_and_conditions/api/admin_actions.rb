@@ -101,7 +101,8 @@ module RecordingStudioTermsAndConditions
       end
 
       def release_description
-        "Releases the current outline as the live version. People who already agreed must agree again. " \
+        "Releases the current outline as the live version on the same document. " \
+          "People who already agreed must agree again. Refuses when nothing has changed. " \
           "Pass terms_id. Title is optional. The document must already exist, with sections and clauses ready."
       end
 

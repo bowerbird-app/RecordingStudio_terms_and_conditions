@@ -115,7 +115,7 @@ A Terms document is a tree. Sections belong to one Terms recording. Clauses belo
 
 People edit a section or a clause. That writes a new snapshot of that child only. It does not publish, and it does not fire `published.recording_studio_terms_and_conditions`.
 
-Release is the step that makes a version. It builds `title` and `body` from the current sections and clauses, writes the numbers into that text (`1.`, `1.1`), saves a manifest of the child snapshots it used, and publishes through Publishable. A live recording is never revised in place. Release forks a draft, moves the sections onto it, and publishes that draft. A release with no outline or title change does nothing. Every release that does change the document is a new version, and people have to agree again.
+Release is the step that makes a version. It builds `title` and `body` from the current sections and clauses, writes the numbers into that assembled text (`1.`, `1.1`) only, saves a manifest of the child snapshots it used, and publishes through Publishable. The same Terms recording stays the lineage. Release revises that recording and keeps its sections. Numbers are not stored on headings or clauses. Seeding an outline from a published body strips those generated numbers. A release with no outline or title change is refused. Every release that does change the document is a new snapshot, and people have to agree again.
 
 Numbers come from order. The id used by the admin screens and the API is the section or clause recording id, and it stays put across releases.
 
@@ -186,6 +186,10 @@ Do not translate stored Terms bodies or version titles. Those are data. Buttons,
 Add [Recording Studio Internationalization](https://github.com/bowerbird-app/RecordingStudio_Internationalization) on the host when you want a language selector. This gem does not declare the host's languages.
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
+
+## Upgrading from 0.25.1
+
+Bump to **0.25.2**. No Terms schema change. Release stays on the same Terms recording. A no-change `terms_release` is refused (422).
 
 ## Upgrading from 0.25.0
 

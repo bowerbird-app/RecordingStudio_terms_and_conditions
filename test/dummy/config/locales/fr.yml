@@ -41,6 +41,7 @@ fr:
       errors:
         not_live: "Seules les conditions en vigueur peuvent être acceptées."
         must_agree: "Cochez la case si vous acceptez."
+        unchanged: "Rien n’a changé depuis la dernière publication. Modifiez une section ou une clause d’abord."
   dummy:
     nav:
       toggle_sidebar: "Afficher le menu"

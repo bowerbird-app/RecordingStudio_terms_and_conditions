@@ -61,8 +61,8 @@ class OutlinePublishOrderTest < ActiveSupport::TestCase
 
     assert outer_seen
     assert released.currently_published?
-    refute_equal recording.id, released.id
-    refute recording.reload.currently_published?
+    assert_equal recording.id, released.id
+    assert recording.reload.currently_published?
   end
 
   private

@@ -252,10 +252,10 @@ module RecordingStudioTermsAndConditions
       def self.call(context)
         AdminGate.authorize!(context, :edit)
         recording = terms!(context)
-        before = [recording.id, recording.recordable_id]
         released = Outline.release(recording, actor: actor(context), title: context.params[:title])
-        changed = before != [released.id, released.recordable_id]
-        { release: AdminPayload.release_hash(released, released: changed) }
+        { release: AdminPayload.release_hash(released, released: true) }
+      rescue Outline::Unchanged => e
+        raise RecordingStudioApi::InvalidActionInputError, e.message
       end
     end
 

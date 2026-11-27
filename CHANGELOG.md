@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.25.2] - 2026-11-27
+
+### Fixed
+- Release stays on the same Terms recording. A live outline no longer forks a second document of that kind, so `terms_release` returns the lineage id and `terms_documents` lists one row per kind.
+- Outline headings and clauses never store generated numbers. Seeding from a published body strips `1.` / `1.1` prefixes so a later assemble cannot double-number.
+- `Outline.release` and `terms_release` refuse a no-op with `Outline::Unchanged` (API `invalid_input`) when `terms_changes` would be empty.
+
+### Upgrade notes (0.25.1 → 0.25.2)
+- No Terms migration. Pin `0.25.2`.
+- Callers that treated a no-change `terms_release` as HTTP 200 with `released: false` now receive 422. Edit a section or clause first.
+- Callers that stored the forked recording id from a live release should keep using the original lineage id. Old stray documents from 0.25.0 are not deleted automatically.
+
 ## [0.25.1] - 2026-11-27
 
 ### Changed
@@ -817,7 +829,8 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.25.1...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.25.2...HEAD
+[0.25.2]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.25.1...v0.25.2
 [0.25.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.25.0...v0.25.1
 [0.25.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.24.0...v0.25.0
 [0.24.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.23.0...v0.24.0

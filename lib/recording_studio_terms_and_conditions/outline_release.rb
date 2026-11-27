@@ -5,7 +5,7 @@ module RecordingStudioTermsAndConditions
     class << self
       def release(terms_recording, actor:, title: nil)
         seed_recording!(terms_recording, actor: actor)
-        return terms_recording unless unreleased?(terms_recording, title: title)
+        raise Unchanged, Copy.t("errors.unchanged") unless unreleased?(terms_recording, title: title)
 
         publish_release(terms_recording, actor, release_title(terms_recording, title))
       end
@@ -23,25 +23,9 @@ module RecordingStudioTermsAndConditions
       end
 
       def released_recording(terms_recording, actor, title, body, manifest)
-        return release_live(terms_recording, actor, title, body, manifest) if live?(terms_recording)
-
-        release_draft(terms_recording, actor, title, body, manifest)
-      end
-
-      def release_draft(recording, actor, title, body, manifest)
-        tree_root(recording).revise(recording, actor: actor) do |terms|
-          assign_released_terms(terms, recording, title, body, manifest)
+        tree_root(terms_recording).revise(terms_recording, actor: actor) do |terms|
+          assign_released_terms(terms, terms_recording, title, body, manifest)
         end
-      end
-
-      def release_live(recording, actor, title, body, manifest)
-        parent = recording.parent_recording || tree_root(recording)
-        sections = children(recording, Section.name)
-        draft = tree_root(recording).record(Terms, parent_recording: parent, actor: actor) do |terms|
-          assign_released_terms(terms, recording, title, body, manifest)
-        end
-        sections.each { |section| section.move_to!(new_parent: draft, actor: actor) }
-        draft
       end
 
       def assign_released_terms(terms, recording, title, body, manifest)
@@ -54,9 +38,17 @@ module RecordingStudioTermsAndConditions
       def publish!(recording, actor, title)
         OutlinePublish.releasing do
           with_actor(actor) do
+            slug = slug_for(recording, title)
+            if live?(recording)
+              RecordingStudioPublishable::Services::Publishables::Update.call(
+                parent_recording: recording,
+                attributes: { slug: slug, status: "draft" },
+                actor: actor
+              ).value!
+            end
             RecordingStudioPublishable::Services::Publishables::Update.call(
               parent_recording: recording,
-              attributes: { slug: slug_for(title), status: "published" },
+              attributes: { slug: slug, status: "published" },
               actor: actor
             ).value!
           end
@@ -75,7 +67,11 @@ module RecordingStudioTermsAndConditions
         title.presence || recording.recordable.title.to_s
       end
 
-      def slug_for(title)
+      def slug_for(recording, title)
+        recording.try(:current_publishable)&.try(:slug).presence || generated_slug(title)
+      end
+
+      def generated_slug(title)
         base = title.to_s.parameterize
         base = "terms" if base.blank?
         "#{base}-#{SecureRandom.hex(4)}"

@@ -57,10 +57,13 @@ class TermsOutlineTest < ActiveSupport::TestCase
     assert_includes released.recordable.body, "<h2>2. Gear</h2>"
     assert_includes released.recordable.body, "2.1 Coil the cables."
     assert released.currently_published?
-    refute recording.reload.currently_published?
+    assert recording.reload.currently_published?
+    assert_equal recording.id, released.id
 
     assert_no_difference -> { RecordingStudioTermsAndConditions::Terms.count } do
-      assert_equal released.id, outline.release(released, actor: @actor).id
+      assert_raises(RecordingStudioTermsAndConditions::Outline::Unchanged) do
+        outline.release(released, actor: @actor)
+      end
     end
     assert_equal 1, events.size
   ensure
@@ -121,6 +124,55 @@ class TermsOutlineTest < ActiveSupport::TestCase
       second = RecordingStudioTermsAndConditions.accept!(@actor, recording, { "source" => "clickwrap" })
     end
     assert_equal first.id, second.id
+  end
+
+  test "a live outline release stays on the lineage and refuses a no-op" do
+    recording = publish_seeded!("MCP Tester seed.")
+    outline = RecordingStudioTermsAndConditions::Outline
+    lineage_id = recording.id
+    outline.add_section(recording, heading: "Gear", actor: @actor)
+    outline.add_clause(outline.sections(recording).last.recording, body: "Coil the cables.", actor: @actor)
+    outline.add_section(recording, heading: "Rooms", actor: @actor)
+    outline.add_clause(outline.sections(recording).last.recording, body: "Leave it tidy.", actor: @actor)
+
+    assert_no_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count } do
+      released = outline.release(recording, actor: @actor)
+      assert_equal lineage_id, released.id
+    end
+
+    recording.reload
+    headings = outline.sections(recording).map(&:heading)
+    assert_equal [ "House rules", "Gear", "Rooms" ], headings
+    refute headings.any? { |heading| heading.match?(/\A\d+\.\s/) }
+    body = recording.recordable.body
+    assert_includes body, "<h2>1. House rules</h2>"
+    assert_includes body, "<h2>2. Gear</h2>"
+    assert_includes body, "<h2>3. Rooms</h2>"
+    refute_includes body, "1. 1."
+    refute_includes body, "1.1 1.1"
+    assert recording.currently_published?
+
+    assert_raises(RecordingStudioTermsAndConditions::Outline::Unchanged) do
+      outline.release(recording, actor: @actor)
+    end
+    assert_equal lineage_id, recording.reload.id
+  end
+
+  test "seeding a published body strips rendered numbers" do
+    recording = record_terms(@root, title: "House rules", body: "<h2>1. House rules</h2><p>1.1 MCP Tester seed.</p>", actor: @actor)
+    publish_terms!(recording, slug: "numbered-#{SecureRandom.hex(4)}", actor: @actor)
+    outline = RecordingStudioTermsAndConditions::Outline
+
+    assert outline.seed_recording!(recording, actor: @actor)
+    section = outline.sections(recording.reload).first
+    assert_equal "House rules", section.heading
+    assert_equal "<p>MCP Tester seed.</p>", section.clauses.first.body
+    refute outline.unreleased?(recording)
+
+    assembled = outline.assemble(recording)
+    assert_includes assembled, "<h2>1. House rules</h2>"
+    refute_includes assembled, "1. 1."
+    refute_includes assembled, "1.1 1.1"
   end
 
   test "seeding is idempotent and leaves the parent version and receipts alone" do

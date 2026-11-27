@@ -4,6 +4,7 @@ module RecordingStudioTermsAndConditions
   # The live outline of a Terms document. Numbers come from order. Ids stay put.
   module Outline
     class Missing < StandardError; end
+    class Unchanged < StandardError; end
 
     Node = Struct.new(:recording, :number, :heading, :body, :clauses, keyword_init: true) do
       def id

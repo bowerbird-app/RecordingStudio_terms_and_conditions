@@ -16,6 +16,14 @@ Then:
 - Enable Admin `section :terms` on an Admin root and grant Accessible access.
 - Publish with Publishable `QuickActions` on term show, or the Publish settings hub. Do not add a custom publish action.
 
+## Upgrade from 0.25.1 to 0.25.2
+
+No Terms schema change. Pin `0.25.2`.
+
+Release revises the same Terms recording. It does not fork a second document of that kind. `terms_release` returns the lineage id. A second release with no outline or title change is refused (`Outline::Unchanged`, operations API 422 `invalid_input`). Seeding an outline from a published body strips generated section and clause numbers.
+
+Hosts that called no-op `terms_release` and expected 200 must treat 422 as “nothing to release”. Do not keep using a forked recording id from 0.25.0 as the document id.
+
 The host includes the gate on `ApplicationController`. The gate is `recording_studio_terms_and_conditions.acceptance` on `RecordingStudio.check_gate`. Defaults already exempt `recording_studio_user/auth` and `recording_studio_user/omniauth`. Append any other auth controllers to `config.gate_exempt_controllers`. Set `config.actor_name_search` for who-agreed. Signup is separate. Where you configure Users, append `recording_studio_terms_and_conditions/signup_notice` to `signup_notice_partials` and register `SignupRegistration` with `after_registration`. That callable calls `accept!` with provenance `source` `signup` and `method` `password`, `oauth`, or `otp`. On Users >= 0.37.0, Terms hooks `config.after_auth_path` so sign-in and sign-up land on Agree while live Terms are pending. Set `config.users_after_auth_path = false` to wire that yourself. Set a host callable in an initializer. A `to_prepare` assignment replaces the wrap. Agree stays in place when a new version is published.
 
 ## Upgrade from 0.25.0 to 0.25.1

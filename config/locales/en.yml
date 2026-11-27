@@ -40,3 +40,4 @@ en:
       errors:
         not_live: "Only live terms can be accepted."
         must_agree: "Tick the box if you agree."
+        unchanged: "Nothing has changed since the last release. Edit a section or clause first."

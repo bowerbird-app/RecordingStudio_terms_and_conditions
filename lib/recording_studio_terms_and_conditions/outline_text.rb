@@ -72,7 +72,7 @@ module RecordingStudioTermsAndConditions
           next if blank_node?(node)
 
           if heading_node?(node)
-            current = SectionDraft.new(node.text.strip.presence || title, [])
+            current = SectionDraft.new(strip_heading_number(node.text.strip.presence || title), [])
             drafts << current
           else
             current = start_draft(drafts, title) if current.nil?
@@ -93,7 +93,7 @@ module RecordingStudioTermsAndConditions
         parts = text.split(/\n{2,}/).map(&:strip).reject(&:empty?)
         return fallback(text, title) if parts.size < 2
 
-        [SectionDraft.new(title, parts)]
+        [SectionDraft.new(strip_heading_number(title), parts.map { |part| strip_clause_number(part) })]
       end
 
       def split_markdown(text, title) # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
@@ -103,7 +103,7 @@ module RecordingStudioTermsAndConditions
         text.each_line do |line|
           if (match = line.match(/\A\#{1,6}\s+(.+)\s*\z/))
             current = flush_markdown(drafts, current, buffer, title)
-            current = SectionDraft.new(match[1].strip, [])
+            current = SectionDraft.new(strip_heading_number(match[1].strip), [])
             drafts << current
           elsif line.strip.empty?
             current = flush_markdown(drafts, current, buffer, title)
@@ -122,12 +122,12 @@ module RecordingStudioTermsAndConditions
         return current if paragraph.empty?
 
         current = start_draft(drafts, title) if current.nil?
-        current.clauses << paragraph
+        current.clauses << strip_clause_number(paragraph)
         current
       end
 
       def start_draft(drafts, title)
-        draft = SectionDraft.new(title, [])
+        draft = SectionDraft.new(strip_heading_number(title), [])
         drafts << draft
         draft
       end
@@ -136,18 +136,18 @@ module RecordingStudioTermsAndConditions
         if list_node?(node)
           append_list(section, node)
         elsif node.element? && %w[p li].include?(node.name)
-          section.clauses << node.to_html
+          section.clauses << strip_clause_number(node.to_html)
         elsif node.text.to_s.strip.present?
-          section.clauses << (node.element? ? node.to_html : node.text.strip)
+          section.clauses << strip_clause_number(node.element? ? node.to_html : node.text.strip)
         end
       end
 
       def append_list(section, node)
         items = node.element_children.select { |child| child.name == "li" }
         if items.any?
-          items.each { |item| section.clauses << item.to_html }
+          items.each { |item| section.clauses << strip_clause_number(item.to_html) }
         else
-          section.clauses << node.to_html
+          section.clauses << strip_clause_number(node.to_html)
         end
       end
 
@@ -164,7 +164,19 @@ module RecordingStudioTermsAndConditions
       end
 
       def fallback(text, title)
-        [SectionDraft.new(title, [text])]
+        [SectionDraft.new(strip_heading_number(title), [strip_clause_number(text)])]
+      end
+
+      def strip_heading_number(text)
+        text.to_s.sub(/\A(?:\d+\.\s+)+/, "")
+      end
+
+      def strip_clause_number(text)
+        html = text.to_s
+        stripped = html.sub(/\A(\s*<(?:p|li|div|h[1-6])\b[^>]*>)\s*(?:\d+\.\d+\s+)+/i, "\\1")
+        return stripped if stripped != html
+
+        html.sub(/\A(?:\d+\.\d+\s+)+/, "")
       end
     end
   end
