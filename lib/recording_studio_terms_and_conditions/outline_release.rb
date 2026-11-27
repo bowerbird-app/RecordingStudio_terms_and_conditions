@@ -39,20 +39,18 @@ module RecordingStudioTermsAndConditions
         OutlinePublish.releasing do
           with_actor(actor) do
             slug = slug_for(recording, title)
-            if live?(recording)
-              RecordingStudioPublishable::Services::Publishables::Update.call(
-                parent_recording: recording,
-                attributes: { slug: slug, status: "draft" },
-                actor: actor
-              ).value!
-            end
-            RecordingStudioPublishable::Services::Publishables::Update.call(
-              parent_recording: recording,
-              attributes: { slug: slug, status: "published" },
-              actor: actor
-            ).value!
+            update_publishable(recording, actor, slug, "draft") if live?(recording)
+            update_publishable(recording, actor, slug, "published")
           end
         end
+      end
+
+      def update_publishable(recording, actor, slug, status)
+        RecordingStudioPublishable::Services::Publishables::Update.call(
+          parent_recording: recording,
+          attributes: { slug: slug, status: status },
+          actor: actor
+        ).value!
       end
 
       def with_actor(actor)
