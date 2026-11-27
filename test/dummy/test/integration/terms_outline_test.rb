@@ -328,6 +328,32 @@ class TermsOutlineTest < ActiveSupport::TestCase
     refute_includes released.recordable.body, "1. 1."
   end
 
+  test "a publish after a prefix-only heading repair saves the slug without a new terms snapshot" do
+    recording = publish_seeded!("<h2>Scope</h2><p>Who this covers.</p>")
+    outline = RecordingStudioTermsAndConditions::Outline
+    section = outline.sections(recording).first
+    assert_equal "Scope", section.heading
+    outline.edit_section(section.recording, heading: "1. Scope", actor: @actor)
+    assert outline.unreleased?(recording)
+    snapshot = recording.recordable_id
+    slug = "prefix-#{SecureRandom.hex(4)}"
+
+    assert_no_difference -> { RecordingStudioTermsAndConditions::Terms.count } do
+      RecordingStudioPublishable::Services::Publishables::Update.call(
+        parent_recording: recording,
+        attributes: { slug: slug, status: "published" },
+        actor: @actor
+      ).value!
+    end
+
+    recording.reload
+    assert_equal snapshot, recording.recordable_id
+    assert_equal slug, recording.current_publishable.slug
+    refute outline.unreleased?(recording)
+    assert recording.currently_published?
+    assert_equal "Scope", outline.sections(recording).first.heading
+  end
+
   test "a publish-settings update on a live seeded document keeps the version and applies the slug" do
     recording = publish_seeded!("Be kind in the booth.")
     outline = RecordingStudioTermsAndConditions::Outline

@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Outline seed strips only the generated number for that position (`1. ` for section 1, `1.1 ` for clause 1.1). Author section and clause writes keep the text as typed. A later seed on an existing outline does not rewrite the live body, the baseline, or `terms_id`.
 - Split walks through a wrapping block so a single-block body keeps every heading as its own section.
 - A live seeded document whose stored body is not yet the assembled outline is not treated as unreleased. Publish settings (status plus slug) stay on that snapshot and apply the slug.
+- A Publishable publish whose only pending outline edit is a heading that the release-path repair strips back to the last release (for example `1. Scope` at position 1) no longer 422s. The slug is saved. An explicit no-op `terms_release` still 422s.
 - A live outline release emits `PublishedEmitter` and does not draft then republish.
 
 ### Upgrade notes (0.25.1 → 0.26.0)
