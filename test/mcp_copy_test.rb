@@ -4,45 +4,44 @@ require "test_helper"
 require "recording_studio_terms_and_conditions"
 
 class McpCopyTest < Minitest::Test
-  PUBLIC_TOOLS = %w[
-    terms_pending_published_list
-    terms_current_published_for
-    terms_accepted
-  ].freeze
-
-  OPERATIONS_TOOLS = %w[
-    terms_documents
-    terms_create
-    terms_update
-    terms_outline
-    terms_section
-    terms_clause
-    terms_changes
-    terms_preview
-    terms_add_section
-    terms_edit_section
-    terms_move_section
-    terms_remove_section
-    terms_add_clause
-    terms_edit_clause
-    terms_move_clause
-    terms_remove_clause
-    terms_release
-  ].freeze
-
   def test_register_is_a_noop_without_recording_studio_mcp
     refute Object.const_defined?(:RecordingStudioMcp, false)
     assert_nil RecordingStudioTermsAndConditions::McpCopy.register!
   end
 
   def test_tool_names_split_public_and_operations
-    assert_equal PUBLIC_TOOLS, RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :public)
-    assert_equal OPERATIONS_TOOLS, RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :operations)
-    OPERATIONS_TOOLS.each do |name|
+    public_tools = RecordingStudioTermsAndConditions::Api::ACTIONS.keys.map(&:to_s)
+    operations_tools = RecordingStudioTermsAndConditions::Api::AdminActions.definitions.keys.map(&:to_s)
+
+    assert_equal public_tools, RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :public)
+    assert_equal operations_tools, RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :operations)
+    operations_tools.each do |name|
       refute_includes RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :public), name
     end
     refute_includes RecordingStudioTermsAndConditions::McpCopy.tool_names, "terms_accept_pending"
     refute_includes RecordingStudioTermsAndConditions::McpCopy.tool_names, "terms_accept"
+    assert RecordingStudioTermsAndConditions::Api::AdminActions.create_fields[:body][:required]
+  end
+
+  def test_register_tool_omits_type_so_mcp_adds_the_enabled_type_enum
+    calls = []
+    mcp = Module.new
+    mcp.define_singleton_method(:register_tool) { |**kwargs| calls << kwargs }
+    Object.const_set(:RecordingStudioMcp, mcp)
+
+    RecordingStudioTermsAndConditions::McpCopy.register!
+
+    refute_empty calls
+    names = calls.map { |kwargs| kwargs[:name] }
+    RecordingStudioTermsAndConditions::McpCopy.tool_names.each do |name|
+      assert_includes names, name
+    end
+    calls.each do |kwargs|
+      refute kwargs.key?(:type), kwargs.inspect
+      assert_equal kwargs[:name].to_sym, kwargs[:action]
+    end
+  ensure
+    Object.send(:remove_const, :RecordingStudioMcp) if Object.const_defined?(:RecordingStudioMcp, false)
   end
 
   def test_mcp_copy_names_the_thing_and_omits_access_wording

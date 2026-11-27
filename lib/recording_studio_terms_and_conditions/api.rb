@@ -28,16 +28,14 @@ module RecordingStudioTermsAndConditions
         handler: PendingPublishedList,
         title: "Terms - Pending published list",
         summary: "List pending Terms",
-        description: "Live Terms the actor has not accepted. Each item is a Terms document on the shared library, " \
-                     "the legal copy they still need to agree to."
+        description: "Live Terms the actor has not accepted. The document is the shared library."
       }.freeze,
       terms_current_published_for: {
         http_verb: :get,
         handler: CurrentPublishedFor,
         title: "Terms - Current published",
         summary: "Show current published Terms",
-        description: "The live Terms document for a kind. That document is the legal copy currently in force " \
-                     "on the shared library.",
+        description: "The live Terms document for a kind. It is the shared library.",
         kind_field: true
       }.freeze,
       terms_accepted: {
@@ -45,7 +43,7 @@ module RecordingStudioTermsAndConditions
         handler: Accepted,
         title: "Terms - Accepted",
         summary: "Check Terms acceptance",
-        description: "Whether the caller has accepted the live Terms document for a kind.",
+        description: "Whether the access grant's actor has accepted the live Terms document for a kind.",
         kind_field: true
       }.freeze
     }.freeze
@@ -70,10 +68,9 @@ module RecordingStudioTermsAndConditions
         end
 
         def action_map(surface_name = :operations)
-          map = ACTIONS.merge(AdminActions.definitions)
-          return map if surface_name.to_sym == :operations
+          return ACTIONS.merge(AdminActions.definitions) if surface_name.to_sym == :operations
 
-          map.reject { |_name, spec| spec[:operations_only] }
+          ACTIONS
         end
 
         def register_action(surface_name, action_name)

@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.25.0] - 2026-11-27
 
 ### Added
-- Operations API `terms_create` (`:edit`). Title, kind (`terms_and_condition` or `privacy_policy`), optional body. Creates the document on the shared library through `TermsCreate` (the same path as Admin New) and seeds the outline. Refuses with KindPresence when that kind already exists. Returns the document and its outline.
+- Operations API `terms_create` (`:edit`). Title, kind (`terms_and_condition` or `privacy_policy`), and body. Creates the document on the shared library through `TermsCreate` (the same path as Admin New) and seeds the outline. Refuses with KindPresence when that kind already exists. Returns the document and its outline.
 - Operations API `terms_update` (`:edit`). Uses `TermsWrite`. Title always. Body only when the document has no outline.
 - `RecordingStudioTermsAndConditions::McpCopy.tool_names(api:)`. Operations lists documents, create, update, outline, section/clause reads and writes, changes, preview, and release. Public lists only the three clickwrap reads. Never an accept tool.
 

@@ -20,8 +20,7 @@ module RecordingStudioTermsAndConditions
 
     def call
       refuse_outline!
-      return recording if same_copy?
-      raise OutlinePresent, outline_message if live? && outlined?
+      return recording if live? && same_copy?
 
       live? ? fork_draft : revise_draft
     end
@@ -35,18 +34,10 @@ module RecordingStudioTermsAndConditions
     end
 
     def refuse_outline!
-      return unless outlined?
-      return if body == recording.recordable.body.to_s
+      return if Outline.sections(recording).empty?
 
-      raise OutlinePresent, outline_message
-    end
-
-    def outlined?
-      Outline.sections(recording).any?
-    end
-
-    def outline_message
-      "This Terms document has an outline. Edit a section or a clause, then release."
+      raise OutlinePresent,
+            "This Terms document has an outline. Edit a section or a clause, then release."
     end
 
     def same_copy?

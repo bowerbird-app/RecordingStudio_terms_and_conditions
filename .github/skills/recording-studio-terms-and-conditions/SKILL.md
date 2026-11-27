@@ -7,7 +7,7 @@ description: Published Terms, clickwrap acceptance, and the host gate for Record
 
 This is the kit gem for **published Terms** and **clickwrap acceptance**. Do not invent a second acceptance table, accept screen, or post-auth redirect.
 
-Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.25.0**.
+Repo: [RecordingStudio_terms_and_conditions](https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions). Rubygems name: `recording_studio_terms_and_conditions`. Current version: **0.24.0**.
 
 ## Need
 
@@ -84,10 +84,6 @@ Or wrap a host clickwrap with `recording_studio_terms_scroll_to_end(require_scro
 Set `config.capture_request_provenance = true` only if the gem Agree screen should store IP and user agent (default off). Product config is `mount_path`, `app_name`, `require_scroll_to_end`, `capture_request_provenance`, `users_after_auth_path`, `gate_exempt_controllers`, and `actor_name_search`. There is no API key. `recording_studio_user` is not a gemspec dependency.
 
 Agree is still the post-auth destination. It has no PageNav. Live pending copy sits in closed Flatpack Collapse rows wrapping Content (one row per pending kind). First-time Accept PageTitle names the pending set (“Terms and Conditions”, “Privacy Policy”, or both). After any prior receipt, it uses “We have updated our…” for those kinds. No on-page re-accept Alert, and the gate does not flash. Continue-notice (`link: false` on Accept) and **Continue** stay at the bottom (no checkbox), including after someone has already agreed. Agreeing again to the same live copy keeps the original receipt time. The notice wrapper is `mt-3 mb-3` on Accept and create-password. Signup continue-notice, the signed-in gate, and Accept all read the shared library. The current workspace is not part of the check. Switching workspace does not ask again. A new published version still asks once.
-
-## Upgrade (0.24.0 → 0.25.0)
-
-No Terms migrations. Authoring leaves the public API. Operations API adds `terms_create`, `terms_update`, and holds every authoring action. Enable the Terms mixin on AdminRoot and list authoring actions there. Hosts that load MCP include `RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :operations)` on the operations server and the three clickwrap reads on public.
 
 ## Upgrade (0.23.0 → 0.24.0)
 

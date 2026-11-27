@@ -82,7 +82,7 @@ module RecordingStudioTermsAndConditions
         type = context.recording&.recordable_type
         return if AUTHORING_ROOT_TYPES.include?(type)
 
-        raise RecordingStudioApi::NotFoundError, "Workspace not found"
+        raise RecordingStudioApi::NotFoundError, "Terms authoring is not available here"
       end
     end
 
@@ -302,14 +302,27 @@ module RecordingStudioTermsAndConditions
 
       def self.write_document(context)
         recording = terms!(context)
-        body = context.params[:body]
-        body = recording.recordable.body if body.nil?
+        return write_title(recording, context) if title_only_on_outline?(recording, context)
+
         TermsWrite.call(
           recording: recording,
           actor: actor(context),
           title: context.params[:title],
-          body: body
+          body: context.params[:body].nil? ? recording.recordable.body : context.params[:body]
         )
+      end
+
+      def self.title_only_on_outline?(recording, context)
+        return false if Outline.sections(recording).empty?
+
+        incoming = context.params[:body]
+        incoming.nil? || incoming.to_s == recording.recordable.body.to_s
+      end
+
+      def self.write_title(recording, context)
+        recording.root_recording.revise(recording, actor: actor(context)) do |terms|
+          terms.title = context.params[:title]
+        end
       end
     end
   end

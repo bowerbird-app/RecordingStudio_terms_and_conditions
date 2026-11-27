@@ -4,33 +4,6 @@ module RecordingStudioTermsAndConditions
   # Named MCP tools when Recording Studio MCP is loaded.
   # This gem does not depend on it. Hosts that skip MCP keep the UI and API only.
   module McpCopy
-    PUBLIC_TOOLS = %w[
-      terms_pending_published_list
-      terms_current_published_for
-      terms_accepted
-    ].freeze
-
-    OPERATIONS_TOOLS = %w[
-      terms_documents
-      terms_create
-      terms_update
-      terms_outline
-      terms_section
-      terms_clause
-      terms_changes
-      terms_preview
-      terms_add_section
-      terms_edit_section
-      terms_move_section
-      terms_remove_section
-      terms_add_clause
-      terms_edit_clause
-      terms_move_clause
-      terms_remove_clause
-      terms_release
-    ].freeze
-
-    TYPE = "RecordingStudioTermsAndConditions::Terms"
     DOCUMENT =
       "A Terms document is the legal copy people agree to. One lineage per kind lives on the shared library. " \
       "Kinds are terms_and_condition and privacy_policy. Sections and clauses sit under that document. " \
@@ -48,10 +21,18 @@ module RecordingStudioTermsAndConditions
 
     def tool_names(api: nil)
       case api&.to_sym
-      when :public then PUBLIC_TOOLS
-      when :operations then OPERATIONS_TOOLS
-      else (PUBLIC_TOOLS + OPERATIONS_TOOLS).uniq
+      when :public then public_tools
+      when :operations then operations_tools
+      else (public_tools + operations_tools).uniq
       end
+    end
+
+    def public_tools
+      Api::ACTIONS.keys.map(&:to_s)
+    end
+
+    def operations_tools
+      Api::AdminActions.definitions.keys.map(&:to_s)
     end
 
     def register_tool(name)
@@ -59,7 +40,6 @@ module RecordingStudioTermsAndConditions
       ::RecordingStudioMcp.register_tool(
         name: name,
         action: name.to_sym,
-        type: TYPE,
         title: spec.fetch(:title),
         description: [spec.fetch(:description), DOCUMENT].join(" ")
       )

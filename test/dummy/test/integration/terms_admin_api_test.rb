@@ -76,19 +76,15 @@ class TermsAdminApiTest < ActionDispatch::IntegrationTest
   end
 
   test "a client without admin access is forbidden" do
-    outsider = User.create!(
-      email: "outsider-api-#{SecureRandom.hex(4)}@example.com",
-      password: "Password",
-      password_confirmation: "Password"
-    )
-    Current.actor = outsider
-    other = Workspace.create!(name: "Other #{SecureRandom.hex(4)}")
-    other_root = RecordingStudio.create_root_recording!(other, actor: recording_write_actor)
-    access = bootstrap_owner_access!(outsider, other_root)
-    token, = public_token_for(access, manager: outsider)
+    token, = token_for(@admin_root, role: :edit, api: :operations)
+    access = RecordingStudioTermsAndConditions::Api::Access
+    original = access.method(:authorized_on_admin_root?)
+    access.define_singleton_method(:authorized_on_admin_root?) { |*| false }
 
-    call(:get, "#{PUBLIC}/workspaces/#{other_root.id}/actions/terms_documents", token)
-    assert_response :unprocessable_entity, response.body
+    call(:get, "#{OPERATIONS}#{admin_root_path}/actions/terms_documents", token)
+    assert_forbidden_not_allowed
+  ensure
+    access.define_singleton_method(:authorized_on_admin_root?, original) if access && original
   end
 
   test "public API registers none of the authoring actions and operations registers all of them" do
@@ -123,97 +119,5 @@ class TermsAdminApiTest < ActionDispatch::IntegrationTest
 
   def admin_root_path
     "/admin_roots/#{@admin_root.id}"
-  end
-
-  def grant!(recording, actor, role, manager)
-    configuration = nil
-    original = nil
-    return if RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: role)
-
-    configuration = RecordingStudioAccessible.configuration
-    original = configuration.access_management_authorizer
-    configuration.access_management_authorizer = ->(**) { true }
-    result = RecordingStudioAccessible.grant_access(
-      recording: recording,
-      actor: actor,
-      role: role,
-      manager_actor: manager
-    )
-    raise result.error if result.respond_to?(:failure?) && result.failure?
-  ensure
-    configuration.access_management_authorizer = original if configuration && original
-  end
-
-  def token_for(access_point, role:, api:)
-    configuration = RecordingStudioAccessible.configuration
-    original = configuration.access_management_authorizer
-    configuration.access_management_authorizer = ->(**) { true }
-    provision = with_access_creation do
-      RecordingStudioApi::Services::ProvisionApiClient.call(
-        access_point_recording: access_point,
-        manager_actor: @owner,
-        role: role,
-        name: "Client #{SecureRandom.hex(3)}",
-        api: api
-      )
-    end
-    raise provision.error unless provision.success?
-
-    client = provision.value.fetch(:api_client)
-    grant!(access_point, client, role, @owner)
-
-    issued = RecordingStudioApi::Services::IssueOauthAccessToken.call(
-      grant_type: "client_credentials",
-      client_id: provision.value.fetch(:credential).oauth_client_id,
-      client_secret: provision.value.fetch(:token),
-      api: api
-    )
-    raise issued.error unless issued.success?
-
-    [issued.value.fetch(:access_token), client]
-  ensure
-    configuration.access_management_authorizer = original if configuration && original
-  end
-
-  def public_token_for(access_recording, manager: @owner)
-    provision = RecordingStudioApi::Services::ProvisionApiClient.call(
-      access_point_recording: access_recording.parent_recording || access_recording.root_recording,
-      manager_actor: manager,
-      role: access_recording.recordable.role,
-      name: "Client #{SecureRandom.hex(3)}"
-    )
-    raise provision.error unless provision.success?
-
-    issued = RecordingStudioApi::Services::IssueOauthAccessToken.call(
-      grant_type: "client_credentials",
-      client_id: provision.value.fetch(:credential).oauth_client_id,
-      client_secret: provision.value.fetch(:token)
-    )
-    raise issued.error unless issued.success?
-
-    [issued.value.fetch(:access_token), provision.value.fetch(:api_client)]
-  end
-
-  def with_access_creation(&)
-    if defined?(RecordingStudioAccessible::AccessCreationContext)
-      RecordingStudioAccessible::AccessCreationContext.allow(&)
-    else
-      yield
-    end
-  end
-
-  def call(method, path, token, params = {})
-    send(method, path, params: params, headers: headers(token), as: :json)
-    response.media_type.to_s.include?("json") ? JSON.parse(response.body) : {}
-  rescue JSON::ParserError
-    {}
-  end
-
-  def headers(token)
-    { "Authorization" => "Bearer #{token}", "Accept" => "application/json" }
-  end
-
-  def json
-    JSON.parse(response.body)
   end
 end

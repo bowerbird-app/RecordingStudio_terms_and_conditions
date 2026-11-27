@@ -45,6 +45,18 @@ class TermsAdminRootApiTest < ActionDispatch::IntegrationTest
     assert_equal document.fetch("id"), outline.fetch("id")
   end
 
+  test "create requires body" do
+    kind = free_kind!
+    call(:post, create_path, @edit_token, { title: "No body", kind: kind })
+    assert_response :unprocessable_entity, response.body
+    assert_equal "invalid_input", json.dig("error", "code")
+  end
+
+  test "create refuses a kind that is not terms or privacy" do
+    call(:post, create_path, @edit_token, { title: "G", kind: "garbage", body: "Body." })
+    assert_response :unprocessable_entity, response.body
+  end
+
   test "create refuses when that kind already exists" do
     kind = free_kind!
     call(:post, create_path, @edit_token, { title: "First", kind: kind, body: "One." })
@@ -68,6 +80,34 @@ class TermsAdminRootApiTest < ActionDispatch::IntegrationTest
     assert_forbidden_not_allowed
   end
 
+  test "terms_update changes title on an outlined draft and leaves kind and body" do
+    kind = free_kind!
+    created = call(:post, create_path, @edit_token, { title: "Draft one", kind: kind, body: "Hello world." })
+    assert_response :success, response.body
+    id = created.dig("document", "id")
+
+    call(:post, update_path, @edit_token, { terms_id: id, title: "Renamed draft", kind: "terms_and_condition" })
+    assert_response :success, response.body
+    assert_equal "Renamed draft", json.dig("document", "title")
+    assert_equal kind, json.dig("document", "kind")
+
+    recording = RecordingStudio::Recording.find(id)
+    assert_equal "Hello world.", recording.recordable.body
+  end
+
+  test "terms_update with a non-Terms or missing id is not found" do
+    kind = free_kind!
+    created = call(:post, create_path, @edit_token, { title: "S", kind: kind, body: "Body." })
+    assert_response :success, response.body
+    section_id = created.dig("outline", "sections", 0, "id")
+
+    call(:post, update_path, @edit_token, { terms_id: section_id, title: "Hijack" })
+    assert_response :not_found
+
+    call(:post, update_path, @edit_token, { terms_id: SecureRandom.uuid, title: "Missing" })
+    assert_response :not_found
+  end
+
   test "from AdminRoot staff can list create add section edit section edit clause and release" do
     kind = free_kind!
     created = call(:post, create_path, @edit_token, {
@@ -78,21 +118,21 @@ class TermsAdminRootApiTest < ActionDispatch::IntegrationTest
     assert_response :success, response.body
     terms_id = created.dig("document", "id")
 
-    listed = call(:get, "#{admin_root_path}/actions/terms_documents", @edit_token)
+    listed = call(:get, "#{OPERATIONS}#{admin_root_path}/actions/terms_documents", @edit_token)
     assert_response :success, response.body
     assert listed.fetch("documents").any? { |row| row["id"] == terms_id }
 
-    call(:post, "#{admin_root_path}/actions/terms_add_section", @edit_token, { terms_id: terms_id, heading: "Gear" })
+    call(:post, "#{OPERATIONS}#{admin_root_path}/actions/terms_add_section", @edit_token, { terms_id: terms_id, heading: "Gear" })
     assert_response :success, response.body
     section_id = json.fetch("section").fetch("id")
 
-    call(:post, "#{admin_root_path}/actions/terms_edit_section", @edit_token, {
+    call(:post, "#{OPERATIONS}#{admin_root_path}/actions/terms_edit_section", @edit_token, {
            terms_id: terms_id, section_id: section_id, heading: "Rooms"
          })
     assert_response :success, response.body
     assert_equal "Rooms", json.dig("section", "heading")
 
-    released = call(:post, "#{admin_root_path}/actions/terms_release", @edit_token, { terms_id: terms_id })
+    released = call(:post, "#{OPERATIONS}#{admin_root_path}/actions/terms_release", @edit_token, { terms_id: terms_id })
     assert_response :success, response.body
     assert_equal true, released.dig("release", "released")
     live_id = released.dig("release", "id")
@@ -100,14 +140,14 @@ class TermsAdminRootApiTest < ActionDispatch::IntegrationTest
     RecordingStudioTermsAndConditions.accept!(@acceptor, live.recordable)
     refute RecordingStudioTermsAndConditions.requires_acceptance?(@acceptor)
 
-    outline = call(:get, "#{admin_root_path}/actions/terms_outline", @edit_token, { terms_id: live_id })
+    outline = call(:get, "#{OPERATIONS}#{admin_root_path}/actions/terms_outline", @edit_token, { terms_id: live_id })
     clause_id = outline.dig("outline", "sections", 0, "clauses", 0, "id")
-    call(:post, "#{admin_root_path}/actions/terms_edit_clause", @edit_token, {
+    call(:post, "#{OPERATIONS}#{admin_root_path}/actions/terms_edit_clause", @edit_token, {
            terms_id: live_id, clause_id: clause_id, body: "Whisper."
          })
     assert_response :success, response.body
 
-    again = call(:post, "#{admin_root_path}/actions/terms_release", @edit_token, { terms_id: live_id })
+    again = call(:post, "#{OPERATIONS}#{admin_root_path}/actions/terms_release", @edit_token, { terms_id: live_id })
     assert_response :success, response.body
     assert_equal true, again.dig("release", "released")
     assert RecordingStudioTermsAndConditions.requires_acceptance?(@acceptor)
@@ -123,6 +163,8 @@ class TermsAdminRootApiTest < ActionDispatch::IntegrationTest
     %i[public operations].each do |api|
       refute RecordingStudioApi.capability_action(:terms_accept_pending, api: api)
     end
+
+    assert RecordingStudioTermsAndConditions::Api::AdminActions.create_fields[:body][:required]
   end
 
   private
@@ -132,99 +174,10 @@ class TermsAdminRootApiTest < ActionDispatch::IntegrationTest
   end
 
   def create_path
-    "#{admin_root_path}/actions/terms_create"
+    "#{OPERATIONS}#{admin_root_path}/actions/terms_create"
   end
 
   def update_path
-    "#{admin_root_path}/actions/terms_update"
-  end
-
-  def free_kind!
-    kind = RecordingStudioTermsAndConditions::Terms::KIND_PRIVACY
-    RecordingStudioTermsAndConditions::KindPresence.recordings_for(kind: kind).each do |recording|
-      recording.update_columns(trashed_at: Time.current)
-    end
-    kind
-  end
-
-  def assert_forbidden_not_allowed
-    assert_response :forbidden, response.body
-    assert_equal "forbidden", json.dig("error", "code")
-    message = json.dig("error", "message").to_s.downcase
-    assert message.include?("not authorized") || message.include?("not allowed") || message.include?("admin access"),
-           message
-  end
-
-  def grant!(recording, actor, role, manager)
-    configuration = nil
-    original = nil
-    return if RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: role)
-
-    configuration = RecordingStudioAccessible.configuration
-    original = configuration.access_management_authorizer
-    configuration.access_management_authorizer = ->(**) { true }
-    result = RecordingStudioAccessible.grant_access(
-      recording: recording,
-      actor: actor,
-      role: role,
-      manager_actor: manager
-    )
-    raise result.error if result.respond_to?(:failure?) && result.failure?
-  ensure
-    configuration.access_management_authorizer = original if configuration && original
-  end
-
-  def token_for(access_point, role:, api:)
-    configuration = RecordingStudioAccessible.configuration
-    original = configuration.access_management_authorizer
-    configuration.access_management_authorizer = ->(**) { true }
-    provision = with_access_creation do
-      RecordingStudioApi::Services::ProvisionApiClient.call(
-        access_point_recording: access_point,
-        manager_actor: @owner,
-        role: role,
-        name: "Client #{SecureRandom.hex(3)}",
-        api: api
-      )
-    end
-    raise provision.error unless provision.success?
-
-    client = provision.value.fetch(:api_client)
-    grant!(access_point, client, role, @owner)
-
-    issued = RecordingStudioApi::Services::IssueOauthAccessToken.call(
-      grant_type: "client_credentials",
-      client_id: provision.value.fetch(:credential).oauth_client_id,
-      client_secret: provision.value.fetch(:token),
-      api: api
-    )
-    raise issued.error unless issued.success?
-
-    [issued.value.fetch(:access_token), client]
-  ensure
-    configuration.access_management_authorizer = original if configuration && original
-  end
-
-  def with_access_creation(&)
-    if defined?(RecordingStudioAccessible::AccessCreationContext)
-      RecordingStudioAccessible::AccessCreationContext.allow(&)
-    else
-      yield
-    end
-  end
-
-  def call(method, path, token, params = {})
-    send(method, "#{OPERATIONS}#{path}", params: params, headers: headers(token), as: :json)
-    response.media_type.to_s.include?("json") ? JSON.parse(response.body) : {}
-  rescue JSON::ParserError
-    {}
-  end
-
-  def headers(token)
-    { "Authorization" => "Bearer #{token}", "Accept" => "application/json" }
-  end
-
-  def json
-    JSON.parse(response.body)
+    "#{OPERATIONS}#{admin_root_path}/actions/terms_update"
   end
 end
