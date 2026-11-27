@@ -302,27 +302,12 @@ module RecordingStudioTermsAndConditions
 
       def self.write_document(context)
         recording = terms!(context)
-        return write_title(recording, context) if title_only_on_outline?(recording, context)
-
         TermsWrite.call(
           recording: recording,
           actor: actor(context),
           title: context.params[:title],
           body: context.params[:body].nil? ? recording.recordable.body : context.params[:body]
         )
-      end
-
-      def self.title_only_on_outline?(recording, context)
-        return false if Outline.sections(recording).empty?
-
-        incoming = context.params[:body]
-        incoming.nil? || incoming.to_s == recording.recordable.body.to_s
-      end
-
-      def self.write_title(recording, context)
-        recording.root_recording.revise(recording, actor: actor(context)) do |terms|
-          terms.title = context.params[:title]
-        end
       end
     end
   end

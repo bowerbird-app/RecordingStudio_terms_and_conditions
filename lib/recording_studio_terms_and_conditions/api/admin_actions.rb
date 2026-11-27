@@ -95,7 +95,7 @@ module RecordingStudioTermsAndConditions
       end
 
       def update_description
-        "Updates a Terms document's title. Body only when the document has no outline. " \
+        "Updates a Terms document with no outline. A rename of an outlined document is refused for now. " \
           "Pass terms_id of the document on the shared library. " \
           "A document with an outline is edited as sections and clauses, then released."
       end

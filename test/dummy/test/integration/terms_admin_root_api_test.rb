@@ -81,19 +81,33 @@ class TermsAdminRootApiTest < ActionDispatch::IntegrationTest
     assert_forbidden_not_allowed
   end
 
-  test "terms_update changes title on an outlined draft and leaves kind and body" do
+  test "terms_update refuses a new title on an outlined live document" do
     kind = free_kind!
-    created = call(:post, create_path, @edit_token, { title: "Draft one", kind: kind, body: "Hello world." })
+    created = call(:post, create_path, @edit_token, { title: "Live title", kind: kind, body: "Hello world." })
     assert_response :success, response.body
-    id = created.dig("document", "id")
+    draft_id = created.dig("document", "id")
 
-    call(:post, update_path, @edit_token, { terms_id: id, title: "Renamed draft", kind: "terms_and_condition" })
+    released = call(:post, "#{OPERATIONS}#{admin_root_path}/actions/terms_release", @edit_token, { terms_id: draft_id })
     assert_response :success, response.body
-    assert_equal "Renamed draft", json.dig("document", "title")
-    assert_equal kind, json.dig("document", "kind")
+    live_id = released.dig("release", "id")
+    live = RecordingStudio::Recording.find(live_id)
+    RecordingStudioTermsAndConditions.accept!(@acceptor, live.recordable)
+    refute RecordingStudioTermsAndConditions.requires_acceptance?(@acceptor)
 
-    recording = RecordingStudio::Recording.find(id)
-    assert_equal "Hello world.", recording.recordable.body
+    before_count = RecordingStudioTermsAndConditions::Acceptance.where(terms_recording_id: live.id).count
+    before_ids = terms_ids_on_library
+
+    call(:post, update_path, @edit_token, { terms_id: live_id, title: "Renamed live" })
+    assert_response :unprocessable_entity, response.body
+    assert_equal "invalid_input", json.dig("error", "code")
+    assert_equal "This Terms document has an outline. Edit a section or a clause, then release.",
+                 json.dig("error", "message")
+
+    live.reload
+    assert_equal "Live title", live.recordable.title
+    assert_equal before_count, RecordingStudioTermsAndConditions::Acceptance.where(terms_recording_id: live.id).count
+    refute RecordingStudioTermsAndConditions.requires_acceptance?(@acceptor)
+    assert_equal before_ids, terms_ids_on_library
   end
 
   test "terms_update with a non-Terms or missing id is not found" do
@@ -180,5 +194,14 @@ class TermsAdminRootApiTest < ActionDispatch::IntegrationTest
 
   def update_path
     "#{OPERATIONS}#{admin_root_path}/actions/terms_update"
+  end
+
+  def terms_ids_on_library
+    library = RecordingStudioTermsAndConditions.library_root
+    RecordingStudio::Recording.where(
+      root_recording_id: library.id,
+      recordable_type: RecordingStudioTermsAndConditions::Terms.name,
+      trashed_at: nil
+    ).order(:id).pluck(:id)
   end
 end
