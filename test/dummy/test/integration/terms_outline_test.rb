@@ -159,9 +159,13 @@ class TermsOutlineTest < ActiveSupport::TestCase
   end
 
   test "a wrapped single-block body keeps every section across two releases" do
+    kind = RecordingStudioTermsAndConditions::Terms::DEFAULT_KIND
+    RecordingStudioTermsAndConditions::KindPresence.recordings_for(kind: kind).each do |recording|
+      recording.update_columns(trashed_at: Time.current)
+    end
     body = "<div><h2>Scope</h2><p>Who this covers.</p><h2>Accounts</h2><p>Keep yours.</p>" \
            "<h2>Content</h2><p>Be decent.</p><h2>Ending</h2><p>We can stop.</p></div>"
-    recording = record_terms(@root, title: "Studio terms", body: body, actor: @actor)
+    recording = record_terms(@root, title: "Studio terms", body: body, kind: kind, actor: @actor)
     publish_terms!(recording, slug: "wrapped-#{SecureRandom.hex(4)}", actor: @actor)
     outline = RecordingStudioTermsAndConditions::Outline
     lineage_id = recording.id
