@@ -99,6 +99,82 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
     refute_includes CGI.unescapeHTML(response.body), "These terms changed. Agree again to stay in."
   end
 
+  test "continue returns to the saved return path on a second Continue" do
+    oauth_path = "/recording_studio_oauth/oauth/authorize?client_id=terms-test&response_type=code&redirect_uri=#{CGI.escape("https://client.example/callback")}"
+
+    visit_agree_with_stored_location(oauth_path)
+
+    assert_response :success
+    assert_nil session["user_return_to"]
+    assert_select "input[type=hidden][name=return_to]" do |inputs|
+      assert_equal oauth_path, inputs.first["value"]
+    end
+
+    post recording_studio_terms_and_conditions.acceptance_path, params: { return_to: oauth_path }
+
+    assert_redirected_to oauth_path
+    assert_nil session["user_return_to"]
+
+    post recording_studio_terms_and_conditions.acceptance_path, params: { return_to: oauth_path }
+
+    assert_redirected_to oauth_path
+  end
+
+  test "agree show clears the stored location even when it is not a return path" do
+    visit_agree_with_stored_location("https://evil.com")
+
+    assert_response :success
+    assert_nil session["user_return_to"]
+    assert_select "input[name=return_to]", count: 0
+  end
+
+  test "continue treats an agree return_to as root even with query slash or case" do
+    agree = recording_studio_terms_and_conditions.acceptance_path
+    [
+      "#{agree}?x=1",
+      "#{agree}/",
+      agree.upcase
+    ].each do |value|
+      post recording_studio_terms_and_conditions.acceptance_path, params: { return_to: value }
+
+      assert_redirected_to "/", value
+    end
+  end
+
+  test "continue rejects off-site and unsafe return_to values and falls back to root" do
+    [
+      "//evil.com",
+      "https://evil.com",
+      "/\\evil.com",
+      "javascript:alert(1)"
+    ].each do |value|
+      post recording_studio_terms_and_conditions.acceptance_path, params: { return_to: value }
+
+      assert_redirected_to "/", value
+    end
+  end
+
+  test "continue without return_to goes to root" do
+    post recording_studio_terms_and_conditions.acceptance_path
+
+    assert_redirected_to "/"
+  end
+
+  test "failed continue keeps return_to on the agree form" do
+    return_path = "/recording_studio_oauth/oauth/authorize?client_id=retry"
+    visit_agree_with_stored_location(return_path)
+    draft = record_terms(@root, title: "Stale draft", body: "Skip me.")
+
+    force_current_published_for(draft.recordable) do
+      post recording_studio_terms_and_conditions.acceptance_path, params: { return_to: return_path }
+    end
+
+    assert_response :unprocessable_entity
+    assert_select "input[type=hidden][name=return_to]" do |inputs|
+      assert_equal return_path, inputs.first["value"]
+    end
+  end
+
   test "continue records a continue_notice receipt" do
     post recording_studio_terms_and_conditions.acceptance_path
 
@@ -215,6 +291,13 @@ class AcceptTermsTest < ActionDispatch::IntegrationTest
   end
 
   private
+
+  def visit_agree_with_stored_location(path)
+    Warden.on_next_request do |proxy|
+      proxy.request.session["user_return_to"] = path
+    end
+    get recording_studio_terms_and_conditions.acceptance_path
+  end
 
   def force_current_published_for(terms)
     mod = RecordingStudioTermsAndConditions.singleton_class

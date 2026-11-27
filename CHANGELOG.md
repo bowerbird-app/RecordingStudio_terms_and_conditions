@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.26.1] - 2026-11-28
+
+### Fixed
+- Continue after Agree copies Devise's stored location onto a hidden `return_to` field (`url_from(stored_location_for(:user))` on the Agree page, which clears the session key). Continue follows that field after `url_from` and Agree-path checks, including a second Continue that resubmits the same value. A same-host URL (relative path or absolute URL on the same host) is followed. It falls back to home otherwise, or when the URL points back at the Agree page (query, trailing slash, fragment, or case change). Protocol-relative, backslash, `javascript:`, off-site URLs, and a missing `return_to` also fall back to home.
+
+### Upgrade notes (0.26.0 → 0.26.1)
+- No Terms migration. Pin `0.26.1`. No host wiring change. Continue after Agree copies the stored return path onto the form and clears the session on the Agree page, so a later Continue still returns there.
+
 ## [0.26.0] - 2026-11-27
 
 ### Breaking
@@ -836,7 +844,8 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.26.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.26.1...HEAD
+[0.26.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.26.0...v0.26.1
 [0.26.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.25.1...v0.26.0
 [0.25.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.25.0...v0.25.1
 [0.25.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.24.0...v0.25.0

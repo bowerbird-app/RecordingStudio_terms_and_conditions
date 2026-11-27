@@ -75,7 +75,7 @@ class TermsGateTest < ActionDispatch::IntegrationTest
       get "/docs/install"
       assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
 
-      post recording_studio_terms_and_conditions.acceptance_path
+      continue_from_agree_form
       assert_redirected_to "/docs/install"
       follow_redirect!
       assert_response :success
@@ -143,7 +143,7 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     get "/docs/install"
     assert_redirected_to recording_studio_terms_and_conditions.acceptance_path
 
-    post recording_studio_terms_and_conditions.acceptance_path
+    continue_from_agree_form
 
     assert_redirected_to "/docs/install"
     follow_redirect!
@@ -273,6 +273,13 @@ class TermsGateTest < ActionDispatch::IntegrationTest
     recording = record_terms(@root, title: "Gate Terms", body: "Be kind.")
     publish_terms!(recording, slug: "gate-terms-#{SecureRandom.hex(4)}")
     recording
+  end
+
+  def continue_from_agree_form
+    follow_redirect! if response.redirect?
+    return_to = css_select("input[name=return_to]").first&.[]("value")
+    params = return_to.present? ? { return_to: return_to } : {}
+    post recording_studio_terms_and_conditions.acceptance_path, params: params
   end
 
   def path_without_query

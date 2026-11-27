@@ -16,6 +16,10 @@ Then:
 - Enable Admin `section :terms` on an Admin root and grant Accessible access.
 - Publish with Publishable `QuickActions` on term show, or the Publish settings hub. Do not add a custom publish action.
 
+## Upgrade from 0.26.0 to 0.26.1
+
+No Terms schema change. Pin `0.26.1`. Continue after Agree copies the stored return path onto the form and clears the session on the Agree page, then follows that `return_to` when it is a same-host URL (relative path or absolute URL on the same host), including a retry. It falls back to home otherwise, or when the URL points back at the Agree page. No host wiring change.
+
 ## Upgrade from 0.25.1 to 0.26.0
 
 No Terms schema change. Pin `0.26.0`.
@@ -26,7 +30,7 @@ Hosts that called no-op `terms_release` and expected 200 must treat 422 as no ch
 
 Documents whose outline rows still store generated numbers (`1. Scope`) render `1. 1. Scope` until a later outline release. Run `bin/rails recording_studio_terms_and_conditions:seed_outline` to strip those prefixes from section and clause rows. That pass does not rewrite the live body, the baseline, or `terms_id`. Corrected numbering goes live on the next real release. Docs that 0.25.x collapsed into one section are not re-split by the repair. Once `seed_outline` or a release attempt repairs a legacy 0.25.x doc, Admin shows Unreleased changes, and any Publishable publish after that (even a slug-only change) goes through `release_instead?` (`outline_publish.rb`), which does a full release, drops the requested slug, and makes everyone re-agree. That is the same rule as pending outline edits.
 
-The host includes the gate on `ApplicationController`. The gate is `recording_studio_terms_and_conditions.acceptance` on `RecordingStudio.check_gate`. Defaults already exempt `recording_studio_user/auth` and `recording_studio_user/omniauth`. Append any other auth controllers to `config.gate_exempt_controllers`. Set `config.actor_name_search` for who-agreed. Signup is separate. Where you configure Users, append `recording_studio_terms_and_conditions/signup_notice` to `signup_notice_partials` and register `SignupRegistration` with `after_registration`. That callable calls `accept!` with provenance `source` `signup` and `method` `password`, `oauth`, or `otp`. On Users >= 0.37.0, Terms hooks `config.after_auth_path` so sign-in and sign-up land on Agree while live Terms are pending. Set `config.users_after_auth_path = false` to wire that yourself. Set a host callable in an initializer. A `to_prepare` assignment replaces the wrap. Agree stays in place when a new version is published.
+The host includes the gate on `ApplicationController`. The gate is `recording_studio_terms_and_conditions.acceptance` on `RecordingStudio.check_gate`. Defaults already exempt `recording_studio_user/auth` and `recording_studio_user/omniauth`. Append any other auth controllers to `config.gate_exempt_controllers`. Continue after Agree copies Devise's stored location onto the form and clears the session on the Agree page, then follows that `return_to` when it is a same-host URL (relative path or absolute URL on the same host), including a retry. It falls back to home otherwise, or when the URL points back at the Agree page. Set `config.actor_name_search` for who-agreed. Signup is separate. Where you configure Users, append `recording_studio_terms_and_conditions/signup_notice` to `signup_notice_partials` and register `SignupRegistration` with `after_registration`. That callable calls `accept!` with provenance `source` `signup` and `method` `password`, `oauth`, or `otp`. On Users >= 0.37.0, Terms hooks `config.after_auth_path` so sign-in and sign-up land on Agree while live Terms are pending. Set `config.users_after_auth_path = false` to wire that yourself. Set a host callable in an initializer. A `to_prepare` assignment replaces the wrap. Agree stays in place when a new version is published.
 
 ## Upgrade from 0.25.0 to 0.25.1
 
