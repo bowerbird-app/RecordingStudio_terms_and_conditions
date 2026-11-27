@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.25.1] - 2026-11-27
+
+### Changed
+- Terms MCP tool descriptions put a full stop on the short summary before the shared document blurb, so tools such as `terms_outline` read as sentences.
+
+### Upgrade notes (0.25.0 → 0.25.1)
+- No Terms migration. Pin `0.25.1`. Copy only; no host wiring change.
+
 ## [0.25.0] - 2026-11-27
 
 ### Added
@@ -809,7 +817,8 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.25.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.25.1...HEAD
+[0.25.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.25.0...v0.25.1
 [0.25.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.24.0...v0.25.0
 [0.24.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.23.0...v0.24.0
 [0.23.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.22.0...v0.23.0

@@ -36,9 +36,14 @@ class McpCopyTest < Minitest::Test
     RecordingStudioTermsAndConditions::McpCopy.tool_names.each do |name|
       assert_includes names, name
     end
+    blurb = RecordingStudioTermsAndConditions::McpCopy::DOCUMENT
     calls.each do |kwargs|
       refute kwargs.key?(:type), kwargs.inspect
       assert_equal kwargs[:name].to_sym, kwargs[:action]
+      description = kwargs[:description]
+      assert description.end_with?(blurb), kwargs[:name]
+      summary = description.delete_suffix(" #{blurb}")
+      assert_match(/[.!?]\z/, summary, kwargs[:name])
     end
   ensure
     Object.send(:remove_const, :RecordingStudioMcp) if Object.const_defined?(:RecordingStudioMcp, false)

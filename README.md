@@ -187,6 +187,10 @@ Add [Recording Studio Internationalization](https://github.com/bowerbird-app/Rec
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
 
+## Upgrading from 0.25.0
+
+Bump to **0.25.1**. No Terms schema change. MCP tool descriptions now end the short summary with a full stop before the shared document blurb. No host wiring change.
+
 ## Upgrading from 0.24.0
 
 Bump to **0.25.0**. No Terms schema change. This removes Terms authoring from the public API. Add `terms_create`, `terms_update`, and the rest of the authoring actions on the operations API (AdminRoot). Drop those names from public Workspace and Terms type registrations. Enable the Terms mixin on AdminRoot. Include `RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :operations)` on the operations MCP server, and the three clickwrap reads on the public MCP server. Public MCP must not list authoring tools. Callers that used `/recording_studio_api/api/v1` for authoring must move to `/recording_studio_api/apis/operations/v1` on AdminRoot.
