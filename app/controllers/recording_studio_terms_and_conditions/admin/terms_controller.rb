@@ -36,7 +36,7 @@ module RecordingStudioTermsAndConditions
       def show
         @terms = terms_recording.recordable
         @changes = Outline.changes(terms_recording)
-        @unreleased = @changes.any?
+        @unreleased = Outline.unreleased?(terms_recording)
         @live = Outline.live?(terms_recording)
         @current_version = AgreementHistory.find(terms_recording, @terms.id) if @live
         @agreement_count = @current_version&.agreement_count

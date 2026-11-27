@@ -19,7 +19,9 @@ module RecordingStudioTermsAndConditions
       end
 
       def unreleased?(terms_recording, title: nil)
-        title_differs?(terms_recording, title) || changes(terms_recording).any?
+        title_differs?(terms_recording, title) ||
+          changes(terms_recording).any? ||
+          assemble(terms_recording) != terms_recording.recordable.body.to_s
       end
 
       def title_differs?(terms_recording, title)

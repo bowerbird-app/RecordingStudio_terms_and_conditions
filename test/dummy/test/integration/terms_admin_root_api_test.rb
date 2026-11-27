@@ -208,7 +208,7 @@ class TermsAdminRootApiTest < ActionDispatch::IntegrationTest
     call(:post, "#{OPERATIONS}#{admin_root_path}/actions/terms_release", @edit_token, { terms_id: recording.id })
     assert_response :unprocessable_entity, response.body
     assert_equal "invalid_input", json.dig("error", "code")
-    assert_includes json.dig("error", "message"), "Nothing has changed"
+    assert_equal "No changes to release", json.dig("error", "message")
   end
 
   test "terms_create and terms_update register on operations only and accept stays off" do

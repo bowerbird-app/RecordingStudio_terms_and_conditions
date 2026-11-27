@@ -11,12 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Release stays on the same Terms recording. A live outline no longer forks a second document of that kind, so `terms_release` returns the lineage id and `terms_documents` lists one row per kind.
-- Outline headings and clauses never store generated numbers. Seeding from a published body strips `1.` / `1.1` prefixes so a later assemble cannot double-number.
-- `Outline.release` and `terms_release` refuse a no-op with `Outline::Unchanged` (API `invalid_input`) when `terms_changes` would be empty.
+- Outline headings and clauses never store generated numbers. Split, seed, and section or clause writes strip `1.` / `1.1` prefixes so assemble cannot double-number.
+- Split walks through a wrapping block so a single-block body keeps every heading as its own section.
+- `Outline.release` and `terms_release` refuse a no-op with `Outline::Unchanged` (API `invalid_input`, message `No changes to release`) when the outline, title, and assembled body match the last release.
 
 ### Upgrade notes (0.25.1 → 0.25.2)
 - No Terms migration. Pin `0.25.2`.
-- Callers that treated a no-change `terms_release` as HTTP 200 with `released: false` now receive 422. Edit a section or clause first.
+- Callers that treated a no-change `terms_release` as HTTP 200 with `released: false` now receive 422. The error message is `No changes to release`.
 - Callers that stored the forked recording id from a live release should keep using the original lineage id. Old stray documents from 0.25.0 are not deleted automatically.
 
 ## [0.25.1] - 2026-11-27

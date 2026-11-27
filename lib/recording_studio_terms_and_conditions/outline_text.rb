@@ -65,21 +65,36 @@ module RecordingStudioTermsAndConditions
         drafts
       end
 
-      def html_drafts(fragment, title) # rubocop:disable Metrics/MethodLength
+      def html_drafts(fragment, title)
         drafts = []
         current = nil
-        fragment.children.each do |node|
-          next if blank_node?(node)
+        each_block(fragment) do |node|
+          current = heading_draft(drafts, node, title) if heading_node?(node)
+          next if heading_node?(node)
 
-          if heading_node?(node)
-            current = SectionDraft.new(strip_heading_number(node.text.strip.presence || title), [])
-            drafts << current
-          else
-            current = start_draft(drafts, title) if current.nil?
-            append_node(current, node)
-          end
+          current = start_draft(drafts, title) if current.nil?
+          append_node(current, node)
         end
         drafts
+      end
+
+      def heading_draft(drafts, node, title)
+        draft = SectionDraft.new(strip_heading_number(node.text.strip.presence || title), [])
+        drafts << draft
+        draft
+      end
+
+      def each_block(node, &block)
+        node.children.each do |child|
+          next if blank_node?(child)
+          next each_block(child, &block) if wrapper_node?(child)
+
+          yield child
+        end
+      end
+
+      def wrapper_node?(node)
+        node.element? && !heading_node?(node) && !list_node?(node) && !%w[p li].include?(node.name)
       end
 
       def split_plain(text, title)

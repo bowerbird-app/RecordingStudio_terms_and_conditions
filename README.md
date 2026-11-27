@@ -189,7 +189,7 @@ Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay Engli
 
 ## Upgrading from 0.25.1
 
-Bump to **0.25.2**. No Terms schema change. Release stays on the same Terms recording. A no-change `terms_release` is refused (422).
+Bump to **0.25.2**. No Terms schema change. Release stays on the same Terms recording. A no-change `terms_release` is refused (422, `No changes to release`).
 
 ## Upgrading from 0.25.0
 

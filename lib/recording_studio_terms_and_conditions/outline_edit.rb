@@ -6,13 +6,13 @@ module RecordingStudioTermsAndConditions
       def add_section(terms_recording, heading:, actor:)
         position = sections(terms_recording).size
         tree_root(terms_recording).record(Section, parent_recording: terms_recording, actor: actor) do |section|
-          section.heading = heading.to_s
+          section.heading = strip_heading_number(heading)
           section.position = position
         end
       end
 
       def edit_section(section_recording, heading:, actor:)
-        revise_recordable(section_recording, actor) { |section| section.heading = heading.to_s }
+        revise_recordable(section_recording, actor) { |section| section.heading = strip_heading_number(heading) }
       end
 
       def move_section(section_recording, to_index:, actor:)
@@ -31,13 +31,13 @@ module RecordingStudioTermsAndConditions
       def add_clause(section_recording, body:, actor:)
         position = children(section_recording, Clause.name).size
         tree_root(section_recording).record(Clause, parent_recording: section_recording, actor: actor) do |clause|
-          clause.body = body.to_s
+          clause.body = strip_clause_number(body)
           clause.position = position
         end
       end
 
       def edit_clause(clause_recording, body:, actor:)
-        revise_recordable(clause_recording, actor) { |clause| clause.body = body.to_s }
+        revise_recordable(clause_recording, actor) { |clause| clause.body = strip_clause_number(body) }
       end
 
       def move_clause(clause_recording, to_index:, actor:, section_recording: nil)

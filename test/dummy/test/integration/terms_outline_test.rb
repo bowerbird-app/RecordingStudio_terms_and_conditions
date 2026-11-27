@@ -71,7 +71,7 @@ class TermsOutlineTest < ActiveSupport::TestCase
   end
 
   test "change detection ignores a revert and reports a delete" do
-    recording = publish_seeded!("<h2>Room</h2><p>One</p><p>Two</p>")
+    recording = publish_seeded!("<h2>1. Room</h2><p>1.1 One</p><p>1.2 Two</p>")
     outline = RecordingStudioTermsAndConditions::Outline
     clauses = outline.sections(recording).first.clauses
     original = clauses.first.body
@@ -158,6 +158,40 @@ class TermsOutlineTest < ActiveSupport::TestCase
     assert_equal lineage_id, recording.reload.id
   end
 
+  test "a wrapped single-block body keeps every section across two releases" do
+    body = "<div><h2>Scope</h2><p>Who this covers.</p><h2>Accounts</h2><p>Keep yours.</p>" \
+           "<h2>Content</h2><p>Be decent.</p><h2>Ending</h2><p>We can stop.</p></div>"
+    recording = record_terms(@root, title: "Studio terms", body: body, actor: @actor)
+    publish_terms!(recording, slug: "wrapped-#{SecureRandom.hex(4)}", actor: @actor)
+    outline = RecordingStudioTermsAndConditions::Outline
+    lineage_id = recording.id
+
+    assert_no_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count } do
+      released = outline.release(recording, actor: @actor)
+      assert_equal lineage_id, released.id
+    end
+
+    recording.reload
+    headings = outline.sections(recording).map(&:heading)
+    assert_equal [ "Scope", "Accounts", "Content", "Ending" ], headings
+    refute headings.any? { |heading| heading.match?(/\A\d+\.\s/) }
+    published = recording.recordable.body
+    assert_includes published, "<h2>1. Scope</h2>"
+    assert_includes published, "<h2>2. Accounts</h2>"
+    assert_includes published, "<h2>3. Content</h2>"
+    assert_includes published, "<h2>4. Ending</h2>"
+    refute_includes published, "1. 1."
+    refute_includes published, "1.1 1.1"
+    assert_equal 1, RecordingStudioTermsAndConditions::KindPresence.recordings_for(kind: recording.recordable.kind).size
+
+    error = assert_raises(RecordingStudioTermsAndConditions::Outline::Unchanged) do
+      outline.release(recording, actor: @actor)
+    end
+    assert_equal "No changes to release", error.message
+    assert_equal published, recording.reload.recordable.body
+    assert_equal lineage_id, recording.id
+  end
+
   test "seeding a published body strips rendered numbers" do
     recording = record_terms(@root, title: "House rules", body: "<h2>1. House rules</h2><p>1.1 MCP Tester seed.</p>", actor: @actor)
     publish_terms!(recording, slug: "numbered-#{SecureRandom.hex(4)}", actor: @actor)
@@ -195,7 +229,7 @@ class TermsOutlineTest < ActiveSupport::TestCase
     assert_equal bare_snapshot, bare.reload.recordable_id
     assert_equal "One paragraph.\n\nTwo paragraphs.", bare.recordable.body
     assert bare.recordable.release_manifest.present?
-    refute outline.unreleased?(bare)
+    assert outline.unreleased?(bare)
     assert_equal receipt_ids, RecordingStudioTermsAndConditions::Acceptance.order(:id).pluck(:id)
     assert_equal snapshot, recording.reload.recordable_id
     assert_equal body, recording.recordable.body
