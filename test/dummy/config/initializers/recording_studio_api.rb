@@ -42,6 +42,16 @@ RecordingStudioApi.register_recordable_type_api(
 )
 
 RecordingStudioApi.register_recordable_type_api(
+  "Workspace",
+  api: :operations,
+  operations: %i[index show],
+  serializer: ->(workspace, **) { { name: workspace.name } },
+  output_keys: %i[name],
+  capability_actions: %i[terms_documents],
+  auto_capability_actions: false
+)
+
+RecordingStudioApi.register_recordable_type_api(
   "AdminRoot",
   api: :operations,
   operations: %i[index show],

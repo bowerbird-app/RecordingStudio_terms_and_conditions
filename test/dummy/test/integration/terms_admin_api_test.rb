@@ -18,6 +18,7 @@ class TermsAdminApiTest < ActionDispatch::IntegrationTest
     @root = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor)
     @owner_access = bootstrap_owner_access!(@owner, @root)
     @admin_root = RecordingStudio.create_root_recording!(AdminRoot.find_or_create_by!(name: "Admin"), actor: recording_write_actor)
+    ensure_held_admin_on!(@admin_root, held_access_admin)
     grant!(@admin_root, @owner, :admin, held_access_admin)
     @recording = record_terms(@root, title: "Studio Terms", body: "Be kind.", actor: @owner)
     publish_terms!(@recording, slug: "admin-api-#{SecureRandom.hex(4)}", actor: @owner)
@@ -75,16 +76,12 @@ class TermsAdminApiTest < ActionDispatch::IntegrationTest
     ActiveSupport::Notifications.unsubscribe(subscription) if subscription
   end
 
-  test "a client without admin access is forbidden" do
-    token, = token_for(@admin_root, role: :edit, api: :operations)
-    access = RecordingStudioTermsAndConditions::Api::Access
-    original = access.method(:authorized_on_admin_root?)
-    access.define_singleton_method(:authorized_on_admin_root?) { |*| false }
+  test "operations terms_documents without admin-root access returns 403" do
+    token, client = token_for(@root, role: :edit, api: :operations)
+    refute RecordingStudioAccessible.authorized?(actor: client, recording: @admin_root, role: :view)
 
-    call(:get, "#{OPERATIONS}#{admin_root_path}/actions/terms_documents", token)
+    call(:get, "#{OPERATIONS}/workspaces/#{@root.id}/actions/terms_documents", token)
     assert_forbidden_not_allowed
-  ensure
-    access.define_singleton_method(:authorized_on_admin_root?, original) if access && original
   end
 
   test "public API registers none of the authoring actions and operations registers all of them" do

@@ -19,6 +19,7 @@ class TermsAdminRootApiTest < ActionDispatch::IntegrationTest
     )
     Current.actor = @owner
     @admin_root = RecordingStudio.create_root_recording!(AdminRoot.find_or_create_by!(name: "Admin"), actor: recording_write_actor)
+    ensure_held_admin_on!(@admin_root, held_access_admin)
     grant!(@admin_root, @owner, :admin, held_access_admin)
     @edit_token, @edit_client = token_for(@admin_root, role: :edit, api: :operations)
     @view_token, @view_client = token_for(@admin_root, role: :view, api: :operations)
