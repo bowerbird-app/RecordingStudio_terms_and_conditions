@@ -37,21 +37,6 @@ RecordingStudioApi.register_recordable_type_api(
     terms_pending_published_list
     terms_current_published_for
     terms_accepted
-    terms_documents
-    terms_outline
-    terms_section
-    terms_clause
-    terms_changes
-    terms_preview
-    terms_add_section
-    terms_edit_section
-    terms_move_section
-    terms_remove_section
-    terms_add_clause
-    terms_edit_clause
-    terms_move_clause
-    terms_remove_clause
-    terms_release
   ],
   auto_capability_actions: false
 )
@@ -86,6 +71,7 @@ RecordingStudioApi.register_recordable_type_api(
 
 RecordingStudioApi.register_recordable_type_api(
   "RecordingStudioTermsAndConditions::Terms",
+  api: :operations,
   operations: %i[show],
   serializer: ->(terms, **) { { title: terms.title, kind: terms.kind } },
   output_keys: %i[title kind],

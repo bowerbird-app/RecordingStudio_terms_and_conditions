@@ -19,12 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Development Ruby is 3.3.14. Root puma is 8.1.2.
 - `terms_documents`, outline/section/clause lookups, and the other authoring actions resolve when `context.recording` is AdminRoot, still via the shared library and `terms_id`.
 - Admin New create calls `TermsCreate` instead of duplicating draft-and-seed.
+- **Breaking:** every Terms authoring action registers only on the operations API. Public and other non-operations named APIs keep only the three clickwrap reads (`terms_pending_published_list`, `terms_current_published_for`, `terms_accepted`). Removed from public: `terms_documents`, `terms_outline`, `terms_section`, `terms_clause`, `terms_changes`, `terms_preview`, `terms_add_section`, `terms_edit_section`, `terms_move_section`, `terms_remove_section`, `terms_add_clause`, `terms_edit_clause`, `terms_move_clause`, `terms_remove_clause`, and `terms_release`.
 
 ### Upgrade notes (0.24.0 → 0.25.0)
 - No Terms migration. Pin `0.25.0`.
-- Enable `RecordingStudio::Capabilities::TermsAndConditions.to` on AdminRoot. Register AdminRoot on the operations API with `terms_create`, `terms_update`, and the existing authoring actions.
-- Hosts that load Recording Studio MCP include `RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :operations)` on the operations MCP server and `api: :public` for the three clickwrap reads.
-- `terms_create` and `terms_update` register on operations only. Existing authoring actions still register on every named API (including public) so Workspace callers keep working. Moving those onto operations only would remove them from the public API.
+- Enable `RecordingStudio::Capabilities::TermsAndConditions.to` on AdminRoot. Register AdminRoot on the operations API with the authoring actions (`terms_create`, `terms_update`, documents, outline/section/clause reads and writes, changes, preview, release). Drop those names from public Workspace and Terms type APIs.
+- Hosts that load Recording Studio MCP include `RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :operations)` on the operations MCP server and `api: :public` for the three clickwrap reads. Public MCP must not list authoring tools.
+- Callers that authored Terms on the public API (`/recording_studio_api/api/v1`) must move to the operations API (`/recording_studio_api/apis/operations/v1`) on AdminRoot.
 
 ## [0.24.0] - 2026-11-20
 

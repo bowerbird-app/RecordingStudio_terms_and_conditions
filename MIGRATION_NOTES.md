@@ -22,7 +22,9 @@ The host includes the gate on `ApplicationController`. The gate is `recording_st
 
 No Terms schema change. Pin `0.25.0`.
 
-Enable `RecordingStudio::Capabilities::TermsAndConditions.to` on AdminRoot. Register AdminRoot on the operations API with `terms_create`, `terms_update`, `terms_documents`, outline/section/clause reads and writes, changes, preview, and release.
+This is a breaking API change. Authoring actions leave the public API. Public (and any other non-operations named API) keeps only `terms_pending_published_list`, `terms_current_published_for`, and `terms_accepted`.
+
+Enable `RecordingStudio::Capabilities::TermsAndConditions.to` on AdminRoot. Register AdminRoot on the operations API with `terms_create`, `terms_update`, `terms_documents`, outline/section/clause reads and writes, changes, preview, and release. Remove those names from the public Workspace and Terms type registrations.
 
 Hosts that load Recording Studio MCP include Terms tools on the operations MCP server:
 
@@ -36,7 +38,7 @@ Public MCP stays on the three clickwrap reads:
 include_tools(*RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :public))
 ```
 
-`terms_create` and `terms_update` are operations-only. The older authoring actions still register on public as well as operations so existing Workspace callers keep working.
+Callers that authored Terms on `/recording_studio_api/api/v1` (Workspace) must move to `/recording_studio_api/apis/operations/v1` on AdminRoot.
 
 ## Upgrade from 0.23.0 to 0.24.0
 

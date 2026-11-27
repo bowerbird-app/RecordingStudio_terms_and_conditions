@@ -87,7 +87,7 @@ Agree is still the post-auth destination. It has no PageNav. Live pending copy s
 
 ## Upgrade (0.24.0 → 0.25.0)
 
-No Terms migrations. Operations API adds `terms_create` and `terms_update`. Enable the Terms mixin on AdminRoot and list authoring actions there. Hosts that load MCP include `RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :operations)` on the operations server. Existing authoring actions stay on public as well as operations.
+No Terms migrations. Authoring leaves the public API. Operations API adds `terms_create`, `terms_update`, and holds every authoring action. Enable the Terms mixin on AdminRoot and list authoring actions there. Hosts that load MCP include `RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :operations)` on the operations server and the three clickwrap reads on public.
 
 ## Upgrade (0.23.0 → 0.24.0)
 

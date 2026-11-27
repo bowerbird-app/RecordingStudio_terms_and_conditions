@@ -115,10 +115,11 @@ class TermsAdminRootApiTest < ActionDispatch::IntegrationTest
   end
 
   test "terms_create and terms_update register on operations only and accept stays off" do
-    assert RecordingStudioApi.capability_action(:terms_create, api: :operations)
-    assert RecordingStudioApi.capability_action(:terms_update, api: :operations)
-    refute RecordingStudioApi.capability_action(:terms_create, api: :public)
-    refute RecordingStudioApi.capability_action(:terms_update, api: :public)
+    authoring = RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :operations)
+    authoring.each do |name|
+      assert RecordingStudioApi.capability_action(name.to_sym, api: :operations), name
+      refute RecordingStudioApi.capability_action(name.to_sym, api: :public), name
+    end
     %i[public operations].each do |api|
       refute RecordingStudioApi.capability_action(:terms_accept_pending, api: api)
     end

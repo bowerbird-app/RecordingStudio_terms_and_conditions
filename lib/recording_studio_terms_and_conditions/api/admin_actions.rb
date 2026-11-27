@@ -13,10 +13,10 @@ module RecordingStudioTermsAndConditions
                                    kind: string_field("Optional kind filter", required: false, enum: %w[terms_and_condition privacy_policy])
                                  }),
           terms_create: entry(:post, Create, "Terms - Create", "Create a Terms document",
-                              role: :edit, operations_only: true, include_terms_id: false,
+                              role: :edit, include_terms_id: false,
                               description: create_description, fields: create_fields),
           terms_update: entry(:post, Update, "Terms - Update", "Update a Terms document",
-                              role: :edit, operations_only: true,
+                              role: :edit,
                               description: update_description, fields: update_fields),
           terms_outline: entry(:get, OutlineAction, "Terms - Outline", "Read the numbered outline",
                                description: "Reads the numbered outline of a Terms document. Pass terms_id of the document on the shared library."),
@@ -86,7 +86,7 @@ module RecordingStudioTermsAndConditions
       def documents_description
         "Lists Terms and Privacy Policy documents on the shared library. " \
           "Each document is one lineage. Pass kind to keep only that type. " \
-          "Call this from AdminRoot or a workspace."
+          "Call this from AdminRoot."
       end
 
       def create_description
@@ -107,7 +107,7 @@ module RecordingStudioTermsAndConditions
           "Pass terms_id. Title is optional. The document must already exist, with sections and clauses ready."
       end
 
-      def entry(verb, handler, title, summary, role: :view, fields: {}, operations_only: false, # rubocop:disable Metrics/ParameterLists
+      def entry(verb, handler, title, summary, role: :view, fields: {}, operations_only: true, # rubocop:disable Metrics/ParameterLists
                 include_terms_id: true, description: nil)
         {
           http_verb: verb,

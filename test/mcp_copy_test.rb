@@ -38,9 +38,9 @@ class McpCopyTest < Minitest::Test
   def test_tool_names_split_public_and_operations
     assert_equal PUBLIC_TOOLS, RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :public)
     assert_equal OPERATIONS_TOOLS, RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :operations)
-    refute_includes RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :public), "terms_create"
-    refute_includes RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :public), "terms_update"
-    refute_includes RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :public), "terms_release"
+    OPERATIONS_TOOLS.each do |name|
+      refute_includes RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :public), name
+    end
     refute_includes RecordingStudioTermsAndConditions::McpCopy.tool_names, "terms_accept_pending"
     refute_includes RecordingStudioTermsAndConditions::McpCopy.tool_names, "terms_accept"
   end
