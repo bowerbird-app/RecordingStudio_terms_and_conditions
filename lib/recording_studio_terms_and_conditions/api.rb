@@ -27,14 +27,14 @@ module RecordingStudioTermsAndConditions
         http_verb: :get,
         handler: PendingPublishedList,
         title: "Terms - Pending published list",
-        summary: "List pending Terms",
+        summary: "List pending Terms.",
         description: "Live Terms the actor has not accepted. The document is the shared library."
       }.freeze,
       terms_current_published_for: {
         http_verb: :get,
         handler: CurrentPublishedFor,
         title: "Terms - Current published",
-        summary: "Show current published Terms",
+        summary: "Show current published Terms.",
         description: "The live Terms document for a kind. It is the shared library.",
         kind_field: true
       }.freeze,
@@ -42,7 +42,7 @@ module RecordingStudioTermsAndConditions
         http_verb: :get,
         handler: Accepted,
         title: "Terms - Accepted",
-        summary: "Check Terms acceptance",
+        summary: "Check Terms acceptance.",
         description: "Whether the access grant's actor has accepted the live Terms document for a kind.",
         kind_field: true
       }.freeze
