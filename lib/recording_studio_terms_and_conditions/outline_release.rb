@@ -40,13 +40,18 @@ module RecordingStudioTermsAndConditions
           with_actor(actor) do
             next update_publishable(recording, actor, slug_for(recording, title)) unless live?(recording)
 
-            PublishedEmitter.emit_from(
-              recordable_type: Published::TERMS_TYPE,
-              recording_id: recording.id, recordable_id: recording.recordable_id,
-              actor_type: actor&.class&.name, actor_id: actor&.id
-            )
+            emit_live_publish(recording, actor)
           end
         end
+      end
+
+      def emit_live_publish(recording, actor)
+        payload = {
+          recordable_type: Published::TERMS_TYPE,
+          recording_id: recording.id, recordable_id: recording.recordable_id,
+          actor_type: actor&.class&.name, actor_id: actor&.id
+        }
+        ActiveRecord.after_all_transactions_commit { PublishedEmitter.emit_from(payload) }
       end
 
       def update_publishable(recording, actor, slug)

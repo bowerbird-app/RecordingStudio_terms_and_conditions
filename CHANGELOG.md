@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Release stays on the same Terms recording. A live outline no longer forks a second document of that kind, so `terms_release` returns the lineage id and `terms_documents` lists one row per kind.
-- Outline seed strips only the generated number for that position (`1. ` for section 1, `1.1 ` for clause 1.1). Author section and clause writes keep the text as typed.
+- Outline seed strips only the generated number for that position (`1. ` for section 1, `1.1 ` for clause 1.1). Author section and clause writes keep the text as typed. A later seed on an existing outline does not rewrite the live body, the baseline, or `terms_id`.
 - Split walks through a wrapping block so a single-block body keeps every heading as its own section.
 - A live seeded document whose stored body is not yet the assembled outline is not treated as unreleased. Publish settings (status plus slug) stay on that snapshot and apply the slug.
 - A live outline release emits `PublishedEmitter` and does not draft then republish.
@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - No Terms migration. Pin `0.26.0`.
 - Callers that treated a no-change `terms_release` as HTTP 200 with `released: false` now receive 422. The error message is `No changes to release`.
 - Callers that stored the forked recording id from a live release should keep using the original lineage id. Old stray documents from 0.25.0 are not deleted automatically.
-- Documents whose outline rows still store generated numbers render `1. 1. Scope` until you run `bin/rails recording_studio_terms_and_conditions:seed_outline`. That pass strips the stored prefixes and rewrites the live body on the same snapshot. It does not mint a new `terms_id`.
+- Documents whose outline rows still store generated numbers render `1. 1. Scope` until a later outline release. `seed_outline` strips stored prefixes on section and clause rows only. It does not rewrite the live body or `terms_id`. Docs that 0.25.x collapsed into one section are not re-split.
 
 ## [0.25.1] - 2026-11-27
 

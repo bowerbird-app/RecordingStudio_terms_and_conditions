@@ -278,24 +278,54 @@ class TermsOutlineTest < ActiveSupport::TestCase
     recording = publish_seeded!("Who this covers.")
     outline = RecordingStudioTermsAndConditions::Outline
     snapshot = recording.recordable_id
+    live_body = "<h2>1. 1. Scope</h2><p>1.1 1.1 Who this covers.</p>"
     section = outline.sections(recording).first
     outline.edit_section(section.recording, heading: "1. Scope", actor: @actor)
     outline.edit_clause(section.clauses.first.recording, body: "<p>1.1 Who this covers.</p>", actor: @actor)
-    RecordingStudioTermsAndConditions::Terms.where(id: recording.recordable_id).update_all(
-      body: "<h2>1. 1. Scope</h2><p>1.1 1.1 Who this covers.</p>"
-    )
+    RecordingStudioTermsAndConditions::Terms.where(id: recording.recordable_id).update_all(body: live_body)
     recording.reload
 
     assert outline.seed_recording!(recording, actor: @actor)
     section = outline.sections(recording.reload).first
     assert_equal "Scope", section.heading
     assert_equal "<p>Who this covers.</p>", section.clauses.first.body
-    refute_includes recording.recordable.body, "1. 1."
-    refute_includes recording.recordable.body, "1.1 1.1"
-    assert_includes recording.recordable.body, "<h2>1. Scope</h2>"
-    refute outline.unreleased?(recording)
+    assert_equal live_body, recording.recordable.body
     assert_equal snapshot, recording.recordable_id
+    assert outline.unreleased?(recording)
     assert_nil outline.seed_recording!(recording, actor: @actor)
+
+    released = outline.release(recording, actor: @actor)
+    assert_equal live_body, RecordingStudioTermsAndConditions::Terms.find(snapshot).body
+    refute_equal snapshot, released.recordable_id
+    refute_includes released.recordable.body, "1. 1."
+    assert_includes released.recordable.body, "<h2>1. Scope</h2>"
+  end
+
+  test "repair and release with a pending edit leave the live snapshot in place" do
+    recording = publish_seeded!("Who this covers.")
+    outline = RecordingStudioTermsAndConditions::Outline
+    snapshot = recording.recordable_id
+    live_body = "<h2>1. 1. Scope</h2><p>1.1 1.1 Who this covers.</p>"
+    section = outline.sections(recording).first
+    outline.edit_section(section.recording, heading: "1. Scope", actor: @actor)
+    outline.edit_clause(section.clauses.first.recording, body: "<p>1.1 Whisper, please.</p>", actor: @actor)
+    RecordingStudioTermsAndConditions::Terms.where(id: recording.recordable_id).update_all(body: live_body)
+    recording.reload
+
+    assert outline.seed_recording!(recording, actor: @actor)
+    assert_equal live_body, recording.reload.recordable.body
+    assert_equal snapshot, recording.recordable_id
+    assert outline.unreleased?(recording)
+
+    outline.seed_all!(actor: @actor)
+    assert_equal live_body, recording.reload.recordable.body
+    assert_equal snapshot, recording.recordable_id
+
+    released = outline.release(recording, actor: @actor)
+    assert_equal live_body, RecordingStudioTermsAndConditions::Terms.find(snapshot).body
+    refute_equal snapshot, released.recordable_id
+    assert_includes released.recordable.body, "Whisper, please."
+    refute_includes released.recordable.body, "1. 1."
   end
 
   test "a publish-settings update on a live seeded document keeps the version and applies the slug" do

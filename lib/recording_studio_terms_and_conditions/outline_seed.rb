@@ -30,37 +30,31 @@ module RecordingStudioTermsAndConditions
         end
       end
 
-      def repair_stored_generated_numbers!(terms_recording, actor:) # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+      def repair_stored_generated_numbers!(terms_recording, actor:)
         changed = false
-        sections(terms_recording).each do |section|
-          heading = strip_heading_number(section.heading, number: section.number)
-          if heading != section.heading
-            edit_section(section.recording, heading: heading, actor: actor)
-            changed = true
-          end
-          section.clauses.each do |clause|
-            body = strip_clause_number(clause.body, number: clause.number)
-            next if body == clause.body
-
-            edit_clause(clause.recording, body: body, actor: actor)
-            changed = true
-          end
-        end
-        return unless changed
-        return terms_recording unless live?(terms_recording)
-
-        terms_recording.reload
-        write_baseline(terms_recording, body: assemble(terms_recording))
-        terms_recording
+        sections(terms_recording).each { |section| changed |= repair_section_numbers(section, actor) }
+        terms_recording if changed
       end
 
-      def write_baseline(terms_recording, body: nil)
+      def repair_section_numbers(section, actor)
+        heading = strip_heading_number(section.heading, number: section.number)
+        stripped_heading = heading != section.heading
+        edit_section(section.recording, heading: heading, actor: actor) if stripped_heading
+        stripped_clauses = section.clauses.filter_map { |clause| repair_clause_row(clause, actor) }.any?
+        stripped_heading || stripped_clauses
+      end
+
+      def repair_clause_row(clause, actor)
+        body = strip_clause_number(clause.body, number: clause.number)
+        return if body == clause.body
+
+        edit_clause(clause.recording, body: body, actor: actor)
+      end
+
+      def write_baseline(terms_recording)
         payload = manifest_payload(terms_recording)
-        updates = { release_manifest: payload }
-        updates[:body] = body unless body.nil?
-        Terms.where(id: terms_recording.recordable_id).update_all(updates)
+        Terms.where(id: terms_recording.recordable_id).update_all(release_manifest: payload)
         terms_recording.recordable.release_manifest = payload
-        terms_recording.recordable.body = body unless body.nil?
       end
     end
   end

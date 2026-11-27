@@ -206,19 +206,18 @@ module RecordingStudioTermsAndConditions
         value
       end
 
-      def strip_clause_number(text, number:) # rubocop:disable Metrics/MethodLength
+      def strip_clause_number(text, number:)
         prefix = "#{number} "
         html = text.to_s
-        loop do
-          stripped = html.sub(/\A(\s*<(?:p|li|div|h[1-6])\b[^>]*>)\s*#{Regexp.escape(prefix)}/i, "\\1")
-          if stripped != html
-            html = stripped
-            next
-          end
-          break unless html.start_with?(prefix)
+        html = peel_clause_prefix(html, prefix) while peel_clause_prefix(html, prefix) != html
+        html
+      end
 
-          html = html.delete_prefix(prefix)
-        end
+      def peel_clause_prefix(html, prefix)
+        stripped = html.sub(/\A(\s*<(?:p|li|div|h[1-6])\b[^>]*>)\s*#{Regexp.escape(prefix)}/i, "\\1")
+        return stripped if stripped != html
+        return html.delete_prefix(prefix) if html.start_with?(prefix)
+
         html
       end
     end
