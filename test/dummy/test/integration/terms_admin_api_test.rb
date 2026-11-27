@@ -35,7 +35,7 @@ class TermsAdminApiTest < ActionDispatch::IntegrationTest
     listed = call(:get, "#{OPERATIONS}#{admin_root_path}/actions/terms_documents", @token)
     assert_response :success, response.body
     document = listed.fetch("documents").find { |row| row["id"] == @recording.id.to_s }
-    assert_equal true, document.fetch("unreleased_changes")
+    assert_equal false, document.fetch("unreleased_changes")
     assert_equal true, document.fetch("live")
 
     outline = call(:get, "#{OPERATIONS}#{admin_root_path}/actions/terms_outline", @token, { terms_id: @recording.id })

@@ -4,7 +4,7 @@ module RecordingStudioTermsAndConditions
   module Outline
     class << self
       def seed_recording!(terms_recording, actor:)
-        return if sections(terms_recording).any?
+        return repair_stored_generated_numbers!(terms_recording, actor: actor) if sections(terms_recording).any?
 
         drafts = split(terms_recording.recordable.body, title: terms_recording.recordable.title)
         ActiveRecord::Base.transaction do
@@ -30,10 +30,37 @@ module RecordingStudioTermsAndConditions
         end
       end
 
-      def write_baseline(terms_recording)
+      def repair_stored_generated_numbers!(terms_recording, actor:) # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+        changed = false
+        sections(terms_recording).each do |section|
+          heading = strip_heading_number(section.heading, number: section.number)
+          if heading != section.heading
+            edit_section(section.recording, heading: heading, actor: actor)
+            changed = true
+          end
+          section.clauses.each do |clause|
+            body = strip_clause_number(clause.body, number: clause.number)
+            next if body == clause.body
+
+            edit_clause(clause.recording, body: body, actor: actor)
+            changed = true
+          end
+        end
+        return unless changed
+        return terms_recording unless live?(terms_recording)
+
+        terms_recording.reload
+        write_baseline(terms_recording, body: assemble(terms_recording))
+        terms_recording
+      end
+
+      def write_baseline(terms_recording, body: nil)
         payload = manifest_payload(terms_recording)
-        Terms.where(id: terms_recording.recordable_id).update_all(release_manifest: payload)
+        updates = { release_manifest: payload }
+        updates[:body] = body unless body.nil?
+        Terms.where(id: terms_recording.recordable_id).update_all(updates)
         terms_recording.recordable.release_manifest = payload
+        terms_recording.recordable.body = body unless body.nil?
       end
     end
   end

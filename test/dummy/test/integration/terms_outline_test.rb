@@ -48,7 +48,12 @@ class TermsOutlineTest < ActiveSupport::TestCase
     outline.add_clause(outline.sections(recording).last.recording, body: "Coil the cables.", actor: @actor)
 
     assert_empty events
+    unpublished = []
+    unpublished_sub = ActiveSupport::Notifications.subscribe("unpublished.recording_studio_publishable") do
+      unpublished << true
+    end
     released = outline.release(recording, actor: @actor)
+    assert_empty unpublished
     assert_equal 1, events.size
     assert_equal released.id.to_s, events.first.payload[:recording_id].to_s
     assert_equal released.recordable_id.to_s, events.first.payload[:terms_id].to_s
@@ -68,6 +73,7 @@ class TermsOutlineTest < ActiveSupport::TestCase
     assert_equal 1, events.size
   ensure
     ActiveSupport::Notifications.unsubscribe(subscription) if subscription
+    ActiveSupport::Notifications.unsubscribe(unpublished_sub) if defined?(unpublished_sub) && unpublished_sub
   end
 
   test "change detection ignores a revert and reports a delete" do
@@ -169,30 +175,34 @@ class TermsOutlineTest < ActiveSupport::TestCase
     publish_terms!(recording, slug: "wrapped-#{SecureRandom.hex(4)}", actor: @actor)
     outline = RecordingStudioTermsAndConditions::Outline
     lineage_id = recording.id
-
-    assert_no_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count } do
-      released = outline.release(recording, actor: @actor)
-      assert_equal lineage_id, released.id
-    end
+    assert outline.seed_recording!(recording, actor: @actor)
 
     recording.reload
     headings = outline.sections(recording).map(&:heading)
     assert_equal [ "Scope", "Accounts", "Content", "Ending" ], headings
     refute headings.any? { |heading| heading.match?(/\A\d+\.\s/) }
-    published = recording.recordable.body
-    assert_includes published, "<h2>1. Scope</h2>"
-    assert_includes published, "<h2>2. Accounts</h2>"
-    assert_includes published, "<h2>3. Content</h2>"
-    assert_includes published, "<h2>4. Ending</h2>"
-    refute_includes published, "1. 1."
-    refute_includes published, "1.1 1.1"
-    assert_equal 1, RecordingStudioTermsAndConditions::KindPresence.recordings_for(kind: recording.recordable.kind).size
-
+    refute outline.unreleased?(recording)
     error = assert_raises(RecordingStudioTermsAndConditions::Outline::Unchanged) do
       outline.release(recording, actor: @actor)
     end
     assert_equal "No changes to release", error.message
-    assert_equal published, recording.reload.recordable.body
+
+    outline.add_section(recording, heading: "Rooms", actor: @actor)
+    outline.add_clause(outline.sections(recording).last.recording, body: "Leave it tidy.", actor: @actor)
+    assert_no_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count } do
+      released = outline.release(recording, actor: @actor)
+      assert_equal lineage_id, released.id
+    end
+
+    published = recording.reload.recordable.body
+    assert_includes published, "<h2>1. Scope</h2>"
+    assert_includes published, "<h2>2. Accounts</h2>"
+    assert_includes published, "<h2>3. Content</h2>"
+    assert_includes published, "<h2>4. Ending</h2>"
+    assert_includes published, "<h2>5. Rooms</h2>"
+    refute_includes published, "1. 1."
+    refute_includes published, "1.1 1.1"
+    assert_equal 1, RecordingStudioTermsAndConditions::KindPresence.recordings_for(kind: recording.recordable.kind).size
     assert_equal lineage_id, recording.id
   end
 
@@ -233,12 +243,81 @@ class TermsOutlineTest < ActiveSupport::TestCase
     assert_equal bare_snapshot, bare.reload.recordable_id
     assert_equal "One paragraph.\n\nTwo paragraphs.", bare.recordable.body
     assert bare.recordable.release_manifest.present?
-    assert outline.unreleased?(bare)
+    refute outline.unreleased?(bare)
     assert_equal receipt_ids, RecordingStudioTermsAndConditions::Acceptance.order(:id).pluck(:id)
     assert_equal snapshot, recording.reload.recordable_id
     assert_equal body, recording.recordable.body
     Rails.application.load_tasks
     assert Rake::Task.task_defined?("recording_studio_terms_and_conditions:seed_outline")
+  end
+
+  test "author writes keep numeric text that is not the generated outline number" do
+    recording = publish_seeded!("Be kind in the booth.")
+    outline = RecordingStudioTermsAndConditions::Outline
+    outline.add_section(recording, heading: "2026. Policy", actor: @actor)
+    section = outline.sections(recording).last
+    outline.add_clause(section.recording, body: "1.5 times the monthly fee", actor: @actor)
+    outline.add_clause(section.recording, body: "2.5 hours", actor: @actor)
+
+    section = outline.sections(recording.reload).last
+    assert_equal "2026. Policy", section.heading
+    assert_equal [ "1.5 times the monthly fee", "2.5 hours" ], section.clauses.map(&:body)
+  end
+
+  test "seeding keeps numeric clause text that is not that clause's generated number" do
+    body = "<h2>2026. Policy</h2><p>1.5 times the monthly fee</p><p>2.5 hours</p>"
+    recording = record_terms(@root, title: "Fees", body: body, actor: @actor)
+    outline = RecordingStudioTermsAndConditions::Outline
+    assert outline.seed_recording!(recording, actor: @actor)
+    section = outline.sections(recording.reload).first
+    assert_equal "2026. Policy", section.heading
+    assert_equal [ "<p>1.5 times the monthly fee</p>", "<p>2.5 hours</p>" ], section.clauses.map(&:body)
+  end
+
+  test "seeding again strips stored generated numbers on an existing outline" do
+    recording = publish_seeded!("Who this covers.")
+    outline = RecordingStudioTermsAndConditions::Outline
+    snapshot = recording.recordable_id
+    section = outline.sections(recording).first
+    outline.edit_section(section.recording, heading: "1. Scope", actor: @actor)
+    outline.edit_clause(section.clauses.first.recording, body: "<p>1.1 Who this covers.</p>", actor: @actor)
+    RecordingStudioTermsAndConditions::Terms.where(id: recording.recordable_id).update_all(
+      body: "<h2>1. 1. Scope</h2><p>1.1 1.1 Who this covers.</p>"
+    )
+    recording.reload
+
+    assert outline.seed_recording!(recording, actor: @actor)
+    section = outline.sections(recording.reload).first
+    assert_equal "Scope", section.heading
+    assert_equal "<p>Who this covers.</p>", section.clauses.first.body
+    refute_includes recording.recordable.body, "1. 1."
+    refute_includes recording.recordable.body, "1.1 1.1"
+    assert_includes recording.recordable.body, "<h2>1. Scope</h2>"
+    refute outline.unreleased?(recording)
+    assert_equal snapshot, recording.recordable_id
+    assert_nil outline.seed_recording!(recording, actor: @actor)
+  end
+
+  test "a publish-settings update on a live seeded document keeps the version and applies the slug" do
+    recording = publish_seeded!("Be kind in the booth.")
+    outline = RecordingStudioTermsAndConditions::Outline
+    refute outline.unreleased?(recording)
+    snapshot = recording.recordable_id
+    slug = "settings-#{SecureRandom.hex(4)}"
+
+    assert_no_difference -> { RecordingStudioTermsAndConditions::Terms.count } do
+      RecordingStudioPublishable::Services::Publishables::Update.call(
+        parent_recording: recording,
+        attributes: { slug: slug, status: "published" },
+        actor: @actor
+      ).value!
+    end
+
+    recording.reload
+    assert_equal snapshot, recording.recordable_id
+    assert_equal slug, recording.current_publishable.slug
+    refute outline.unreleased?(recording)
+    assert recording.currently_published?
   end
 
   private

@@ -16,13 +16,15 @@ Then:
 - Enable Admin `section :terms` on an Admin root and grant Accessible access.
 - Publish with Publishable `QuickActions` on term show, or the Publish settings hub. Do not add a custom publish action.
 
-## Upgrade from 0.25.1 to 0.25.2
+## Upgrade from 0.25.1 to 0.26.0
 
-No Terms schema change. Pin `0.25.2`.
+No Terms schema change. Pin `0.26.0`.
 
-Release revises the same Terms recording. It does not fork a second document of that kind. `terms_release` returns the lineage id. A release with no outline, title, or assembled-body change is refused (`Outline::Unchanged`, operations API 422 `invalid_input`, message `No changes to release`). Split keeps every heading inside a wrapping block. Seeding and section or clause writes strip generated numbers.
+Release revises the same Terms recording. It does not fork a second document of that kind. `terms_release` returns the lineage id. A release with no outline or title change is refused (`Outline::Unchanged`, operations API 422 `invalid_input`, message `No changes to release`). Split keeps every heading inside a wrapping block. Seeding strips only the generated number for that position. Author writes keep the typed text.
 
-Hosts that called no-op `terms_release` and expected 200 must treat 422 as no changes to release. Do not keep using a forked recording id from 0.25.0 as the document id.
+Hosts that called no-op `terms_release` and expected 200 must treat 422 as no changes to release. Do not keep using a forked recording id from 0.25.0 as the document id. Old stray documents from 0.25.0 are not deleted automatically.
+
+Documents whose outline rows still store generated numbers (`1. Scope`) render `1. 1. Scope` until you run `bin/rails recording_studio_terms_and_conditions:seed_outline`. That pass strips the stored prefixes and rewrites the live body on the same snapshot. It does not mint a new `terms_id`.
 
 The host includes the gate on `ApplicationController`. The gate is `recording_studio_terms_and_conditions.acceptance` on `RecordingStudio.check_gate`. Defaults already exempt `recording_studio_user/auth` and `recording_studio_user/omniauth`. Append any other auth controllers to `config.gate_exempt_controllers`. Set `config.actor_name_search` for who-agreed. Signup is separate. Where you configure Users, append `recording_studio_terms_and_conditions/signup_notice` to `signup_notice_partials` and register `SignupRegistration` with `after_registration`. That callable calls `accept!` with provenance `source` `signup` and `method` `password`, `oauth`, or `otp`. On Users >= 0.37.0, Terms hooks `config.after_auth_path` so sign-in and sign-up land on Agree while live Terms are pending. Set `config.users_after_auth_path = false` to wire that yourself. Set a host callable in an initializer. A `to_prepare` assignment replaces the wrap. Agree stays in place when a new version is published.
 

@@ -7,18 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.25.2] - 2026-11-27
+## [0.26.0] - 2026-11-27
+
+### Breaking
+- `Outline.release` and `terms_release` refuse a no-op with `Outline::Unchanged` (API `invalid_input`, message `No changes to release`) when the outline and title match the last release.
 
 ### Fixed
 - Release stays on the same Terms recording. A live outline no longer forks a second document of that kind, so `terms_release` returns the lineage id and `terms_documents` lists one row per kind.
-- Outline headings and clauses never store generated numbers. Split, seed, and section or clause writes strip `1.` / `1.1` prefixes so assemble cannot double-number.
+- Outline seed strips only the generated number for that position (`1. ` for section 1, `1.1 ` for clause 1.1). Author section and clause writes keep the text as typed.
 - Split walks through a wrapping block so a single-block body keeps every heading as its own section.
-- `Outline.release` and `terms_release` refuse a no-op with `Outline::Unchanged` (API `invalid_input`, message `No changes to release`) when the outline, title, and assembled body match the last release.
+- A live seeded document whose stored body is not yet the assembled outline is not treated as unreleased. Publish settings (status plus slug) stay on that snapshot and apply the slug.
+- A live outline release emits `PublishedEmitter` and does not draft then republish.
 
-### Upgrade notes (0.25.1 → 0.25.2)
-- No Terms migration. Pin `0.25.2`.
+### Upgrade notes (0.25.1 → 0.26.0)
+- No Terms migration. Pin `0.26.0`.
 - Callers that treated a no-change `terms_release` as HTTP 200 with `released: false` now receive 422. The error message is `No changes to release`.
 - Callers that stored the forked recording id from a live release should keep using the original lineage id. Old stray documents from 0.25.0 are not deleted automatically.
+- Documents whose outline rows still store generated numbers render `1. 1. Scope` until you run `bin/rails recording_studio_terms_and_conditions:seed_outline`. That pass strips the stored prefixes and rewrites the live body on the same snapshot. It does not mint a new `terms_id`.
 
 ## [0.25.1] - 2026-11-27
 
@@ -830,8 +835,8 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.25.2...HEAD
-[0.25.2]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.25.1...v0.25.2
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.26.0...HEAD
+[0.26.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.25.1...v0.26.0
 [0.25.1]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.25.0...v0.25.1
 [0.25.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.24.0...v0.25.0
 [0.24.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.23.0...v0.24.0

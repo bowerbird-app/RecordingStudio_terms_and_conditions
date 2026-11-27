@@ -189,7 +189,7 @@ Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay Engli
 
 ## Upgrading from 0.25.1
 
-Bump to **0.25.2**. No Terms schema change. Release stays on the same Terms recording. A no-change `terms_release` is refused (422, `No changes to release`).
+Bump to **0.26.0**. No Terms schema change. Release stays on the same Terms recording. A no-change `terms_release` is refused (422, `No changes to release`). Run `bin/rails recording_studio_terms_and_conditions:seed_outline` if live copy still shows `1. 1. Scope`.
 
 ## Upgrading from 0.25.0
 

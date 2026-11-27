@@ -5,7 +5,7 @@ require "nokogiri"
 
 module RecordingStudioTermsAndConditions
   module Outline # rubocop:disable Metrics/ModuleLength
-    SectionDraft = Struct.new(:heading, :clauses)
+    SectionDraft = Struct.new(:heading, :clauses, :number)
 
     class << self # rubocop:disable Metrics/ClassLength
       def assemble(terms_recording)
@@ -79,7 +79,8 @@ module RecordingStudioTermsAndConditions
       end
 
       def heading_draft(drafts, node, title)
-        draft = SectionDraft.new(strip_heading_number(node.text.strip.presence || title), [])
+        number = next_section_number(drafts)
+        draft = SectionDraft.new(strip_heading_number(node.text.strip.presence || title, number: number), [], number)
         drafts << draft
         draft
       end
@@ -108,7 +109,13 @@ module RecordingStudioTermsAndConditions
         parts = text.split(/\n{2,}/).map(&:strip).reject(&:empty?)
         return fallback(text, title) if parts.size < 2
 
-        [SectionDraft.new(strip_heading_number(title), parts.map { |part| strip_clause_number(part) })]
+        [numbered_section(title, parts)]
+      end
+
+      def numbered_section(title, parts)
+        number = "1"
+        clauses = parts.each_with_index.map { |part, index| strip_clause_number(part, number: "1.#{index + 1}") }
+        SectionDraft.new(strip_heading_number(title, number: number), clauses, number)
       end
 
       def split_markdown(text, title) # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
@@ -118,7 +125,8 @@ module RecordingStudioTermsAndConditions
         text.each_line do |line|
           if (match = line.match(/\A\#{1,6}\s+(.+)\s*\z/))
             current = flush_markdown(drafts, current, buffer, title)
-            current = SectionDraft.new(strip_heading_number(match[1].strip), [])
+            number = next_section_number(drafts)
+            current = SectionDraft.new(strip_heading_number(match[1].strip, number: number), [], number)
             drafts << current
           elsif line.strip.empty?
             current = flush_markdown(drafts, current, buffer, title)
@@ -137,32 +145,33 @@ module RecordingStudioTermsAndConditions
         return current if paragraph.empty?
 
         current = start_draft(drafts, title) if current.nil?
-        current.clauses << strip_clause_number(paragraph)
+        push_clause(current, paragraph)
         current
       end
 
       def start_draft(drafts, title)
-        draft = SectionDraft.new(strip_heading_number(title), [])
+        number = next_section_number(drafts)
+        draft = SectionDraft.new(strip_heading_number(title, number: number), [], number)
         drafts << draft
         draft
       end
 
-      def append_node(section, node) # rubocop:disable Metrics/AbcSize
+      def append_node(section, node)
         if list_node?(node)
           append_list(section, node)
         elsif node.element? && %w[p li].include?(node.name)
-          section.clauses << strip_clause_number(node.to_html)
+          push_clause(section, node.to_html)
         elsif node.text.to_s.strip.present?
-          section.clauses << strip_clause_number(node.element? ? node.to_html : node.text.strip)
+          push_clause(section, node.element? ? node.to_html : node.text.strip)
         end
       end
 
       def append_list(section, node)
         items = node.element_children.select { |child| child.name == "li" }
         if items.any?
-          items.each { |item| section.clauses << strip_clause_number(item.to_html) }
+          items.each { |item| push_clause(section, item.to_html) }
         else
-          section.clauses << strip_clause_number(node.to_html)
+          push_clause(section, node.to_html)
         end
       end
 
@@ -179,19 +188,38 @@ module RecordingStudioTermsAndConditions
       end
 
       def fallback(text, title)
-        [SectionDraft.new(strip_heading_number(title), [strip_clause_number(text)])]
+        [numbered_section(title, [text])]
       end
 
-      def strip_heading_number(text)
-        text.to_s.sub(/\A(?:\d+\.\s+)+/, "")
+      def next_section_number(drafts)
+        (drafts.size + 1).to_s
       end
 
-      def strip_clause_number(text)
+      def push_clause(section, text)
+        section.clauses << strip_clause_number(text, number: "#{section.number}.#{section.clauses.size + 1}")
+      end
+
+      def strip_heading_number(text, number:)
+        prefix = "#{number}. "
+        value = text.to_s
+        value = value.delete_prefix(prefix) while value.start_with?(prefix)
+        value
+      end
+
+      def strip_clause_number(text, number:) # rubocop:disable Metrics/MethodLength
+        prefix = "#{number} "
         html = text.to_s
-        stripped = html.sub(/\A(\s*<(?:p|li|div|h[1-6])\b[^>]*>)\s*(?:\d+\.\d+\s+)+/i, "\\1")
-        return stripped if stripped != html
+        loop do
+          stripped = html.sub(/\A(\s*<(?:p|li|div|h[1-6])\b[^>]*>)\s*#{Regexp.escape(prefix)}/i, "\\1")
+          if stripped != html
+            html = stripped
+            next
+          end
+          break unless html.start_with?(prefix)
 
-        html.sub(/\A(?:\d+\.\d+\s+)+/, "")
+          html = html.delete_prefix(prefix)
+        end
+        html
       end
     end
   end
