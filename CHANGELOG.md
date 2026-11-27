@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Dummy development dependencies: net-ssh 7.3.10, puma 8.1.2, rack-protection 4.2.2, and brakeman 8.1.1.
+- Development Ruby is 3.3.14. Root puma is 8.1.2.
 - `terms_documents`, outline/section/clause lookups, and the other authoring actions resolve when `context.recording` is AdminRoot, still via the shared library and `terms_id`.
 - Admin New create calls `TermsCreate` instead of duplicating draft-and-seed.
 

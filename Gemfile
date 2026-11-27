@@ -24,7 +24,7 @@ gem "recording_studio_trashable", "~> 1.3", github: "bowerbird-app/RecordingStud
                                             require: false
 
 gem "devise"
-gem "puma", "8.1.1"
+gem "puma", "8.1.2"
 gem "sprockets-rails"
 
 group :development, :test do

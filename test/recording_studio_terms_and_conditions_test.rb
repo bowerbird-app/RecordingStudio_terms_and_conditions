@@ -84,7 +84,7 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes gemfile, 'gem "recording_studio_user", "~> 0.42", github: "bowerbird-app/RecordingStudio_users", tag: "v0.42.1"'
     refute_includes root_gemfile, "recording_studio_user"
     assert_includes gemfile, 'gem "puma", "8.1.2"'
-    assert_includes root_gemfile, 'gem "puma", "8.1.1"'
+    assert_includes root_gemfile, 'gem "puma", "8.1.2"'
     assert_includes gemfile, 'gem "msgpack", ">= 1.8.7"'
     refute_includes gemfile, "0b1d229693041093200420b318154ff07acca33e"
     refute_includes root_gemfile, "0b1d229693041093200420b318154ff07acca33e"
