@@ -2,16 +2,24 @@
 
 module RecordingStudioTermsAndConditions
   module Api
-    module AdminActions
+    module AdminActions # rubocop:disable Metrics/ModuleLength
       module_function
 
       # rubocop:disable Layout/LineLength, Metrics/AbcSize, Metrics/MethodLength
       def definitions
         {
-          terms_documents: entry(:get, Documents, "Terms - Documents", "List Terms documents", fields: {
+          terms_documents: entry(:get, Documents, "Terms - Documents", "List Terms documents",
+                                 description: documents_description, fields: {
                                    kind: string_field("Optional kind filter", required: false, enum: %w[terms_and_condition privacy_policy])
                                  }),
-          terms_outline: entry(:get, OutlineAction, "Terms - Outline", "Read the numbered outline"),
+          terms_create: entry(:post, Create, "Terms - Create", "Create a Terms document",
+                              role: :edit, operations_only: true, include_terms_id: false,
+                              description: create_description, fields: create_fields),
+          terms_update: entry(:post, Update, "Terms - Update", "Update a Terms document",
+                              role: :edit, operations_only: true,
+                              description: update_description, fields: update_fields),
+          terms_outline: entry(:get, OutlineAction, "Terms - Outline", "Read the numbered outline",
+                               description: "Reads the numbered outline of a Terms document. Pass terms_id of the document on the shared library."),
           terms_section: entry(:get, SectionAction, "Terms - Section", "Read one section", fields: {
                                  section_id: string_field("Section id")
                                }),
@@ -55,24 +63,67 @@ module RecordingStudioTermsAndConditions
                                      }),
           terms_release: entry(:post, Release, "Terms - Release", "Release the current outline", role: :edit, fields: {
                                  title: string_field("Title stored on the released version", required: false)
-                               })
+                               }, description: release_description)
         }.freeze
       end
       # rubocop:enable Layout/LineLength, Metrics/AbcSize, Metrics/MethodLength
 
-      def entry(verb, handler, title, summary, role: :view, fields: {}) # rubocop:disable Metrics/ParameterLists
+      def create_fields
+        {
+          title: string_field("Document title"),
+          kind: string_field("terms_and_condition or privacy_policy", enum: %w[terms_and_condition privacy_policy]),
+          body: string_field("Starting copy. Seeded into sections and clauses.", required: false)
+        }
+      end
+
+      def update_fields
+        {
+          title: string_field("Document title"),
+          body: string_field("Document body. Only when the document has no outline.", required: false)
+        }
+      end
+
+      def documents_description
+        "Lists Terms and Privacy Policy documents on the shared library. " \
+          "Each document is one lineage. Pass kind to keep only that type. " \
+          "Call this from AdminRoot or a workspace."
+      end
+
+      def create_description
+        "Creates a Terms or Privacy Policy document on the shared library and seeds its outline. " \
+          "The document is the legal copy people agree to. One lineage per kind. " \
+          "Refuses if that kind already exists. Pass title and kind. Body is optional starting copy. " \
+          "Edit sections and clauses, then release."
+      end
+
+      def update_description
+        "Updates a Terms document's title. Body only when the document has no outline. " \
+          "Pass terms_id of the document on the shared library. " \
+          "A document with an outline is edited as sections and clauses, then released."
+      end
+
+      def release_description
+        "Releases the current outline as the live version. People who already agreed must agree again. " \
+          "Pass terms_id. Title is optional. The document must already exist, with sections and clauses ready."
+      end
+
+      def entry(verb, handler, title, summary, role: :view, fields: {}, operations_only: false, # rubocop:disable Metrics/ParameterLists
+                include_terms_id: true, description: nil)
         {
           http_verb: verb,
           handler: handler,
           title: title,
           summary: summary,
-          description: summary,
+          description: description || summary,
           required_role: role,
-          fields: with_terms_id(fields)
+          operations_only: operations_only,
+          fields: with_terms_id(fields, include_terms_id: include_terms_id)
         }.freeze
       end
 
-      def with_terms_id(fields)
+      def with_terms_id(fields, include_terms_id: true)
+        return fields unless include_terms_id
+
         fields.merge(terms_id: string_field("Terms document id on the shared library.", required: false))
       end
 

@@ -22,6 +22,11 @@ module RecordingStudioTermsAndConditions
       def available_kinds
         Terms::KINDS.reject { |kind| exists?(kind: kind) }
       end
+
+      def blocked_message(kind)
+        label = Terms.kind_label_for(kind)
+        "#{label} already exists. Open that version and edit to make a new draft."
+      end
     end
   end
 end

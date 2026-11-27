@@ -16,7 +16,7 @@ This addon ships the **data shape, domain helpers, clickwrap Agree screen, embed
 - **Terms** recordable (`RecordingStudioTermsAndConditions::Terms`, product label `"Terms"`) with Publishable opted in on the type. **Section** and **Clause** recordables sit under it. Staff and agents edit those. Release rebuilds the parent text.
 - **Acceptance** append-only table for clickwrap receipts (not a recordable). New rows store a SHA-256 body digest of the live copy at accept time
 - **Domain helpers** on `RecordingStudioTermsAndConditions`: `current_published_for` / `current_published_by_kind`, `pending_published_list` / `pending_published_for`, `accepted?`, `accepted_any?`, `accept!`, `requires_acceptance?`, `reaccepting?`, `reaccepting_actors_for`
-- **Recording Studio API capability actions** (when Recording Studio API is loaded). Public reads: `terms_pending_published_list`, `terms_current_published_for`, `terms_accepted`. Admin authoring: `terms_documents`, `terms_outline`, `terms_section`, `terms_clause`, `terms_changes`, `terms_preview`, `terms_add_section`, `terms_edit_section`, `terms_move_section`, `terms_remove_section`, `terms_add_clause`, `terms_edit_clause`, `terms_move_clause`, `terms_remove_clause`, `terms_release`. MCP calls them through `capability_action`. There is no accept action. This gem does not depend on Recording Studio API at runtime. Metrics stay on `RecordingStudioMetrics.register` (`metrics.rb`).
+- **Recording Studio API capability actions** (when Recording Studio API is loaded). Public reads: `terms_pending_published_list`, `terms_current_published_for`, `terms_accepted`. Admin authoring: `terms_documents`, `terms_create`, `terms_update`, `terms_outline`, `terms_section`, `terms_clause`, `terms_changes`, `terms_preview`, `terms_add_section`, `terms_edit_section`, `terms_move_section`, `terms_remove_section`, `terms_add_clause`, `terms_edit_clause`, `terms_move_clause`, `terms_remove_clause`, `terms_release`. `terms_create` and `terms_update` register on the operations API only. The other authoring actions still register on every named API so existing public callers keep working. MCP hosts include `RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :public)` and `api: :operations`. There is no accept action. This gem does not depend on Recording Studio API or MCP at runtime. Metrics stay on `RecordingStudioMetrics.register` (`metrics.rb`).
 - **Published hook** `published.recording_studio_terms_and_conditions` after a Terms recording becomes currently published. Payload is `recording_id` and `terms_id` only. Hosts subscribe, call `reaccepting_actors_for`, drop staff, and send their own mail. The gate still redirects the next signed-in request.
 - **Agree screen** for pending live Terms and/or Privacy Policy (Continue + continue-notice, no checkbox on Accept). No PageNav. Each pending document sits in a Flatpack Collapse wrapping `FlatPack::Content`. Continue and the “By continuing…” line stay after someone has already agreed, and a second continue does not change the receipt time. Continue `accept!`s every pending live version. First-time Accept titles name the pending kinds; a later live version still uses “We have updated our…”
 - **Host helper** `recording_studio_terms_agree` / `recording_studio_terms_agree(inside_form: true)` — Flatpack checkbox only, HTML `required`. Wraps in `mt-3 mb-6` so there is a comfortable gap before the host Agree / Accept button. Pass `link_terms: true` to link “terms” (same tab) and “privacy policy” (`target=_blank`) when those documents are pending. Prefer `recording_studio_terms_agree_button` (Flatpack primary) for the CTA. On submit, call `accept!` for each pending live version
@@ -141,9 +141,23 @@ RecordingStudioApi.register_recordable_type_api(
   ],
   auto_capability_actions: false
 )
+
+RecordingStudioApi.register_recordable_type_api(
+  "AdminRoot",
+  api: :operations,
+  operations: %i[index show],
+  capability_actions: %i[
+    terms_documents terms_create terms_update
+    terms_outline terms_section terms_clause terms_changes terms_preview
+    terms_add_section terms_edit_section terms_move_section terms_remove_section
+    terms_add_clause terms_edit_clause terms_move_clause terms_remove_clause
+    terms_release
+  ],
+  auto_capability_actions: false
+)
 ```
 
-Register these on the workspace. The workspace grant is the access check. Pass `terms_id` for every authoring action. That id is the document on the shared library, which is not inside the workspace tree. Reads need Accessible `:view` on the admin root. Writes and release need `:edit` there. MCP calls these through `capability_action`. There is no accept action. A draft that already has an outline is released from the show page. Publishable's publish path for that document also releases, so the stored parent text is rebuilt and the hook fires once. `TermsWrite` still saves a document with no outline, and raises when an outline is already there.
+Enable `RecordingStudio::Capabilities::TermsAndConditions.to` on AdminRoot as well as Workspace. Authoring resolves documents through the shared library and `terms_id`, including when the member recording is AdminRoot. `terms_create` drafts on the library and seeds the outline. `terms_update` uses `TermsWrite` (title always; body only when there is no outline). Reads need Accessible `:view` on the admin root. Writes and release need `:edit` there. MCP hosts include `RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :operations)` on the operations server and the three clickwrap names on the public server. There is no accept action. A draft that already has an outline is released from the show page. Publishable's publish path for that document also releases, so the stored parent text is rebuilt and the hook fires once. `TermsWrite` still saves a document with no outline, and raises when an outline is already there.
 
 The home page in `test/dummy/app/views/home/index.html.erb` is a starting point for a minimal demo of the gem's primary behavior. Keep deeper explanations on the dummy docs pages, not in this README.
 
@@ -161,7 +175,7 @@ bin/rails db:migrate
 bin/rails tailwindcss:build
 ```
 
-`recording_studio_terms_and_conditions:install` mounts the engine, copies this gem's migrations, and writes the initializer. Then register `RecordingStudioTermsAndConditions::Terms`, `Section`, and `Clause` in `recordable_types`, mount Publishable at `/`, and enable Admin `section :terms` on an Admin root with Accessible access. This gem depends on `recording_studio_moveable` `>= 5.0`, `< 7.0`. Add GitHub sources for Moveable `v6.1.0` and Icons `v0.5.0` when those gems are not on RubyGems.
+`recording_studio_terms_and_conditions:install` mounts the engine, copies this gem's migrations, and writes the initializer. Then register `RecordingStudioTermsAndConditions::Library`, `Terms`, `Section`, and `Clause` in `recordable_types`, mount Publishable at `/`, and enable Admin `section :terms` on an Admin root with Accessible access. This gem depends on `recording_studio_moveable` `>= 5.0`, `< 7.0`. Add GitHub sources for Moveable `v6.1.0` and Icons `v0.5.0` when those gems are not on RubyGems.
 
 This is the kit gem for published Terms and clickwrap. Add it to the approved list in `recording-studio-gems`. Do not hand-roll acceptances.
 
@@ -188,6 +202,10 @@ Do not translate stored Terms bodies or version titles. Those are data. Buttons,
 Add [Recording Studio Internationalization](https://github.com/bowerbird-app/RecordingStudio_Internationalization) on the host when you want a language selector. This gem does not declare the host's languages.
 
 Staff Admin screens (Terms hub, versions, who agreed, edit/new forms) stay English for now.
+
+## Upgrading from 0.24.0
+
+Bump to **0.25.0**. No Terms schema change. Add `terms_create` and `terms_update` on the operations API (AdminRoot). Enable the Terms mixin on AdminRoot and list those actions on the AdminRoot type API. Include `RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :operations)` on the operations MCP server, and the three clickwrap reads on the public MCP server. Existing authoring actions stay registered on public as well as operations so current Workspace callers keep working. `terms_create` and `terms_update` are operations-only.
 
 ## Upgrading from 0.23.0
 

@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.25.0] - 2026-11-27
+
+### Added
+- Operations API `terms_create` (`:edit`). Title, kind (`terms_and_condition` or `privacy_policy`), optional body. Creates the document on the shared library through `TermsCreate` (the same path as Admin New) and seeds the outline. Refuses with KindPresence when that kind already exists. Returns the document and its outline.
+- Operations API `terms_update` (`:edit`). Uses `TermsWrite`. Title always. Body only when the document has no outline.
+- `RecordingStudioTermsAndConditions::McpCopy.tool_names(api:)`. Operations lists documents, create, update, outline, section/clause reads and writes, changes, preview, and release. Public lists only the three clickwrap reads. Never an accept tool.
+
+### Changed
+- `terms_documents`, outline/section/clause lookups, and the other authoring actions resolve when `context.recording` is AdminRoot, still via the shared library and `terms_id`.
+- Admin New create calls `TermsCreate` instead of duplicating draft-and-seed.
+
+### Upgrade notes (0.24.0 → 0.25.0)
+- No Terms migration. Pin `0.25.0`.
+- Enable `RecordingStudio::Capabilities::TermsAndConditions.to` on AdminRoot. Register AdminRoot on the operations API with `terms_create`, `terms_update`, and the existing authoring actions.
+- Hosts that load Recording Studio MCP include `RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :operations)` on the operations MCP server and `api: :public` for the three clickwrap reads.
+- `terms_create` and `terms_update` register on operations only. Existing authoring actions still register on every named API (including public) so Workspace callers keep working. Moving those onto operations only would remove them from the public API.
+
 ## [0.24.0] - 2026-11-20
 
 ### Added
@@ -789,7 +806,8 @@ New addons copied from this template are born on Recording Studio 4.x.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.24.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.25.0...HEAD
+[0.25.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.24.0...v0.25.0
 [0.24.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.23.0...v0.24.0
 [0.23.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.22.0...v0.23.0
 [0.22.0]: https://github.com/bowerbird-app/RecordingStudio_terms_and_conditions/compare/v0.21.0...v0.22.0

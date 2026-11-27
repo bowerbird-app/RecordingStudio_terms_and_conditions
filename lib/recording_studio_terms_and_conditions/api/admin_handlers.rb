@@ -65,16 +65,44 @@ module RecordingStudioTermsAndConditions
     end
 
     class Documents
+      AUTHORING_ROOT_TYPES = %w[Workspace AdminRoot].freeze
+
       def self.call(context)
         AdminGate.authorize!(context, :view)
-        root = context.recording
-        raise RecordingStudioApi::NotFoundError, "Workspace not found" unless root.recordable_type == "Workspace"
+        authoring_root!(context)
 
         library = RecordingStudioTermsAndConditions.library_root
         kind = context.params[:kind].presence
         documents = Outline.children(library, Terms.name).map { |recording| AdminPayload.document(recording) }
         documents.select! { |document| document[:kind] == kind } if kind
         { documents: documents }
+      end
+
+      def self.authoring_root!(context)
+        type = context.recording&.recordable_type
+        return if AUTHORING_ROOT_TYPES.include?(type)
+
+        raise RecordingStudioApi::NotFoundError, "Workspace not found"
+      end
+    end
+
+    class Create
+      def self.call(context)
+        AdminGate.authorize!(context, :edit)
+        Documents.authoring_root!(context)
+        recording = create_document(context)
+        { document: AdminPayload.document(recording), outline: AdminPayload.outline(recording) }
+      rescue TermsCreate::KindTaken => e
+        raise RecordingStudioApi::InvalidActionInputError, e.message
+      end
+
+      def self.create_document(context)
+        TermsCreate.call(
+          actor: Access.actor_for(context),
+          title: context.params[:title],
+          kind: context.params[:kind],
+          body: context.params[:body]
+        )
       end
     end
 
@@ -261,6 +289,27 @@ module RecordingStudioTermsAndConditions
       def self.located_clause(context, id)
         clause = Outline.find_clause!(terms!(context), id)
         AdminPayload.clause_hash(clause).merge(section_id: clause.recording.parent_recording_id.to_s)
+      end
+    end
+
+    class Update < OutlineAction
+      def self.call(context)
+        AdminGate.authorize!(context, :edit)
+        { document: AdminPayload.document(write_document(context)) }
+      rescue TermsWrite::OutlinePresent => e
+        raise RecordingStudioApi::InvalidActionInputError, e.message
+      end
+
+      def self.write_document(context)
+        recording = terms!(context)
+        body = context.params[:body]
+        body = recording.recordable.body if body.nil?
+        TermsWrite.call(
+          recording: recording,
+          actor: actor(context),
+          title: context.params[:title],
+          body: body
+        )
       end
     end
   end

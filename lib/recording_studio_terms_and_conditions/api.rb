@@ -28,14 +28,16 @@ module RecordingStudioTermsAndConditions
         handler: PendingPublishedList,
         title: "Terms - Pending published list",
         summary: "List pending Terms",
-        description: "Live Terms the actor has not accepted. The document is the shared library."
+        description: "Live Terms the actor has not accepted. Each item is a Terms document on the shared library, " \
+                     "the legal copy they still need to agree to."
       }.freeze,
       terms_current_published_for: {
         http_verb: :get,
         handler: CurrentPublishedFor,
         title: "Terms - Current published",
         summary: "Show current published Terms",
-        description: "The live Terms document for a kind. It is the shared library.",
+        description: "The live Terms document for a kind. That document is the legal copy currently in force " \
+                     "on the shared library.",
         kind_field: true
       }.freeze,
       terms_accepted: {
@@ -43,7 +45,7 @@ module RecordingStudioTermsAndConditions
         handler: Accepted,
         title: "Terms - Accepted",
         summary: "Check Terms acceptance",
-        description: "Whether the access grant's actor has accepted the live Terms document for a kind.",
+        description: "Whether the caller has accepted the live Terms document for a kind.",
         kind_field: true
       }.freeze
     }.freeze
@@ -64,16 +66,19 @@ module RecordingStudioTermsAndConditions
         private
 
         def register_surface(surface_name)
-          action_map.each_key { |action_name| register_action(surface_name, action_name) }
+          action_map(surface_name).each_key { |action_name| register_action(surface_name, action_name) }
         end
 
-        def action_map
-          ACTIONS.merge(AdminActions.definitions)
+        def action_map(surface_name = :operations)
+          map = ACTIONS.merge(AdminActions.definitions)
+          return map if surface_name.to_sym == :operations
+
+          map.reject { |_name, spec| spec[:operations_only] }
         end
 
         def register_action(surface_name, action_name)
           existing_action(surface_name, action_name)
-          spec = action_map.fetch(action_name)
+          spec = action_map(:operations).fetch(action_name)
           RecordingStudioApi.register_capability_action(action_name, api: surface_name, **action_options(spec))
         end
 

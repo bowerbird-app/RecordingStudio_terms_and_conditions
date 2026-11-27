@@ -13,6 +13,7 @@ require "recording_studio_terms_and_conditions/library_staff_access"
 require "recording_studio_terms_and_conditions/library_moves"
 require "recording_studio_terms_and_conditions/terms_acceptance"
 require "recording_studio_terms_and_conditions/terms_write"
+require "recording_studio_terms_and_conditions/terms_create"
 require "recording_studio_terms_and_conditions/outline"
 require "recording_studio_terms_and_conditions/outline_changes"
 require "recording_studio_terms_and_conditions/outline_text"
@@ -38,6 +39,7 @@ require "recording_studio_terms_and_conditions/hide_admin_access_avatars"
 require "recording_studio_terms_and_conditions/admin" if defined?(RecordingStudioAdmin)
 require "recording_studio_terms_and_conditions/metrics"
 require "recording_studio_terms_and_conditions/api"
+require "recording_studio_terms_and_conditions/mcp_copy"
 require "recording_studio_terms_and_conditions/capabilities/terms_and_conditions"
 
 module RecordingStudioTermsAndConditions

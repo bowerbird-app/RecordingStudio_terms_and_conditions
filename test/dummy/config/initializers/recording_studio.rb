@@ -52,6 +52,17 @@ RecordingStudio.configure do |config|
       next true
     end
 
+    # Provisioning records the client, credential, and access token on the
+    # access point. The client is the write actor. Operations clients on
+    # AdminRoot often hold :view at that moment, which is not :edit.
+    if defined?(RecordingStudioApi::ApiClient) && actor.is_a?(RecordingStudioApi::ApiClient) && (
+         recordable.is_a?(RecordingStudioApi::ApiClient) ||
+         (defined?(RecordingStudioApi::ApiCredential) && recordable.is_a?(RecordingStudioApi::ApiCredential)) ||
+         (defined?(RecordingStudioApi::ApiAccessToken) && recordable.is_a?(RecordingStudioApi::ApiAccessToken))
+       )
+      next true
+    end
+
     next false unless defined?(RecordingStudioAccessible)
 
     if root_recording.recordable_type == "RecordingStudioTermsAndConditions::Library"

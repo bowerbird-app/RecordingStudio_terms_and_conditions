@@ -18,6 +18,26 @@ Then:
 
 The host includes the gate on `ApplicationController`. The gate is `recording_studio_terms_and_conditions.acceptance` on `RecordingStudio.check_gate`. Defaults already exempt `recording_studio_user/auth` and `recording_studio_user/omniauth`. Append any other auth controllers to `config.gate_exempt_controllers`. Set `config.actor_name_search` for who-agreed. Signup is separate. Where you configure Users, append `recording_studio_terms_and_conditions/signup_notice` to `signup_notice_partials` and register `SignupRegistration` with `after_registration`. That callable calls `accept!` with provenance `source` `signup` and `method` `password`, `oauth`, or `otp`. On Users >= 0.37.0, Terms hooks `config.after_auth_path` so sign-in and sign-up land on Agree while live Terms are pending. Set `config.users_after_auth_path = false` to wire that yourself. Set a host callable in an initializer. A `to_prepare` assignment replaces the wrap. Agree stays in place when a new version is published.
 
+## Upgrade from 0.24.0 to 0.25.0
+
+No Terms schema change. Pin `0.25.0`.
+
+Enable `RecordingStudio::Capabilities::TermsAndConditions.to` on AdminRoot. Register AdminRoot on the operations API with `terms_create`, `terms_update`, `terms_documents`, outline/section/clause reads and writes, changes, preview, and release.
+
+Hosts that load Recording Studio MCP include Terms tools on the operations MCP server:
+
+```ruby
+include_tools(*RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :operations))
+```
+
+Public MCP stays on the three clickwrap reads:
+
+```ruby
+include_tools(*RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :public))
+```
+
+`terms_create` and `terms_update` are operations-only. The older authoring actions still register on public as well as operations so existing Workspace callers keep working.
+
 ## Upgrade from 0.23.0 to 0.24.0
 
 No Terms schema change. Pin `0.24.0`. Hosts moving from 0.22.0 must also read the 0.23.0 notes. `recording_studio_user` is still not a Terms dependency. The dummy pins Users `v0.42.1`.
