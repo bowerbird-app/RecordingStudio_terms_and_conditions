@@ -145,6 +145,10 @@ module RecordingStudioTermsAndConditions
       RecordingStudioTermsAndConditions::Api.register_capability_action!
     end
 
+    initializer "recording_studio_terms_and_conditions.mcp_copy" do
+      config.to_prepare { RecordingStudioTermsAndConditions::McpCopy.register! }
+    end
+
     initializer "recording_studio_terms_and_conditions.admin_definitions" do
       config.to_prepare do
         next unless defined?(RecordingStudioAdmin)

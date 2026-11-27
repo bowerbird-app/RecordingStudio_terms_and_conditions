@@ -24,13 +24,10 @@ module RecordingStudioTermsAndConditions
       end
 
       def create
-        return render_create_blocked if create_kind_taken?
-
-        recording = write_terms_resource!(:new, terms_parent_root, audit_action: :create) do
-          draft_terms!(terms_parent_root)
-        end
-        Outline.seed_recording!(recording, actor: current_admin_actor)
+        recording = write_terms_resource!(:new, terms_parent_root, audit_action: :create) { draft_from_params }
         redirect_to admin_term_path(recording), notice: "Terms drafted. Publish when they are ready."
+      rescue TermsCreate::KindTaken
+        render_create_blocked
       rescue ActiveRecord::RecordInvalid => e
         @available_kinds = KindPresence.available_kinds
         render_invalid_terms(:new, e, "Could not save that draft.")
@@ -97,6 +94,15 @@ module RecordingStudioTermsAndConditions
         %w[new create].include?(action_name) ? nil : terms_recording
       end
 
+      def draft_from_params
+        TermsCreate.call(
+          actor: current_admin_actor,
+          title: terms_params[:title],
+          body: terms_params[:body],
+          kind: terms_params[:kind]
+        )
+      end
+
       def write_terms_resource!(action, record, audit_action:)
         return yield unless defined?(RecordingStudioAdmin::AdminActionAuditing)
 
@@ -106,12 +112,6 @@ module RecordingStudioTermsAndConditions
           true
         end
         result
-      end
-
-      def draft_terms!(parent)
-        parent.record(Terms, actor: current_admin_actor, parent_recording: parent) do |terms|
-          assign_terms_fields(terms)
-        end
       end
 
       def render_invalid_terms(template, error, fallback)
@@ -126,12 +126,6 @@ module RecordingStudioTermsAndConditions
         else
           "Released. People will need to agree to this version."
         end
-      end
-
-      def assign_terms_fields(terms)
-        terms.title = terms_params[:title]
-        terms.body = terms_params[:body]
-        terms.kind = Terms.normalize_kind(terms_params[:kind])
       end
 
       def assign_form_fields_from(terms)
@@ -156,18 +150,9 @@ module RecordingStudioTermsAndConditions
         @kind = kind
       end
 
-      def create_blocked_message(kind)
-        label = Terms.kind_label_for(kind)
-        "#{label} already exists. Open that version and edit to make a new draft."
-      end
-
-      def create_kind_taken?
-        KindPresence.exists?(kind: Terms.normalize_kind(terms_params[:kind]))
-      end
-
       def render_create_blocked
         kind = Terms.normalize_kind(terms_params[:kind])
-        flash.now[:alert] = create_blocked_message(kind)
+        flash.now[:alert] = KindPresence.blocked_message(kind)
         @available_kinds = KindPresence.available_kinds
         assign_form_fields_from_params
         render :new, status: :unprocessable_entity

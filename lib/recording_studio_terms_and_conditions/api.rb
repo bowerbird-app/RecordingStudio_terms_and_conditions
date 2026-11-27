@@ -64,16 +64,18 @@ module RecordingStudioTermsAndConditions
         private
 
         def register_surface(surface_name)
-          action_map.each_key { |action_name| register_action(surface_name, action_name) }
+          action_map(surface_name).each_key { |action_name| register_action(surface_name, action_name) }
         end
 
-        def action_map
-          ACTIONS.merge(AdminActions.definitions)
+        def action_map(surface_name = :operations)
+          return ACTIONS.merge(AdminActions.definitions) if surface_name.to_sym == :operations
+
+          ACTIONS
         end
 
         def register_action(surface_name, action_name)
           existing_action(surface_name, action_name)
-          spec = action_map.fetch(action_name)
+          spec = action_map(:operations).fetch(action_name)
           RecordingStudioApi.register_capability_action(action_name, api: surface_name, **action_options(spec))
         end
 

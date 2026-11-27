@@ -3,7 +3,8 @@
 require "test_helper"
 
 class TermsAdminApiTest < ActionDispatch::IntegrationTest
-  BASE = "/recording_studio_api/api/v1"
+  OPERATIONS = "/recording_studio_api/apis/operations/v1"
+  PUBLIC = "/recording_studio_api/api/v1"
 
   setup do
     @previous_actor = Current.actor
@@ -17,13 +18,13 @@ class TermsAdminApiTest < ActionDispatch::IntegrationTest
     @root = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor)
     @owner_access = bootstrap_owner_access!(@owner, @root)
     @admin_root = RecordingStudio.create_root_recording!(AdminRoot.find_or_create_by!(name: "Admin"), actor: recording_write_actor)
-    bootstrap_owner_access!(@owner, @admin_root)
+    ensure_held_admin_on!(@admin_root, held_access_admin)
+    grant!(@admin_root, @owner, :admin, held_access_admin)
     @recording = record_terms(@root, title: "Studio Terms", body: "Be kind.", actor: @owner)
     publish_terms!(@recording, slug: "admin-api-#{SecureRandom.hex(4)}", actor: @owner)
     RecordingStudioTermsAndConditions::Outline.seed_recording!(@recording, actor: @owner)
-    @token, @client = token_for(@owner_access)
-    grant!(@admin_root, @client, :edit, @owner)
-    grant!(@root, @client, :edit, @owner)
+    @token, @client = token_for(@admin_root, role: :edit, api: :operations)
+    @public_token, = public_token_for(@owner_access)
   end
 
   teardown do
@@ -31,42 +32,42 @@ class TermsAdminApiTest < ActionDispatch::IntegrationTest
   end
 
   test "admin client can edit a clause and release once" do
-    listed = call(:get, "/workspaces/#{@root.id}/actions/terms_documents", @token)
+    listed = call(:get, "#{OPERATIONS}#{admin_root_path}/actions/terms_documents", @token)
     assert_response :success, response.body
     document = listed.fetch("documents").find { |row| row["id"] == @recording.id.to_s }
     assert_equal false, document.fetch("unreleased_changes")
     assert_equal true, document.fetch("live")
 
-    outline = call(:get, "/workspaces/#{@root.id}/actions/terms_outline", @token, { terms_id: @recording.id })
+    outline = call(:get, "#{OPERATIONS}#{admin_root_path}/actions/terms_outline", @token, { terms_id: @recording.id })
     clause_id = outline.dig("outline", "sections", 0, "clauses", 0, "id")
     section_id = outline.dig("outline", "sections", 0, "id")
     parent_snapshot = @recording.recordable_id
     events = []
     subscription = RecordingStudioTermsAndConditions::Published.subscribe { |event| events << event }
 
-    call(:post, "/workspaces/#{@root.id}/actions/terms_edit_clause", @token, { terms_id: @recording.id, clause_id: clause_id, body: "Whisper." })
+    call(:post, "#{OPERATIONS}#{admin_root_path}/actions/terms_edit_clause", @token, { terms_id: @recording.id, clause_id: clause_id, body: "Whisper." })
     assert_response :success, response.body
     assert_empty events
     assert_equal parent_snapshot, @recording.reload.recordable_id
 
-    call(:post, "/workspaces/#{@root.id}/actions/terms_add_section", @token, { terms_id: @recording.id, heading: "Gear" })
+    call(:post, "#{OPERATIONS}#{admin_root_path}/actions/terms_add_section", @token, { terms_id: @recording.id, heading: "Gear" })
     assert_response :success, response.body
-    changes = call(:get, "/workspaces/#{@root.id}/actions/terms_changes", @token, { terms_id: @recording.id })
+    changes = call(:get, "#{OPERATIONS}#{admin_root_path}/actions/terms_changes", @token, { terms_id: @recording.id })
     statuses = changes.fetch("changes").map { |change| [change["kind"], change["status"]] }
     assert_includes statuses, [ "clause", "changed" ]
     assert_includes statuses, [ "section", "added" ]
 
-    preview = call(:get, "/workspaces/#{@root.id}/actions/terms_preview", @token, { terms_id: @recording.id })
+    preview = call(:get, "#{OPERATIONS}#{admin_root_path}/actions/terms_preview", @token, { terms_id: @recording.id })
     assert_includes preview.dig("preview", "body"), "Whisper."
     assert_includes preview.dig("preview", "body"), "1.1"
 
-    call(:post, "/workspaces/#{@root.id}/actions/terms_release", @token, { terms_id: @recording.id, title: "Studio Terms" })
+    call(:post, "#{OPERATIONS}#{admin_root_path}/actions/terms_release", @token, { terms_id: @recording.id, title: "Studio Terms" })
     assert_response :success, response.body
     assert_equal true, json.dig("release", "released")
     assert_equal 1, events.size
     assert_includes json.dig("release", "body"), "Whisper."
 
-    call(:post, "/workspaces/#{@root.id}/actions/terms_release", @token, { terms_id: json.dig("release", "id"), title: "Studio Terms" })
+    call(:post, "#{OPERATIONS}#{admin_root_path}/actions/terms_release", @token, { terms_id: json.dig("release", "id"), title: "Studio Terms" })
     assert_response :success, response.body
     assert_equal false, json.dig("release", "released")
     assert_equal 1, events.size
@@ -75,83 +76,45 @@ class TermsAdminApiTest < ActionDispatch::IntegrationTest
     ActiveSupport::Notifications.unsubscribe(subscription) if subscription
   end
 
-  test "a client without admin access is forbidden" do
-    outsider = User.create!(
-      email: "outsider-api-#{SecureRandom.hex(4)}@example.com",
-      password: "Password",
-      password_confirmation: "Password"
-    )
-    Current.actor = outsider
-    other = Workspace.create!(name: "Other #{SecureRandom.hex(4)}")
-    other_root = RecordingStudio.create_root_recording!(other, actor: recording_write_actor)
-    access = bootstrap_owner_access!(outsider, other_root)
-    token, = token_for(access, manager: outsider)
+  test "operations terms_documents without admin-root access returns 403" do
+    token, client = token_for(@root, role: :edit, api: :operations)
+    refute RecordingStudioAccessible.authorized?(actor: client, recording: @admin_root, role: :view)
 
-    call(:get, "/workspaces/#{other_root.id}/actions/terms_documents", token)
-    assert_response :forbidden, response.body
+    call(:get, "#{OPERATIONS}/workspaces/#{@root.id}/actions/terms_documents", token)
+    assert_forbidden_not_allowed
+  end
+
+  test "public API registers none of the authoring actions and operations registers all of them" do
+    authoring = RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :operations).map(&:to_sym)
+    clickwrap = RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :public).map(&:to_sym)
+
+    authoring.each do |name|
+      assert RecordingStudioApi.capability_action(name, api: :operations), name.to_s
+      refute RecordingStudioApi.capability_action(name, api: :public), name.to_s
+    end
+    clickwrap.each do |name|
+      assert RecordingStudioApi.capability_action(name, api: :public), name.to_s
+      assert RecordingStudioApi.capability_action(name, api: :operations), name.to_s
+    end
+
+    call(:get, "#{PUBLIC}/workspaces/#{@root.id}/actions/terms_documents", @public_token)
+    assert_response :unprocessable_entity, response.body
+    refute_includes RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :public), "terms_documents"
+    refute_includes RecordingStudioTermsAndConditions::McpCopy.tool_names(api: :public), "terms_release"
   end
 
   test "read actions stay on view and writes require edit" do
-    %i[public operations].each do |api|
-      assert_equal :view, RecordingStudioApi.capability_action(:terms_outline, api: api).required_role
-      assert_equal :edit, RecordingStudioApi.capability_action(:terms_release, api: api).required_role
-      assert_equal :edit, RecordingStudioApi.capability_action(:terms_edit_clause, api: api).required_role
-      refute RecordingStudioApi.capability_action(:terms_accept, api: api)
-    end
+    assert_equal :view, RecordingStudioApi.capability_action(:terms_outline, api: :operations).required_role
+    assert_equal :edit, RecordingStudioApi.capability_action(:terms_release, api: :operations).required_role
+    assert_equal :edit, RecordingStudioApi.capability_action(:terms_edit_clause, api: :operations).required_role
+    refute RecordingStudioApi.capability_action(:terms_outline, api: :public)
+    refute RecordingStudioApi.capability_action(:terms_accept, api: :operations)
+    refute RecordingStudioApi.capability_action(:terms_accept, api: :public)
   end
 
   private
 
-  def grant!(recording, actor, role, manager)
-    configuration = nil
-    original = nil
-    return if RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: role)
-
-    configuration = RecordingStudioAccessible.configuration
-    original = configuration.access_management_authorizer
-    configuration.access_management_authorizer = ->(**) { true }
-    result = RecordingStudioAccessible.grant_access(
-      recording: recording,
-      actor: actor,
-      role: role,
-      manager_actor: manager
-    )
-    raise result.error if result.respond_to?(:failure?) && result.failure?
-  ensure
-    configuration.access_management_authorizer = original if configuration && original
-  end
-
-  def token_for(access_recording, manager: @owner)
-    provision = RecordingStudioApi::Services::ProvisionApiClient.call(
-      access_point_recording: access_recording.parent_recording || access_recording.root_recording,
-      manager_actor: manager,
-      role: access_recording.recordable.role,
-      name: "Client #{SecureRandom.hex(3)}"
-    )
-    raise provision.error unless provision.success?
-
-    issued = RecordingStudioApi::Services::IssueOauthAccessToken.call(
-      grant_type: "client_credentials",
-      client_id: provision.value.fetch(:credential).oauth_client_id,
-      client_secret: provision.value.fetch(:token)
-    )
-    raise issued.error unless issued.success?
-
-    [issued.value.fetch(:access_token), provision.value.fetch(:api_client)]
-  end
-
-  def call(method, path, token, params = {})
-    send(method, "#{BASE}#{path}", params: params, headers: headers(token), as: :json)
-    response.media_type.to_s.include?("json") ? JSON.parse(response.body) : {}
-  rescue JSON::ParserError
-    {}
-  end
-
-  def headers(token)
-    { "Authorization" => "Bearer #{token}", "Accept" => "application/json" }
-  end
-
-  def json
-    JSON.parse(response.body)
+  def admin_root_path
+    "/admin_roots/#{@admin_root.id}"
   end
 end

@@ -28,9 +28,10 @@ class TermsMetricsTest < ActiveSupport::TestCase
     @workspace = Workspace.create!(name: "Metrics #{SecureRandom.hex(4)}")
     @root = RecordingStudio.create_root_recording!(@workspace, actor: recording_write_actor)
     @admin_root = RecordingStudio.create_root_recording!(AdminRoot.find_or_create_by!(name: "Admin"), actor: recording_write_actor)
-    grant!(@admin_root, @staff, :admin)
-    bootstrap_owner!(@root, @staff)
-    grant!(@root, @patron, :edit)
+    ensure_held_admin_on!(@admin_root, held_access_admin)
+    grant!(@admin_root, @staff, :admin, held_access_admin)
+    bootstrap_owner_access!(@staff, @root)
+    grant!(@root, @patron, :edit, @staff)
     seed_acceptances!
     Current.actor = nil
   end
@@ -252,58 +253,4 @@ class TermsMetricsTest < ActiveSupport::TestCase
     result.data.to_h { |row| [ (row[:date] || row["date"]).to_s, row[:value] || row["value"] ] }
   end
 
-  def bootstrap_owner!(recording, actor)
-    result = RecordingStudioAccessible.bootstrap_owner_access!(
-      recording: recording,
-      actor: actor
-    )
-    return if result.success?
-    return if result.error.to_s.include?("Access already exists") &&
-      RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: :admin)
-
-    raise result.error
-  end
-
-  def grant!(recording, actor, role)
-    return if RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: role)
-
-    configuration = RecordingStudioAccessible.configuration
-    original = configuration.access_management_authorizer
-    configuration.access_management_authorizer = ->(**) { true }
-    result = RecordingStudioAccessible.grant_access(
-      recording: recording,
-      actor: actor,
-      role: role,
-      manager_actor: grant_manager_for(recording, role)
-    )
-    raise result.error if result.failure?
-  ensure
-    configuration.access_management_authorizer = original if configuration
-  end
-
-  def grant_manager_for(recording, role)
-    if @staff && RecordingStudioAccessible.authorized?(actor: @staff, recording: recording, role: role)
-      return @staff
-    end
-
-    holder = existing_role_holder(recording, role)
-    return holder if holder
-
-    manager = User.find_or_create_by!(email: "metrics-grant-manager@example.com") do |user|
-      user.password = "Password"
-      user.password_confirmation = "Password"
-    end
-    bootstrap_owner!(recording, manager)
-    manager
-  end
-
-  def existing_role_holder(recording, role)
-    RecordingStudioAccessible.access_recordings_for(recording).filter_map do |access_recording|
-      actor = access_recording.recordable.try(:actor)
-      next unless actor
-      next unless RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: role)
-
-      actor
-    end.first
-  end
 end

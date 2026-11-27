@@ -70,6 +70,20 @@ class TermsWriteTest < ActiveSupport::TestCase
     assert_includes error.message, "outline"
   end
 
+  test "TermsWrite refuses an outlined document even when only the title changes" do
+    recording = record_terms("Booth", "ABC")
+    RecordingStudioTermsAndConditions::Outline.seed_recording!(recording, actor: @actor)
+
+    assert_raises(RecordingStudioTermsAndConditions::TermsWrite::OutlinePresent) do
+      RecordingStudioTermsAndConditions::TermsWrite.call(
+        recording: recording,
+        actor: @actor,
+        title: "Booth two",
+        body: "ABC"
+      )
+    end
+  end
+
   private
 
   def record_terms(title, body)

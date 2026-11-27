@@ -37,7 +37,30 @@ RecordingStudioApi.register_recordable_type_api(
     terms_pending_published_list
     terms_current_published_for
     terms_accepted
+  ],
+  auto_capability_actions: false
+)
+
+RecordingStudioApi.register_recordable_type_api(
+  "Workspace",
+  api: :operations,
+  operations: %i[index show],
+  serializer: ->(workspace, **) { { name: workspace.name } },
+  output_keys: %i[name],
+  capability_actions: %i[terms_documents],
+  auto_capability_actions: false
+)
+
+RecordingStudioApi.register_recordable_type_api(
+  "AdminRoot",
+  api: :operations,
+  operations: %i[index show],
+  serializer: ->(admin_root, **) { { name: admin_root.name } },
+  output_keys: %i[name],
+  capability_actions: %i[
     terms_documents
+    terms_create
+    terms_update
     terms_outline
     terms_section
     terms_clause
@@ -58,6 +81,7 @@ RecordingStudioApi.register_recordable_type_api(
 
 RecordingStudioApi.register_recordable_type_api(
   "RecordingStudioTermsAndConditions::Terms",
+  api: :operations,
   operations: %i[show],
   serializer: ->(terms, **) { { title: terms.title, kind: terms.kind } },
   output_keys: %i[title kind],

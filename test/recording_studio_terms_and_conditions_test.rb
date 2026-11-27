@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioTermsAndConditionsTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.24.0", ::RecordingStudioTermsAndConditions::VERSION
+    assert_equal "0.25.0", ::RecordingStudioTermsAndConditions::VERSION
   end
 
   def test_engine_exists
@@ -83,8 +83,8 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_match(/recording_studio_trashable.*,\n\s+require: false/, root_gemfile)
     assert_includes gemfile, 'gem "recording_studio_user", "~> 0.42", github: "bowerbird-app/RecordingStudio_users", tag: "v0.42.1"'
     refute_includes root_gemfile, "recording_studio_user"
-    assert_includes gemfile, 'gem "puma", "8.1.1"'
-    assert_includes root_gemfile, 'gem "puma", "8.1.1"'
+    assert_includes gemfile, 'gem "puma", "8.1.2"'
+    assert_includes root_gemfile, 'gem "puma", "8.1.2"'
     assert_includes gemfile, 'gem "msgpack", ">= 1.8.7"'
     refute_includes gemfile, "0b1d229693041093200420b318154ff07acca33e"
     refute_includes root_gemfile, "0b1d229693041093200420b318154ff07acca33e"
@@ -899,6 +899,9 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     refute_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/terms_controller.rb"),
                     "TermsWrite.call"
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/terms_write.rb"))
+    assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/terms_create.rb"))
+    assert_includes engine_source("app/controllers/recording_studio_terms_and_conditions/admin/terms_controller.rb"),
+                    "TermsCreate.call"
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/sole_live.rb"))
     assert File.exist?(engine_path("lib/recording_studio_terms_and_conditions/published.rb"))
     published = engine_source("lib/recording_studio_terms_and_conditions/published.rb")
@@ -1021,9 +1024,12 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     notes = File.read(File.expand_path("../MIGRATION_NOTES.md", __dir__))
     readme = File.read(File.expand_path("../README.md", __dir__))
 
+    assert_includes changelog, "## [0.25.0]"
+    assert_includes changelog, "Upgrade notes (0.24.0 → 0.25.0)"
+    assert_includes changelog, "compare/v0.25.0...HEAD"
+    assert_includes changelog, "compare/v0.24.0...v0.25.0"
     assert_includes changelog, "## [0.24.0]"
     assert_includes changelog, "Upgrade notes (0.23.0 → 0.24.0)"
-    assert_includes changelog, "compare/v0.24.0...HEAD"
     assert_includes changelog, "compare/v0.23.0...v0.24.0"
     assert_includes changelog, "## [0.23.0]"
     assert_includes changelog, "Upgrade notes (0.22.0 → 0.23.0)"
@@ -1047,8 +1053,11 @@ class RecordingStudioTermsAndConditionsTest < Minitest::Test
     assert_includes changelog, "## [0.18.0]"
     assert_includes changelog, "Upgrade notes (0.17.0 → 0.18.0)"
     assert_includes changelog, "compare/v0.18.0...v0.19.0"
+    assert_includes notes, "Upgrade from 0.24.0 to 0.25.0"
+    assert_includes notes, "McpCopy.tool_names(api: :operations)"
     assert_includes notes, "Upgrade from 0.23.0 to 0.24.0"
     assert_includes notes, "users_after_auth_path"
+    assert_includes readme, "Upgrading from 0.24.0"
     assert_includes readme, "Upgrading from 0.23.0"
     assert_includes notes, "Upgrade from 0.22.0 to 0.23.0"
     assert_includes notes, "signup_notice_partials"
