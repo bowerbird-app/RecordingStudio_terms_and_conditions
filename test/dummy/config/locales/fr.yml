@@ -41,6 +41,7 @@ fr:
       errors:
         not_live: "Seules les conditions en vigueur peuvent être acceptées."
         must_agree: "Cochez la case si vous acceptez."
+        unchanged: "Aucun changement à publier"
   dummy:
     nav:
       toggle_sidebar: "Afficher le menu"

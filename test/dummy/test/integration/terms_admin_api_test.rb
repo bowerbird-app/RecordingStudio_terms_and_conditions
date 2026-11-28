@@ -68,8 +68,9 @@ class TermsAdminApiTest < ActionDispatch::IntegrationTest
     assert_includes json.dig("release", "body"), "Whisper."
 
     call(:post, "#{OPERATIONS}#{admin_root_path}/actions/terms_release", @token, { terms_id: json.dig("release", "id"), title: "Studio Terms" })
-    assert_response :success, response.body
-    assert_equal false, json.dig("release", "released")
+    assert_response :unprocessable_entity, response.body
+    assert_equal "invalid_input", json.dig("error", "code")
+    assert_equal "No changes to release", json.dig("error", "message")
     assert_equal 1, events.size
     assert section_id.present?
   ensure

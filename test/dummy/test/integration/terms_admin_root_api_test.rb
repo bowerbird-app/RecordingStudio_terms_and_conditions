@@ -151,6 +151,7 @@ class TermsAdminRootApiTest < ActionDispatch::IntegrationTest
     assert_response :success, response.body
     assert_equal true, released.dig("release", "released")
     live_id = released.dig("release", "id")
+    assert_equal terms_id, live_id
     live = RecordingStudio::Recording.find(live_id)
     RecordingStudioTermsAndConditions.accept!(@acceptor, live.recordable)
     refute RecordingStudioTermsAndConditions.requires_acceptance?(@acceptor)
@@ -165,8 +166,49 @@ class TermsAdminRootApiTest < ActionDispatch::IntegrationTest
     again = call(:post, "#{OPERATIONS}#{admin_root_path}/actions/terms_release", @edit_token, { terms_id: live_id })
     assert_response :success, response.body
     assert_equal true, again.dig("release", "released")
+    assert_equal live_id, again.dig("release", "id")
     assert RecordingStudioTermsAndConditions.requires_acceptance?(@acceptor)
     refute RecordingStudioTermsAndConditions.accepted?(@acceptor, kind: kind)
+  end
+
+  test "a seeded live document stays one lineage and a no-op release is refused" do
+    kind = RecordingStudioTermsAndConditions::Terms::DEFAULT_KIND
+    RecordingStudioTermsAndConditions::KindPresence.recordings_for(kind: kind).each do |recording|
+      recording.update_columns(trashed_at: Time.current)
+    end
+    recording = record_terms(nil, title: "MCPT Terms and Conditions", body: "MCP Tester seed.", kind: kind, actor: @owner)
+    publish_terms!(recording, slug: "mcpt-#{SecureRandom.hex(4)}", actor: @owner)
+    RecordingStudioTermsAndConditions::Outline.seed_recording!(recording, actor: @owner)
+
+    call(:post, "#{OPERATIONS}#{admin_root_path}/actions/terms_add_section", @edit_token, {
+           terms_id: recording.id, heading: "Gear"
+         })
+    assert_response :success, response.body
+    gear_id = json.fetch("section").fetch("id")
+    call(:post, "#{OPERATIONS}#{admin_root_path}/actions/terms_add_clause", @edit_token, {
+           terms_id: recording.id, section_id: gear_id, body: "Coil the cables."
+         })
+    assert_response :success, response.body
+
+    released = call(:post, "#{OPERATIONS}#{admin_root_path}/actions/terms_release", @edit_token, {
+                      terms_id: recording.id
+                    })
+    assert_response :success, response.body
+    assert_equal recording.id.to_s, released.dig("release", "id")
+    refute_includes released.dig("release", "body"), "1. 1."
+    refute_includes released.dig("release", "body"), "1.1 1.1"
+    assert_includes released.dig("release", "body"), "<h2>1. MCPT Terms and Conditions</h2>"
+    assert_includes released.dig("release", "body"), "<h2>2. Gear</h2>"
+
+    listed = call(:get, "#{OPERATIONS}#{admin_root_path}/actions/terms_documents", @edit_token)
+    assert_response :success, response.body
+    ids = listed.fetch("documents").select { |row| row["kind"] == kind }.map { |row| row["id"] }
+    assert_equal [recording.id.to_s], ids
+
+    call(:post, "#{OPERATIONS}#{admin_root_path}/actions/terms_release", @edit_token, { terms_id: recording.id })
+    assert_response :unprocessable_entity, response.body
+    assert_equal "invalid_input", json.dig("error", "code")
+    assert_equal "No changes to release", json.dig("error", "message")
   end
 
   test "terms_create and terms_update register on operations only and accept stays off" do

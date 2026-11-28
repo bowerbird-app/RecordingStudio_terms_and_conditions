@@ -155,17 +155,15 @@ class AdminTermsTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Whisper, please."
     assert_includes response.body, "Unreleased changes"
 
-    assert_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count }, 1 do
+    assert_no_difference -> { RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name).count } do
       post recording_studio_terms_and_conditions.release_admin_term_path(recording), params: {
         terms: { title: "House rules" }
       }
     end
-    released = RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name)
-                                         .order(:created_at).last
+    released = recording.reload
     assert_redirected_to recording_studio_terms_and_conditions.admin_term_path(released)
     assert_includes released.recordable.body, "Whisper, please."
     assert released.currently_published?
-    refute recording.reload.currently_published?
 
     get recording_studio_terms_and_conditions.admin_terms_path
     assert_redirected_to "/admin/screens/recording_studio_terms"

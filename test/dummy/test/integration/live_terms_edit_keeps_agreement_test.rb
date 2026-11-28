@@ -76,13 +76,12 @@ class LiveTermsEditKeepsAgreementTest < ActionDispatch::IntegrationTest
     post recording_studio_terms_and_conditions.release_admin_term_path(live), params: {
       terms: { title: "Booth rules" }
     }
-    released = RecordingStudio::Recording.where(recordable_type: RecordingStudioTermsAndConditions::Terms.name)
-                                         .order(:created_at).last
-    released_publishable = released.reload.publishable_child_recording
+    released = live.reload
+    released_publishable = released.publishable_child_recording
+    assert_equal live.id, released.id
+    assert_equal publishable.id, released_publishable.id
 
     get "/terms/#{publishable.id}/#{slug}"
-    assert_response :not_found
-    get "/terms/#{released_publishable.id}/#{released.current_publishable.slug}"
     assert_response :success
     assert_includes response.body, "Whisper in the booth."
     refute_includes response.body, "Keep the door shut."

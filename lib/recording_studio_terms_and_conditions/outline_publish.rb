@@ -26,6 +26,8 @@ module RecordingStudioTermsAndConditions
         released = Outline.release(parent_of(service), actor: service.send(:actor))
         child = released.publishable_child_recording
         ::RecordingStudio::Services::BaseService::Result.new(success: true, value: child)
+      rescue Outline::Unchanged
+        block.call
       end
 
       def releasing

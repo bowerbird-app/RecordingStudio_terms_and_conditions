@@ -36,7 +36,7 @@ module RecordingStudioTermsAndConditions
       def show
         @terms = terms_recording.recordable
         @changes = Outline.changes(terms_recording)
-        @unreleased = @changes.any?
+        @unreleased = Outline.unreleased?(terms_recording)
         @live = Outline.live?(terms_recording)
         @current_version = AgreementHistory.find(terms_recording, @terms.id) if @live
         @agreement_count = @current_version&.agreement_count
@@ -71,9 +71,10 @@ module RecordingStudioTermsAndConditions
       end
 
       def release
-        before = terms_recording.recordable_id
         released = Outline.release(terms_recording, actor: current_admin_actor, title: params.dig(:terms, :title))
-        redirect_to admin_term_path(released), notice: release_notice(released, before)
+        redirect_to admin_term_path(released), notice: "Released. People will need to agree to this version."
+      rescue Outline::Unchanged => e
+        redirect_to admin_term_path(terms_recording), alert: e.message
       end
 
       private
@@ -118,14 +119,6 @@ module RecordingStudioTermsAndConditions
         flash.now[:alert] = error.record.errors.full_messages.to_sentence.presence || fallback
         assign_form_fields_from_params
         render template, status: :unprocessable_entity
-      end
-
-      def release_notice(released, snapshot_id)
-        if released.id == terms_recording.id && released.recordable_id == snapshot_id
-          "Nothing new to release."
-        else
-          "Released. People will need to agree to this version."
-        end
       end
 
       def assign_form_fields_from(terms)

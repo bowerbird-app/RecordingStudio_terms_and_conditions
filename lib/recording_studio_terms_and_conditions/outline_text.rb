@@ -5,7 +5,7 @@ require "nokogiri"
 
 module RecordingStudioTermsAndConditions
   module Outline # rubocop:disable Metrics/ModuleLength
-    SectionDraft = Struct.new(:heading, :clauses)
+    SectionDraft = Struct.new(:heading, :clauses, :number)
 
     class << self # rubocop:disable Metrics/ClassLength
       def assemble(terms_recording)
@@ -65,21 +65,37 @@ module RecordingStudioTermsAndConditions
         drafts
       end
 
-      def html_drafts(fragment, title) # rubocop:disable Metrics/MethodLength
+      def html_drafts(fragment, title)
         drafts = []
         current = nil
-        fragment.children.each do |node|
-          next if blank_node?(node)
+        each_block(fragment) do |node|
+          current = heading_draft(drafts, node, title) if heading_node?(node)
+          next if heading_node?(node)
 
-          if heading_node?(node)
-            current = SectionDraft.new(node.text.strip.presence || title, [])
-            drafts << current
-          else
-            current = start_draft(drafts, title) if current.nil?
-            append_node(current, node)
-          end
+          current = start_draft(drafts, title) if current.nil?
+          append_node(current, node)
         end
         drafts
+      end
+
+      def heading_draft(drafts, node, title)
+        number = next_section_number(drafts)
+        draft = SectionDraft.new(strip_heading_number(node.text.strip.presence || title, number: number), [], number)
+        drafts << draft
+        draft
+      end
+
+      def each_block(node, &block)
+        node.children.each do |child|
+          next if blank_node?(child)
+          next each_block(child, &block) if wrapper_node?(child)
+
+          yield child
+        end
+      end
+
+      def wrapper_node?(node)
+        node.element? && !heading_node?(node) && !list_node?(node) && !%w[p li].include?(node.name)
       end
 
       def split_plain(text, title)
@@ -93,7 +109,13 @@ module RecordingStudioTermsAndConditions
         parts = text.split(/\n{2,}/).map(&:strip).reject(&:empty?)
         return fallback(text, title) if parts.size < 2
 
-        [SectionDraft.new(title, parts)]
+        [numbered_section(title, parts)]
+      end
+
+      def numbered_section(title, parts)
+        number = "1"
+        clauses = parts.each_with_index.map { |part, index| strip_clause_number(part, number: "1.#{index + 1}") }
+        SectionDraft.new(strip_heading_number(title, number: number), clauses, number)
       end
 
       def split_markdown(text, title) # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
@@ -103,7 +125,8 @@ module RecordingStudioTermsAndConditions
         text.each_line do |line|
           if (match = line.match(/\A\#{1,6}\s+(.+)\s*\z/))
             current = flush_markdown(drafts, current, buffer, title)
-            current = SectionDraft.new(match[1].strip, [])
+            number = next_section_number(drafts)
+            current = SectionDraft.new(strip_heading_number(match[1].strip, number: number), [], number)
             drafts << current
           elsif line.strip.empty?
             current = flush_markdown(drafts, current, buffer, title)
@@ -122,32 +145,33 @@ module RecordingStudioTermsAndConditions
         return current if paragraph.empty?
 
         current = start_draft(drafts, title) if current.nil?
-        current.clauses << paragraph
+        push_clause(current, paragraph)
         current
       end
 
       def start_draft(drafts, title)
-        draft = SectionDraft.new(title, [])
+        number = next_section_number(drafts)
+        draft = SectionDraft.new(strip_heading_number(title, number: number), [], number)
         drafts << draft
         draft
       end
 
-      def append_node(section, node) # rubocop:disable Metrics/AbcSize
+      def append_node(section, node)
         if list_node?(node)
           append_list(section, node)
         elsif node.element? && %w[p li].include?(node.name)
-          section.clauses << node.to_html
+          push_clause(section, node.to_html)
         elsif node.text.to_s.strip.present?
-          section.clauses << (node.element? ? node.to_html : node.text.strip)
+          push_clause(section, node.element? ? node.to_html : node.text.strip)
         end
       end
 
       def append_list(section, node)
         items = node.element_children.select { |child| child.name == "li" }
         if items.any?
-          items.each { |item| section.clauses << item.to_html }
+          items.each { |item| push_clause(section, item.to_html) }
         else
-          section.clauses << node.to_html
+          push_clause(section, node.to_html)
         end
       end
 
@@ -164,7 +188,37 @@ module RecordingStudioTermsAndConditions
       end
 
       def fallback(text, title)
-        [SectionDraft.new(title, [text])]
+        [numbered_section(title, [text])]
+      end
+
+      def next_section_number(drafts)
+        (drafts.size + 1).to_s
+      end
+
+      def push_clause(section, text)
+        section.clauses << strip_clause_number(text, number: "#{section.number}.#{section.clauses.size + 1}")
+      end
+
+      def strip_heading_number(text, number:)
+        prefix = "#{number}. "
+        value = text.to_s
+        value = value.delete_prefix(prefix) while value.start_with?(prefix)
+        value
+      end
+
+      def strip_clause_number(text, number:)
+        prefix = "#{number} "
+        html = text.to_s
+        html = peel_clause_prefix(html, prefix) while peel_clause_prefix(html, prefix) != html
+        html
+      end
+
+      def peel_clause_prefix(html, prefix)
+        stripped = html.sub(/\A(\s*<(?:p|li|div|h[1-6])\b[^>]*>)\s*#{Regexp.escape(prefix)}/i, "\\1")
+        return stripped if stripped != html
+        return html.delete_prefix(prefix) if html.start_with?(prefix)
+
+        html
       end
     end
   end

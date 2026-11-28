@@ -59,8 +59,8 @@ module RecordingStudioTermsAndConditions
         }.compact
       end
 
-      def release_hash(recording, released:)
-        document(recording).merge(released: released, body: recording.recordable.body)
+      def release_hash(recording)
+        document(recording).merge(released: true, body: recording.recordable.body)
       end
     end
 
@@ -252,10 +252,10 @@ module RecordingStudioTermsAndConditions
       def self.call(context)
         AdminGate.authorize!(context, :edit)
         recording = terms!(context)
-        before = [recording.id, recording.recordable_id]
         released = Outline.release(recording, actor: actor(context), title: context.params[:title])
-        changed = before != [released.id, released.recordable_id]
-        { release: AdminPayload.release_hash(released, released: changed) }
+        { release: AdminPayload.release_hash(released) }
+      rescue Outline::Unchanged => e
+        raise RecordingStudioApi::InvalidActionInputError, e.message
       end
     end
 
