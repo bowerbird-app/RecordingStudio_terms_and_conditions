@@ -25,6 +25,9 @@
     <% end %>
 
     <%= form_with url: acceptance_path, method: :post do %>
+      <% if @return_to.present? %>
+        <%= hidden_field_tag :return_to, @return_to %>
+      <% end %>
       <%= recording_studio_terms_continue_notice(
         actor: current_user,
         pending: agree_documents,

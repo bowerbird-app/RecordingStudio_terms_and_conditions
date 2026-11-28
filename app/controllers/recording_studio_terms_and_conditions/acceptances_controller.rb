@@ -6,10 +6,12 @@ module RecordingStudioTermsAndConditions
 
     def show
       load_acceptance_context
+      @return_to = safe_return_path(stored_location_for(:user))
     end
 
     def create
       load_acceptance_context
+      @return_to = safe_return_path(params[:return_to])
       return reject_agreement(Copy.t("flashes.no_live_terms")) if documents_to_accept.blank?
 
       accept_current_terms!
@@ -55,10 +57,21 @@ module RecordingStudioTermsAndConditions
     end
 
     def next_path_after_acceptance
-      stored = stored_location_for(:user) if respond_to?(:stored_location_for)
-      return stored if stored.present? && stored != acceptance_path
+      @return_to.presence || main_app.root_path
+    end
 
-      main_app.root_path
+    def safe_return_path(location)
+      path = url_from(location)
+      return if path.blank? || agree_path?(path)
+
+      path
+    end
+
+    def agree_path?(path)
+      location = URI.parse(path.to_s).path.to_s.chomp("/")
+      location.casecmp?(acceptance_path.chomp("/"))
+    rescue URI::InvalidURIError
+      false
     end
 
     def current_actor
